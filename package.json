@@ -1,0 +1,21 @@
+{
+  "name": "meta-harness",
+  "version": "0.1.0",
+  "description": "Markdown-first Codex-native workflow visibility harness.",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "meta-harness": "bin/meta-harness.js"
+  },
+  "files": [
+    "bin/",
+    "docs/product/",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
