@@ -201,6 +201,18 @@ A handoff must include:
 - next action;
 - stop criteria.
 
+## Expert Packet And Scope Kit
+
+When a run needs specialist review or delegated work, keep the packet smaller than the repo:
+
+1. install reusable templates with `meta-harness templates install`;
+2. choose one bounded scope with the scope-selector template;
+3. classify ambiguous work with the boundary-gate template;
+4. build a packet with `meta-harness expert-packet <round-id> --include <focused-path>`;
+5. reconcile reviewer output through the expert reconciliation matrix.
+
+Expert packets are advisory evidence bundles. They do not authorize execution, production-impacting actions, or scope expansion by themselves.
+
 ## Retrospective Lookback
 
 The retrospective is generated from events, not from chat memory.

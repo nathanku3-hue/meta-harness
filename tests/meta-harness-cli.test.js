@@ -26,6 +26,14 @@ function run(cwd, args, options = {}) {
   return result.stdout;
 }
 
+function runRaw(cwd, args, options = {}) {
+  return spawnSync(process.execPath, [CLI, ...args], {
+    cwd,
+    encoding: "utf8",
+    ...options,
+  });
+}
+
 function readJsonl(filePath) {
   return fs.readFileSync(filePath, "utf8")
     .split(/\r?\n/)
@@ -109,4 +117,60 @@ test("repos and poll read child repo status without launching workers", () => {
   assert.match(poll, /child-app/);
   assert.match(poll, /Child harness/);
   assert.equal(fs.existsSync(path.join(parent, ".meta-harness", "poll.md")), true);
+});
+
+test("templates install copies reusable scope and handoff contracts", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Prepare bounded delegated work"]);
+
+  const list = run(cwd, ["templates", "list"]);
+  assert.match(list, /skills\s+scope-selector\.md/);
+  assert.match(list, /contracts\s+worker-done-contract\.md/);
+
+  run(cwd, ["templates", "install"]);
+  const harness = path.join(cwd, ".meta-harness");
+  const scopeSelector = path.join(harness, "templates", "skills", "scope-selector.md");
+  const workerDone = path.join(harness, "templates", "contracts", "worker-done-contract.md");
+
+  assert.equal(fs.existsSync(scopeSelector), true);
+  assert.equal(fs.existsSync(workerDone), true);
+  assert.match(fs.readFileSync(scopeSelector, "utf8"), /Chosen Scope:/);
+  assert.match(fs.readFileSync(workerDone, "utf8"), /WorkerVerdict/);
+});
+
+test("expert-packet builds bounded local review packet", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Build expert review packet"]);
+  fs.writeFileSync(path.join(cwd, "focused-note.md"), "# Focused Note\n\nEvidence only.\n", "utf8");
+  run(cwd, [
+    "event",
+    "--stream", "review",
+    "--phase", "plan",
+    "--action", "selected bounded expert review",
+    "--result", "packet scope is one focused note",
+  ]);
+
+  const output = run(cwd, ["expert-packet", "ROUND-001", "--include", "focused-note.md"]);
+  assert.match(output, /Built expert packet:/);
+
+  const packet = path.join(cwd, ".meta-harness", "expert-packets", "ROUND-001");
+  assert.equal(fs.existsSync(path.join(packet, "README_DECISION_CARD.md")), true);
+  assert.equal(fs.existsSync(path.join(packet, ".meta-harness", "status.md")), true);
+  assert.equal(fs.existsSync(path.join(packet, "included", "focused-note.md")), true);
+  assert.equal(fs.existsSync(path.join(packet, "harness_templates", "skills", "scope-selector.md")), true);
+  assert.equal(fs.existsSync(path.join(packet, "PACKET_MANIFEST.md")), true);
+  assert.equal(fs.existsSync(path.join(packet, "git_status.txt")), true);
+
+  const manifest = fs.readFileSync(path.join(packet, "PACKET_MANIFEST.md"), "utf8");
+  assert.match(manifest, /included\/focused-note\.md/);
+  assert.match(manifest, /Excluded by design/);
+});
+
+test("expert-packet rejects includes that overlap packet output", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Reject recursive packet includes"]);
+
+  const result = runRaw(cwd, ["expert-packet", "ROUND-001", "--include", ".meta-harness"]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /include path must not overlap packet output root/);
 });

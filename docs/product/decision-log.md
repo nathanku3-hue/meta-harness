@@ -171,3 +171,13 @@ Non-blocking choices that can be made during implementation:
 - whether to keep the Python prototype or remove it after the Node CLI stabilizes;
 - whether to add a `meta-harness synthesize` command or keep synthesis inside `status --refresh`;
 - whether parent polling should produce a compact executive summary or preserve child status excerpts.
+
+## D016: Reusable Scope And Expert-Packet Kit
+
+Decision:
+
+Package generic scope-selection, boundary-gate, expert-context, harness-feedback, worker-done, stream-contract, and reconciliation templates with the CLI, plus an `expert-packet` command that builds bounded local review packets.
+
+Rationale:
+
+Reusable harness work should live in Meta-Harness rather than being stranded inside one stale or dirty project checkout. The packet builder may capture bounded local git metadata with `git` argv, but it must not run arbitrary shell commands, copy dependency/runtime/cache directories, or make expert packets into execution authority.

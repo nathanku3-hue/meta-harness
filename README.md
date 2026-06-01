@@ -19,6 +19,8 @@ Run locally from this repo:
 node bin/meta-harness.js init "Build coding and research visibility"
 node bin/meta-harness.js event --stream research --phase work --action "surveyed adjacent products" --result "copy visibility and persistence, reject full swarm"
 node bin/meta-harness.js worker-report codex-researcher --stream research --task "extract product patterns" --result "worker report normalized"
+node bin/meta-harness.js templates install
+node bin/meta-harness.js expert-packet ROUND-001 --include README.md
 node bin/meta-harness.js status --refresh
 node bin/meta-harness.js lookback --write
 ```
@@ -51,9 +53,23 @@ The product target is a global npm CLI. This repo now exposes the `meta-harness`
 npm install -g meta-harness
 meta-harness init
 meta-harness status
+meta-harness templates install
+meta-harness expert-packet ROUND-001
 ```
 
 See [Product spec](docs/product/product-spec.md) for the intended MVP command surface.
+
+## Expert Packets And Scope Contracts
+
+The CLI now ships a small generic kit for bounded review and delegated work:
+
+```bash
+meta-harness templates list
+meta-harness templates install
+meta-harness expert-packet ROUND-001 --include docs/product/product-spec.md
+```
+
+`templates install` copies reusable skill and contract templates into `.meta-harness/templates/`. `expert-packet` writes a compact packet under `.meta-harness/expert-packets/<round-id>/` using current harness truth, packaged templates, optional includes, and bounded git metadata when the target is a Git repo.
 
 ## Pre-MVP Prototype CLI
 

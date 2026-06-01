@@ -43,6 +43,11 @@ Each repository owns its own harness state:
   workers/
     worker-report-template.md
     <worker-id>.md
+  templates/
+    contracts/
+    skills/
+  expert-packets/
+    <round-id>/
   repos.json
 ```
 
@@ -202,6 +207,8 @@ meta-harness init
 meta-harness status
 meta-harness event
 meta-harness worker-report
+meta-harness templates
+meta-harness expert-packet
 meta-harness lookback
 meta-harness poll
 meta-harness repos
@@ -215,6 +222,8 @@ Command responsibilities:
 | `status` | Print or refresh official status. |
 | `event` | Append one event. |
 | `worker-report` | Create or ingest worker report. |
+| `templates` | List or install reusable scope, boundary, handoff, and reconciliation templates. |
+| `expert-packet` | Build a bounded expert-review packet from current harness truth and optional includes. |
 | `lookback` | Render retrospective from events. |
 | `poll` | Read local/child status files and summarize changes. |
 | `repos` | Manage child repo index. |
@@ -225,6 +234,8 @@ Implemented command examples:
 meta-harness init "Build coding and research visibility"
 meta-harness event --stream research --phase work --action "surveyed adjacent products" --result "copy visibility and persistence"
 meta-harness worker-report codex-researcher --stream research --task "extract patterns" --result "report normalized"
+meta-harness templates install
+meta-harness expert-packet ROUND-001 --include docs/product/product-spec.md
 meta-harness status --refresh
 meta-harness lookback --write
 meta-harness repos add child ../child-repo
@@ -239,9 +250,10 @@ Runtime code should be limited to:
 - JSONL append/read;
 - Markdown template rendering;
 - status aggregation;
+- bounded local git metadata capture for expert packets;
 - no network requirement;
 - no model API requirement;
-- no shell execution beyond the CLI itself.
+- no arbitrary shell execution.
 
 ## Acceptance Criteria
 
@@ -252,6 +264,8 @@ The one-shot MVP is acceptable when:
 - `meta-harness event` appends to `events.jsonl`;
 - `meta-harness status` prints official status;
 - `meta-harness worker-report` creates a report from a template;
+- `meta-harness templates install` copies reusable harness templates into local harness state;
+- `meta-harness expert-packet` writes a compact review packet without copying caches, runtime folders, dependencies, or oversized files;
 - `meta-harness lookback` renders a timeline;
 - `meta-harness poll` reads local and child statuses without launching agents;
 - docs explain the human/Codex translation boundary;
