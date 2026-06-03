@@ -3,6 +3,16 @@
 Status: Template
 Purpose: reconcile expert recommendations into one orchestrator decision.
 
+## Mode And Stale Rules
+
+```text
+Mode: <ADVISORY_REVIEW|APPROVAL_GATE|EXECUTION_PACKET|CLOSURE_REPORT>
+No artifact may use more than one mode.
+StaleReportRule: if an expert report predates current truth, prepend "Superseded on authorization status by <RoundID>; still valid only for guardrails."
+OneDecisionRule: reconcile to one next action; downstream architecture belongs in deferred recommendations.
+If no single next action can be selected, verdict must be BLOCK with max 3 blockers.
+```
+
 ## Header
 
 ```text

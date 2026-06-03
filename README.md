@@ -61,15 +61,19 @@ See [Product spec](docs/product/product-spec.md) for the intended MVP command su
 
 ## Worker PM Briefs
 
-`worker-report` now requires an explicit outcome:
+`worker-report` now requires an explicit outcome, requested work type, and actual work type:
 
 ```bash
-meta-harness worker-report codex-researcher --stream research --task "extract patterns" --outcome DONE --result "created a PM-facing brief" --next-action "synthesize status"
+meta-harness worker-report codex-researcher --stream research --task "extract patterns" --outcome DONE --requested-work-type docs --actual-work-type docs --result "created a PM-facing brief" --next-action "synthesize status"
 ```
 
 Allowed outcomes are `DONE`, `PARTIAL_WITH_EXPLICIT_SCOPE`, and `REJECTED`.
 
-Generated reports start with `# Worker PM Brief` and are organized around what changed, PM-facing status, key decisions, validation/evidence, blockers, next round recommendation, and worker accountability. The command rejects missing or invalid `--outcome` so execution work cannot silently become a docs-only fallback.
+Generated reports start with `# Worker PM Brief`, then `Outcome`, `Round`, `Progress`, and `Confidence`. They are organized around what changed, PM-facing status, the Ship-Fast Decision Gate, key decisions, validation/evidence, blockers, next round recommendation, and worker accountability.
+
+The command rejects missing or invalid `--outcome`, `--requested-work-type`, or `--actual-work-type`. It also rejects `DONE` when requested execution, data output, code, tests, provider probes, commits, or validation were silently performed as docs-only or not performed. Use `PARTIAL_WITH_EXPLICIT_SCOPE` or `REJECTED` with the blocker instead.
+
+SAW Verdict, ClosurePacket, ClosureValidation, and SAWBlockValidation are evidence only. They must not become a second primary report skeleton after the PM brief.
 
 ## Expert Packets And Scope Contracts
 

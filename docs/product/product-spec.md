@@ -95,14 +95,14 @@ Minimum worker PM brief:
 ```md
 # Worker PM Brief
 
-Worker:
-Stream:
-Task:
-Phase:
 Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
 Round: <round/task>
 Progress: <before>/100 -> <after>/100
 Confidence: <0-10>/10
+Worker:
+Stream:
+Task:
+Phase:
 
 ## What I did
 
@@ -111,6 +111,18 @@ One paragraph answering what actually changed, what artifact/result was produced
 ## PM-facing status
 
 One short paragraph naming current top-level state, what is unblocked or still blocked, and whether this is execution-ready, docs-only, design-only, or rejected.
+
+## Ship-Fast Decision Gate
+
+What is done:
+What is blocked:
+User order interpreted as:
+Recommended next step:
+Why this is correct:
+Alternatives considered:
+Decision needed from user:
+Scope limit:
+Stop rule:
 
 ## Key decisions made
 
@@ -140,7 +152,9 @@ commit_created:
 remaining_blocker:
 ```
 
-Worker-report generation must reject missing or invalid `Outcome`. The harness must not infer `PARTIAL_WITH_EXPLICIT_SCOPE` by default, because that would recreate silent fallback behavior.
+Worker-report generation must reject missing or invalid `Outcome`, `requested_work_type`, or `actual_work_type_performed`. The harness must not infer `PARTIAL_WITH_EXPLICIT_SCOPE` by default, because that would recreate silent fallback behavior.
+
+Reports must not begin with `# Worker Report`, numbered logs, SAW Verdict, ClosurePacket, or command logs. SAW and ClosurePacket details are evidence only and must not appear as a second primary report skeleton. Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden.
 
 ## Event Memory
 
@@ -292,7 +306,9 @@ The one-shot MVP is acceptable when:
 - `meta-harness event` appends to `events.jsonl`;
 - `meta-harness status` prints official status;
 - `meta-harness worker-report` creates a `# Worker PM Brief` from a template;
-- `meta-harness worker-report` rejects missing or invalid `--outcome`;
+- `meta-harness worker-report` starts generated reports with `Outcome`, `Round`, `Progress`, and `Confidence`;
+- `meta-harness worker-report` rejects missing or invalid `--outcome`, `--requested-work-type`, or `--actual-work-type`;
+- `meta-harness worker-report` rejects `DONE` when code, test, provider_probe, commit, validation, execution, or data_output work silently falls back to docs-only output;
 - `meta-harness templates install` copies reusable harness templates into local harness state;
 - `meta-harness expert-packet` writes one compact review `.zip` without copying caches, runtime folders, dependencies, or oversized files;
 - expert packet delivery has no loose sidecar `main.diff`, `main_next_scope.md`, or extra packet files beside the zip;
