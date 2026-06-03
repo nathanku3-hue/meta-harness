@@ -48,7 +48,7 @@ Usage:
   meta-harness init [goal] [--owner <name>]
   meta-harness status [--refresh]
   meta-harness event --stream <stream> --phase <phase> --action <text> --result <text>
-  meta-harness worker-report [worker-id] --stream <stream> --task <text> --outcome <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED> [--result <text>]
+  meta-harness worker-report [worker-id] --stream <stream> --task <text> --outcome <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED> --requested-work-type <type> --actual-work-type <type> [--result <text>]
   meta-harness templates list
   meta-harness templates install [--overwrite]
   meta-harness expert-packet <round-id> [--include <path>] [--overwrite]
@@ -565,14 +565,14 @@ Updated: not yet
 function workerReportTemplate() {
   return `# Worker PM Brief
 
+Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
+Round:
+Progress: <before>/100 -> <after>/100
+Confidence: <0-10>/10
 Worker:
 Stream:
 Task:
 Phase:
-Round:
-Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
-Progress: <before>/100 -> <after>/100
-Confidence: <0-10>/10
 
 ## What I did
 
@@ -581,6 +581,18 @@ Confidence: <0-10>/10
 ## PM-facing status
 
 <One short paragraph: current top-level state, unblocked/blocked state, and whether execution-ready, docs-only, design-only, or rejected.>
+
+## Ship-Fast Decision Gate
+
+What is done:
+What is blocked:
+User order interpreted as:
+Recommended next step:
+Why this is correct:
+Alternatives considered:
+Decision needed from user: <approve|redirect|hold>
+Scope limit:
+Stop rule:
 
 ## Key decisions made
 
@@ -607,13 +619,19 @@ Forbidden scope:
 
 ## Worker accountability
 
-requested_work_type: <docs|code|test|provider_probe|commit|validation>
-actual_work_type_performed:
+requested_work_type: <docs|code|test|provider_probe|commit|validation|execution|data_output>
+actual_work_type_performed: <docs|code|test|provider_probe|commit|validation|execution|data_output|none>
 credentials_touched: false
 provider_access_touched: false
 data_output_created: false
 commit_created: false
 remaining_blocker:
+
+Rules:
+- The report must begin with the Ship-Fast PM Brief fields: Outcome, Round, Progress, Confidence.
+- Do not use # Worker Report, numbered reviewer logs, command logs, SAW internals, or ClosurePacket lines as the primary report structure.
+- SAW Verdict and ClosurePacket details belong only under Validation / evidence.
+- Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden.
 `;
 }
 
@@ -784,6 +802,30 @@ function commandWorkerReport(argv) {
     fail("worker report requires --outcome DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED");
   }
 
+  const requestedWorkType = options.requestedWorkType;
+  const actualWorkType = options.actualWorkType;
+  const requestedWorkTypes = new Set([
+    "docs",
+    "code",
+    "test",
+    "provider_probe",
+    "commit",
+    "validation",
+    "execution",
+    "data_output",
+  ]);
+  const actualWorkTypes = new Set([...requestedWorkTypes, "none"]);
+  if (!requestedWorkType || !requestedWorkTypes.has(requestedWorkType)) {
+    fail("worker report requires --requested-work-type docs|code|test|provider_probe|commit|validation|execution|data_output");
+  }
+  if (!actualWorkType || !actualWorkTypes.has(actualWorkType)) {
+    fail("worker report requires --actual-work-type docs|code|test|provider_probe|commit|validation|execution|data_output|none");
+  }
+  const executionWorkTypes = new Set(["code", "test", "provider_probe", "commit", "validation", "execution", "data_output"]);
+  if (outcome === "DONE" && executionWorkTypes.has(requestedWorkType) && ["docs", "none"].includes(actualWorkType)) {
+    fail("silent docs-only fallback is forbidden; use PARTIAL_WITH_EXPLICIT_SCOPE or REJECTED and name the blocker");
+  }
+
   const round = options.round || task;
   const progress = options.progress || "not recorded";
   const confidence = options.confidence || "not recorded";
@@ -794,21 +836,21 @@ function commandWorkerReport(argv) {
   const blocker = options.blocker || "none";
   const proposedNextAction = options.nextAction || "Harness should review this report and choose the next action.";
   const humanSummary = options.humanSummary || result;
-  const codexNote = options.codexNote || proposedNextAction;
   const nextGoal = options.nextGoal || "not recorded";
   const allowedScope = options.allowedScope || "not recorded";
   const forbiddenScope = options.forbiddenScope || "not recorded";
+  const decisionNeeded = options.decisionNeeded || "hold";
 
   const report = `# Worker PM Brief
 
+Outcome: ${outcome}
+Round: ${round}
+Progress: ${progress}
+Confidence: ${confidence}
 Worker: ${workerId}
 Stream: ${stream}
 Task: ${task}
 Phase: ${phase}
-Round: ${round}
-Outcome: ${outcome}
-Progress: ${progress}
-Confidence: ${confidence}
 Updated: ${nowIso()}
 
 ## What I did
@@ -818,6 +860,18 @@ ${result}
 ## PM-facing status
 
 ${humanSummary}
+
+## Ship-Fast Decision Gate
+
+What is done: ${options.whatIsDone || result}
+What is blocked: ${blocker}
+User order interpreted as: ${options.userOrder || task}
+Recommended next step: ${proposedNextAction}
+Why this is correct: ${options.whyCorrect || "It preserves the requested scope and forces one next action before governance expansion."}
+Alternatives considered: ${options.alternatives || "none recorded"}
+Decision needed from user: ${decisionNeeded}
+Scope limit: ${options.scopeLimit || allowedScope}
+Stop rule: ${options.stopRule || "Stop if requested and actual work type diverge, or if SAW/ClosurePacket details become the primary report structure."}
 
 ## Key decisions made
 
@@ -847,17 +901,13 @@ Forbidden scope: ${forbiddenScope}
 
 ## Worker accountability
 
-requested_work_type: ${options.requestedWorkType || "unknown"}
-actual_work_type_performed: ${options.actualWorkType || "unknown"}
+requested_work_type: ${requestedWorkType}
+actual_work_type_performed: ${actualWorkType}
 credentials_touched: ${options.credentialsTouched || "false"}
 provider_access_touched: ${options.providerAccessTouched || "false"}
 data_output_created: ${options.dataOutputCreated || "false"}
 commit_created: ${options.commitCreated || "false"}
 remaining_blocker: ${blocker}
-
-## Codex continuation note
-
-${codexNote}
 `;
 
   const reportPath = harnessPath("workers", `${workerId}.md`);

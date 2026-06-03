@@ -54,6 +54,19 @@ test("init creates per-repo markdown harness state", () => {
 
   const status = fs.readFileSync(path.join(harness, "status.md"), "utf8");
   assert.match(status, /Ship the Codex-native status harness/);
+
+  const workerReportTemplate = fs.readFileSync(
+    path.join(harness, "workers", "worker-report-template.md"),
+    "utf8",
+  );
+  assert.match(
+    workerReportTemplate,
+    /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/,
+  );
+  assert.doesNotMatch(
+    workerReportTemplate,
+    /Silent docs-only fallback from execution work is forbidden/,
+  );
 });
 
 test("event and worker-report update status and lookback", () => {
@@ -100,16 +113,21 @@ test("event and worker-report update status and lookback", () => {
 
   const report = fs.readFileSync(path.join(harness, "workers", "codex-researcher.md"), "utf8");
   assert.match(report, /^# Worker PM Brief/m);
+  assert.match(report, /^# Worker PM Brief\n\nOutcome: DONE\nRound: ROUND-001\nProgress: 10\/100 -> 20\/100\nConfidence: 9\/10/m);
   assert.doesNotMatch(report, /^# Worker Report/m);
   assert.doesNotMatch(report, /## Result/);
   assert.doesNotMatch(report, /## Human Summary/);
   assert.doesNotMatch(report, /## Proposed Next Action/);
+  assert.doesNotMatch(report, /## Codex continuation note/);
+  assert.doesNotMatch(report, /^SAW Verdict:/m);
+  assert.doesNotMatch(report, /^ClosurePacket:/m);
   assert.match(report, /Outcome: DONE/);
   assert.match(report, /Round: ROUND-001/);
   assert.match(report, /Progress: 10\/100 -> 20\/100/);
   assert.match(report, /Confidence: 9\/10/);
   assert.match(report, /## What I did/);
   assert.match(report, /## PM-facing status/);
+  assert.match(report, /## Ship-Fast Decision Gate/);
   assert.match(report, /## Validation \/ evidence/);
   assert.match(report, /Passed:\nworker report file parsed/);
   assert.match(report, /Evidence artifacts:\n\.meta-harness\/workers\/codex-researcher\.md/);
@@ -150,6 +168,111 @@ test("worker-report requires explicit valid outcome", () => {
   assert.match(invalid.stderr, /requires --outcome DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED/);
   assert.doesNotMatch(invalid.stdout, /Worker PM Brief/);
   assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-researcher.md")), false);
+});
+
+test("worker-report requires explicit valid work type fields", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Require explicit work types"]);
+
+  const missingRequested = runRaw(cwd, [
+    "worker-report",
+    "codex-researcher",
+    "--stream", "research",
+    "--task", "missing requested work type",
+    "--outcome", "DONE",
+    "--actual-work-type", "docs",
+    "--result", "should not write",
+  ]);
+  assert.notEqual(missingRequested.status, 0);
+  assert.match(missingRequested.stderr, /requires --requested-work-type docs\|code\|test\|provider_probe\|commit\|validation\|execution\|data_output/);
+  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-researcher.md")), false);
+
+  const missingActual = runRaw(cwd, [
+    "worker-report",
+    "codex-researcher",
+    "--stream", "research",
+    "--task", "missing actual work type",
+    "--outcome", "DONE",
+    "--requested-work-type", "docs",
+    "--result", "should not write",
+  ]);
+  assert.notEqual(missingActual.status, 0);
+  assert.match(missingActual.stderr, /requires --actual-work-type docs\|code\|test\|provider_probe\|commit\|validation\|execution\|data_output\|none/);
+  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-researcher.md")), false);
+});
+
+test("worker-report rejects silent docs-only fallback for execution work", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Reject execution fallback"]);
+
+  const executionDocs = runRaw(cwd, [
+    "worker-report",
+    "codex-worker",
+    "--stream", "coding",
+    "--task", "execute code change",
+    "--outcome", "DONE",
+    "--requested-work-type", "execution",
+    "--actual-work-type", "docs",
+    "--result", "should not write",
+  ]);
+  assert.notEqual(executionDocs.status, 0);
+  assert.match(executionDocs.stderr, /silent docs-only fallback is forbidden/);
+  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-worker.md")), false);
+});
+
+test("worker-report rejects silent docs-only fallback for data output work", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Reject data output fallback"]);
+
+  const dataOutputDocs = runRaw(cwd, [
+    "worker-report",
+    "codex-worker",
+    "--stream", "coding",
+    "--task", "produce data output",
+    "--outcome", "DONE",
+    "--requested-work-type", "data_output",
+    "--actual-work-type", "docs",
+    "--result", "should not write",
+  ]);
+  assert.notEqual(dataOutputDocs.status, 0);
+  assert.match(dataOutputDocs.stderr, /silent docs-only fallback is forbidden/);
+  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-worker.md")), false);
+});
+
+test("worker-report allows partial or rejected reports with blockers", () => {
+  const partialCwd = tempDir();
+  run(partialCwd, ["init", "Allow explicit partial report"]);
+  run(partialCwd, [
+    "worker-report",
+    "codex-worker",
+    "--stream", "coding",
+    "--task", "execute code change",
+    "--outcome", "PARTIAL_WITH_EXPLICIT_SCOPE",
+    "--requested-work-type", "execution",
+    "--actual-work-type", "docs",
+    "--blocker", "runtime validation not approved",
+    "--result", "documented blocker only",
+  ]);
+  const partialReport = fs.readFileSync(path.join(partialCwd, ".meta-harness", "workers", "codex-worker.md"), "utf8");
+  assert.match(partialReport, /Outcome: PARTIAL_WITH_EXPLICIT_SCOPE/);
+  assert.match(partialReport, /remaining_blocker: runtime validation not approved/);
+
+  const rejectedCwd = tempDir();
+  run(rejectedCwd, ["init", "Allow explicit rejected report"]);
+  run(rejectedCwd, [
+    "worker-report",
+    "codex-worker",
+    "--stream", "coding",
+    "--task", "produce data output",
+    "--outcome", "REJECTED",
+    "--requested-work-type", "data_output",
+    "--actual-work-type", "none",
+    "--blocker", "data output not authorized",
+    "--result", "rejected unsafe request",
+  ]);
+  const rejectedReport = fs.readFileSync(path.join(rejectedCwd, ".meta-harness", "workers", "codex-worker.md"), "utf8");
+  assert.match(rejectedReport, /Outcome: REJECTED/);
+  assert.match(rejectedReport, /remaining_blocker: data output not authorized/);
 });
 
 test("repos and poll read child repo status without launching workers", () => {
@@ -196,8 +319,9 @@ test("templates install copies reusable scope and handoff contracts", () => {
   const workerDoneText = fs.readFileSync(workerDone, "utf8");
   assert.match(workerDoneText, /Worker Done \/ PM Brief Contract/);
   assert.match(workerDoneText, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
+  assert.match(workerDoneText, /Ship-Fast Decision Gate/);
   assert.match(workerDoneText, /Worker Accountability/);
-  assert.match(workerDoneText, /Silent docs-only fallback is forbidden/);
+  assert.match(workerDoneText, /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/);
 });
 
 test("expert-packet builds bounded local review packet", () => {
