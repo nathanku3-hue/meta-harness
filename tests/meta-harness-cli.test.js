@@ -59,6 +59,11 @@ test("init creates per-repo markdown harness state", () => {
     path.join(harness, "workers", "worker-report-template.md"),
     "utf8",
   );
+  const firstTemplateLine = workerReportTemplate
+    .split(/\r?\n/)
+    .find((line) => line.trim().length > 0);
+  assert.equal(firstTemplateLine, "Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>");
+  assert.doesNotMatch(workerReportTemplate, /# Worker PM Brief/);
   assert.match(
     workerReportTemplate,
     /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/,
@@ -112,23 +117,36 @@ test("event and worker-report update status and lookback", () => {
   assert.equal(fs.existsSync(path.join(harness, "workers", "codex-researcher.md")), true);
 
   const report = fs.readFileSync(path.join(harness, "workers", "codex-researcher.md"), "utf8");
-  assert.match(report, /^# Worker PM Brief/m);
-  assert.match(report, /^# Worker PM Brief\n\nOutcome: DONE\nRound: ROUND-001\nProgress: 10\/100 -> 20\/100\nConfidence: 9\/10/m);
+  const firstReportLine = report
+    .split(/\r?\n/)
+    .find((line) => line.trim().length > 0);
+  assert.equal(firstReportLine, "Outcome: DONE");
+  assert.match(report, /^Outcome: DONE\nRound: ROUND-001\nProgress: 10\/100 -> 20\/100\nConfidence: 9\/10/m);
+  assert.doesNotMatch(report, /# Worker PM Brief/);
   assert.doesNotMatch(report, /^# Worker Report/m);
   assert.doesNotMatch(report, /## Result/);
   assert.doesNotMatch(report, /## Human Summary/);
   assert.doesNotMatch(report, /## Proposed Next Action/);
   assert.doesNotMatch(report, /## Codex continuation note/);
+  assert.doesNotMatch(report, /## What I did/);
+  assert.doesNotMatch(report, /## PM-facing status/);
+  assert.doesNotMatch(report, /## Ship-Fast Decision Gate/);
+  assert.doesNotMatch(report, /## Validation \/ evidence/);
   assert.doesNotMatch(report, /^SAW Verdict:/m);
   assert.doesNotMatch(report, /^ClosurePacket:/m);
   assert.match(report, /Outcome: DONE/);
   assert.match(report, /Round: ROUND-001/);
   assert.match(report, /Progress: 10\/100 -> 20\/100/);
   assert.match(report, /Confidence: 9\/10/);
-  assert.match(report, /## What I did/);
-  assert.match(report, /## PM-facing status/);
-  assert.match(report, /## Ship-Fast Decision Gate/);
-  assert.match(report, /## Validation \/ evidence/);
+  assert.match(report, /## What changed/);
+  assert.match(report, /## Why it matters/);
+  assert.match(report, /## What is blocked/);
+  assert.match(report, /## What decision is needed/);
+  assert.match(report, /Decision needed from user: hold/);
+  assert.match(report, /Options considered: none recorded/);
+  assert.match(report, /## Next action/);
+  assert.match(report, /## Evidence/);
+  assert.match(report, /## Accountability/);
   assert.match(report, /Passed:\nworker report file parsed/);
   assert.match(report, /Evidence artifacts:\n\.meta-harness\/workers\/codex-researcher\.md/);
   assert.match(report, /requested_work_type: docs/);
@@ -319,8 +337,9 @@ test("templates install copies reusable scope and handoff contracts", () => {
   const workerDoneText = fs.readFileSync(workerDone, "utf8");
   assert.match(workerDoneText, /Worker Done \/ PM Brief Contract/);
   assert.match(workerDoneText, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
-  assert.match(workerDoneText, /Ship-Fast Decision Gate/);
-  assert.match(workerDoneText, /Worker Accountability/);
+  assert.match(workerDoneText, /What decision is needed/);
+  assert.match(workerDoneText, /Ship-Fast Decision Gate concept is folded/);
+  assert.match(workerDoneText, /## Accountability/);
   assert.match(workerDoneText, /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/);
 });
 

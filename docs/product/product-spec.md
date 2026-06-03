@@ -93,8 +93,6 @@ Codex-facing worker instructions must answer:
 Minimum worker PM brief:
 
 ```md
-# Worker PM Brief
-
 Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
 Round: <round/task>
 Progress: <before>/100 -> <after>/100
@@ -104,44 +102,39 @@ Stream:
 Task:
 Phase:
 
-## What I did
+## What changed
 
 One paragraph answering what actually changed, what artifact/result was produced, and practical effect.
 
-## PM-facing status
+## Why it matters
 
-One short paragraph naming current top-level state, what is unblocked or still blocked, and whether this is execution-ready, docs-only, design-only, or rejected.
+One short paragraph naming current top-level state and PM/product effect.
 
-## Ship-Fast Decision Gate
+## What is blocked
 
-What is done:
-What is blocked:
-User order interpreted as:
-Recommended next step:
-Why this is correct:
-Alternatives considered:
+Blocker plus exact reason, or none.
+
+## What decision is needed
+
 Decision needed from user:
+Options considered:
 Scope limit:
 Stop rule:
 
-## Key decisions made
+## Next action
 
-## Validation / evidence
+Recommended next action:
+Goal:
+Allowed scope:
+Forbidden scope:
+
+## Evidence
 
 Passed:
 Skipped:
 Evidence artifacts:
 
-## What is still blocked
-
-## Next round recommendation
-
-Recommended next round:
-Goal:
-Allowed scope:
-Forbidden scope:
-
-## Worker accountability
+## Accountability
 
 requested_work_type:
 actual_work_type_performed:
@@ -154,7 +147,7 @@ remaining_blocker:
 
 Worker-report generation must reject missing or invalid `Outcome`, `requested_work_type`, or `actual_work_type_performed`. The harness must not infer `PARTIAL_WITH_EXPLICIT_SCOPE` by default, because that would recreate silent fallback behavior.
 
-Reports must not begin with `# Worker Report`, numbered logs, SAW Verdict, ClosurePacket, or command logs. SAW and ClosurePacket details are evidence only and must not appear as a second primary report skeleton. Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden.
+Generated worker-report artifacts must use artifact v2 only: the first non-empty line is `Outcome:`, with `Round`, `Progress`, and `Confidence` immediately visible. The Ship-Fast Decision Gate concept is folded into `## What decision is needed` as one user decision, options considered, scope limit, and stop rule. Reports must not begin with `# Worker PM Brief`, `# Worker Report`, numbered logs, SAW Verdict, ClosurePacket, or command logs. SAW and ClosurePacket details are evidence only and must not appear as a second primary report skeleton. Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden.
 
 ## Event Memory
 
@@ -305,8 +298,8 @@ The one-shot MVP is acceptable when:
 - `meta-harness init` creates starter Markdown state;
 - `meta-harness event` appends to `events.jsonl`;
 - `meta-harness status` prints official status;
-- `meta-harness worker-report` creates a `# Worker PM Brief` from a template;
-- `meta-harness worker-report` starts generated reports with `Outcome`, `Round`, `Progress`, and `Confidence`;
+- `meta-harness worker-report` creates a worker-report artifact from a template;
+- `meta-harness worker-report` starts generated reports with `Outcome`, `Round`, `Progress`, and `Confidence` as the first visible fields;
 - `meta-harness worker-report` rejects missing or invalid `--outcome`, `--requested-work-type`, or `--actual-work-type`;
 - `meta-harness worker-report` rejects `DONE` when code, test, provider_probe, commit, validation, execution, or data_output work silently falls back to docs-only output;
 - `meta-harness templates install` copies reusable harness templates into local harness state;

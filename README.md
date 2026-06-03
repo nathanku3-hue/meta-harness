@@ -69,7 +69,9 @@ meta-harness worker-report codex-researcher --stream research --task "extract pa
 
 Allowed outcomes are `DONE`, `PARTIAL_WITH_EXPLICIT_SCOPE`, and `REJECTED`.
 
-Generated reports start with `# Worker PM Brief`, then `Outcome`, `Round`, `Progress`, and `Confidence`. They are organized around what changed, PM-facing status, the Ship-Fast Decision Gate, key decisions, validation/evidence, blockers, next round recommendation, and worker accountability.
+Generated reports use the worker-report artifact v2 shape. The first non-empty line is `Outcome:`, followed by `Round`, `Progress`, and `Confidence`; no title appears before those fields. They are organized around what changed, why it matters, blockers, one decision-needed block, next action, evidence, and accountability.
+
+The Ship-Fast Decision Gate concept is preserved inside `## What decision is needed` with one user decision, options considered, scope limit, and stop rule.
 
 The command rejects missing or invalid `--outcome`, `--requested-work-type`, or `--actual-work-type`. It also rejects `DONE` when requested execution, data output, code, tests, provider probes, commits, or validation were silently performed as docs-only or not performed. Use `PARTIAL_WITH_EXPLICIT_SCOPE` or `REJECTED` with the blocker instead.
 
