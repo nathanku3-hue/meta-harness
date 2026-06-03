@@ -73,8 +73,17 @@ test("event and worker-report update status and lookback", () => {
     "codex-researcher",
     "--stream", "research",
     "--task", "extract product patterns",
+    "--outcome", "DONE",
+    "--round", "ROUND-001",
+    "--progress", "10/100 -> 20/100",
+    "--confidence", "9/10",
     "--result", "worker report normalized",
-    "--evidence", "worker report file",
+    "--human-summary", "Research worker output is normalized and ready for PM synthesis.",
+    "--validations-passed", "worker report file parsed",
+    "--validations-skipped", "none",
+    "--evidence-artifacts", ".meta-harness/workers/codex-researcher.md",
+    "--requested-work-type", "docs",
+    "--actual-work-type", "docs",
     "--next-action", "synthesize status",
   ]);
 
@@ -86,12 +95,61 @@ test("event and worker-report update status and lookback", () => {
   const events = readJsonl(path.join(harness, "events.jsonl"));
   assert.equal(events.length, 3);
   assert.equal(events[2].actor, "codex-researcher");
+  assert.equal(events[2].evidence, ".meta-harness/workers/codex-researcher.md");
   assert.equal(fs.existsSync(path.join(harness, "workers", "codex-researcher.md")), true);
+
+  const report = fs.readFileSync(path.join(harness, "workers", "codex-researcher.md"), "utf8");
+  assert.match(report, /^# Worker PM Brief/m);
+  assert.doesNotMatch(report, /^# Worker Report/m);
+  assert.doesNotMatch(report, /## Result/);
+  assert.doesNotMatch(report, /## Human Summary/);
+  assert.doesNotMatch(report, /## Proposed Next Action/);
+  assert.match(report, /Outcome: DONE/);
+  assert.match(report, /Round: ROUND-001/);
+  assert.match(report, /Progress: 10\/100 -> 20\/100/);
+  assert.match(report, /Confidence: 9\/10/);
+  assert.match(report, /## What I did/);
+  assert.match(report, /## PM-facing status/);
+  assert.match(report, /## Validation \/ evidence/);
+  assert.match(report, /Passed:\nworker report file parsed/);
+  assert.match(report, /Evidence artifacts:\n\.meta-harness\/workers\/codex-researcher\.md/);
+  assert.match(report, /requested_work_type: docs/);
+  assert.match(report, /actual_work_type_performed: docs/);
 
   const lookback = run(cwd, ["lookback", "--write"]);
   assert.match(lookback, /Build coding and research visibility/);
   assert.match(lookback, /extract product patterns/);
   assert.equal(fs.existsSync(path.join(harness, "lookback.md")), true);
+});
+
+test("worker-report requires explicit valid outcome", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Require explicit worker outcome"]);
+
+  const missing = runRaw(cwd, [
+    "worker-report",
+    "codex-researcher",
+    "--stream", "research",
+    "--task", "missing outcome",
+    "--result", "should not write",
+  ]);
+  assert.notEqual(missing.status, 0);
+  assert.match(missing.stderr, /requires --outcome DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED/);
+  assert.doesNotMatch(missing.stdout, /Worker PM Brief/);
+  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-researcher.md")), false);
+
+  const invalid = runRaw(cwd, [
+    "worker-report",
+    "codex-researcher",
+    "--stream", "research",
+    "--task", "invalid outcome",
+    "--outcome", "DONE-ish",
+    "--result", "should not write",
+  ]);
+  assert.notEqual(invalid.status, 0);
+  assert.match(invalid.stderr, /requires --outcome DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED/);
+  assert.doesNotMatch(invalid.stdout, /Worker PM Brief/);
+  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-researcher.md")), false);
 });
 
 test("repos and poll read child repo status without launching workers", () => {
@@ -135,7 +193,11 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.equal(fs.existsSync(scopeSelector), true);
   assert.equal(fs.existsSync(workerDone), true);
   assert.match(fs.readFileSync(scopeSelector, "utf8"), /Chosen Scope:/);
-  assert.match(fs.readFileSync(workerDone, "utf8"), /WorkerVerdict/);
+  const workerDoneText = fs.readFileSync(workerDone, "utf8");
+  assert.match(workerDoneText, /Worker Done \/ PM Brief Contract/);
+  assert.match(workerDoneText, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
+  assert.match(workerDoneText, /Worker Accountability/);
+  assert.match(workerDoneText, /Silent docs-only fallback is forbidden/);
 });
 
 test("expert-packet builds bounded local review packet", () => {
@@ -151,19 +213,24 @@ test("expert-packet builds bounded local review packet", () => {
   ]);
 
   const output = run(cwd, ["expert-packet", "ROUND-001", "--include", "focused-note.md"]);
-  assert.match(output, /Built expert packet:/);
+  assert.match(output, /Built expert packet zip:/);
 
-  const packet = path.join(cwd, ".meta-harness", "expert-packets", "ROUND-001");
-  assert.equal(fs.existsSync(path.join(packet, "README_DECISION_CARD.md")), true);
-  assert.equal(fs.existsSync(path.join(packet, ".meta-harness", "status.md")), true);
-  assert.equal(fs.existsSync(path.join(packet, "included", "focused-note.md")), true);
-  assert.equal(fs.existsSync(path.join(packet, "harness_templates", "skills", "scope-selector.md")), true);
-  assert.equal(fs.existsSync(path.join(packet, "PACKET_MANIFEST.md")), true);
-  assert.equal(fs.existsSync(path.join(packet, "git_status.txt")), true);
+  const packetDir = path.join(cwd, ".meta-harness", "expert-packets", "ROUND-001");
+  const packetZip = `${packetDir}.zip`;
+  assert.equal(fs.existsSync(packetDir), false);
+  assert.equal(fs.existsSync(packetZip), true);
 
-  const manifest = fs.readFileSync(path.join(packet, "PACKET_MANIFEST.md"), "utf8");
-  assert.match(manifest, /included\/focused-note\.md/);
-  assert.match(manifest, /Excluded by design/);
+  const zipBytes = fs.readFileSync(packetZip);
+  assert.equal(zipBytes.readUInt32LE(0), 0x04034b50);
+  const zipText = zipBytes.toString("utf8");
+  assert.match(zipText, /README_DECISION_CARD\.md/);
+  assert.match(zipText, /\.meta-harness\/status\.md/);
+  assert.match(zipText, /included\/focused-note\.md/);
+  assert.match(zipText, /harness_templates\/skills\/scope-selector\.md/);
+  assert.match(zipText, /PACKET_MANIFEST\.md/);
+  assert.match(zipText, /git_status\.txt/);
+  assert.match(zipText, /single zip archive only/);
+  assert.match(zipText, /Excluded by design/);
 });
 
 test("expert-packet rejects includes that overlap packet output", () => {

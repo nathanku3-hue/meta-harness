@@ -47,7 +47,7 @@ Each repository owns its own harness state:
     contracts/
     skills/
   expert-packets/
-    <round-id>/
+    <round-id>.zip
   repos.json
 ```
 
@@ -82,6 +82,7 @@ Stop criteria:
 Codex-facing worker instructions must answer:
 
 - What is the bounded task?
+- What actually changed?
 - What stream owns it?
 - What files or artifacts matter?
 - What constraints apply?
@@ -89,30 +90,57 @@ Codex-facing worker instructions must answer:
 - What blocker should be reported instead of guessed through?
 - What exact next operation is safe?
 
-Minimum worker report:
+Minimum worker PM brief:
 
 ```md
-# Worker Report
+# Worker PM Brief
 
 Worker:
 Stream:
 Task:
 Phase:
+Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
+Round: <round/task>
+Progress: <before>/100 -> <after>/100
+Confidence: <0-10>/10
 
-## Result
+## What I did
 
-## Changed Artifacts
+One paragraph answering what actually changed, what artifact/result was produced, and practical effect.
 
-## Evidence
+## PM-facing status
 
-## Blockers
+One short paragraph naming current top-level state, what is unblocked or still blocked, and whether this is execution-ready, docs-only, design-only, or rejected.
 
-## Proposed Next Action
+## Key decisions made
 
-## Human Summary
+## Validation / evidence
 
-## Codex Continuation Note
+Passed:
+Skipped:
+Evidence artifacts:
+
+## What is still blocked
+
+## Next round recommendation
+
+Recommended next round:
+Goal:
+Allowed scope:
+Forbidden scope:
+
+## Worker accountability
+
+requested_work_type:
+actual_work_type_performed:
+credentials_touched:
+provider_access_touched:
+data_output_created:
+commit_created:
+remaining_blocker:
 ```
+
+Worker-report generation must reject missing or invalid `Outcome`. The harness must not infer `PARTIAL_WITH_EXPLICIT_SCOPE` by default, because that would recreate silent fallback behavior.
 
 ## Event Memory
 
@@ -221,9 +249,9 @@ Command responsibilities:
 | `init` | Create `.meta-harness/` starter docs. |
 | `status` | Print or refresh official status. |
 | `event` | Append one event. |
-| `worker-report` | Create or ingest worker report. |
+| `worker-report` | Create a PM-facing worker brief and require explicit `Outcome`. |
 | `templates` | List or install reusable scope, boundary, handoff, and reconciliation templates. |
-| `expert-packet` | Build a bounded expert-review packet from current harness truth and optional includes. |
+| `expert-packet` | Build one bounded expert-review zip from current harness truth and optional includes. |
 | `lookback` | Render retrospective from events. |
 | `poll` | Read local/child status files and summarize changes. |
 | `repos` | Manage child repo index. |
@@ -233,7 +261,7 @@ Implemented command examples:
 ```bash
 meta-harness init "Build coding and research visibility"
 meta-harness event --stream research --phase work --action "surveyed adjacent products" --result "copy visibility and persistence"
-meta-harness worker-report codex-researcher --stream research --task "extract patterns" --result "report normalized"
+meta-harness worker-report codex-researcher --stream research --task "extract patterns" --outcome DONE --round ROUND-001 --progress "10/100 -> 20/100" --confidence "9/10" --result "normalized product-pattern PM brief" --human-summary "Research output is ready for PM synthesis." --validations-passed "worker brief parsed" --validations-skipped "none" --evidence-artifacts ".meta-harness/workers/codex-researcher.md" --requested-work-type docs --actual-work-type docs --next-action "synthesize status"
 meta-harness templates install
 meta-harness expert-packet ROUND-001 --include docs/product/product-spec.md
 meta-harness status --refresh
@@ -250,7 +278,7 @@ Runtime code should be limited to:
 - JSONL append/read;
 - Markdown template rendering;
 - status aggregation;
-- bounded local git metadata capture for expert packets;
+- bounded local git metadata capture inside expert packet zips;
 - no network requirement;
 - no model API requirement;
 - no arbitrary shell execution.
@@ -263,9 +291,11 @@ The one-shot MVP is acceptable when:
 - `meta-harness init` creates starter Markdown state;
 - `meta-harness event` appends to `events.jsonl`;
 - `meta-harness status` prints official status;
-- `meta-harness worker-report` creates a report from a template;
+- `meta-harness worker-report` creates a `# Worker PM Brief` from a template;
+- `meta-harness worker-report` rejects missing or invalid `--outcome`;
 - `meta-harness templates install` copies reusable harness templates into local harness state;
-- `meta-harness expert-packet` writes a compact review packet without copying caches, runtime folders, dependencies, or oversized files;
+- `meta-harness expert-packet` writes one compact review `.zip` without copying caches, runtime folders, dependencies, or oversized files;
+- expert packet delivery has no loose sidecar `main.diff`, `main_next_scope.md`, or extra packet files beside the zip;
 - `meta-harness lookback` renders a timeline;
 - `meta-harness poll` reads local and child statuses without launching agents;
 - docs explain the human/Codex translation boundary;

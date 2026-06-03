@@ -37,6 +37,7 @@ const MAX_PACKET_FILE_BYTES = 2_000_000;
 const GIT_OUTPUT_LINE_CAP = 200;
 const GIT_OUTPUT_BYTE_CAP = 50_000;
 const GIT_TIMEOUT_MS = 20_000;
+const CRC32_TABLE = buildCrc32Table();
 
 function usage() {
   return `meta-harness
@@ -47,7 +48,7 @@ Usage:
   meta-harness init [goal] [--owner <name>]
   meta-harness status [--refresh]
   meta-harness event --stream <stream> --phase <phase> --action <text> --result <text>
-  meta-harness worker-report [worker-id] --stream <stream> --task <text> [--result <text>]
+  meta-harness worker-report [worker-id] --stream <stream> --task <text> --outcome <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED> [--result <text>]
   meta-harness templates list
   meta-harness templates install [--overwrite]
   meta-harness expert-packet <round-id> [--include <path>] [--overwrite]
@@ -116,6 +117,123 @@ function fail(message, code = 1) {
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function buildCrc32Table() {
+  const table = new Uint32Array(256);
+  for (let index = 0; index < 256; index += 1) {
+    let value = index;
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = (value & 1) ? (0xedb88320 ^ (value >>> 1)) : (value >>> 1);
+    }
+    table[index] = value >>> 0;
+  }
+  return table;
+}
+
+function crc32(buffer) {
+  let crc = 0xffffffff;
+  for (const byte of buffer) {
+    crc = CRC32_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
+function dosDateTime(date) {
+  const year = Math.max(1980, date.getFullYear());
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const seconds = Math.floor(date.getSeconds() / 2);
+  return {
+    time: ((hours << 11) | (minutes << 5) | seconds) & 0xffff,
+    date: (((year - 1980) << 9) | (month << 5) | day) & 0xffff,
+  };
+}
+
+function collectZipFiles(sourceDir, currentDir = sourceDir, collected = []) {
+  const entries = fs.readdirSync(currentDir, { withFileTypes: true })
+    .sort((left, right) => left.name.localeCompare(right.name));
+  for (const entry of entries) {
+    const fullPath = path.join(currentDir, entry.name);
+    if (entry.isDirectory()) {
+      collectZipFiles(sourceDir, fullPath, collected);
+      continue;
+    }
+    if (!entry.isFile()) {
+      continue;
+    }
+    collected.push({
+      fullPath,
+      name: path.relative(sourceDir, fullPath).split(path.sep).join("/"),
+      stat: fs.statSync(fullPath),
+    });
+  }
+  return collected;
+}
+
+function writeZipArchive(sourceDir, destinationPath) {
+  const files = collectZipFiles(sourceDir);
+  const localChunks = [];
+  const centralChunks = [];
+  let offset = 0;
+
+  for (const file of files) {
+    const data = fs.readFileSync(file.fullPath);
+    const name = Buffer.from(file.name, "utf8");
+    const checksum = crc32(data);
+    const { time, date } = dosDateTime(file.stat.mtime);
+    const localOffset = offset;
+    const localHeader = Buffer.alloc(30);
+    localHeader.writeUInt32LE(0x04034b50, 0);
+    localHeader.writeUInt16LE(20, 4);
+    localHeader.writeUInt16LE(0, 6);
+    localHeader.writeUInt16LE(0, 8);
+    localHeader.writeUInt16LE(time, 10);
+    localHeader.writeUInt16LE(date, 12);
+    localHeader.writeUInt32LE(checksum, 14);
+    localHeader.writeUInt32LE(data.length, 18);
+    localHeader.writeUInt32LE(data.length, 22);
+    localHeader.writeUInt16LE(name.length, 26);
+    localHeader.writeUInt16LE(0, 28);
+    localChunks.push(localHeader, name, data);
+    offset += localHeader.length + name.length + data.length;
+
+    const centralHeader = Buffer.alloc(46);
+    centralHeader.writeUInt32LE(0x02014b50, 0);
+    centralHeader.writeUInt16LE(20, 4);
+    centralHeader.writeUInt16LE(20, 6);
+    centralHeader.writeUInt16LE(0, 8);
+    centralHeader.writeUInt16LE(0, 10);
+    centralHeader.writeUInt16LE(time, 12);
+    centralHeader.writeUInt16LE(date, 14);
+    centralHeader.writeUInt32LE(checksum, 16);
+    centralHeader.writeUInt32LE(data.length, 20);
+    centralHeader.writeUInt32LE(data.length, 24);
+    centralHeader.writeUInt16LE(name.length, 28);
+    centralHeader.writeUInt16LE(0, 30);
+    centralHeader.writeUInt16LE(0, 32);
+    centralHeader.writeUInt16LE(0, 34);
+    centralHeader.writeUInt16LE(0, 36);
+    centralHeader.writeUInt32LE(0, 38);
+    centralHeader.writeUInt32LE(localOffset, 42);
+    centralChunks.push(centralHeader, name);
+  }
+
+  const centralSize = centralChunks.reduce((total, chunk) => total + chunk.length, 0);
+  const endRecord = Buffer.alloc(22);
+  endRecord.writeUInt32LE(0x06054b50, 0);
+  endRecord.writeUInt16LE(0, 4);
+  endRecord.writeUInt16LE(0, 6);
+  endRecord.writeUInt16LE(files.length, 8);
+  endRecord.writeUInt16LE(files.length, 10);
+  endRecord.writeUInt32LE(centralSize, 12);
+  endRecord.writeUInt32LE(offset, 16);
+  endRecord.writeUInt16LE(0, 20);
+
+  ensureDir(path.dirname(destinationPath));
+  fs.writeFileSync(destinationPath, Buffer.concat([...localChunks, ...centralChunks, endRecord]));
 }
 
 function harnessPath(...parts) {
@@ -445,26 +563,57 @@ Updated: not yet
 }
 
 function workerReportTemplate() {
-  return `# Worker Report
+  return `# Worker PM Brief
 
 Worker:
 Stream:
 Task:
 Phase:
+Round:
+Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
+Progress: <before>/100 -> <after>/100
+Confidence: <0-10>/10
 
-## Result
+## What I did
 
-## Changed Artifacts
+<One paragraph answering what actually changed, what artifact/result was produced, and practical effect.>
 
-## Evidence
+## PM-facing status
 
-## Blockers
+<One short paragraph: current top-level state, unblocked/blocked state, and whether execution-ready, docs-only, design-only, or rejected.>
 
-## Proposed Next Action
+## Key decisions made
 
-## Human Summary
+- <decision or none>
 
-## Codex Continuation Note
+## Validation / evidence
+
+Passed:
+
+Skipped:
+
+Evidence artifacts:
+
+## What is still blocked
+
+<blocker + exact reason, or none>
+
+## Next round recommendation
+
+Recommended next round:
+Goal:
+Allowed scope:
+Forbidden scope:
+
+## Worker accountability
+
+requested_work_type: <docs|code|test|provider_probe|commit|validation>
+actual_work_type_performed:
+credentials_touched: false
+provider_access_touched: false
+data_output_created: false
+commit_created: false
+remaining_blocker:
 `;
 }
 
@@ -628,46 +777,85 @@ function commandWorkerReport(argv) {
   const stream = normalizeStream(options.stream);
   const phase = normalizePhase(options.phase || "work");
   const task = options.task || "Unspecified bounded task.";
+  const allowedOutcomes = new Set(["DONE", "PARTIAL_WITH_EXPLICIT_SCOPE", "REJECTED"]);
+  const outcome = options.outcome;
+
+  if (!allowedOutcomes.has(outcome)) {
+    fail("worker report requires --outcome DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED");
+  }
+
+  const round = options.round || task;
+  const progress = options.progress || "not recorded";
+  const confidence = options.confidence || "not recorded";
   const result = options.result || "No result recorded yet.";
-  const evidence = options.evidence || "No evidence recorded yet.";
+  const validationsPassed = options.validationsPassed || "none";
+  const validationsSkipped = options.validationsSkipped || "none";
+  const evidenceArtifacts = options.evidenceArtifacts || options.artifacts || "none";
   const blocker = options.blocker || "none";
   const proposedNextAction = options.nextAction || "Harness should review this report and choose the next action.";
   const humanSummary = options.humanSummary || result;
   const codexNote = options.codexNote || proposedNextAction;
+  const nextGoal = options.nextGoal || "not recorded";
+  const allowedScope = options.allowedScope || "not recorded";
+  const forbiddenScope = options.forbiddenScope || "not recorded";
 
-  const report = `# Worker Report
+  const report = `# Worker PM Brief
 
 Worker: ${workerId}
 Stream: ${stream}
 Task: ${task}
 Phase: ${phase}
+Round: ${round}
+Outcome: ${outcome}
+Progress: ${progress}
+Confidence: ${confidence}
 Updated: ${nowIso()}
 
-## Result
+## What I did
 
 ${result}
 
-## Changed Artifacts
-
-${options.artifacts || "none"}
-
-## Evidence
-
-${evidence}
-
-## Blockers
-
-${blocker}
-
-## Proposed Next Action
-
-${proposedNextAction}
-
-## Human Summary
+## PM-facing status
 
 ${humanSummary}
 
-## Codex Continuation Note
+## Key decisions made
+
+- ${options.decision || "none"}
+
+## Validation / evidence
+
+Passed:
+${validationsPassed}
+
+Skipped:
+${validationsSkipped}
+
+Evidence artifacts:
+${evidenceArtifacts}
+
+## What is still blocked
+
+${blocker}
+
+## Next round recommendation
+
+Recommended next round: ${proposedNextAction}
+Goal: ${nextGoal}
+Allowed scope: ${allowedScope}
+Forbidden scope: ${forbiddenScope}
+
+## Worker accountability
+
+requested_work_type: ${options.requestedWorkType || "unknown"}
+actual_work_type_performed: ${options.actualWorkType || "unknown"}
+credentials_touched: ${options.credentialsTouched || "false"}
+provider_access_touched: ${options.providerAccessTouched || "false"}
+data_output_created: ${options.dataOutputCreated || "false"}
+commit_created: ${options.commitCreated || "false"}
+remaining_blocker: ${blocker}
+
+## Codex continuation note
 
 ${codexNote}
 `;
@@ -681,7 +869,7 @@ ${codexNote}
     phase,
     action: `worker report: ${task}`,
     result,
-    evidence,
+    evidence: evidenceArtifacts,
     blocker: blocker === "none" ? undefined : blocker,
     next_action: proposedNextAction,
   });
@@ -790,6 +978,7 @@ function writeExpertPacketManifest(packetDir, roundId, included, skipped, gitPat
     "",
     `RoundID: ${roundId}`,
     "Builder: meta-harness expert-packet",
+    "Deliverable: single zip archive only; do not publish sidecar diffs, next-scope notes, or loose packet files beside the zip.",
     "",
     "Included root files:",
     ...EXPERT_PACKET_FILES.map((filename) => `- ${filename}`),
@@ -827,14 +1016,15 @@ function commandExpertPacket(argv) {
     fail(`refusing packet output root: ${relativePath(outputRoot)}`);
   }
 
-  const packetDir = path.join(outputRoot, roundId);
+  const packetDir = path.join(outputRoot, `.${roundId}.packet-staging`);
+  const packetZip = path.join(outputRoot, `${roundId}.zip`);
   const overwrite = Boolean(options.overwrite);
   const dryRun = Boolean(options.dryRun);
   const includePaths = optionValues(options.include);
   const gitPathspecs = existingGitPathspecs([...includePaths, ...optionValues(options.gitPath)]);
 
   if (dryRun) {
-    console.log(`Would build expert packet: ${packetDir}`);
+    console.log(`Would build expert packet zip: ${packetZip}`);
     console.log("Planned git pathspecs:");
     for (const item of gitPathspecs) {
       console.log(`- ${item}`);
@@ -842,12 +1032,18 @@ function commandExpertPacket(argv) {
     return;
   }
 
-  if (fileExists(packetDir)) {
+  if (fileExists(packetZip) || fileExists(packetDir)) {
     if (!overwrite) {
-      fail(`expert packet already exists: ${packetDir}`);
+      fail(`expert packet already exists: ${packetZip}`);
     }
     if (!isInside(packetDir, outputRoot)) {
       fail(`refusing to overwrite packet outside output root: ${packetDir}`);
+    }
+    if (!isInside(packetZip, outputRoot)) {
+      fail(`refusing to overwrite packet outside output root: ${packetZip}`);
+    }
+    if (fileExists(packetZip)) {
+      fs.rmSync(packetZip, { force: true });
     }
     fs.rmSync(packetDir, { recursive: true, force: true });
   }
@@ -896,22 +1092,24 @@ function commandExpertPacket(argv) {
     stream: "review",
     phase: "plan",
     action: `built expert packet ${roundId}`,
-    result: `expert packet written to ${relativePath(packetDir)}`,
-    evidence: relativePath(path.join(packetDir, "PACKET_MANIFEST.md")),
+    result: `expert packet zip written to ${relativePath(packetZip)}`,
+    evidence: relativePath(packetZip),
     next_action: "Send the packet to the bounded expert reviewer or reconcile existing reviewer input.",
   });
   refreshStatus();
 
-  console.log(`Built expert packet: ${packetDir}`);
-  console.log("Included files:");
   const packetFiles = fs.readdirSync(packetDir, { recursive: true })
-    .map((item) => String(item).split(path.sep).join("/"))
+    .map((item) => String(item))
+    .filter((item) => fs.statSync(path.join(packetDir, item)).isFile())
+    .map((item) => item.split(path.sep).join("/"))
     .sort();
+  writeZipArchive(packetDir, packetZip);
+  fs.rmSync(packetDir, { recursive: true, force: true });
+
+  console.log(`Built expert packet zip: ${packetZip}`);
+  console.log("Included zip entries:");
   for (const item of packetFiles) {
-    const fullPath = path.join(packetDir, item);
-    if (fs.statSync(fullPath).isFile()) {
-      console.log(`- ${item}`);
-    }
+    console.log(`- ${item}`);
   }
 }
 
