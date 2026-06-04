@@ -324,16 +324,25 @@ test("templates install copies reusable scope and handoff contracts", () => {
 
   const list = run(cwd, ["templates", "list"]);
   assert.match(list, /skills\s+scope-selector\.md/);
+  assert.match(list, /skills\s+post-worker-github-actions\.md/);
   assert.match(list, /contracts\s+worker-done-contract\.md/);
 
   run(cwd, ["templates", "install"]);
   const harness = path.join(cwd, ".meta-harness");
   const scopeSelector = path.join(harness, "templates", "skills", "scope-selector.md");
+  const postWorkerGithubActions = path.join(harness, "templates", "skills", "post-worker-github-actions.md");
   const workerDone = path.join(harness, "templates", "contracts", "worker-done-contract.md");
 
   assert.equal(fs.existsSync(scopeSelector), true);
+  assert.equal(fs.existsSync(postWorkerGithubActions), true);
   assert.equal(fs.existsSync(workerDone), true);
   assert.match(fs.readFileSync(scopeSelector, "utf8"), /Chosen Scope:/);
+  const postWorkerText = fs.readFileSync(postWorkerGithubActions, "utf8");
+  assert.match(postWorkerText, /Post-Worker GitHub Actions/);
+  assert.match(postWorkerText, /worker-report v2/);
+  assert.match(postWorkerText, /skip `worker-report-template\.md`/);
+  assert.match(postWorkerText, /Do not pass secrets/);
+  assert.match(postWorkerText, /Summarize SAW evidence as evidence only/);
   const workerDoneText = fs.readFileSync(workerDone, "utf8");
   assert.match(workerDoneText, /Worker Done \/ PM Brief Contract/);
   assert.match(workerDoneText, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
@@ -341,6 +350,21 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(workerDoneText, /Ship-Fast Decision Gate concept is folded/);
   assert.match(workerDoneText, /## Accountability/);
   assert.match(workerDoneText, /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/);
+});
+
+test("post-worker workflow keeps reusable checks read-only and parameterized", () => {
+  const workflow = fs.readFileSync(path.join(ROOT, ".github", "workflows", "post-worker-saw.yml"), "utf8");
+  assert.match(workflow, /workflow_call:/);
+  assert.match(workflow, /base_sha:/);
+  assert.match(workflow, /head_sha:/);
+  assert.match(workflow, /contents: read/);
+  assert.match(workflow, /persist-credentials: false/);
+  assert.match(workflow, /actions\/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5/);
+  assert.doesNotMatch(workflow, /actions\/checkout@v4/);
+  assert.match(workflow, /filter\(\(file\) => !file\.endsWith\("worker-report-template\.md"\)\)/);
+  assert.match(workflow, /No worker reports matched/);
+  assert.match(workflow, /secrets\\\./);
+  assert.match(workflow, /SAW wrapper: PASS/);
 });
 
 test("expert-packet builds bounded local review packet", () => {

@@ -9,6 +9,7 @@ Markdown-first workflow harness for making agent-assisted work visible, durable,
 - [Decision log](docs/product/decision-log.md)
 - [GitHub research](docs/research/github-projects.md)
 - [Draft SOP](docs/sop/meta-harness-sop.md)
+- [Post-worker SAW workflow template](docs/templates/post_worker_saw_workflow.md)
 - [Pre-MVP prototype CLI](meta_harness.py)
 
 ## MVP CLI
@@ -76,6 +77,14 @@ The Ship-Fast Decision Gate concept is preserved inside `## What decision is nee
 The command rejects missing or invalid `--outcome`, `--requested-work-type`, or `--actual-work-type`. It also rejects `DONE` when requested execution, data output, code, tests, provider probes, commits, or validation were silently performed as docs-only or not performed. Use `PARTIAL_WITH_EXPLICIT_SCOPE` or `REJECTED` with the blocker instead.
 
 SAW Verdict, ClosurePacket, ClosureValidation, and SAWBlockValidation are evidence only. They must not become a second primary report skeleton after the PM brief.
+
+## Post-Worker GitHub Actions / SAW
+
+The repo includes a read-only reusable workflow at `.github/workflows/post-worker-saw.yml` and a packaged skill template at `templates/skills/post-worker-github-actions.md`.
+
+The workflow validates worker-report artifact v2 shape, skips `worker-report-template.md`, blocks silent docs-only fallback, checks changed files against an allowlist with optional explicit `base_sha` and `head_sha`, and emits a SAW evidence summary. It does not use secrets, provider access, WRDS, runtime/dashboard/scoring/broker paths, or data output, and it must not pass issue or PR body text into agent prompts.
+
+For cross-repo reuse, call the workflow with `workflow_call` from a job-level `uses:` reference pinned to a full commit SHA after audit.
 
 ## Expert Packets And Scope Contracts
 

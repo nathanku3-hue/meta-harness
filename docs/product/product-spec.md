@@ -46,10 +46,13 @@ Each repository owns its own harness state:
   templates/
     contracts/
     skills/
+      post-worker-github-actions.md
   expert-packets/
     <round-id>.zip
   repos.json
 ```
+
+Repo-level automation may also include `.github/workflows/post-worker-saw.yml` as a reusable read-only workflow for post-worker checks.
 
 ## Human Status Language
 
@@ -213,6 +216,12 @@ The harness can read:
 
 The harness does not launch agents in the MVP.
 
+## Post-Worker GitHub Actions
+
+Post-worker automation is a read-only evidence wrapper. It may validate worker-report v2 shape while excluding `worker-report-template.md`, no-silent-fallback accountability, changed-file allowlists with explicit `base_sha` and `head_sha`, YAML/Markdown hygiene, and SAW evidence placement.
+
+It must not use repository secrets, provider access, WRDS, runtime/dashboard/scoring/broker paths, data output, or untrusted issue/PR/comment text as agent prompt input. Third-party actions and reusable workflow callers must be pinned by full commit SHA before cross-repo production reuse. Repair edits require a separate explicit approval.
+
 ## Multi-Repo Model
 
 Each repo has its own harness.
@@ -305,6 +314,8 @@ The one-shot MVP is acceptable when:
 - `meta-harness templates install` copies reusable harness templates into local harness state;
 - `meta-harness expert-packet` writes one compact review `.zip` without copying caches, runtime folders, dependencies, or oversized files;
 - expert packet delivery has no loose sidecar `main.diff`, `main_next_scope.md`, or extra packet files beside the zip;
+- packaged templates include `post-worker-github-actions.md`;
+- repo-level post-worker workflow checks remain read-only and do not use secrets or provider/runtime/data paths;
 - `meta-harness lookback` renders a timeline;
 - `meta-harness poll` reads local and child statuses without launching agents;
 - docs explain the human/Codex translation boundary;
