@@ -4,6 +4,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { ConfigError, QualityGateError, UsageError, handleCliError } = require("../lib/errors");
 const { commandQuality } = require("../lib/quality");
 
 const HARNESS_DIR = ".meta-harness";
@@ -115,10 +116,7 @@ function optionValues(value) {
   return Array.isArray(value) ? value : [value];
 }
 
-function fail(message, code = 1) {
-  console.error(`meta-harness: ${message}`);
-  process.exit(code);
-}
+function fail(message, code = 2) { throw new UsageError(message, { exitCode: code }); }
 
 function nowIso() {
   return new Date().toISOString();
@@ -273,7 +271,7 @@ function readJson(targetPath, fallback) {
   try {
     return JSON.parse(readText(targetPath));
   } catch (error) {
-    fail(`invalid JSON in ${targetPath}: ${error.message}`);
+    throw new ConfigError(`invalid JSON in ${targetPath}`, { cause: error });
   }
 }
 
@@ -474,7 +472,7 @@ function readEvents() {
       try {
         return JSON.parse(line);
       } catch (error) {
-        fail(`invalid JSON in ${eventsPath} line ${index + 1}: ${error.message}`);
+        throw new ConfigError(`invalid JSON in ${eventsPath} line ${index + 1}`, { cause: error });
       }
     });
 }
@@ -1198,7 +1196,7 @@ function readRepoIndex() {
   ensureHarness();
   const index = readJson(harnessPath("repos.json"), { repos: [] });
   if (!Array.isArray(index.repos)) {
-    fail("repos.json must contain a repos array");
+    throw new ConfigError("repos.json must contain a repos array");
   }
   return index;
 }
@@ -1304,7 +1302,7 @@ function main(argv) {
   if (command === "quality") return commandQuality(rest, {
     cwd: process.cwd(),
     harnessDir: HARNESS_DIR,
-    fail,
+    fail: (message) => { throw new QualityGateError(message); },
     relativePath,
   });
   if (command === "lookback") return commandLookback(rest);
@@ -1314,4 +1312,4 @@ function main(argv) {
   fail(`unknown command: ${command}`);
 }
 
-main(process.argv.slice(2));
+try { main(process.argv.slice(2)); } catch (error) { handleCliError(error); }

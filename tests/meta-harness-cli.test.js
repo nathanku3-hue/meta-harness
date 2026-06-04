@@ -34,12 +34,47 @@ function runRaw(cwd, args, options = {}) {
   });
 }
 
+function errorCode(result) {
+  return result.stderr.match(/meta-harness: ([A-Z0-9_]+):/)?.[1];
+}
+
+function assertFailureCode(result, code, status) {
+  assert.equal(result.status, status, result.stderr);
+  assert.equal(errorCode(result), code, result.stderr);
+  assert.doesNotMatch(result.stderr, /\n\s+at /);
+}
+
 function readJsonl(filePath) {
   return fs.readFileSync(filePath, "utf8")
     .split(/\r?\n/)
     .filter(Boolean)
     .map((line) => JSON.parse(line));
 }
+
+test("CLI failures expose stable typed error codes and exit statuses", () => {
+  const usageCwd = tempDir();
+  assertFailureCode(runRaw(usageCwd, ["not-a-command"]), "MH_USAGE", 2);
+
+  const configCwd = tempDir();
+  run(configCwd, ["init", "Type config failures"]);
+  fs.writeFileSync(path.join(configCwd, ".meta-harness", "repos.json"), "{not-json", "utf8");
+  assertFailureCode(runRaw(configCwd, ["repos", "list"]), "MH_CONFIG", 2);
+
+  const filesystemCwd = tempDir();
+  run(filesystemCwd, ["init", "Type filesystem failures"]);
+  fs.rmSync(path.join(filesystemCwd, ".meta-harness", "events.jsonl"));
+  fs.mkdirSync(path.join(filesystemCwd, ".meta-harness", "events.jsonl"));
+  assertFailureCode(runRaw(filesystemCwd, ["status", "--refresh"]), "MH_FILESYSTEM", 3);
+
+  const qualityCwd = tempDir();
+  run(qualityCwd, ["quality", "init"]);
+  fs.writeFileSync(
+    path.join(qualityCwd, "new-monolith.js"),
+    Array.from({ length: 501 }, (_, index) => `const line${index} = ${index};`).join("\n"),
+    "utf8",
+  );
+  assertFailureCode(runRaw(qualityCwd, ["quality", "check"]), "MH_QUALITY_GATE", 1);
+});
 
 test("init creates per-repo markdown harness state", () => {
   const cwd = tempDir();
@@ -395,6 +430,7 @@ test("quality gate initializes managed repo contract and blocks a new monolith",
 
   const blocked = runRaw(cwd, ["quality", "check"]);
   assert.notEqual(blocked.status, 0);
+  assert.equal(errorCode(blocked), "MH_QUALITY_GATE");
   assert.match(`${blocked.stdout}\n${blocked.stderr}`, /new overbudget file/);
   assert.match(`${blocked.stdout}\n${blocked.stderr}`, /new-monolith\.js/);
 });
