@@ -16,6 +16,7 @@ const {
   writeIfMissing,
 } = require("../lib/paths");
 const { commandQuality } = require("../lib/quality");
+const { commandDirty, commandGate } = require("../lib/dirty");
 const { copyPackagedTemplates, templateFiles } = require("../lib/templates");
 
 const STREAMS = ["coding", "research", "writing", "review"];
@@ -62,6 +63,9 @@ Usage:
   meta-harness worker-report [worker-id] --stream <stream> --task <text> --outcome <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED> --requested-work-type <type> --actual-work-type <type> [--result <text>]
   meta-harness templates list
   meta-harness templates install [--overwrite]
+  meta-harness dirty snapshot --out <path>
+  meta-harness dirty classify --before <path> --after <path> --scope <path> --out <path>
+  meta-harness gate scope --dirty <path> --scope <path>
   meta-harness expert-packet <round-id> [--include <path>] [--overwrite]
   meta-harness quality init
   meta-harness quality baseline --force
@@ -1218,6 +1222,8 @@ function main(argv) {
   if (command === "event") return commandEvent(rest);
   if (command === "worker-report") return commandWorkerReport(rest);
   if (command === "templates") return commandTemplates(rest);
+  if (command === "dirty") return commandDirty(rest, { cwd: process.cwd() });
+  if (command === "gate") return commandGate(rest, { cwd: process.cwd() });
   if (command === "expert-packet") return commandExpertPacket(rest);
   if (command === "quality") return commandQuality(rest, {
     cwd: process.cwd(),
