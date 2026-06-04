@@ -76,6 +76,37 @@ test("CLI failures expose stable typed error codes and exit statuses", () => {
   assertFailureCode(runRaw(qualityCwd, ["quality", "check"]), "MH_QUALITY_GATE", 1);
 });
 
+test("quality config and invocation failures expose precise typed error codes", () => {
+  const missingContractCwd = tempDir();
+  assertFailureCode(runRaw(missingContractCwd, ["quality", "check"]), "MH_CONFIG", 2);
+
+  const invalidContractCwd = tempDir();
+  run(invalidContractCwd, ["quality", "init"]);
+  fs.writeFileSync(path.join(invalidContractCwd, ".meta-harness", "clean-code-contract.json"), "{not-json", "utf8");
+  assertFailureCode(runRaw(invalidContractCwd, ["quality", "check"]), "MH_CONFIG", 2);
+
+  const missingBaselineCwd = tempDir();
+  run(missingBaselineCwd, ["quality", "init"]);
+  fs.rmSync(path.join(missingBaselineCwd, ".meta-harness", "baseline", "quality-baseline.json"));
+  assertFailureCode(runRaw(missingBaselineCwd, ["quality", "check"]), "MH_CONFIG", 2);
+
+  const invalidBaselineCwd = tempDir();
+  run(invalidBaselineCwd, ["quality", "init"]);
+  fs.writeFileSync(
+    path.join(invalidBaselineCwd, ".meta-harness", "baseline", "quality-baseline.json"),
+    "{not-json",
+    "utf8",
+  );
+  assertFailureCode(runRaw(invalidBaselineCwd, ["quality", "check"]), "MH_CONFIG", 2);
+
+  const missingForceCwd = tempDir();
+  run(missingForceCwd, ["quality", "init"]);
+  assertFailureCode(runRaw(missingForceCwd, ["quality", "baseline"]), "MH_USAGE", 2);
+
+  const unknownQualityActionCwd = tempDir();
+  assertFailureCode(runRaw(unknownQualityActionCwd, ["quality", "not-a-command"]), "MH_USAGE", 2);
+});
+
 test("init creates per-repo markdown harness state", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Ship the Codex-native status harness"]);
