@@ -16,8 +16,8 @@ const {
   writeIfMissing,
 } = require("../lib/paths");
 const { commandQuality } = require("../lib/quality");
+const { copyPackagedTemplates, templateFiles } = require("../lib/templates");
 
-const TEMPLATE_ROOT = path.resolve(__dirname, "..", "templates");
 const STREAMS = ["coding", "research", "writing", "review"];
 const PHASES = ["intake", "plan", "work", "verify", "synthesize", "handoff", "lookback"];
 const EXPERT_PACKET_FILES = [
@@ -382,38 +382,6 @@ function existingGitPathspecs(extraPaths = []) {
     }
   }
   return pathspecs;
-}
-
-function templateFiles() {
-  const files = [];
-  for (const category of ["skills", "contracts"]) {
-    const categoryDir = path.join(TEMPLATE_ROOT, category);
-    if (!fileExists(categoryDir)) {
-      continue;
-    }
-    for (const filename of fs.readdirSync(categoryDir).sort()) {
-      const source = path.join(categoryDir, filename);
-      if (fs.statSync(source).isFile()) {
-        files.push({ category, filename, source });
-      }
-    }
-  }
-  return files;
-}
-
-function copyPackagedTemplates(destinationRoot, overwrite = true) {
-  const copied = [];
-  for (const template of templateFiles()) {
-    const relative = path.join(template.category, template.filename);
-    const destination = path.join(destinationRoot, relative);
-    if (fileExists(destination) && !overwrite) {
-      continue;
-    }
-    ensureDir(path.dirname(destination));
-    fs.copyFileSync(template.source, destination);
-    copied.push(relativePath(destination, destinationRoot));
-  }
-  return copied;
 }
 
 function appendEvent(event) {
