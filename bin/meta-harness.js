@@ -6,9 +6,17 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const { ConfigError, QualityGateError, UsageError, handleCliError } = require("../lib/errors");
 const eventStore = require("../lib/events");
+const { readJsonFile: readJson, writeJsonFile: writeJson } = require("../lib/json");
+const {
+  HARNESS_DIR,
+  ensureDir,
+  fileExists,
+  harnessPath,
+  readText,
+  writeIfMissing,
+} = require("../lib/paths");
 const { commandQuality } = require("../lib/quality");
 
-const HARNESS_DIR = ".meta-harness";
 const TEMPLATE_ROOT = path.resolve(__dirname, "..", "templates");
 const STREAMS = ["coding", "research", "writing", "review"];
 const PHASES = ["intake", "plan", "work", "verify", "synthesize", "handoff", "lookback"];
@@ -238,46 +246,6 @@ function writeZipArchive(sourceDir, destinationPath) {
 
   ensureDir(path.dirname(destinationPath));
   fs.writeFileSync(destinationPath, Buffer.concat([...localChunks, ...centralChunks, endRecord]));
-}
-
-function harnessPath(...parts) {
-  return path.join(process.cwd(), HARNESS_DIR, ...parts);
-}
-
-function ensureDir(targetPath) {
-  fs.mkdirSync(targetPath, { recursive: true });
-}
-
-function fileExists(targetPath) {
-  return fs.existsSync(targetPath);
-}
-
-function readText(targetPath, fallback = "") {
-  if (!fileExists(targetPath)) {
-    return fallback;
-  }
-  return fs.readFileSync(targetPath, "utf8");
-}
-
-function writeIfMissing(targetPath, content) {
-  if (!fileExists(targetPath)) {
-    fs.writeFileSync(targetPath, content, "utf8");
-  }
-}
-
-function readJson(targetPath, fallback) {
-  if (!fileExists(targetPath)) {
-    return fallback;
-  }
-  try {
-    return JSON.parse(readText(targetPath));
-  } catch (error) {
-    throw new ConfigError(`invalid JSON in ${targetPath}`, { cause: error });
-  }
-}
-
-function writeJson(targetPath, value) {
-  fs.writeFileSync(targetPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
 }
 
 function relativePath(targetPath, root = process.cwd()) {
