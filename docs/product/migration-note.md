@@ -19,3 +19,14 @@ Batch A updates the `worker-report` CLI contract. Worker reports now require:
 ```
 
 `PARTIAL_WITH_EXPLICIT_SCOPE`, `REJECTED`, and `--actual-work-type none` require `--blocker <reason>`. Generated worker reports are PM Brief artifacts and keep validations separate from evidence artifacts.
+
+Phase 2 adds the Decision Router / Decision Inbox command surface:
+
+```text
+meta-harness decisions list --in .meta-harness/decision-inbox.json
+meta-harness decisions add --kind <kind> --question <text> --state-hash <hash>
+meta-harness decisions resolve --id <id> --resolution <approved|rejected|deferred>
+meta-harness brief pm --dirty .meta-harness/dirty-work.json --decisions .meta-harness/decision-inbox.json --out .meta-harness/pm-brief.md
+```
+
+Dirty-work `DECISION` classifications become memoized user decisions. `QUEUE`, `PASS`, `BLOCK`, and `ESCALATE` do not become reusable decisions; blockers and escalations appear only in the current PM brief.

@@ -17,6 +17,7 @@ const {
 } = require("../lib/paths");
 const { commandQuality } = require("../lib/quality");
 const { commandDirty, commandGate } = require("../lib/dirty");
+const { commandBrief, commandDecisions } = require("../lib/decisions");
 const { copyPackagedTemplates, templateFiles } = require("../lib/templates");
 
 const STREAMS = ["coding", "research", "writing", "review"];
@@ -76,6 +77,10 @@ Usage:
   meta-harness dirty snapshot --out <path>
   meta-harness dirty classify --before <path> --after <path> --scope <path> --out <path>
   meta-harness gate scope --dirty <path> --scope <path>
+  meta-harness decisions list --in <path>
+  meta-harness decisions add --kind <kind> --question <text> --state-hash <hash>
+  meta-harness decisions resolve --id <id> --resolution <approved|rejected|deferred>
+  meta-harness brief pm --dirty <path> --decisions <path> --out <path>
   meta-harness expert-packet <round-id> [--include <path>] [--overwrite]
   meta-harness quality init
   meta-harness quality baseline --force
@@ -1243,6 +1248,8 @@ function main(argv) {
   if (command === "templates") return commandTemplates(rest);
   if (command === "dirty") return commandDirty(rest, { cwd: process.cwd() });
   if (command === "gate") return commandGate(rest, { cwd: process.cwd() });
+  if (command === "decisions") return commandDecisions(rest, { cwd: process.cwd() });
+  if (command === "brief") return commandBrief(rest, { cwd: process.cwd() });
   if (command === "expert-packet") return commandExpertPacket(rest);
   if (command === "quality") return commandQuality(rest, {
     cwd: process.cwd(),
