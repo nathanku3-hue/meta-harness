@@ -21,6 +21,9 @@ const { copyPackagedTemplates, templateFiles } = require("../lib/templates");
 
 const STREAMS = ["coding", "research", "writing", "review"];
 const PHASES = ["intake", "plan", "work", "verify", "synthesize", "handoff", "lookback"];
+const REQUESTED_WORK_TYPES = ["docs", "code", "test", "provider_probe", "commit", "validation", "execution", "data_output"];
+const ACTUAL_WORK_TYPES = [...REQUESTED_WORK_TYPES, "none"];
+const EXECUTION_STYLE_WORK_TYPES = ["code", "test", "provider_probe", "commit", "validation", "execution", "data_output"];
 const EXPERT_PACKET_FILES = [
   "README_DECISION_CARD.md",
   "candidate_scope_memo.md",
@@ -50,6 +53,13 @@ const GIT_OUTPUT_LINE_CAP = 200;
 const GIT_OUTPUT_BYTE_CAP = 50_000;
 const GIT_TIMEOUT_MS = 20_000;
 const CRC32_TABLE = buildCrc32Table();
+
+function listPhrase(items) {
+  if (items.length <= 1) {
+    return items.join("");
+  }
+  return `${items.slice(0, -1).join(", ")}, or ${items[items.length - 1]}`;
+}
 
 function usage() {
   return `meta-harness
@@ -486,10 +496,12 @@ Updated: not yet
 }
 
 function workerReportTemplate() {
-  return `Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
-Round:
-Progress: <before>/100 -> <after>/100
-Confidence: <0-10>/10
+  return `# Worker PM Brief
+
+Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
+Round: not recorded
+Progress: not recorded
+Confidence: not recorded
 Worker:
 Stream:
 Task:
@@ -521,7 +533,7 @@ Goal:
 Allowed scope:
 Forbidden scope:
 
-## Evidence
+## Validation / evidence
 
 Passed:
 
@@ -531,8 +543,8 @@ Evidence artifacts:
 
 ## Accountability
 
-requested_work_type: <docs|code|test|provider_probe|commit|validation|execution|data_output>
-actual_work_type_performed: <docs|code|test|provider_probe|commit|validation|execution|data_output|none>
+requested_work_type: <${REQUESTED_WORK_TYPES.join("|")}>
+actual_work_type_performed: <${ACTUAL_WORK_TYPES.join("|")}>
 credentials_touched: false
 provider_access_touched: false
 data_output_created: false
@@ -540,11 +552,15 @@ commit_created: false
 remaining_blocker:
 
 Rules:
-- The first non-empty line must be Outcome, followed by Round, Progress, and Confidence.
+- The first non-empty line must be # Worker PM Brief.
+- The first visible fields after the title must be Outcome, Round, Progress, and Confidence.
 - The Ship-Fast Decision Gate concept is folded into What decision is needed.
-- Do not add any title before Outcome, and do not use # Worker Report, numbered reviewer logs, command logs, SAW internals, or ClosurePacket lines as the primary report structure.
-- SAW Verdict and ClosurePacket details belong only under Evidence.
-- Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden.
+- Do not use # Worker Report, numbered reviewer logs, command logs, SAW internals, or ClosurePacket lines as the primary report structure.
+- SAW Verdict and ClosurePacket details belong only under Validation / evidence.
+- Missing requested_work_type or actual_work_type_performed fails closed.
+- PARTIAL_WITH_EXPLICIT_SCOPE and REJECTED require an explicit blocker.
+- actual_work_type_performed=none requires PARTIAL_WITH_EXPLICIT_SCOPE or REJECTED and an explicit blocker.
+- Silent docs-only fallback from ${listPhrase(EXECUTION_STYLE_WORK_TYPES)} work is forbidden.
 `;
 }
 
@@ -570,6 +586,10 @@ function listOrNone(items) {
 }
 
 function eventTime(event) { return event.ts || event.time || "unknown time"; }
+
+function hasExplicitBlocker(value) {
+  return typeof value === "string" && value.trim().length > 0 && value.trim().toLowerCase() !== "none";
+}
 
 function latestStreamFacts(events) {
   return STREAMS.map((stream) => {
@@ -721,36 +741,33 @@ function commandWorkerReport(argv) {
 
   const requestedWorkType = options.requestedWorkType;
   const actualWorkType = options.actualWorkType;
-  const requestedWorkTypes = new Set([
-    "docs",
-    "code",
-    "test",
-    "provider_probe",
-    "commit",
-    "validation",
-    "execution",
-    "data_output",
-  ]);
-  const actualWorkTypes = new Set([...requestedWorkTypes, "none"]);
+  const requestedWorkTypes = new Set(REQUESTED_WORK_TYPES);
+  const actualWorkTypes = new Set(ACTUAL_WORK_TYPES);
   if (!requestedWorkType || !requestedWorkTypes.has(requestedWorkType)) {
-    fail("worker report requires --requested-work-type docs|code|test|provider_probe|commit|validation|execution|data_output");
+    fail(`worker report requires --requested-work-type ${REQUESTED_WORK_TYPES.join("|")}`);
   }
   if (!actualWorkType || !actualWorkTypes.has(actualWorkType)) {
-    fail("worker report requires --actual-work-type docs|code|test|provider_probe|commit|validation|execution|data_output|none");
+    fail(`worker report requires --actual-work-type ${ACTUAL_WORK_TYPES.join("|")}`);
   }
-  const executionWorkTypes = new Set(["code", "test", "provider_probe", "commit", "validation", "execution", "data_output"]);
+  const blocker = options.blocker || "none";
+  const executionWorkTypes = new Set(EXECUTION_STYLE_WORK_TYPES);
+  if (outcome === "DONE" && actualWorkType === "none") {
+    fail("actual work type none requires PARTIAL_WITH_EXPLICIT_SCOPE or REJECTED and --blocker <reason>");
+  }
   if (outcome === "DONE" && executionWorkTypes.has(requestedWorkType) && ["docs", "none"].includes(actualWorkType)) {
     fail("silent docs-only fallback is forbidden; use PARTIAL_WITH_EXPLICIT_SCOPE or REJECTED and name the blocker");
   }
+  if (["PARTIAL_WITH_EXPLICIT_SCOPE", "REJECTED"].includes(outcome) && !hasExplicitBlocker(blocker)) {
+    fail(`${outcome} worker report requires --blocker <reason>`);
+  }
 
-  const round = options.round || task;
+  const round = options.round || "not recorded";
   const progress = options.progress || "not recorded";
   const confidence = options.confidence || "not recorded";
   const result = options.result || "No result recorded yet.";
   const validationsPassed = options.validationsPassed || "none";
   const validationsSkipped = options.validationsSkipped || "none";
   const evidenceArtifacts = options.evidenceArtifacts || options.artifacts || "none";
-  const blocker = options.blocker || "none";
   const proposedNextAction = options.nextAction || "Harness should review this report and choose the next action.";
   const humanSummary = options.humanSummary || result;
   const nextGoal = options.nextGoal || "not recorded";
@@ -758,7 +775,9 @@ function commandWorkerReport(argv) {
   const forbiddenScope = options.forbiddenScope || "not recorded";
   const decisionNeeded = options.decisionNeeded || "hold";
 
-  const report = `Outcome: ${outcome}
+  const report = `# Worker PM Brief
+
+Outcome: ${outcome}
 Round: ${round}
 Progress: ${progress}
 Confidence: ${confidence}
@@ -794,7 +813,7 @@ Goal: ${nextGoal}
 Allowed scope: ${allowedScope}
 Forbidden scope: ${forbiddenScope}
 
-## Evidence
+## Validation / evidence
 
 Passed:
 ${validationsPassed}

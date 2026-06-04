@@ -1,0 +1,211 @@
+"use strict";
+
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const { spawnSync } = require("node:child_process");
+const test = require("node:test");
+
+const ROOT = path.resolve(__dirname, "..");
+const CLI = path.join(ROOT, "bin", "meta-harness.js");
+
+function tempDir() {
+  return fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-worker-report-"));
+}
+
+function run(cwd, args) {
+  const result = spawnSync(process.execPath, [CLI, ...args], { cwd, encoding: "utf8" });
+  if (result.status !== 0) {
+    throw new Error(`Command failed: ${args.join(" ")}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
+  }
+  return result.stdout;
+}
+
+function runRaw(cwd, args) {
+  return spawnSync(process.execPath, [CLI, ...args], { cwd, encoding: "utf8" });
+}
+
+function errorCode(result) {
+  return result.stderr.match(/meta-harness: ([A-Z0-9_]+):/)?.[1];
+}
+
+function assertCliError(result, pattern) {
+  assert.notEqual(result.status, 0);
+  assert.equal(errorCode(result), "MH_USAGE", result.stderr);
+  assert.match(result.stderr, pattern);
+  assert.doesNotMatch(result.stderr, /\n\s+at /);
+}
+
+function reportPath(cwd, worker = "codex-worker") {
+  return path.join(cwd, ".meta-harness", "workers", `${worker}.md`);
+}
+
+test("worker-report requires explicit valid outcome and work types", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Require explicit worker accountability"]);
+
+  const cases = [
+    [
+      ["worker-report", "codex-worker", "--stream", "research", "--task", "missing outcome", "--result", "no write"],
+      /requires --outcome DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED/,
+    ],
+    [
+      ["worker-report", "codex-worker", "--stream", "research", "--task", "invalid outcome", "--outcome", "DONE-ish", "--result", "no write"],
+      /requires --outcome DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED/,
+    ],
+    [
+      ["worker-report", "codex-worker", "--stream", "research", "--task", "missing requested", "--outcome", "DONE", "--actual-work-type", "docs", "--result", "no write"],
+      /requires --requested-work-type docs\|code\|test\|provider_probe\|commit\|validation\|execution\|data_output/,
+    ],
+    [
+      ["worker-report", "codex-worker", "--stream", "research", "--task", "invalid requested", "--outcome", "DONE", "--requested-work-type", "none", "--actual-work-type", "docs", "--result", "no write"],
+      /requires --requested-work-type docs\|code\|test\|provider_probe\|commit\|validation\|execution\|data_output/,
+    ],
+    [
+      ["worker-report", "codex-worker", "--stream", "research", "--task", "missing actual", "--outcome", "DONE", "--requested-work-type", "docs", "--result", "no write"],
+      /requires --actual-work-type docs\|code\|test\|provider_probe\|commit\|validation\|execution\|data_output\|none/,
+    ],
+    [
+      ["worker-report", "codex-worker", "--stream", "research", "--task", "invalid actual", "--outcome", "DONE", "--requested-work-type", "docs", "--actual-work-type", "unknown", "--result", "no write"],
+      /requires --actual-work-type docs\|code\|test\|provider_probe\|commit\|validation\|execution\|data_output\|none/,
+    ],
+  ];
+
+  for (const [args, pattern] of cases) {
+    assertCliError(runRaw(cwd, args), pattern);
+  }
+  assert.equal(fs.existsSync(reportPath(cwd)), false);
+});
+
+test("worker-report rejects DONE when requested execution work only produced docs or none", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Reject silent fallback"]);
+  const docsFallbacks = ["code", "provider_probe", "validation", "execution", "data_output"];
+
+  for (const workType of docsFallbacks) {
+    const result = runRaw(cwd, [
+      "worker-report",
+      `worker-${workType}`,
+      "--stream", "coding",
+      "--task", `do ${workType}`,
+      "--outcome", "DONE",
+      "--requested-work-type", workType,
+      "--actual-work-type", "docs",
+      "--result", "should not write",
+    ]);
+    assertCliError(result, /silent docs-only fallback is forbidden/);
+  }
+
+  assertCliError(
+    runRaw(cwd, [
+      "worker-report", "none-worker",
+      "--stream", "coding",
+      "--task", "do nothing",
+      "--outcome", "DONE",
+      "--requested-work-type", "docs",
+      "--actual-work-type", "none",
+      "--result", "should not write",
+    ]),
+    /actual work type none requires PARTIAL_WITH_EXPLICIT_SCOPE or REJECTED/,
+  );
+});
+
+test("worker-report requires blocker for partial and rejected outcomes", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Require blocker"]);
+
+  assertCliError(
+    runRaw(cwd, [
+      "worker-report", "partial-worker",
+      "--stream", "coding",
+      "--task", "partial without blocker",
+      "--outcome", "PARTIAL_WITH_EXPLICIT_SCOPE",
+      "--requested-work-type", "code",
+      "--actual-work-type", "docs",
+      "--result", "should not write",
+    ]),
+    /PARTIAL_WITH_EXPLICIT_SCOPE worker report requires --blocker/,
+  );
+  assertCliError(
+    runRaw(cwd, [
+      "worker-report", "rejected-worker",
+      "--stream", "coding",
+      "--task", "rejected without blocker",
+      "--outcome", "REJECTED",
+      "--requested-work-type", "code",
+      "--actual-work-type", "none",
+      "--result", "should not write",
+    ]),
+    /REJECTED worker report requires --blocker/,
+  );
+});
+
+test("worker-report writes PM briefs for valid done partial and rejected reports", () => {
+  const docsCwd = tempDir();
+  run(docsCwd, ["init", "Allow docs done"]);
+  run(docsCwd, [
+    "worker-report", "docs-worker",
+    "--stream", "writing",
+    "--task", "document outcome",
+    "--outcome", "DONE",
+    "--requested-work-type", "docs",
+    "--actual-work-type", "docs",
+    "--result", "documented outcome",
+  ]);
+  const docsReport = fs.readFileSync(reportPath(docsCwd, "docs-worker"), "utf8");
+  assert.match(docsReport, /^# Worker PM Brief\n\nOutcome: DONE\nRound: not recorded\nProgress: not recorded\nConfidence: not recorded/m);
+  assert.match(docsReport, /Goal: not recorded/);
+  assert.match(docsReport, /Allowed scope: not recorded/);
+  assert.match(docsReport, /Forbidden scope: not recorded/);
+
+  const codeCwd = tempDir();
+  run(codeCwd, ["init", "Allow code done"]);
+  run(codeCwd, [
+    "worker-report", "code-worker",
+    "--stream", "coding",
+    "--task", "edit code",
+    "--outcome", "DONE",
+    "--requested-work-type", "code",
+    "--actual-work-type", "code",
+    "--result", "code edited",
+  ]);
+  const codeReport = fs.readFileSync(reportPath(codeCwd, "code-worker"), "utf8");
+  assert.match(codeReport, /# Worker PM Brief/);
+  assert.match(codeReport, /requested_work_type: code/);
+  assert.match(codeReport, /actual_work_type_performed: code/);
+
+  const partialCwd = tempDir();
+  run(partialCwd, ["init", "Allow partial"]);
+  run(partialCwd, [
+    "worker-report", "partial-worker",
+    "--stream", "coding",
+    "--task", "execute code change",
+    "--outcome", "PARTIAL_WITH_EXPLICIT_SCOPE",
+    "--requested-work-type", "execution",
+    "--actual-work-type", "docs",
+    "--blocker", "runtime validation not approved",
+    "--result", "documented blocker only",
+  ]);
+  const partialReport = fs.readFileSync(reportPath(partialCwd, "partial-worker"), "utf8");
+  assert.match(partialReport, /# Worker PM Brief/);
+  assert.match(partialReport, /Outcome: PARTIAL_WITH_EXPLICIT_SCOPE/);
+  assert.match(partialReport, /remaining_blocker: runtime validation not approved/);
+
+  const rejectedCwd = tempDir();
+  run(rejectedCwd, ["init", "Allow rejected"]);
+  run(rejectedCwd, [
+    "worker-report", "rejected-worker",
+    "--stream", "coding",
+    "--task", "produce data output",
+    "--outcome", "REJECTED",
+    "--requested-work-type", "data_output",
+    "--actual-work-type", "none",
+    "--blocker", "data output not authorized",
+    "--result", "rejected unsafe request",
+  ]);
+  const rejectedReport = fs.readFileSync(reportPath(rejectedCwd, "rejected-worker"), "utf8");
+  assert.match(rejectedReport, /# Worker PM Brief/);
+  assert.match(rejectedReport, /Outcome: REJECTED/);
+  assert.match(rejectedReport, /remaining_blocker: data output not authorized/);
+});

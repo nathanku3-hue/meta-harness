@@ -52,6 +52,10 @@ function assertCliError(result, code, pattern) {
   assert.doesNotMatch(result.stderr, /\n\s+at /);
 }
 
+function fencedBlockCount(text) {
+  return (text.match(/```/g) || []).length;
+}
+
 test("init creates per-repo markdown harness state", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Ship the Codex-native status harness"]);
@@ -73,8 +77,9 @@ test("init creates per-repo markdown harness state", () => {
   const firstTemplateLine = workerReportTemplate
     .split(/\r?\n/)
     .find((line) => line.trim().length > 0);
-  assert.equal(firstTemplateLine, "Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>");
-  assert.doesNotMatch(workerReportTemplate, /# Worker PM Brief/);
+  assert.equal(firstTemplateLine, "# Worker PM Brief");
+  assert.match(workerReportTemplate, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
+  assert.match(workerReportTemplate, /## Validation \/ evidence/);
   assert.match(
     workerReportTemplate,
     /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/,
@@ -132,9 +137,8 @@ test("event and worker-report update status and lookback", () => {
   const firstReportLine = report
     .split(/\r?\n/)
     .find((line) => line.trim().length > 0);
-  assert.equal(firstReportLine, "Outcome: DONE");
-  assert.match(report, /^Outcome: DONE\nRound: ROUND-001\nProgress: 10\/100 -> 20\/100\nConfidence: 9\/10/m);
-  assert.doesNotMatch(report, /# Worker PM Brief/);
+  assert.equal(firstReportLine, "# Worker PM Brief");
+  assert.match(report, /^# Worker PM Brief\n\nOutcome: DONE\nRound: ROUND-001\nProgress: 10\/100 -> 20\/100\nConfidence: 9\/10/m);
   assert.doesNotMatch(report, /^# Worker Report/m);
   assert.doesNotMatch(report, /## Result/);
   assert.doesNotMatch(report, /## Human Summary/);
@@ -143,7 +147,6 @@ test("event and worker-report update status and lookback", () => {
   assert.doesNotMatch(report, /## What I did/);
   assert.doesNotMatch(report, /## PM-facing status/);
   assert.doesNotMatch(report, /## Ship-Fast Decision Gate/);
-  assert.doesNotMatch(report, /## Validation \/ evidence/);
   assert.doesNotMatch(report, /^SAW Verdict:/m);
   assert.doesNotMatch(report, /^ClosurePacket:/m);
   assert.match(report, /Outcome: DONE/);
@@ -157,9 +160,10 @@ test("event and worker-report update status and lookback", () => {
   assert.match(report, /Decision needed from user: hold/);
   assert.match(report, /Options considered: none recorded/);
   assert.match(report, /## Next action/);
-  assert.match(report, /## Evidence/);
+  assert.match(report, /## Validation \/ evidence/);
   assert.match(report, /## Accountability/);
   assert.match(report, /Passed:\nworker report file parsed/);
+  assert.match(report, /Skipped:\nnone/);
   assert.match(report, /Evidence artifacts:\n\.meta-harness\/workers\/codex-researcher\.md/);
   assert.match(report, /requested_work_type: docs/);
   assert.match(report, /actual_work_type_performed: docs/);
@@ -195,141 +199,6 @@ test("event validation fails closed for bad JSONL and CLI input", () => {
   const missingResultCwd = tempDir();
   run(missingResultCwd, ["init", "Validate CLI"]);
   assertCliError(runRaw(missingResultCwd, ["event", "--action", "did it"]), "MH_USAGE", /event requires --result/);
-});
-
-test("worker-report requires explicit valid outcome", () => {
-  const cwd = tempDir();
-  run(cwd, ["init", "Require explicit worker outcome"]);
-
-  const missing = runRaw(cwd, [
-    "worker-report",
-    "codex-researcher",
-    "--stream", "research",
-    "--task", "missing outcome",
-    "--result", "should not write",
-  ]);
-  assert.notEqual(missing.status, 0);
-  assert.match(missing.stderr, /requires --outcome DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED/);
-  assert.doesNotMatch(missing.stdout, /Worker PM Brief/);
-  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-researcher.md")), false);
-
-  const invalid = runRaw(cwd, [
-    "worker-report",
-    "codex-researcher",
-    "--stream", "research",
-    "--task", "invalid outcome",
-    "--outcome", "DONE-ish",
-    "--result", "should not write",
-  ]);
-  assert.notEqual(invalid.status, 0);
-  assert.match(invalid.stderr, /requires --outcome DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED/);
-  assert.doesNotMatch(invalid.stdout, /Worker PM Brief/);
-  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-researcher.md")), false);
-});
-
-test("worker-report requires explicit valid work type fields", () => {
-  const cwd = tempDir();
-  run(cwd, ["init", "Require explicit work types"]);
-
-  const missingRequested = runRaw(cwd, [
-    "worker-report",
-    "codex-researcher",
-    "--stream", "research",
-    "--task", "missing requested work type",
-    "--outcome", "DONE",
-    "--actual-work-type", "docs",
-    "--result", "should not write",
-  ]);
-  assert.notEqual(missingRequested.status, 0);
-  assert.match(missingRequested.stderr, /requires --requested-work-type docs\|code\|test\|provider_probe\|commit\|validation\|execution\|data_output/);
-  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-researcher.md")), false);
-
-  const missingActual = runRaw(cwd, [
-    "worker-report",
-    "codex-researcher",
-    "--stream", "research",
-    "--task", "missing actual work type",
-    "--outcome", "DONE",
-    "--requested-work-type", "docs",
-    "--result", "should not write",
-  ]);
-  assert.notEqual(missingActual.status, 0);
-  assert.match(missingActual.stderr, /requires --actual-work-type docs\|code\|test\|provider_probe\|commit\|validation\|execution\|data_output\|none/);
-  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-researcher.md")), false);
-});
-
-test("worker-report rejects silent docs-only fallback for execution work", () => {
-  const cwd = tempDir();
-  run(cwd, ["init", "Reject execution fallback"]);
-
-  const executionDocs = runRaw(cwd, [
-    "worker-report",
-    "codex-worker",
-    "--stream", "coding",
-    "--task", "execute code change",
-    "--outcome", "DONE",
-    "--requested-work-type", "execution",
-    "--actual-work-type", "docs",
-    "--result", "should not write",
-  ]);
-  assert.notEqual(executionDocs.status, 0);
-  assert.match(executionDocs.stderr, /silent docs-only fallback is forbidden/);
-  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-worker.md")), false);
-});
-
-test("worker-report rejects silent docs-only fallback for data output work", () => {
-  const cwd = tempDir();
-  run(cwd, ["init", "Reject data output fallback"]);
-
-  const dataOutputDocs = runRaw(cwd, [
-    "worker-report",
-    "codex-worker",
-    "--stream", "coding",
-    "--task", "produce data output",
-    "--outcome", "DONE",
-    "--requested-work-type", "data_output",
-    "--actual-work-type", "docs",
-    "--result", "should not write",
-  ]);
-  assert.notEqual(dataOutputDocs.status, 0);
-  assert.match(dataOutputDocs.stderr, /silent docs-only fallback is forbidden/);
-  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "workers", "codex-worker.md")), false);
-});
-
-test("worker-report allows partial or rejected reports with blockers", () => {
-  const partialCwd = tempDir();
-  run(partialCwd, ["init", "Allow explicit partial report"]);
-  run(partialCwd, [
-    "worker-report",
-    "codex-worker",
-    "--stream", "coding",
-    "--task", "execute code change",
-    "--outcome", "PARTIAL_WITH_EXPLICIT_SCOPE",
-    "--requested-work-type", "execution",
-    "--actual-work-type", "docs",
-    "--blocker", "runtime validation not approved",
-    "--result", "documented blocker only",
-  ]);
-  const partialReport = fs.readFileSync(path.join(partialCwd, ".meta-harness", "workers", "codex-worker.md"), "utf8");
-  assert.match(partialReport, /Outcome: PARTIAL_WITH_EXPLICIT_SCOPE/);
-  assert.match(partialReport, /remaining_blocker: runtime validation not approved/);
-
-  const rejectedCwd = tempDir();
-  run(rejectedCwd, ["init", "Allow explicit rejected report"]);
-  run(rejectedCwd, [
-    "worker-report",
-    "codex-worker",
-    "--stream", "coding",
-    "--task", "produce data output",
-    "--outcome", "REJECTED",
-    "--requested-work-type", "data_output",
-    "--actual-work-type", "none",
-    "--blocker", "data output not authorized",
-    "--result", "rejected unsafe request",
-  ]);
-  const rejectedReport = fs.readFileSync(path.join(rejectedCwd, ".meta-harness", "workers", "codex-worker.md"), "utf8");
-  assert.match(rejectedReport, /Outcome: REJECTED/);
-  assert.match(rejectedReport, /remaining_blocker: data output not authorized/);
 });
 
 test("repos and poll read child repo status without launching workers", () => {
@@ -384,10 +253,16 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(postWorkerText, /Summarize SAW evidence as evidence only/);
   const workerDoneText = fs.readFileSync(workerDone, "utf8");
   assert.match(workerDoneText, /Worker Done \/ PM Brief Contract/);
+  assert.match(workerDoneText, /# Worker PM Brief/);
   assert.match(workerDoneText, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
   assert.match(workerDoneText, /What decision is needed/);
   assert.match(workerDoneText, /Ship-Fast Decision Gate concept is folded/);
+  assert.match(workerDoneText, /## Worker Accountability/);
+  assert.match(workerDoneText, /## Blockers And Next Action/);
   assert.match(workerDoneText, /## Accountability/);
+  assert.doesNotMatch(workerDoneText, /WorkerVerdict/);
+  assert.doesNotMatch(workerDoneText, /text \+/);
+  assert.equal(fencedBlockCount(workerDoneText) % 2, 0);
   assert.match(workerDoneText, /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/);
 });
 
