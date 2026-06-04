@@ -367,6 +367,48 @@ test("post-worker workflow keeps reusable checks read-only and parameterized", (
   assert.match(workflow, /SAW wrapper: PASS/);
 });
 
+test("quality gate initializes managed repo contract and blocks a new monolith", () => {
+  const cwd = tempDir();
+
+  run(cwd, ["quality", "init"]);
+
+  const harness = path.join(cwd, ".meta-harness");
+  assert.equal(fs.existsSync(path.join(harness, "clean-code-contract.json")), true);
+  assert.equal(fs.existsSync(path.join(harness, "baseline", "quality-baseline.json")), true);
+
+  const clean = runRaw(cwd, ["quality", "check"]);
+  assert.equal(clean.status, 0);
+  assert.match(clean.stdout, /Quality gate: PASS/);
+
+  assert.match(run(cwd, ["quality", "explain"]), /ratchet/);
+  run(cwd, ["quality", "baseline"]);
+
+  fs.writeFileSync(
+    path.join(cwd, "new-monolith.js"),
+    Array.from({ length: 501 }, (_, index) => `const line${index} = ${index};`).join("\n"),
+    "utf8",
+  );
+
+  const blocked = runRaw(cwd, ["quality", "check"]);
+  assert.notEqual(blocked.status, 0);
+  assert.match(`${blocked.stdout}\n${blocked.stderr}`, /new overbudget file/);
+  assert.match(`${blocked.stdout}\n${blocked.stderr}`, /new-monolith\.js/);
+});
+
+test("package dry-run includes quality module", () => {
+  const npmExecPath = process.env.npm_execpath;
+  const command = npmExecPath ? process.execPath : (process.platform === "win32" ? "npm.cmd" : "npm");
+  const args = npmExecPath ? [npmExecPath, "pack", "--dry-run", "--json"] : ["pack", "--dry-run", "--json"];
+  const result = spawnSync(command, args, {
+    cwd: ROOT,
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 0, `ERROR:\n${result.error}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
+  const [pack] = JSON.parse(result.stdout);
+  const packedFiles = pack.files.map((file) => file.path);
+  assert.equal(packedFiles.includes("lib/quality.js"), true);
+});
+
 test("expert-packet builds bounded local review packet", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Build expert review packet"]);

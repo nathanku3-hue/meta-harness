@@ -60,6 +60,19 @@ meta-harness expert-packet ROUND-001
 
 See [Product spec](docs/product/product-spec.md) for the intended MVP command surface.
 
+## Clean-Code Governor
+
+`quality` installs a repo-local clean-code contract for meta-harness or any managed repo:
+
+```bash
+meta-harness quality init
+meta-harness quality baseline
+meta-harness quality check
+meta-harness quality explain
+```
+
+The gate runs in ratchet mode: existing debt may be grandfathered, new debt is blocked, touched debt must not get worse, and compatibility-breaking CLI or report behavior requires an explicit migration note and approval.
+
 ## Worker PM Briefs
 
 `worker-report` now requires an explicit outcome, requested work type, and actual work type:

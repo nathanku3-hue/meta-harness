@@ -4,6 +4,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { commandQuality } = require("../lib/quality");
 
 const HARNESS_DIR = ".meta-harness";
 const TEMPLATE_ROOT = path.resolve(__dirname, "..", "templates");
@@ -52,6 +53,10 @@ Usage:
   meta-harness templates list
   meta-harness templates install [--overwrite]
   meta-harness expert-packet <round-id> [--include <path>] [--overwrite]
+  meta-harness quality init
+  meta-harness quality baseline
+  meta-harness quality check
+  meta-harness quality explain
   meta-harness lookback [--write]
   meta-harness poll [--write]
   meta-harness repos list
@@ -1296,6 +1301,12 @@ function main(argv) {
   if (command === "worker-report") return commandWorkerReport(rest);
   if (command === "templates") return commandTemplates(rest);
   if (command === "expert-packet") return commandExpertPacket(rest);
+  if (command === "quality") return commandQuality(rest, {
+    cwd: process.cwd(),
+    harnessDir: HARNESS_DIR,
+    fail,
+    relativePath,
+  });
   if (command === "lookback") return commandLookback(rest);
   if (command === "poll") return commandPoll(rest);
   if (command === "repos") return commandRepos(rest);

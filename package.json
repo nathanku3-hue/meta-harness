@@ -9,6 +9,7 @@
   },
   "files": [
     "bin/",
+    "lib/",
     "docs/product/",
     "docs/sop/",
     "templates/",

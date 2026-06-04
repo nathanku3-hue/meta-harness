@@ -253,6 +253,7 @@ meta-harness event
 meta-harness worker-report
 meta-harness templates
 meta-harness expert-packet
+meta-harness quality
 meta-harness lookback
 meta-harness poll
 meta-harness repos
@@ -268,6 +269,7 @@ Command responsibilities:
 | `worker-report` | Create a PM-facing worker brief and require explicit `Outcome`. |
 | `templates` | List or install reusable scope, boundary, handoff, and reconciliation templates. |
 | `expert-packet` | Build one bounded expert-review zip from current harness truth and optional includes. |
+| `quality` | Install and enforce a repo-local clean-code contract and ratcheting baseline. |
 | `lookback` | Render retrospective from events. |
 | `poll` | Read local/child status files and summarize changes. |
 | `repos` | Manage child repo index. |
@@ -280,6 +282,8 @@ meta-harness event --stream research --phase work --action "surveyed adjacent pr
 meta-harness worker-report codex-researcher --stream research --task "extract patterns" --outcome DONE --round ROUND-001 --progress "10/100 -> 20/100" --confidence "9/10" --result "normalized product-pattern PM brief" --human-summary "Research output is ready for PM synthesis." --validations-passed "worker brief parsed" --validations-skipped "none" --evidence-artifacts ".meta-harness/workers/codex-researcher.md" --requested-work-type docs --actual-work-type docs --next-action "synthesize status"
 meta-harness templates install
 meta-harness expert-packet ROUND-001 --include docs/product/product-spec.md
+meta-harness quality init
+meta-harness quality check
 meta-harness status --refresh
 meta-harness lookback --write
 meta-harness repos add child ../child-repo
@@ -313,6 +317,8 @@ The one-shot MVP is acceptable when:
 - `meta-harness worker-report` rejects `DONE` when code, test, provider_probe, commit, validation, execution, or data_output work silently falls back to docs-only output;
 - `meta-harness templates install` copies reusable harness templates into local harness state;
 - `meta-harness expert-packet` writes one compact review `.zip` without copying caches, runtime folders, dependencies, or oversized files;
+- `meta-harness quality init` creates `.meta-harness/clean-code-contract.json` and `.meta-harness/baseline/quality-baseline.json`;
+- `meta-harness quality check` blocks new overbudget files and ratchets grandfathered debt;
 - expert packet delivery has no loose sidecar `main.diff`, `main_next_scope.md`, or extra packet files beside the zip;
 - packaged templates include `post-worker-github-actions.md`;
 - repo-level post-worker workflow checks remain read-only and do not use secrets or provider/runtime/data paths;
