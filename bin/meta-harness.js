@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const { ConfigError, QualityGateError, UsageError, handleCliError } = require("../lib/errors");
+const eventStore = require("../lib/events");
 const { commandQuality } = require("../lib/quality");
 
 const HARNESS_DIR = ".meta-harness";
@@ -449,32 +450,11 @@ function copyPackagedTemplates(destinationRoot, overwrite = true) {
 
 function appendEvent(event) {
   ensureHarness();
-  const payload = Object.fromEntries(
-    Object.entries({
-      time: nowIso(),
-      ...event,
-    }).filter(([, value]) => value !== undefined && value !== null && value !== "")
-  );
-  fs.appendFileSync(harnessPath("events.jsonl"), `${JSON.stringify(payload)}\n`, "utf8");
-  return payload;
+  return eventStore.appendEvent(harnessPath("events.jsonl"), event, nowIso);
 }
 
 function readEvents() {
-  const eventsPath = harnessPath("events.jsonl");
-  if (!fileExists(eventsPath)) {
-    return [];
-  }
-
-  return readText(eventsPath)
-    .split(/\r?\n/)
-    .filter((line) => line.trim().length > 0)
-    .map((line, index) => {
-      try {
-        return JSON.parse(line);
-      } catch (error) {
-        throw new ConfigError(`invalid JSON in ${eventsPath} line ${index + 1}`, { cause: error });
-      }
-    });
+  return eventStore.readEvents(harnessPath("events.jsonl"));
 }
 
 function ensureHarness() {
@@ -649,6 +629,8 @@ function listOrNone(items) {
   return items.map((item) => `- ${item}`).join("\n");
 }
 
+function eventTime(event) { return event.ts || event.time || "unknown time"; }
+
 function latestStreamFacts(events) {
   return STREAMS.map((stream) => {
     const event = latest(events, (item) => item.stream === stream);
@@ -666,7 +648,7 @@ function renderStatus() {
   const latestEvent = events[events.length - 1] || {};
   const decisions = events
     .filter((event) => event.decision)
-    .map((event) => `${event.decision} (${event.time || "unknown time"})`);
+    .map((event) => `${event.decision} (${eventTime(event)})`);
   const blockers = events
     .filter((event) => event.blocker)
     .map((event) => `${event.stream || "unknown"}: ${event.blocker}`);
@@ -757,10 +739,12 @@ function commandEvent(argv) {
   requireHarness();
   const stream = normalizeStream(options.stream);
   const phase = normalizePhase(options.phase);
-  if (!options.action) {
+  const action = optionValue(options.action);
+  const result = optionValue(options.result);
+  if (typeof action !== "string" || action.length === 0) {
     fail("event requires --action <text>");
   }
-  if (!options.result) {
+  if (typeof result !== "string" || result.length === 0) {
     fail("event requires --result <text>");
   }
 
@@ -768,8 +752,8 @@ function commandEvent(argv) {
     actor: options.actor || "human",
     stream,
     phase,
-    action: options.action,
-    result: options.result,
+    action,
+    result,
     evidence: options.evidence || options.verification,
     decision: options.decision,
     blocker: options.blocker,
@@ -1166,13 +1150,13 @@ function renderLookback() {
   } else {
     for (const event of events) {
       lines.push(
-        `- ${event.time || "unknown time"} | ${event.stream || "unknown"} | ${event.phase || "unknown"} | ${event.action || "no action"} -> ${event.result || "no result"}`
+        `- ${eventTime(event)} | ${event.stream || "unknown"} | ${event.phase || "unknown"} | ${event.action || "no action"} -> ${event.result || "no result"}`
       );
     }
   }
 
   const decisions = events.filter((event) => event.decision);
-  lines.push("", "## Decisions", "", listOrNone(decisions.map((event) => `${event.time}: ${event.decision}`)));
+  lines.push("", "## Decisions", "", listOrNone(decisions.map((event) => `${eventTime(event)}: ${event.decision}`)));
 
   const blockers = events.filter((event) => event.blocker);
   lines.push("", "## Blockers", "", listOrNone(blockers.map((event) => `${event.stream}: ${event.blocker}`)));

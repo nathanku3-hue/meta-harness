@@ -45,6 +45,13 @@ function readJsonl(filePath) {
     .map((line) => JSON.parse(line));
 }
 
+function assertCliError(result, code, pattern) {
+  assert.notEqual(result.status, 0);
+  assert.equal(errorCode(result), code, result.stderr);
+  assert.match(result.stderr, pattern);
+  assert.doesNotMatch(result.stderr, /\n\s+at /);
+}
+
 test("init creates per-repo markdown harness state", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Ship the Codex-native status harness"]);
@@ -116,6 +123,7 @@ test("event and worker-report update status and lookback", () => {
 
   const events = readJsonl(path.join(harness, "events.jsonl"));
   assert.equal(events.length, 3);
+  assert.equal(typeof events[1].ts, "string");
   assert.equal(events[2].actor, "codex-researcher");
   assert.equal(events[2].evidence, ".meta-harness/workers/codex-researcher.md");
   assert.equal(fs.existsSync(path.join(harness, "workers", "codex-researcher.md")), true);
@@ -160,6 +168,33 @@ test("event and worker-report update status and lookback", () => {
   assert.match(lookback, /Build coding and research visibility/);
   assert.match(lookback, /extract product patterns/);
   assert.equal(fs.existsSync(path.join(harness, "lookback.md")), true);
+});
+
+test("event validation fails closed for bad JSONL and CLI input", () => {
+  const eventPath = (cwd) => path.join(cwd, ".meta-harness", "events.jsonl");
+  const blankCwd = tempDir();
+  run(blankCwd, ["init", "Validate blank lines"]);
+  fs.appendFileSync(eventPath(blankCwd), "\n\n", "utf8");
+  assert.match(run(blankCwd, ["status", "--refresh"]), /Validate blank lines/);
+
+  const malformed = [
+    ["{not-json", ["status", "--refresh"], /invalid JSON.*events\.jsonl line 2/],
+    ["42", ["lookback"], /events\.jsonl line 2 must be a JSON object/],
+    [JSON.stringify({ ts: "2026-01-01T00:00:00.000Z", actor: "human", stream: "coding", phase: "work", action: "x" }), ["status", "--refresh"], /field "result"/],
+  ];
+  for (const [line, command, pattern] of malformed) {
+    const cwd = tempDir();
+    run(cwd, ["init", "Validate events"]);
+    fs.appendFileSync(eventPath(cwd), `${line}\n`, "utf8");
+    assertCliError(runRaw(cwd, command), "MH_CONFIG", pattern);
+  }
+
+  const missingActionCwd = tempDir();
+  run(missingActionCwd, ["init", "Validate CLI"]);
+  assertCliError(runRaw(missingActionCwd, ["event", "--result", "done"]), "MH_USAGE", /event requires --action/);
+  const missingResultCwd = tempDir();
+  run(missingResultCwd, ["init", "Validate CLI"]);
+  assertCliError(runRaw(missingResultCwd, ["event", "--action", "did it"]), "MH_USAGE", /event requires --result/);
 });
 
 test("worker-report requires explicit valid outcome", () => {
