@@ -375,13 +375,17 @@ test("quality gate initializes managed repo contract and blocks a new monolith",
   const harness = path.join(cwd, ".meta-harness");
   assert.equal(fs.existsSync(path.join(harness, "clean-code-contract.json")), true);
   assert.equal(fs.existsSync(path.join(harness, "baseline", "quality-baseline.json")), true);
+  assert.match(run(cwd, ["quality", "init"]), /Kept \.meta-harness\/baseline\/quality-baseline\.json/);
 
   const clean = runRaw(cwd, ["quality", "check"]);
   assert.equal(clean.status, 0);
   assert.match(clean.stdout, /Quality gate: PASS/);
 
   assert.match(run(cwd, ["quality", "explain"]), /ratchet/);
-  run(cwd, ["quality", "baseline"]);
+  const refusedBaseline = runRaw(cwd, ["quality", "baseline"]);
+  assert.notEqual(refusedBaseline.status, 0);
+  assert.match(refusedBaseline.stderr, /requires --force after audit/);
+  run(cwd, ["quality", "baseline", "--force"]);
 
   fs.writeFileSync(
     path.join(cwd, "new-monolith.js"),

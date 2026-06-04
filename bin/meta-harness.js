@@ -54,7 +54,7 @@ Usage:
   meta-harness templates install [--overwrite]
   meta-harness expert-packet <round-id> [--include <path>] [--overwrite]
   meta-harness quality init
-  meta-harness quality baseline
+  meta-harness quality baseline --force
   meta-harness quality check
   meta-harness quality explain
   meta-harness lookback [--write]

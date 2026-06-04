@@ -66,12 +66,13 @@ See [Product spec](docs/product/product-spec.md) for the intended MVP command su
 
 ```bash
 meta-harness quality init
-meta-harness quality baseline
+meta-harness quality baseline --force
 meta-harness quality check
 meta-harness quality explain
 ```
 
 The gate runs in ratchet mode: existing debt may be grandfathered, new debt is blocked, touched debt must not get worse, and compatibility-breaking CLI or report behavior requires an explicit migration note and approval.
+Refreshing the baseline is audited maintenance only; normal patch work should fix findings rather than run `quality baseline --force`.
 
 ## Worker PM Briefs
 
