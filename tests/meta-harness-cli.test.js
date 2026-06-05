@@ -52,6 +52,25 @@ function writeFile(root, relativePath, content) {
   return filePath;
 }
 
+function validPmBrief() {
+  return [
+    "# PM Brief",
+    "",
+    "## Decisions",
+    "",
+    "- ship",
+    "",
+    "## Blockers",
+    "",
+    "- none",
+    "",
+    "## Evidence",
+    "",
+    "- tests",
+    "",
+  ].join("\n");
+}
+
 function snapshotTree(root) {
   const items = [];
   function walk(directoryPath) {
@@ -301,6 +320,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(list, /contracts\s+skill-distillation-contract\.md/);
   assert.match(list, /contracts\s+subagent-workcell-contract\.md/);
   assert.match(list, /contracts\s+trust-policy-contract\.md/);
+  assert.match(list, /contracts\s+pm-brief-scan-contract\.md/);
   assert.match(list, /contracts\s+worker-done-contract\.md/);
 
   run(cwd, ["templates", "install"]);
@@ -315,6 +335,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   const skillDistillationContract = path.join(harness, "templates", "contracts", "skill-distillation-contract.md");
   const subagentWorkcellContract = path.join(harness, "templates", "contracts", "subagent-workcell-contract.md");
   const trustPolicyContract = path.join(harness, "templates", "contracts", "trust-policy-contract.md");
+  const pmBriefScanContract = path.join(harness, "templates", "contracts", "pm-brief-scan-contract.md");
   const workerDone = path.join(harness, "templates", "contracts", "worker-done-contract.md");
 
   assert.equal(fs.existsSync(expertFrontCard), true);
@@ -327,6 +348,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.equal(fs.existsSync(skillDistillationContract), true);
   assert.equal(fs.existsSync(subagentWorkcellContract), true);
   assert.equal(fs.existsSync(trustPolicyContract), true);
+  assert.equal(fs.existsSync(pmBriefScanContract), true);
   assert.equal(fs.existsSync(workerDone), true);
   const expertFrontCardText = fs.readFileSync(expertFrontCard, "utf8");
   const subagentWorkcellText = fs.readFileSync(subagentWorkcell, "utf8");
@@ -342,6 +364,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(fs.readFileSync(skillDistillationContract, "utf8"), /S-<first12hex/);
   assert.match(fs.readFileSync(subagentWorkcellContract, "utf8"), /PM brief \+ artifact paths \+ decision inbox entries only/);
   assert.match(fs.readFileSync(trustPolicyContract, "utf8"), /local capsule names/);
+  assert.match(fs.readFileSync(pmBriefScanContract, "utf8"), /Existing `brief pm` generator output may fail/);
   assert.match(fs.readFileSync(scopeSelector, "utf8"), /Chosen Scope:/);
   const postWorkerText = fs.readFileSync(postWorkerGithubActions, "utf8");
   assert.match(postWorkerText, /Post-Worker GitHub Actions/);
@@ -440,6 +463,49 @@ test("state check CLI reports old layout migration-needed without writing", () =
   assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "status.md")), false);
   assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "events.jsonl")), false);
   assert.deepEqual(snapshotTree(cwd), before);
+});
+
+test("brief scan CLI exits zero on target-form PM brief without requiring git", () => {
+  const cwd = tempDir();
+  writeFile(cwd, ".meta-harness/pm-brief.md", validPmBrief());
+
+  const before = snapshotTree(cwd);
+  const result = runRaw(cwd, ["brief", "scan", "--target", cwd]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /BRIEF SCAN: PASS checked=1/);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(snapshotTree(cwd), before);
+});
+
+test("brief scan CLI exits nonzero on rejected section without writing", () => {
+  const cwd = tempDir();
+  writeFile(cwd, ".meta-harness/pm-brief.md", [
+    "# PM Brief",
+    "",
+    "## Decisions",
+    "",
+    "## Raw Logs",
+    "",
+    "## Blockers",
+    "",
+    "## Evidence",
+    "",
+  ].join("\n"));
+
+  const before = snapshotTree(cwd);
+  const result = runRaw(cwd, ["brief", "scan", "--target", cwd]);
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, /BRIEF SCAN: FAIL checked=1 rejected=1/);
+  assert.match(result.stdout, /REJECTED\t\.meta-harness\/pm-brief\.md\tunexpected heading: ## Raw Logs/);
+  assert.deepEqual(snapshotTree(cwd), before);
+});
+
+test("brief scan CLI target without value is UsageError", () => {
+  const cwd = tempDir();
+
+  assertCliError(runRaw(cwd, ["brief", "scan", "--target"]), "MH_USAGE", /--target requires an existing directory/);
 });
 
 test("read-only checks reject missing or non-directory targets", () => {

@@ -26,6 +26,7 @@ const {
   checkTrustPolicy,
   checkStateLayout,
 } = require("../lib/sync-check");
+const { scanPmBrief } = require("../lib/pm-brief-check");
 
 const STREAMS = ["coding", "research", "writing", "review"];
 const PHASES = ["intake", "plan", "work", "verify", "synthesize", "handoff", "lookback"];
@@ -66,6 +67,7 @@ Usage:
   meta-harness distill list --in <path>
   meta-harness distill check --in <path>
   meta-harness brief pm --dirty <path> --decisions <path> --out <path>
+  meta-harness brief scan --target <repo>
   meta-harness expert-packet <round-id> [--include <path>] [--owned-path <path>] [--forbidden-path <path>] [--required-evidence <text>] [--overwrite]
   meta-harness quality init
   meta-harness quality baseline --force
@@ -659,7 +661,7 @@ function statusCount(items, status) {
 
 function renderCheckSummary(label, result) {
   const fields = [`checked=${result.checked ?? result.items.length}`];
-  for (const status of ["MISSING", "DRIFT", "REJECTED", "MIGRATION_NEEDED"]) {
+  for (const status of ["MISSING", "DRIFT", "REJECTED", "MALFORMED", "UNREADABLE", "MIGRATION_NEEDED"]) {
     const count = statusCount(result.items, status);
     if (count > 0) {
       fields.push(`${status.toLowerCase()}=${count}`);
@@ -726,6 +728,15 @@ function commandState(argv) {
     label: "STATE CHECK",
     check: checkStateLayout,
   });
+}
+
+function commandBriefScan(argv) {
+  const { positional, options } = parseArgs(argv);
+  if (positional.length > 0) {
+    fail(`unknown brief scan argument: ${positional[0]}`);
+  }
+  const targetRoot = requireTargetRoot(options);
+  printCheckResult("BRIEF SCAN", scanPmBrief({ targetRoot }));
 }
 
 function commandExpertPacket(argv) {
@@ -925,6 +936,7 @@ function main(argv) {
   if (command === "gate") return commandGate(rest, { cwd: process.cwd() });
   if (command === "decisions") return commandDecisions(rest, { cwd: process.cwd() });
   if (command === "distill") return commandDistill(rest, { cwd: process.cwd() });
+  if (command === "brief" && rest[0] === "scan") return commandBriefScan(rest.slice(1));
   if (command === "brief") return commandBrief(rest, { cwd: process.cwd() });
   if (command === "expert-packet") return commandExpertPacket(rest);
   if (command === "quality") return commandQuality(rest, {
