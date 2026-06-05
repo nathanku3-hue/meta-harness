@@ -3,7 +3,6 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { spawnSync } = require("node:child_process");
 const { ConfigError, QualityGateError, UsageError, handleCliError } = require("../lib/errors");
 const eventStore = require("../lib/events");
 const { readJsonFile: readJson, writeJsonFile: writeJson } = require("../lib/json");
@@ -19,41 +18,13 @@ const { commandQuality } = require("../lib/quality");
 const { commandDirty, commandGate } = require("../lib/dirty");
 const { commandBrief, commandDecisions } = require("../lib/decisions");
 const { copyPackagedTemplates, templateFiles } = require("../lib/templates");
+const { buildExpertPacket } = require("../lib/expert-packet");
 
 const STREAMS = ["coding", "research", "writing", "review"];
 const PHASES = ["intake", "plan", "work", "verify", "synthesize", "handoff", "lookback"];
 const REQUESTED_WORK_TYPES = ["docs", "code", "test", "provider_probe", "commit", "validation", "execution", "data_output"];
 const ACTUAL_WORK_TYPES = [...REQUESTED_WORK_TYPES, "none"];
 const EXECUTION_STYLE_WORK_TYPES = ["code", "test", "provider_probe", "commit", "validation", "execution", "data_output"];
-const EXPERT_PACKET_FILES = [
-  "README_DECISION_CARD.md",
-  "candidate_scope_memo.md",
-  "low_confidence_and_boundaries.md",
-];
-const DEFAULT_EXPERT_PACKET_GIT_PATHS = [
-  "README.md",
-  "docs/product/prd.md",
-  "docs/product/product-spec.md",
-  "docs/product/decision-log.md",
-  ".meta-harness/status.md",
-  ".meta-harness/events.jsonl",
-  "templates",
-];
-const FORBIDDEN_PACKET_PARTS = new Set([
-  ".git",
-  ".mypy_cache",
-  ".pytest_cache",
-  ".ruff_cache",
-  ".venv",
-  "__pycache__",
-  "node_modules",
-  "runtime",
-]);
-const MAX_PACKET_FILE_BYTES = 2_000_000;
-const GIT_OUTPUT_LINE_CAP = 200;
-const GIT_OUTPUT_BYTE_CAP = 50_000;
-const GIT_TIMEOUT_MS = 20_000;
-const CRC32_TABLE = buildCrc32Table();
 
 function listPhrase(items) {
   if (items.length <= 1) {
@@ -81,7 +52,7 @@ Usage:
   meta-harness decisions add --kind <kind> --question <text> --state-hash <hash>
   meta-harness decisions resolve --id <id> --resolution <approved|rejected|deferred>
   meta-harness brief pm --dirty <path> --decisions <path> --out <path>
-  meta-harness expert-packet <round-id> [--include <path>] [--overwrite]
+  meta-harness expert-packet <round-id> [--include <path>] [--owned-path <path>] [--forbidden-path <path>] [--required-evidence <text>] [--overwrite]
   meta-harness quality init
   meta-harness quality baseline --force
   meta-harness quality check
@@ -150,257 +121,8 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-function buildCrc32Table() {
-  const table = new Uint32Array(256);
-  for (let index = 0; index < 256; index += 1) {
-    let value = index;
-    for (let bit = 0; bit < 8; bit += 1) {
-      value = (value & 1) ? (0xedb88320 ^ (value >>> 1)) : (value >>> 1);
-    }
-    table[index] = value >>> 0;
-  }
-  return table;
-}
-
-function crc32(buffer) {
-  let crc = 0xffffffff;
-  for (const byte of buffer) {
-    crc = CRC32_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function dosDateTime(date) {
-  const year = Math.max(1980, date.getFullYear());
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-  const seconds = Math.floor(date.getSeconds() / 2);
-  return {
-    time: ((hours << 11) | (minutes << 5) | seconds) & 0xffff,
-    date: (((year - 1980) << 9) | (month << 5) | day) & 0xffff,
-  };
-}
-
-function collectZipFiles(sourceDir, currentDir = sourceDir, collected = []) {
-  const entries = fs.readdirSync(currentDir, { withFileTypes: true })
-    .sort((left, right) => left.name.localeCompare(right.name));
-  for (const entry of entries) {
-    const fullPath = path.join(currentDir, entry.name);
-    if (entry.isDirectory()) {
-      collectZipFiles(sourceDir, fullPath, collected);
-      continue;
-    }
-    if (!entry.isFile()) {
-      continue;
-    }
-    collected.push({
-      fullPath,
-      name: path.relative(sourceDir, fullPath).split(path.sep).join("/"),
-      stat: fs.statSync(fullPath),
-    });
-  }
-  return collected;
-}
-
-function writeZipArchive(sourceDir, destinationPath) {
-  const files = collectZipFiles(sourceDir);
-  const localChunks = [];
-  const centralChunks = [];
-  let offset = 0;
-
-  for (const file of files) {
-    const data = fs.readFileSync(file.fullPath);
-    const name = Buffer.from(file.name, "utf8");
-    const checksum = crc32(data);
-    const { time, date } = dosDateTime(file.stat.mtime);
-    const localOffset = offset;
-    const localHeader = Buffer.alloc(30);
-    localHeader.writeUInt32LE(0x04034b50, 0);
-    localHeader.writeUInt16LE(20, 4);
-    localHeader.writeUInt16LE(0, 6);
-    localHeader.writeUInt16LE(0, 8);
-    localHeader.writeUInt16LE(time, 10);
-    localHeader.writeUInt16LE(date, 12);
-    localHeader.writeUInt32LE(checksum, 14);
-    localHeader.writeUInt32LE(data.length, 18);
-    localHeader.writeUInt32LE(data.length, 22);
-    localHeader.writeUInt16LE(name.length, 26);
-    localHeader.writeUInt16LE(0, 28);
-    localChunks.push(localHeader, name, data);
-    offset += localHeader.length + name.length + data.length;
-
-    const centralHeader = Buffer.alloc(46);
-    centralHeader.writeUInt32LE(0x02014b50, 0);
-    centralHeader.writeUInt16LE(20, 4);
-    centralHeader.writeUInt16LE(20, 6);
-    centralHeader.writeUInt16LE(0, 8);
-    centralHeader.writeUInt16LE(0, 10);
-    centralHeader.writeUInt16LE(time, 12);
-    centralHeader.writeUInt16LE(date, 14);
-    centralHeader.writeUInt32LE(checksum, 16);
-    centralHeader.writeUInt32LE(data.length, 20);
-    centralHeader.writeUInt32LE(data.length, 24);
-    centralHeader.writeUInt16LE(name.length, 28);
-    centralHeader.writeUInt16LE(0, 30);
-    centralHeader.writeUInt16LE(0, 32);
-    centralHeader.writeUInt16LE(0, 34);
-    centralHeader.writeUInt16LE(0, 36);
-    centralHeader.writeUInt32LE(0, 38);
-    centralHeader.writeUInt32LE(localOffset, 42);
-    centralChunks.push(centralHeader, name);
-  }
-
-  const centralSize = centralChunks.reduce((total, chunk) => total + chunk.length, 0);
-  const endRecord = Buffer.alloc(22);
-  endRecord.writeUInt32LE(0x06054b50, 0);
-  endRecord.writeUInt16LE(0, 4);
-  endRecord.writeUInt16LE(0, 6);
-  endRecord.writeUInt16LE(files.length, 8);
-  endRecord.writeUInt16LE(files.length, 10);
-  endRecord.writeUInt32LE(centralSize, 12);
-  endRecord.writeUInt32LE(offset, 16);
-  endRecord.writeUInt16LE(0, 20);
-
-  ensureDir(path.dirname(destinationPath));
-  fs.writeFileSync(destinationPath, Buffer.concat([...localChunks, ...centralChunks, endRecord]));
-}
-
 function relativePath(targetPath, root = process.cwd()) {
   return path.relative(root, targetPath).split(path.sep).join("/");
-}
-
-function isInside(targetPath, rootPath) {
-  const relative = path.relative(rootPath, targetPath);
-  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
-}
-
-function resolveInsideCwd(rawPath, label) {
-  const resolved = path.resolve(process.cwd(), rawPath);
-  if (!isInside(resolved, process.cwd())) {
-    fail(`${label} must stay inside the current repository: ${rawPath}`);
-  }
-  return resolved;
-}
-
-function packetPathHasForbiddenPart(targetPath) {
-  const relative = path.relative(process.cwd(), targetPath);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
-    return true;
-  }
-  const lowered = relative.split(path.sep).map((part) => part.toLowerCase());
-  return lowered.some((part) => FORBIDDEN_PACKET_PARTS.has(part));
-}
-
-function ensureSafePacketPath(targetPath, label) {
-  if (!isInside(targetPath, process.cwd())) {
-    fail(`${label} must stay inside the current repository: ${targetPath}`);
-  }
-  if (packetPathHasForbiddenPart(targetPath)) {
-    fail(`refusing forbidden ${label}: ${relativePath(targetPath)}`);
-  }
-}
-
-function copyFileChecked(sourcePath, destinationPath) {
-  const resolved = resolveInsideCwd(sourcePath, "packet source");
-  ensureSafePacketPath(resolved, "packet source");
-  const stats = fs.statSync(resolved);
-  if (!stats.isFile()) {
-    fail(`packet source is not a file: ${relativePath(resolved)}`);
-  }
-  if (stats.size > MAX_PACKET_FILE_BYTES) {
-    fail(`packet source exceeds ${MAX_PACKET_FILE_BYTES} bytes: ${relativePath(resolved)}`);
-  }
-  ensureDir(path.dirname(destinationPath));
-  fs.copyFileSync(resolved, destinationPath);
-}
-
-function copyDirectoryChecked(sourceDir, destinationDir, skipped = []) {
-  const entries = fs.readdirSync(sourceDir, { withFileTypes: true });
-  for (const entry of entries) {
-    const source = path.join(sourceDir, entry.name);
-    if (packetPathHasForbiddenPart(source)) {
-      skipped.push(relativePath(source));
-      continue;
-    }
-    const destination = path.join(destinationDir, entry.name);
-    if (entry.isDirectory()) {
-      copyDirectoryChecked(source, destination, skipped);
-    } else if (entry.isFile()) {
-      const stats = fs.statSync(source);
-      if (stats.size > MAX_PACKET_FILE_BYTES) {
-        skipped.push(relativePath(source));
-        continue;
-      }
-      ensureDir(path.dirname(destination));
-      fs.copyFileSync(source, destination);
-    }
-  }
-  return skipped;
-}
-
-function safeRoundId(roundId) {
-  const value = String(roundId || "").trim();
-  if (!value) {
-    fail("expert-packet requires a non-empty round id");
-  }
-  if (!/^[A-Za-z0-9._-]+$/.test(value) || value === "." || value === "..") {
-    fail("round id may contain only letters, numbers, dot, underscore, and hyphen");
-  }
-  return value;
-}
-
-function writePacketStub(destinationPath, title, roundId, body) {
-  fs.writeFileSync(
-    destinationPath,
-    `# ${title}\n\nRoundID: ${roundId}\n\n${body.trim()}\n`,
-    "utf8"
-  );
-}
-
-function limitCommandOutput(text) {
-  const normalized = String(text || "").replace(/\r\n/g, "\n");
-  const lines = normalized.split(/\n/);
-  if (Buffer.byteLength(normalized, "utf8") <= GIT_OUTPUT_BYTE_CAP && lines.length <= GIT_OUTPUT_LINE_CAP) {
-    return normalized;
-  }
-  return `${lines.slice(0, GIT_OUTPUT_LINE_CAP).join("\n")}\n... truncated after ${GIT_OUTPUT_LINE_CAP} lines or ${GIT_OUTPUT_BYTE_CAP} bytes ...\n`;
-}
-
-function runGitCapture(args, pathspecs = []) {
-  const command = [...args];
-  if (pathspecs.length > 0) {
-    command.push("--", ...pathspecs);
-  }
-  const result = spawnSync("git", command, {
-    cwd: process.cwd(),
-    encoding: "utf8",
-    shell: false,
-    timeout: GIT_TIMEOUT_MS,
-  });
-  if (result.error || result.status !== 0) {
-    return `git ${command.join(" ")} unavailable: ${(result.stderr || result.error?.message || "not a git repository").trim()}\n`;
-  }
-  return limitCommandOutput(result.stdout);
-}
-
-function existingGitPathspecs(extraPaths = []) {
-  const seen = new Set();
-  const pathspecs = [];
-  for (const rawPath of [...DEFAULT_EXPERT_PACKET_GIT_PATHS, ...extraPaths]) {
-    const resolved = resolveInsideCwd(rawPath, "git capture path");
-    if (!fs.existsSync(resolved)) {
-      continue;
-    }
-    ensureSafePacketPath(resolved, "git capture path");
-    const relative = relativePath(resolved);
-    if (!seen.has(relative)) {
-      seen.add(relative);
-      pathspecs.push(relative);
-    }
-  }
-  return pathspecs;
 }
 
 function appendEvent(event) {
@@ -893,202 +615,38 @@ function commandTemplates(argv) {
   fail(`unknown templates action: ${action}`);
 }
 
-function copyOptionalMemo(source, destination, roundId, title, body) {
-  if (source) {
-    copyFileChecked(source, destination);
-    return;
-  }
-  writePacketStub(destination, title, roundId, body);
-}
-
-function copyHarnessTruth(packetDir) {
-  const copied = [];
-  const harnessRoot = harnessPath();
-  if (!fileExists(harnessRoot)) {
-    return copied;
-  }
-
-  const rootFiles = ["status.md", "events.jsonl", "phase-map.md", "repos.json", "poll.md", "lookback.md"];
-  for (const filename of rootFiles) {
-    const source = path.join(harnessRoot, filename);
-    if (fileExists(source) && fs.statSync(source).isFile()) {
-      const destination = path.join(packetDir, HARNESS_DIR, filename);
-      ensureDir(path.dirname(destination));
-      fs.copyFileSync(source, destination);
-      copied.push(`${HARNESS_DIR}/${filename}`);
-    }
-  }
-
-  for (const dirname of ["streams", "workers", "templates"]) {
-    const source = path.join(harnessRoot, dirname);
-    if (fileExists(source) && fs.statSync(source).isDirectory()) {
-      const destination = path.join(packetDir, HARNESS_DIR, dirname);
-      copyDirectoryChecked(source, destination);
-      copied.push(`${HARNESS_DIR}/${dirname}/`);
-    }
-  }
-  return copied;
-}
-
-function copyIncludedPaths(packetDir, includePaths, outputRoot) {
-  const copied = [];
-  const skipped = [];
-  for (const rawPath of includePaths) {
-    const source = resolveInsideCwd(rawPath, "include path");
-    ensureSafePacketPath(source, "include path");
-    if (isInside(source, outputRoot) || isInside(outputRoot, source)) {
-      fail(`include path must not overlap packet output root: ${relativePath(source)}`);
-    }
-    const relative = relativePath(source);
-    const destination = path.join(packetDir, "included", relative);
-    if (fs.statSync(source).isDirectory()) {
-      copyDirectoryChecked(source, destination, skipped);
-      copied.push(`included/${relative}/`);
-    } else {
-      copyFileChecked(relative, destination);
-      copied.push(`included/${relative}`);
-    }
-  }
-  return { copied, skipped };
-}
-
-function writeExpertPacketManifest(packetDir, roundId, included, skipped, gitPathspecs) {
-  const lines = [
-    "# Expert Packet Manifest",
-    "",
-    `RoundID: ${roundId}`,
-    "Builder: meta-harness expert-packet",
-    "Deliverable: single zip archive only; do not publish sidecar diffs, next-scope notes, or loose packet files beside the zip.",
-    "",
-    "Included root files:",
-    ...EXPERT_PACKET_FILES.map((filename) => `- ${filename}`),
-    "- PACKET_MANIFEST.md",
-    "- git_status.txt",
-    "- git_diff_name_status.txt",
-    "- git_log_oneline_20.txt",
-    "",
-    "Included packet paths:",
-    ...(included.length > 0 ? included.map((item) => `- ${item}`) : ["- none"]),
-    "",
-    "Git capture pathspecs:",
-    ...(gitPathspecs.length > 0 ? gitPathspecs.map((item) => `- ${item}`) : ["- none"]),
-    "",
-    "Skipped paths:",
-    ...(skipped.length > 0 ? skipped.map((item) => `- ${item}`) : ["- none"]),
-    "",
-    "Excluded by design:",
-    "- .git/",
-    "- node_modules/",
-    "- .venv/",
-    "- runtime/",
-    "- Python and test caches",
-    "- files larger than the packet size cap",
-  ];
-  fs.writeFileSync(path.join(packetDir, "PACKET_MANIFEST.md"), `${lines.join("\n")}\n`, "utf8");
-}
-
 function commandExpertPacket(argv) {
   const { positional, options } = parseArgs(argv);
   requireHarness();
-  const roundId = safeRoundId(positional[0] || options.round);
-  const outputRoot = resolveInsideCwd(optionValue(options.outputRoot, path.join(HARNESS_DIR, "expert-packets")), "output root");
-  if (!isInside(outputRoot, process.cwd()) || packetPathHasForbiddenPart(outputRoot)) {
-    fail(`refusing packet output root: ${relativePath(outputRoot)}`);
-  }
+  const result = buildExpertPacket({
+    cwd: process.cwd(),
+    roundId: positional[0] || options.round,
+    options,
+  });
 
-  const packetDir = path.join(outputRoot, `.${roundId}.packet-staging`);
-  const packetZip = path.join(outputRoot, `${roundId}.zip`);
-  const overwrite = Boolean(options.overwrite);
-  const dryRun = Boolean(options.dryRun);
-  const includePaths = optionValues(options.include);
-  const gitPathspecs = existingGitPathspecs([...includePaths, ...optionValues(options.gitPath)]);
-
-  if (dryRun) {
-    console.log(`Would build expert packet zip: ${packetZip}`);
+  if (result.dryRun) {
+    console.log(`Would build expert packet zip: ${result.packetZip}`);
     console.log("Planned git pathspecs:");
-    for (const item of gitPathspecs) {
+    for (const item of result.gitPathspecs) {
       console.log(`- ${item}`);
     }
     return;
   }
 
-  if (fileExists(packetZip) || fileExists(packetDir)) {
-    if (!overwrite) {
-      fail(`expert packet already exists: ${packetZip}`);
-    }
-    if (!isInside(packetDir, outputRoot)) {
-      fail(`refusing to overwrite packet outside output root: ${packetDir}`);
-    }
-    if (!isInside(packetZip, outputRoot)) {
-      fail(`refusing to overwrite packet outside output root: ${packetZip}`);
-    }
-    if (fileExists(packetZip)) {
-      fs.rmSync(packetZip, { force: true });
-    }
-    fs.rmSync(packetDir, { recursive: true, force: true });
-  }
-  ensureDir(outputRoot);
-  ensureDir(packetDir);
-
-  copyOptionalMemo(
-    optionValue(options.decisionCard),
-    path.join(packetDir, "README_DECISION_CARD.md"),
-    roundId,
-    "Expert Decision Card",
-    "Question: fill in the exact decision or review question.\n\nScope: fill in allowed actions, non-goals, and owned files.\n\nExpected Output: verdict, risks, and next action."
-  );
-  copyOptionalMemo(
-    optionValue(options.candidateScopeMemo) || optionValue(options.scopeMemo),
-    path.join(packetDir, "candidate_scope_memo.md"),
-    roundId,
-    "Candidate Scope Memo",
-    "Chosen scope, rejected alternatives, stop rules, file budget, and demo target should be filled by the orchestrator."
-  );
-  copyOptionalMemo(
-    optionValue(options.lowConfidenceAndBoundaries) || optionValue(options.boundaries),
-    path.join(packetDir, "low_confidence_and_boundaries.md"),
-    roundId,
-    "Low Confidence And Boundaries",
-    "Record low-confidence items, approval gates, blocked actions, and out-of-boundary work before review."
-  );
-
-  const included = [];
-  included.push(...copyHarnessTruth(packetDir));
-  included.push(...copyPackagedTemplates(path.join(packetDir, "harness_templates"), true).map((item) => `harness_templates/${item}`));
-  const includeResult = copyIncludedPaths(packetDir, includePaths, outputRoot);
-  included.push(...includeResult.copied);
-
-  fs.writeFileSync(path.join(packetDir, "git_status.txt"), runGitCapture(["status", "--short"], gitPathspecs), "utf8");
-  fs.writeFileSync(path.join(packetDir, "git_diff_name_status.txt"), runGitCapture(["diff", "--name-status"], gitPathspecs), "utf8");
-  fs.writeFileSync(
-    path.join(packetDir, "git_log_oneline_20.txt"),
-    `# git log is limited to declared expert-packet paths.\n\n${runGitCapture(["log", "--oneline", "-20"], gitPathspecs)}`,
-    "utf8"
-  );
-  writeExpertPacketManifest(packetDir, roundId, included, includeResult.skipped, gitPathspecs);
-
   appendEvent({
     actor: optionValue(options.actor, "meta-harness"),
     stream: "review",
     phase: "plan",
-    action: `built expert packet ${roundId}`,
-    result: `expert packet zip written to ${relativePath(packetZip)}`,
-    evidence: relativePath(packetZip),
+    action: `built expert packet ${positional[0] || options.round}`,
+    result: `expert packet zip written to ${result.relativePacketZip}`,
+    evidence: result.relativePacketZip,
     next_action: "Send the packet to the bounded expert reviewer or reconcile existing reviewer input.",
   });
   refreshStatus();
 
-  const packetFiles = fs.readdirSync(packetDir, { recursive: true })
-    .map((item) => String(item))
-    .filter((item) => fs.statSync(path.join(packetDir, item)).isFile())
-    .map((item) => item.split(path.sep).join("/"))
-    .sort();
-  writeZipArchive(packetDir, packetZip);
-  fs.rmSync(packetDir, { recursive: true, force: true });
-
-  console.log(`Built expert packet zip: ${packetZip}`);
+  console.log(`Built expert packet zip: ${result.packetZip}`);
   console.log("Included zip entries:");
-  for (const item of packetFiles) {
+  for (const item of result.packetFiles) {
     console.log(`- ${item}`);
   }
 }
