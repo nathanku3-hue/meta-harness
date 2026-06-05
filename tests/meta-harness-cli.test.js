@@ -45,6 +45,34 @@ function readJsonl(filePath) {
     .map((line) => JSON.parse(line));
 }
 
+function writeFile(root, relativePath, content) {
+  const filePath = path.join(root, ...relativePath.split("/"));
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content, "utf8");
+  return filePath;
+}
+
+function snapshotTree(root) {
+  const items = [];
+  function walk(directoryPath) {
+    for (const name of fs.readdirSync(directoryPath).sort((left, right) => left.localeCompare(right))) {
+      const itemPath = path.join(directoryPath, name);
+      const relative = path.relative(root, itemPath).split(path.sep).join("/");
+      const stat = fs.lstatSync(itemPath);
+      if (stat.isDirectory()) {
+        items.push({ path: relative, type: "dir" });
+        walk(itemPath);
+      } else if (stat.isFile()) {
+        items.push({ path: relative, type: "file", content: fs.readFileSync(itemPath).toString("base64") });
+      } else if (stat.isSymbolicLink()) {
+        items.push({ path: relative, type: "symlink", link: fs.readlinkSync(itemPath) });
+      }
+    }
+  }
+  walk(root);
+  return items;
+}
+
 function assertCliError(result, code, pattern) {
   assert.notEqual(result.status, 0);
   assert.equal(errorCode(result), code, result.stderr);
@@ -269,8 +297,10 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(list, /skills\s+subagent-workcell\.md/);
   assert.match(list, /skills\s+distilled-taste-capsule\.md/);
   assert.match(list, /contracts\s+decision-reuse-contract\.md/);
+  assert.match(list, /contracts\s+skill-sync-contract\.md/);
   assert.match(list, /contracts\s+skill-distillation-contract\.md/);
   assert.match(list, /contracts\s+subagent-workcell-contract\.md/);
+  assert.match(list, /contracts\s+trust-policy-contract\.md/);
   assert.match(list, /contracts\s+worker-done-contract\.md/);
 
   run(cwd, ["templates", "install"]);
@@ -281,8 +311,10 @@ test("templates install copies reusable scope and handoff contracts", () => {
   const subagentWorkcell = path.join(harness, "templates", "skills", "subagent-workcell.md");
   const distilledTasteCapsule = path.join(harness, "templates", "skills", "distilled-taste-capsule.md");
   const decisionReuseContract = path.join(harness, "templates", "contracts", "decision-reuse-contract.md");
+  const skillSyncContract = path.join(harness, "templates", "contracts", "skill-sync-contract.md");
   const skillDistillationContract = path.join(harness, "templates", "contracts", "skill-distillation-contract.md");
   const subagentWorkcellContract = path.join(harness, "templates", "contracts", "subagent-workcell-contract.md");
+  const trustPolicyContract = path.join(harness, "templates", "contracts", "trust-policy-contract.md");
   const workerDone = path.join(harness, "templates", "contracts", "worker-done-contract.md");
 
   assert.equal(fs.existsSync(expertFrontCard), true);
@@ -291,8 +323,10 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.equal(fs.existsSync(subagentWorkcell), true);
   assert.equal(fs.existsSync(distilledTasteCapsule), true);
   assert.equal(fs.existsSync(decisionReuseContract), true);
+  assert.equal(fs.existsSync(skillSyncContract), true);
   assert.equal(fs.existsSync(skillDistillationContract), true);
   assert.equal(fs.existsSync(subagentWorkcellContract), true);
+  assert.equal(fs.existsSync(trustPolicyContract), true);
   assert.equal(fs.existsSync(workerDone), true);
   const expertFrontCardText = fs.readFileSync(expertFrontCard, "utf8");
   const subagentWorkcellText = fs.readFileSync(subagentWorkcell, "utf8");
@@ -304,8 +338,10 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(subagentWorkcellText, /Keep fanout to 2 subagents by default/);
   assert.match(distilledTasteCapsuleText, /no automatic skill mutation in v0/i);
   assert.match(fs.readFileSync(decisionReuseContract, "utf8"), /Do not re-ask a decision/);
+  assert.match(fs.readFileSync(skillSyncContract, "utf8"), /PASS\nMISSING\nDRIFT/);
   assert.match(fs.readFileSync(skillDistillationContract, "utf8"), /S-<first12hex/);
   assert.match(fs.readFileSync(subagentWorkcellContract, "utf8"), /PM brief \+ artifact paths \+ decision inbox entries only/);
+  assert.match(fs.readFileSync(trustPolicyContract, "utf8"), /local capsule names/);
   assert.match(fs.readFileSync(scopeSelector, "utf8"), /Chosen Scope:/);
   const postWorkerText = fs.readFileSync(postWorkerGithubActions, "utf8");
   assert.match(postWorkerText, /Post-Worker GitHub Actions/);
@@ -341,6 +377,81 @@ test("post-worker workflow keeps reusable checks read-only and parameterized", (
   assert.match(workflow, /No worker reports matched/);
   assert.match(workflow, /secrets\\\./);
   assert.match(workflow, /SAW wrapper: PASS/);
+});
+
+test("sync check CLI reports match and drift without writing", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Sync check target"]);
+  run(cwd, ["templates", "install"]);
+
+  const passBefore = snapshotTree(cwd);
+  const pass = runRaw(cwd, ["sync", "check", "--target", cwd]);
+  assert.equal(pass.status, 0);
+  assert.match(pass.stdout, /SYNC CHECK: PASS checked=\d+/);
+  assert.deepEqual(snapshotTree(cwd), passBefore);
+
+  fs.writeFileSync(path.join(cwd, ".meta-harness", "templates", "skills", "scope-selector.md"), "drift\n", "utf8");
+  const driftBefore = snapshotTree(cwd);
+  const drift = runRaw(cwd, ["sync", "check", "--target", cwd]);
+  assert.notEqual(drift.status, 0);
+  assert.match(drift.stdout, /SYNC CHECK: FAIL/);
+  assert.match(drift.stdout, /DRIFT\tskills\/scope-selector\.md/);
+  assert.deepEqual(snapshotTree(cwd), driftBefore);
+});
+
+test("trust check CLI rejects bad skill references without writing", () => {
+  const cwd = tempDir();
+  writeFile(cwd, ".meta-harness/skill-distillations.json", JSON.stringify({
+    v: 1,
+    distillations: [{ skill: "https://example.com/skill.md" }],
+  }));
+
+  const before = snapshotTree(cwd);
+  const result = runRaw(cwd, ["trust", "check", "--target", cwd]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, /TRUST CHECK: FAIL checked=1 rejected=1/);
+  assert.match(result.stdout, /REJECTED\t\.meta-harness\/skill-distillations\.json#distillations\[0\]\.skill/);
+  assert.deepEqual(snapshotTree(cwd), before);
+});
+
+test("contract scan CLI rejects old exact headings without writing", () => {
+  const cwd = tempDir();
+  writeFile(cwd, ".meta-harness/workers/old.md", "# Worker Report\n\n## Result\n");
+
+  const before = snapshotTree(cwd);
+  const result = runRaw(cwd, ["contract", "scan", "--target", cwd]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, /CONTRACT SCAN: FAIL checked=1 rejected=2/);
+  assert.match(result.stdout, /REJECTED\t\.meta-harness\/workers\/old\.md\told primary heading: # Worker Report/);
+  assert.deepEqual(snapshotTree(cwd), before);
+});
+
+test("state check CLI reports old layout migration-needed without writing", () => {
+  const cwd = tempDir();
+  writeFile(cwd, ".meta-harness/runs/RUN-001/status.md", "# Old Status\n");
+  writeFile(cwd, ".meta-harness/runs/RUN-001/events.jsonl", "");
+
+  const before = snapshotTree(cwd);
+  const result = runRaw(cwd, ["state", "check", "--target", cwd]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, /STATE CHECK: MIGRATION_NEEDED checked=3 missing=2 migration_needed=1/);
+  assert.match(result.stdout, /MIGRATION_NEEDED\t\.meta-harness\/runs/);
+  assert.match(result.stdout, /MISSING\t\.meta-harness\/status\.md/);
+  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "status.md")), false);
+  assert.equal(fs.existsSync(path.join(cwd, ".meta-harness", "events.jsonl")), false);
+  assert.deepEqual(snapshotTree(cwd), before);
+});
+
+test("read-only checks reject missing or non-directory targets", () => {
+  const cwd = tempDir();
+  assertCliError(runRaw(cwd, ["sync", "check", "--target"]), "MH_USAGE", /--target requires an existing directory/);
+
+  writeFile(cwd, "target.txt", "not a directory\n");
+  assertCliError(
+    runRaw(cwd, ["sync", "check", "--target", "target.txt"]),
+    "MH_USAGE",
+    /--target must be an existing directory/,
+  );
 });
 
 test("quality gate initializes managed repo contract and blocks a new monolith", () => {

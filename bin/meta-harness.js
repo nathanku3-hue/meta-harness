@@ -20,6 +20,12 @@ const { commandBrief, commandDecisions } = require("../lib/decisions");
 const { commandDistill } = require("../lib/skill-distillation");
 const { copyPackagedTemplates, templateFiles } = require("../lib/templates");
 const { buildExpertPacket } = require("../lib/expert-packet");
+const {
+  checkTemplateSync,
+  scanContracts,
+  checkTrustPolicy,
+  checkStateLayout,
+} = require("../lib/sync-check");
 
 const STREAMS = ["coding", "research", "writing", "review"];
 const PHASES = ["intake", "plan", "work", "verify", "synthesize", "handoff", "lookback"];
@@ -46,6 +52,10 @@ Usage:
   meta-harness worker-report [worker-id] --stream <stream> --task <text> --outcome <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED> --requested-work-type <type> --actual-work-type <type> [--result <text>]
   meta-harness templates list
   meta-harness templates install [--overwrite]
+  meta-harness sync check --target <repo>
+  meta-harness trust check --target <repo>
+  meta-harness contract scan --target <repo>
+  meta-harness state check --target <repo>
   meta-harness dirty snapshot --out <path>
   meta-harness dirty classify --before <path> --after <path> --scope <path> --out <path>
   meta-harness gate scope --dirty <path> --scope <path>
@@ -619,6 +629,105 @@ function commandTemplates(argv) {
   fail(`unknown templates action: ${action}`);
 }
 
+function requireTargetRoot(options) {
+  const value = options.target;
+  if (Array.isArray(value)) {
+    fail("--target must be provided once");
+  }
+  if (value === undefined || value === null || value === true || String(value).trim() === "") {
+    fail("--target requires an existing directory");
+  }
+  const targetRoot = path.resolve(process.cwd(), String(value));
+  let stat;
+  try {
+    stat = fs.lstatSync(targetRoot);
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      fail(`--target must be an existing directory: ${value}`);
+    }
+    throw error;
+  }
+  if (!stat.isDirectory() || stat.isSymbolicLink()) {
+    fail(`--target must be an existing directory: ${value}`);
+  }
+  return targetRoot;
+}
+
+function statusCount(items, status) {
+  return items.filter((item) => item.status === status).length;
+}
+
+function renderCheckSummary(label, result) {
+  const fields = [`checked=${result.checked ?? result.items.length}`];
+  for (const status of ["MISSING", "DRIFT", "REJECTED", "MIGRATION_NEEDED"]) {
+    const count = statusCount(result.items, status);
+    if (count > 0) {
+      fields.push(`${status.toLowerCase()}=${count}`);
+    }
+  }
+  return `${label}: ${result.status} ${fields.join(" ")}`;
+}
+
+function printCheckResult(label, result) {
+  console.log(renderCheckSummary(label, result));
+  for (const item of result.items.filter((entry) => entry.status !== "PASS")) {
+    const columns = [item.status, item.path];
+    if (item.detail) {
+      columns.push(item.detail);
+    }
+    console.log(columns.join("\t"));
+  }
+  if (result.status !== "PASS") {
+    process.exitCode = 1;
+  }
+}
+
+function commandReadOnlyCheck(argv, config) {
+  const { positional, options } = parseArgs(argv);
+  if (positional.length !== 1 || positional[0] !== config.action) {
+    fail(`unknown ${config.command} action: ${positional[0] || "missing"}`);
+  }
+  const sourceRoot = path.resolve(__dirname, "..");
+  const targetRoot = requireTargetRoot(options);
+  printCheckResult(config.label, config.check({ sourceRoot, targetRoot }));
+}
+
+function commandSync(argv) {
+  return commandReadOnlyCheck(argv, {
+    action: "check",
+    command: "sync",
+    label: "SYNC CHECK",
+    check: checkTemplateSync,
+  });
+}
+
+function commandTrust(argv) {
+  return commandReadOnlyCheck(argv, {
+    action: "check",
+    command: "trust",
+    label: "TRUST CHECK",
+    check: checkTrustPolicy,
+  });
+}
+
+function commandContract(argv) {
+  return commandReadOnlyCheck(argv, {
+    action: "scan",
+    command: "contract",
+    label: "CONTRACT SCAN",
+    check: scanContracts,
+  });
+}
+
+function commandState(argv) {
+  return commandReadOnlyCheck(argv, {
+    action: "check",
+    command: "state",
+    label: "STATE CHECK",
+    check: checkStateLayout,
+  });
+}
+
 function commandExpertPacket(argv) {
   const { positional, options } = parseArgs(argv);
   requireHarness();
@@ -808,6 +917,10 @@ function main(argv) {
   if (command === "event") return commandEvent(rest);
   if (command === "worker-report") return commandWorkerReport(rest);
   if (command === "templates") return commandTemplates(rest);
+  if (command === "sync") return commandSync(rest);
+  if (command === "trust") return commandTrust(rest);
+  if (command === "contract") return commandContract(rest);
+  if (command === "state") return commandState(rest);
   if (command === "dirty") return commandDirty(rest, { cwd: process.cwd() });
   if (command === "gate") return commandGate(rest, { cwd: process.cwd() });
   if (command === "decisions") return commandDecisions(rest, { cwd: process.cwd() });
