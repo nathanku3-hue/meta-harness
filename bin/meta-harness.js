@@ -27,6 +27,7 @@ const {
   checkStateLayout,
 } = require("../lib/sync-check");
 const { scanPmBrief } = require("../lib/pm-brief-check");
+const { scanDecisionInbox } = require("../lib/decision-inbox-check");
 
 const STREAMS = ["coding", "research", "writing", "review"];
 const PHASES = ["intake", "plan", "work", "verify", "synthesize", "handoff", "lookback"];
@@ -63,6 +64,7 @@ Usage:
   meta-harness decisions list --in <path>
   meta-harness decisions add --kind <kind> --question <text> --state-hash <hash>
   meta-harness decisions resolve --id <id> --resolution <approved|rejected|deferred>
+  meta-harness decisions scan --target <repo>
   meta-harness distill add --decision-id <id> --principle <text> --skill <name> --assumption <text> --reopen-when <text> [--enforcement <check>] [--owner <owner>] [--out <path>]
   meta-harness distill list --in <path>
   meta-harness distill check --in <path>
@@ -739,6 +741,15 @@ function commandBriefScan(argv) {
   printCheckResult("BRIEF SCAN", scanPmBrief({ targetRoot }));
 }
 
+function commandDecisionInboxScan(argv) {
+  const { positional, options } = parseArgs(argv);
+  if (positional.length > 0) {
+    fail(`unknown decisions scan argument: ${positional[0]}`);
+  }
+  const targetRoot = requireTargetRoot(options);
+  printCheckResult("DECISION INBOX SCAN", scanDecisionInbox({ targetRoot }));
+}
+
 function commandExpertPacket(argv) {
   const { positional, options } = parseArgs(argv);
   requireHarness();
@@ -934,6 +945,7 @@ function main(argv) {
   if (command === "state") return commandState(rest);
   if (command === "dirty") return commandDirty(rest, { cwd: process.cwd() });
   if (command === "gate") return commandGate(rest, { cwd: process.cwd() });
+  if (command === "decisions" && rest[0] === "scan") return commandDecisionInboxScan(rest.slice(1));
   if (command === "decisions") return commandDecisions(rest, { cwd: process.cwd() });
   if (command === "distill") return commandDistill(rest, { cwd: process.cwd() });
   if (command === "brief" && rest[0] === "scan") return commandBriefScan(rest.slice(1));

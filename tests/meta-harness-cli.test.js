@@ -71,6 +71,22 @@ function validPmBrief() {
   ].join("\n");
 }
 
+function validDecisionInbox() {
+  return {
+    v: 1,
+    decisions: [{
+      id: "D-001",
+      kind: "user_decision",
+      question: "Approve bounded scope?",
+      recommended: "hold",
+      state_hash: "state-1",
+      reask_when: "source state changes",
+      status: "open",
+      evidence: [".meta-harness/dirty-work.json"],
+    }],
+  };
+}
+
 function snapshotTree(root) {
   const items = [];
   function walk(directoryPath) {
@@ -316,6 +332,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(list, /skills\s+subagent-workcell\.md/);
   assert.match(list, /skills\s+distilled-taste-capsule\.md/);
   assert.match(list, /contracts\s+decision-reuse-contract\.md/);
+  assert.match(list, /contracts\s+decision-inbox-scan-contract\.md/);
   assert.match(list, /contracts\s+skill-sync-contract\.md/);
   assert.match(list, /contracts\s+skill-distillation-contract\.md/);
   assert.match(list, /contracts\s+subagent-workcell-contract\.md/);
@@ -331,6 +348,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   const subagentWorkcell = path.join(harness, "templates", "skills", "subagent-workcell.md");
   const distilledTasteCapsule = path.join(harness, "templates", "skills", "distilled-taste-capsule.md");
   const decisionReuseContract = path.join(harness, "templates", "contracts", "decision-reuse-contract.md");
+  const decisionInboxScanContract = path.join(harness, "templates", "contracts", "decision-inbox-scan-contract.md");
   const skillSyncContract = path.join(harness, "templates", "contracts", "skill-sync-contract.md");
   const skillDistillationContract = path.join(harness, "templates", "contracts", "skill-distillation-contract.md");
   const subagentWorkcellContract = path.join(harness, "templates", "contracts", "subagent-workcell-contract.md");
@@ -344,6 +362,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.equal(fs.existsSync(subagentWorkcell), true);
   assert.equal(fs.existsSync(distilledTasteCapsule), true);
   assert.equal(fs.existsSync(decisionReuseContract), true);
+  assert.equal(fs.existsSync(decisionInboxScanContract), true);
   assert.equal(fs.existsSync(skillSyncContract), true);
   assert.equal(fs.existsSync(skillDistillationContract), true);
   assert.equal(fs.existsSync(subagentWorkcellContract), true);
@@ -360,6 +379,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(subagentWorkcellText, /Keep fanout to 2 subagents by default/);
   assert.match(distilledTasteCapsuleText, /no automatic skill mutation in v0/i);
   assert.match(fs.readFileSync(decisionReuseContract, "utf8"), /Do not re-ask a decision/);
+  assert.match(fs.readFileSync(decisionInboxScanContract, "utf8"), /current target-form decision inbox contract/);
   assert.match(fs.readFileSync(skillSyncContract, "utf8"), /PASS\nMISSING\nDRIFT/);
   assert.match(fs.readFileSync(skillDistillationContract, "utf8"), /S-<first12hex/);
   assert.match(fs.readFileSync(subagentWorkcellContract, "utf8"), /PM brief \+ artifact paths \+ decision inbox entries only/);
@@ -506,6 +526,40 @@ test("brief scan CLI target without value is UsageError", () => {
   const cwd = tempDir();
 
   assertCliError(runRaw(cwd, ["brief", "scan", "--target"]), "MH_USAGE", /--target requires an existing directory/);
+});
+
+test("decision inbox scan CLI exits zero on target-form inbox without requiring git", () => {
+  const cwd = tempDir();
+  writeFile(cwd, ".meta-harness/decision-inbox.json", `${JSON.stringify(validDecisionInbox(), null, 2)}\n`);
+
+  const before = snapshotTree(cwd);
+  const result = runRaw(cwd, ["decisions", "scan", "--target", cwd]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /DECISION INBOX SCAN: PASS checked=1/);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(snapshotTree(cwd), before);
+});
+
+test("decision inbox scan CLI exits nonzero on rejected status without writing", () => {
+  const cwd = tempDir();
+  const inbox = validDecisionInbox();
+  inbox.decisions[0].status = "blocked";
+  writeFile(cwd, ".meta-harness/decision-inbox.json", `${JSON.stringify(inbox, null, 2)}\n`);
+
+  const before = snapshotTree(cwd);
+  const result = runRaw(cwd, ["decisions", "scan", "--target", cwd]);
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, /DECISION INBOX SCAN: FAIL checked=1 rejected=1/);
+  assert.match(result.stdout, /REJECTED\t\.meta-harness\/decision-inbox\.json#decisions\[0\]\.status\tinvalid status: blocked/);
+  assert.deepEqual(snapshotTree(cwd), before);
+});
+
+test("decision inbox scan CLI target without value is UsageError", () => {
+  const cwd = tempDir();
+
+  assertCliError(runRaw(cwd, ["decisions", "scan", "--target"]), "MH_USAGE", /--target requires an existing directory/);
 });
 
 test("read-only checks reject missing or non-directory targets", () => {
