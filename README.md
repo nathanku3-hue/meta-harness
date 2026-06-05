@@ -112,6 +112,21 @@ meta-harness expert-packet ROUND-001 --include docs/product/product-spec.md
 
 `templates install` copies reusable skill and contract templates into `.meta-harness/templates/`. `expert-packet` writes one compact archive at `.meta-harness/expert-packets/<round-id>.zip` using current harness truth, packaged templates, optional includes, and bounded git metadata when the target is a Git repo. Packet consumers should receive the zip only; diff notes, next-scope notes, and other review aids belong inside the archive rather than beside it as separate deliverables.
 
+## Read-Only Trust Checks
+
+Phase 5 closes the source-only trust/sync flywheel with adoption checks that report without mutating target repos:
+
+```text
+meta-harness sync check --target <repo>
+meta-harness trust check --target <repo>
+meta-harness contract scan --target <repo>
+meta-harness state check --target <repo>
+meta-harness brief scan --target <repo>
+meta-harness decisions scan --target <repo>
+```
+
+These checks detect template drift, untrusted local skill references, old contract headings, state-layout drift, PM brief shape drift, and malformed, invalid, or duplicate decision-inbox records. They do not install templates, clean inherited dirty files, rewrite generators, or write `.meta-harness/status.md` or `.meta-harness/events.jsonl`.
+
 ## Pre-MVP Prototype CLI
 
 The current Python script is an earlier local prototype. It is useful as a behavior sketch, not the final product packaging target.
