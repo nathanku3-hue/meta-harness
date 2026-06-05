@@ -17,6 +17,7 @@ const {
 const { commandQuality } = require("../lib/quality");
 const { commandDirty, commandGate } = require("../lib/dirty");
 const { commandBrief, commandDecisions } = require("../lib/decisions");
+const { commandDistill } = require("../lib/skill-distillation");
 const { copyPackagedTemplates, templateFiles } = require("../lib/templates");
 const { buildExpertPacket } = require("../lib/expert-packet");
 
@@ -51,6 +52,9 @@ Usage:
   meta-harness decisions list --in <path>
   meta-harness decisions add --kind <kind> --question <text> --state-hash <hash>
   meta-harness decisions resolve --id <id> --resolution <approved|rejected|deferred>
+  meta-harness distill add --decision-id <id> --principle <text> --skill <name> --assumption <text> --reopen-when <text> [--enforcement <check>] [--owner <owner>] [--out <path>]
+  meta-harness distill list --in <path>
+  meta-harness distill check --in <path>
   meta-harness brief pm --dirty <path> --decisions <path> --out <path>
   meta-harness expert-packet <round-id> [--include <path>] [--owned-path <path>] [--forbidden-path <path>] [--required-evidence <text>] [--overwrite]
   meta-harness quality init
@@ -807,6 +811,7 @@ function main(argv) {
   if (command === "dirty") return commandDirty(rest, { cwd: process.cwd() });
   if (command === "gate") return commandGate(rest, { cwd: process.cwd() });
   if (command === "decisions") return commandDecisions(rest, { cwd: process.cwd() });
+  if (command === "distill") return commandDistill(rest, { cwd: process.cwd() });
   if (command === "brief") return commandBrief(rest, { cwd: process.cwd() });
   if (command === "expert-packet") return commandExpertPacket(rest);
   if (command === "quality") return commandQuality(rest, {

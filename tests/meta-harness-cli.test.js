@@ -267,6 +267,9 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(list, /skills\s+scope-selector\.md/);
   assert.match(list, /skills\s+post-worker-github-actions\.md/);
   assert.match(list, /skills\s+subagent-workcell\.md/);
+  assert.match(list, /skills\s+distilled-taste-capsule\.md/);
+  assert.match(list, /contracts\s+decision-reuse-contract\.md/);
+  assert.match(list, /contracts\s+skill-distillation-contract\.md/);
   assert.match(list, /contracts\s+subagent-workcell-contract\.md/);
   assert.match(list, /contracts\s+worker-done-contract\.md/);
 
@@ -276,6 +279,9 @@ test("templates install copies reusable scope and handoff contracts", () => {
   const scopeSelector = path.join(harness, "templates", "skills", "scope-selector.md");
   const postWorkerGithubActions = path.join(harness, "templates", "skills", "post-worker-github-actions.md");
   const subagentWorkcell = path.join(harness, "templates", "skills", "subagent-workcell.md");
+  const distilledTasteCapsule = path.join(harness, "templates", "skills", "distilled-taste-capsule.md");
+  const decisionReuseContract = path.join(harness, "templates", "contracts", "decision-reuse-contract.md");
+  const skillDistillationContract = path.join(harness, "templates", "contracts", "skill-distillation-contract.md");
   const subagentWorkcellContract = path.join(harness, "templates", "contracts", "subagent-workcell-contract.md");
   const workerDone = path.join(harness, "templates", "contracts", "worker-done-contract.md");
 
@@ -283,14 +289,22 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.equal(fs.existsSync(scopeSelector), true);
   assert.equal(fs.existsSync(postWorkerGithubActions), true);
   assert.equal(fs.existsSync(subagentWorkcell), true);
+  assert.equal(fs.existsSync(distilledTasteCapsule), true);
+  assert.equal(fs.existsSync(decisionReuseContract), true);
+  assert.equal(fs.existsSync(skillDistillationContract), true);
   assert.equal(fs.existsSync(subagentWorkcellContract), true);
   assert.equal(fs.existsSync(workerDone), true);
   const expertFrontCardText = fs.readFileSync(expertFrontCard, "utf8");
   const subagentWorkcellText = fs.readFileSync(subagentWorkcell, "utf8");
+  const distilledTasteCapsuleText = fs.readFileSync(distilledTasteCapsule, "utf8");
   assertSkillFrontMatter(expertFrontCardText, "expert-front-card");
   assertSkillFrontMatter(subagentWorkcellText, "subagent-workcell");
+  assertSkillFrontMatter(distilledTasteCapsuleText, "distilled-taste-capsule");
   assert.match(expertFrontCardText, /exactly one `Question:` field/);
   assert.match(subagentWorkcellText, /Keep fanout to 2 subagents by default/);
+  assert.match(distilledTasteCapsuleText, /no automatic skill mutation in v0/i);
+  assert.match(fs.readFileSync(decisionReuseContract, "utf8"), /Do not re-ask a decision/);
+  assert.match(fs.readFileSync(skillDistillationContract, "utf8"), /S-<first12hex/);
   assert.match(fs.readFileSync(subagentWorkcellContract, "utf8"), /PM brief \+ artifact paths \+ decision inbox entries only/);
   assert.match(fs.readFileSync(scopeSelector, "utf8"), /Chosen Scope:/);
   const postWorkerText = fs.readFileSync(postWorkerGithubActions, "utf8");
