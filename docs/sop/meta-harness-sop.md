@@ -211,7 +211,7 @@ When a run needs specialist review or delegated work, keep the packet smaller th
 4. build a packet with `meta-harness expert-packet <round-id> --include <focused-path>`;
 5. reconcile reviewer output through the expert reconciliation matrix.
 
-Expert packets are advisory evidence bundles. They do not authorize execution, production-impacting actions, or scope expansion by themselves.
+Expert packets are advisory evidence bundles. They do not authorize execution, production-impacting actions, or scope expansion by themselves. The deliverable is a single `.zip` archive; do not publish sidecar `main.diff`, `main_next_scope.md`, or other loose packet files beside it. If those aids are needed, include them as entries inside the archive.
 
 ## Retrospective Lookback
 

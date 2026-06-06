@@ -1,0 +1,124 @@
+{
+  "v": 1,
+  "generated_at": "2026-06-04T07:59:30.872Z",
+  "mode": "ratchet",
+  "budgets": {
+    "max_source_file_lines": 500,
+    "max_function_lines": 80,
+    "max_cyclomatic_complexity": 12,
+    "max_cli_flags_per_command": 12
+  },
+  "files": {
+    "bin/meta-harness.js": {
+      "lines": 1317,
+      "overbudget": true
+    },
+    "lib/quality.js": {
+      "lines": 500,
+      "overbudget": false
+    },
+    "meta_harness.py": {
+      "lines": 386,
+      "overbudget": false
+    },
+    "tests/meta-harness-cli.test.js": {
+      "lines": 456,
+      "overbudget": false
+    },
+    "tests/test_meta_harness.py": {
+      "lines": 75,
+      "overbudget": false
+    }
+  },
+  "ratchets": {
+    "process_exit": {
+      "count": 1
+    },
+    "main_boundary_missing": {
+      "count": 1
+    },
+    "direct_events_jsonl_append": {
+      "count": 0
+    },
+    "worker_report_flags": {
+      "count": 29,
+      "flags": [
+        "actualWorkType",
+        "allowedScope",
+        "alternatives",
+        "artifacts",
+        "blocker",
+        "commitCreated",
+        "confidence",
+        "credentialsTouched",
+        "dataOutputCreated",
+        "decisionNeeded",
+        "evidenceArtifacts",
+        "forbiddenScope",
+        "humanSummary",
+        "nextAction",
+        "nextGoal",
+        "outcome",
+        "phase",
+        "progress",
+        "providerAccessTouched",
+        "requestedWorkType",
+        "result",
+        "round",
+        "scopeLimit",
+        "stopRule",
+        "stream",
+        "task",
+        "validationsPassed",
+        "validationsSkipped",
+        "worker"
+      ]
+    }
+  },
+  "compatibility": {
+    "command_names": [
+      "event",
+      "expert-packet",
+      "init",
+      "lookback",
+      "poll",
+      "quality",
+      "repos",
+      "status",
+      "templates",
+      "worker-report"
+    ],
+    "required_flags": [
+      "--actual-work-type",
+      "--outcome",
+      "--requested-work-type"
+    ],
+    "output_top_fields": [
+      "Confidence",
+      "Outcome",
+      "Phase",
+      "Progress",
+      "Round",
+      "Stream",
+      "Task",
+      "Updated",
+      "Worker"
+    ],
+    "template_primary_skeleton": [
+      "## Accountability",
+      "## Compatibility Metadata",
+      "## Evidence",
+      "## Identity",
+      "## Next action",
+      "## What changed",
+      "## What decision is needed",
+      "## What is blocked",
+      "## Why it matters",
+      "## Worker Report Artifact",
+      "Confidence: <0-10>/10",
+      "Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>",
+      "Progress: <before>/100 -> <after>/100",
+      "Round: <round/task>"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "repos": [
+    {
+      "name": "coding-session",
+      "path": "..\\coding-session",
+      "role": "terminal-session"
+    },
+    {
+      "name": "research-session",
+      "path": "..\\research-session",
+      "role": "terminal-session"
+    }
+  ]
+}
