@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
+const { spawnSync } = require("node:child_process");
 const {
   checkTemplateSync,
   scanContracts,
@@ -48,13 +49,36 @@ function snapshotTree(root) {
 }
 
 function installMatchingTemplates(sourceRoot, targetRoot) {
+  const manifestTemplates = [];
   for (const relativePath of [
     "templates/skills/scope-selector.md",
     "templates/contracts/worker-done-contract.md",
   ]) {
     const content = fs.readFileSync(path.join(sourceRoot, ...relativePath.split("/")), "utf8");
     writeFile(targetRoot, `.meta-harness/${relativePath}`, content);
+    const normalized = content.replace(/\r\n/g, "\n");
+    const hash = require("node:crypto").createHash("sha256").update(normalized, "utf8").digest("hex");
+    manifestTemplates.push({
+      source_path: relativePath,
+      installed_path: `.meta-harness/${relativePath}`,
+      content_hash: hash,
+    });
   }
+
+  const manifestWithoutHash = {
+    schema_version: "2.0.0",
+    generated_at: new Date().toISOString(),
+    template_count: manifestTemplates.length,
+    hash_algorithm: "sha256",
+    line_ending_normalization: "LF",
+    templates: manifestTemplates,
+  };
+  const manifestHash = require("node:crypto").createHash("sha256").update(JSON.stringify(manifestWithoutHash)).digest("hex");
+
+  writeFile(targetRoot, ".meta-harness/templates/manifest.json", JSON.stringify({
+    ...manifestWithoutHash,
+    manifest_hash: manifestHash
+  }, null, 2));
 }
 
 test("sync check passes when source and installed templates match", () => {
@@ -66,18 +90,37 @@ test("sync check passes when source and installed templates match", () => {
 
   const result = checkTemplateSync({ sourceRoot, targetRoot });
   assert.equal(result.status, "PASS");
-  assert.equal(result.checked, 2);
-  assert.deepEqual(result.items.map((item) => item.status), ["PASS", "PASS"]);
+  assert.equal(result.checked, 3);
+  assert.deepEqual(result.items.map((item) => item.status), ["PASS", "PASS", "PASS"]);
 });
 
 test("sync check reports missing installed templates", () => {
   const sourceRoot = tempDir();
   const targetRoot = tempDir();
   writeFile(sourceRoot, "templates/skills/scope-selector.md", "scope\n");
+  
+  const mockTemplates = [{
+    source_path: "templates/skills/scope-selector.md",
+    installed_path: ".meta-harness/templates/skills/scope-selector.md",
+    content_hash: "scope-hash"
+  }];
+  const manifestWithoutHash = {
+    schema_version: "2.0.0",
+    generated_at: new Date().toISOString(),
+    template_count: mockTemplates.length,
+    hash_algorithm: "sha256",
+    line_ending_normalization: "LF",
+    templates: mockTemplates
+  };
+  const manifestHash = require("node:crypto").createHash("sha256").update(JSON.stringify(manifestWithoutHash)).digest("hex");
+  writeFile(targetRoot, ".meta-harness/templates/manifest.json", JSON.stringify({
+    ...manifestWithoutHash,
+    manifest_hash: manifestHash
+  }));
 
   const result = checkTemplateSync({ sourceRoot, targetRoot });
   assert.equal(result.status, "FAIL");
-  assert.deepEqual(result.items, [{
+  assert.deepEqual(result.items.filter(item => item.path !== "manifest.json"), [{
     status: "MISSING",
     path: "skills/scope-selector.md",
     detail: "installed template is missing",
@@ -88,7 +131,27 @@ test("sync check reports byte-exact drift when installed copy differs", () => {
   const sourceRoot = tempDir();
   const targetRoot = tempDir();
   writeFile(sourceRoot, "templates/skills/scope-selector.md", "scope\n");
-  writeFile(targetRoot, ".meta-harness/templates/skills/scope-selector.md", "scope\r\n");
+  writeFile(targetRoot, ".meta-harness/templates/skills/scope-selector.md", "different\n");
+  
+  const hash = require("node:crypto").createHash("sha256").update("scope\n", "utf8").digest("hex");
+  const mockTemplates = [{
+    source_path: "templates/skills/scope-selector.md",
+    installed_path: ".meta-harness/templates/skills/scope-selector.md",
+    content_hash: hash
+  }];
+  const manifestWithoutHash = {
+    schema_version: "2.0.0",
+    generated_at: new Date().toISOString(),
+    template_count: mockTemplates.length,
+    hash_algorithm: "sha256",
+    line_ending_normalization: "LF",
+    templates: mockTemplates
+  };
+  const manifestHash = require("node:crypto").createHash("sha256").update(JSON.stringify(manifestWithoutHash)).digest("hex");
+  writeFile(targetRoot, ".meta-harness/templates/manifest.json", JSON.stringify({
+    ...manifestWithoutHash,
+    manifest_hash: manifestHash
+  }));
 
   const result = checkTemplateSync({ sourceRoot, targetRoot });
   assert.equal(result.status, "FAIL");
@@ -188,4 +251,77 @@ test("state-layout check reports old runs layout as migration-needed without wri
   assert.equal(fs.existsSync(path.join(targetRoot, ".meta-harness", "status.md")), false);
   assert.equal(fs.existsSync(path.join(targetRoot, ".meta-harness", "events.jsonl")), false);
   assert.deepEqual(after, before);
+});
+
+test("templates install/upgrade round-trip integration test", () => {
+  const ROOT = path.resolve(__dirname, "..");
+  const CLI = path.join(ROOT, "bin", "meta-harness.js");
+  const targetRoot = tempDir();
+
+  // 1. Run templates install command (requires init first)
+  const resultInit = spawnSync(process.execPath, [CLI, "init", "Roundtrip test"], { cwd: targetRoot });
+  assert.equal(resultInit.status, 0);
+
+  const resultInstall = spawnSync(process.execPath, [CLI, "templates", "install", "--allow-dirty"], { cwd: targetRoot });
+  assert.equal(resultInstall.status, 0);
+
+  // 2. Run sync check --target <temp>
+  const resultCheck1 = spawnSync(process.execPath, [CLI, "sync", "check", "--target", targetRoot], { cwd: targetRoot });
+  assert.equal(resultCheck1.status, 0);
+
+  // 3. Modify one installed template
+  const targetTemplatePath = path.join(targetRoot, ".meta-harness", "templates", "skills", "scope-selector.md");
+  fs.writeFileSync(targetTemplatePath, "modified-content\n", "utf8");
+
+  // 4. Run sync check --target <temp>, verify DRIFT detected
+  const resultCheck2 = spawnSync(process.execPath, [CLI, "sync", "check", "--target", targetRoot], { cwd: targetRoot });
+  assert.notEqual(resultCheck2.status, 0);
+  assert.match(resultCheck2.stdout.toString("utf8"), /DRIFT/);
+
+  // 5. Re-install with overwrite
+  const resultReinstall = spawnSync(process.execPath, [CLI, "templates", "install", "--overwrite", "--allow-dirty"], { cwd: targetRoot });
+  assert.equal(resultReinstall.status, 0);
+
+  // 6. Verify PASS restored
+  const resultCheck3 = spawnSync(process.execPath, [CLI, "sync", "check", "--target", targetRoot], { cwd: targetRoot });
+  assert.equal(resultCheck3.status, 0);
+
+  // 7. Confirms no local state leaks
+  const eventsContent = fs.readFileSync(path.join(targetRoot, ".meta-harness", "events.jsonl"), "utf8");
+  assert.ok(eventsContent.includes("initialized harness"));
+});
+
+test("templates install failure rollback test", () => {
+  const ROOT = path.resolve(__dirname, "..");
+  const CLI = path.join(ROOT, "bin", "meta-harness.js");
+  const targetRoot = tempDir();
+
+  const resultInit = spawnSync(process.execPath, [CLI, "init", "Rollback test"], { cwd: targetRoot });
+  assert.equal(resultInit.status, 0);
+
+  const resultInstall = spawnSync(process.execPath, [CLI, "templates", "install", "--allow-dirty"], { cwd: targetRoot });
+  assert.equal(resultInstall.status, 0);
+  
+  const initialManifest = fs.readFileSync(path.join(targetRoot, ".meta-harness", "templates", "manifest.json"), "utf8");
+
+  const originalWriteFileSync = fs.writeFileSync;
+  let writeCount = 0;
+  fs.writeFileSync = function(filePath, content, options) {
+    const normPath = filePath.split(path.sep).join("/");
+    if (normPath.includes(".meta-harness/templates") && !normPath.includes("manifest.json") && ++writeCount > 5) {
+      throw new Error("Simulated templates write failure");
+    }
+    return originalWriteFileSync.call(fs, filePath, content, options);
+  };
+
+  const { copyPackagedTemplates } = require("../lib/templates");
+  
+  assert.throws(() => {
+    copyPackagedTemplates(path.join(targetRoot, ".meta-harness", "templates"), true);
+  }, /Simulated templates write failure/);
+
+  fs.writeFileSync = originalWriteFileSync;
+
+  const restoredManifest = fs.readFileSync(path.join(targetRoot, ".meta-harness", "templates", "manifest.json"), "utf8");
+  assert.equal(restoredManifest, initialManifest);
 });

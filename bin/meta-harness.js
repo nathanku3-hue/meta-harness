@@ -13,7 +13,10 @@ const {
   harnessPath,
   readText,
   writeIfMissing,
+  writeText,
+  writeTextAtomic,
 } = require("../lib/paths");
+const { execSync } = require("node:child_process");
 const { commandQuality } = require("../lib/quality");
 const { commandDirty, commandGate } = require("../lib/dirty");
 const { commandBrief, commandDecisions } = require("../lib/decisions");
@@ -394,7 +397,7 @@ ${nowIso()}
 
 function refreshStatus() {
   const status = renderStatus();
-  fs.writeFileSync(harnessPath("status.md"), status, "utf8");
+  writeTextAtomic(harnessPath("status.md"), status);
   return status;
 }
 
@@ -615,6 +618,16 @@ function commandTemplates(argv) {
   }
 
   if (action === "install") {
+    if (!options.allowDirty) {
+      try {
+        const statusOut = execSync("git status --porcelain", { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+        if (statusOut.trim().length > 0) {
+          fail("Repository is dirty. Please commit or stash changes, or run with --allow-dirty.");
+        }
+      } catch (e) {
+        // Skip check if not a git repo or git not in path
+      }
+    }
     ensureHarness();
     const destinationRoot = harnessPath("templates");
     const overwrite = Boolean(options.overwrite);

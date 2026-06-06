@@ -340,7 +340,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(list, /contracts\s+pm-brief-scan-contract\.md/);
   assert.match(list, /contracts\s+worker-done-contract\.md/);
 
-  run(cwd, ["templates", "install"]);
+  run(cwd, ["templates", "install", "--allow-dirty"]);
   const harness = path.join(cwd, ".meta-harness");
   const expertFrontCard = path.join(harness, "templates", "skills", "expert-front-card.md");
   const scopeSelector = path.join(harness, "templates", "skills", "scope-selector.md");
@@ -425,7 +425,7 @@ test("post-worker workflow keeps reusable checks read-only and parameterized", (
 test("sync check CLI reports match and drift without writing", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Sync check target"]);
-  run(cwd, ["templates", "install"]);
+  run(cwd, ["templates", "install", "--allow-dirty"]);
 
   const passBefore = snapshotTree(cwd);
   const pass = runRaw(cwd, ["sync", "check", "--target", cwd]);
@@ -726,6 +726,25 @@ test("expert-packet rejects unsafe explicit owned paths", () => {
     const cwd = tempDir();
     run(cwd, ["init", "Reject unsafe owned paths"]);
     const result = runRaw(cwd, ["expert-packet", "ROUND-001", "--owned-path", item]);
-    assertCliError(result, "MH_USAGE", /owned path|raw chat/);
+  assertCliError(result, "MH_USAGE", /owned path|raw chat/);
   }
+});
+
+test("package dry-run excludes .meta-harness", () => {
+  const npmExecPath = process.env.npm_execpath;
+  const npmCliPath = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
+  const command = (npmExecPath || fs.existsSync(npmCliPath)) ? process.execPath : (process.platform === "win32" ? "npm.cmd" : "npm");
+  const args = npmExecPath
+    ? [npmExecPath, "pack", "--dry-run", "--json"]
+    : (fs.existsSync(npmCliPath) ? [npmCliPath, "pack", "--dry-run", "--json"] : ["pack", "--dry-run", "--json"]);
+  const result = spawnSync(command, args, {
+    cwd: ROOT,
+    encoding: "utf8",
+    shell: process.platform === "win32" && command === "npm.cmd",
+  });
+  assert.equal(result.status, 0);
+  const [pack] = JSON.parse(result.stdout);
+  const packedFiles = pack.files.map((file) => file.path);
+  const leaked = packedFiles.filter((file) => file.includes(".meta-harness"));
+  assert.deepEqual(leaked, [], `Tarball contains leaked .meta-harness files: ${leaked.join(", ")}`);
 });
