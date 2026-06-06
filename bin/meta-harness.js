@@ -68,6 +68,7 @@ Usage:
   meta-harness decisions add --kind <kind> --question <text> --state-hash <hash>
   meta-harness decisions resolve --id <id> --resolution <approved|rejected|deferred>
   meta-harness decisions scan --target <repo>
+  meta-harness ready --target <repo> [--json] [--quick] [--read-only] [--no-exec] [--mode <local|strict|release>] [--strict-github-settings]
   meta-harness distill add --decision-id <id> --principle <text> --skill <name> --assumption <text> --reopen-when <text> [--enforcement <check>] [--owner <owner>] [--out <path>]
   meta-harness distill list --in <path>
   meta-harness distill check --in <path>
@@ -763,6 +764,7 @@ function commandDecisionInboxScan(argv) {
   printCheckResult("DECISION INBOX SCAN", scanDecisionInbox({ targetRoot }));
 }
 
+
 function commandExpertPacket(argv) {
   const { positional, options } = parseArgs(argv);
   requireHarness();
@@ -963,6 +965,11 @@ function main(argv) {
   if (command === "distill") return commandDistill(rest, { cwd: process.cwd() });
   if (command === "brief" && rest[0] === "scan") return commandBriefScan(rest.slice(1));
   if (command === "brief") return commandBrief(rest, { cwd: process.cwd() });
+  if (command === "ready") {
+    const commandReady = require("../lib/commands/ready");
+    commandReady(rest).catch(handleCliError);
+    return;
+  }
   if (command === "expert-packet") return commandExpertPacket(rest);
   if (command === "quality") return commandQuality(rest, {
     cwd: process.cwd(),
