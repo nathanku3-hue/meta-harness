@@ -1,0 +1,125 @@
+{
+  "schema_version": "2.0.0",
+  "generated_at": "2026-06-06T15:22:34.291Z",
+  "template_count": 23,
+  "hash_algorithm": "sha256",
+  "line_ending_normalization": "LF",
+  "templates": [
+    {
+      "source_path": "templates/contracts/clean-code-contract.json",
+      "installed_path": ".meta-harness/templates/contracts/clean-code-contract.json",
+      "content_hash": "190da2a97dca0ae1291835f8355e536de836f2d0079488ad9ddfff3f55ede142"
+    },
+    {
+      "source_path": "templates/contracts/decision-inbox-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/decision-inbox-contract.md",
+      "content_hash": "6df238c013a83883a5adaa7f8de3b104ec8a895b43f9c64965da999d598d7b40"
+    },
+    {
+      "source_path": "templates/contracts/decision-inbox-scan-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/decision-inbox-scan-contract.md",
+      "content_hash": "2f77b0240598fa916135dc999f38a2ba056b1df7fdf015e463d64c4503f56eb2"
+    },
+    {
+      "source_path": "templates/contracts/decision-reuse-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/decision-reuse-contract.md",
+      "content_hash": "24bc18d6a498b77103f7a21014572ebe5688e6bda9ccbd29b841cbeafdaa96ef"
+    },
+    {
+      "source_path": "templates/contracts/dirty-work-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/dirty-work-contract.md",
+      "content_hash": "51b27131faa8385926802d9be3e451d8ba9d85f066b050e1689178f0703822c6"
+    },
+    {
+      "source_path": "templates/contracts/expert-reconciliation-matrix.md",
+      "installed_path": ".meta-harness/templates/contracts/expert-reconciliation-matrix.md",
+      "content_hash": "711c6baa8f3567684f61899b83906c034e80b55f85f21635e006e7a90d7d16b7"
+    },
+    {
+      "source_path": "templates/contracts/pm-brief-scan-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/pm-brief-scan-contract.md",
+      "content_hash": "2878dd895bffee1f9d2afcaecc82d23114ad851c920ad6546ab57b53f34acd00"
+    },
+    {
+      "source_path": "templates/contracts/skill-distillation-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/skill-distillation-contract.md",
+      "content_hash": "711715c428bf71e460edf04a87275660a82bd5a84e5946afdd9f69ca57540aa2"
+    },
+    {
+      "source_path": "templates/contracts/skill-sync-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/skill-sync-contract.md",
+      "content_hash": "bae7bc0dca97e5d112bbeae7c146bb04835de4ba0d87c709b18565f8e5bb420f"
+    },
+    {
+      "source_path": "templates/contracts/stream-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/stream-contract.md",
+      "content_hash": "6ee0e2e53f31904ab94c8a0c166dae30e193e5614ea66ca8daf9248e83ef2490"
+    },
+    {
+      "source_path": "templates/contracts/subagent-workcell-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/subagent-workcell-contract.md",
+      "content_hash": "fc4ca3d4bfb4f35a95ee370d32493ba43b1e76cc09ce0afa332d5c99e5d4dbca"
+    },
+    {
+      "source_path": "templates/contracts/trust-policy-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/trust-policy-contract.md",
+      "content_hash": "a6178cbf90c85ad236faa2f4b78391988da9cf0419d7bc9482072ed1ff316de6"
+    },
+    {
+      "source_path": "templates/contracts/worker-done-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/worker-done-contract.md",
+      "content_hash": "390bc8ab47a7e050ccc20525c593724f74692a9e07b69ee542b9c9352ea7d1ed"
+    },
+    {
+      "source_path": "templates/skills/boundary-gate.md",
+      "installed_path": ".meta-harness/templates/skills/boundary-gate.md",
+      "content_hash": "178c63d2f4b0796ad72d766be3d7d6b711fc13b1b22403e0e400f79922b2f318"
+    },
+    {
+      "source_path": "templates/skills/dirty-work-autopilot.md",
+      "installed_path": ".meta-harness/templates/skills/dirty-work-autopilot.md",
+      "content_hash": "0de5974e2fdea06efa0de91fd85234fece8c94a3d2a25a1fe23521ed0a273c6a"
+    },
+    {
+      "source_path": "templates/skills/distilled-taste-capsule.md",
+      "installed_path": ".meta-harness/templates/skills/distilled-taste-capsule.md",
+      "content_hash": "22a9c3522626f7ac2f8cbaa28b1492fd7fe23cb4fe49ec091df4910099fc0f1e"
+    },
+    {
+      "source_path": "templates/skills/expert-context-packer.md",
+      "installed_path": ".meta-harness/templates/skills/expert-context-packer.md",
+      "content_hash": "5b54a083e9609e2d932e2c3479718bb9d53b0202fe79e0134d8ef4353c3cf8eb"
+    },
+    {
+      "source_path": "templates/skills/expert-front-card.md",
+      "installed_path": ".meta-harness/templates/skills/expert-front-card.md",
+      "content_hash": "1cbe70c3a0bcf94c5105d13cf2440654d8fdc11ede72ce241d3dc1bd3ad1ee96"
+    },
+    {
+      "source_path": "templates/skills/harness-feedback.md",
+      "installed_path": ".meta-harness/templates/skills/harness-feedback.md",
+      "content_hash": "7a0dd98afb4a01d624e3147559e595966552d64cf099a4e18f37fcd896768599"
+    },
+    {
+      "source_path": "templates/skills/post-worker-github-actions.md",
+      "installed_path": ".meta-harness/templates/skills/post-worker-github-actions.md",
+      "content_hash": "7f09e840e9b5cdafc886d07339b902ce2246a93b99fc19e8b9bd2d7888554b0b"
+    },
+    {
+      "source_path": "templates/skills/scope-selector.md",
+      "installed_path": ".meta-harness/templates/skills/scope-selector.md",
+      "content_hash": "6e1961d856568db7d1064e65ebd64e2ca940e689625f728c62e3c2b1c72116b9"
+    },
+    {
+      "source_path": "templates/skills/ship-fast-decision-router.md",
+      "installed_path": ".meta-harness/templates/skills/ship-fast-decision-router.md",
+      "content_hash": "66f19e20bf00fef7c3dad594af43c1bab650376292a2e214472d49d73a2cd079"
+    },
+    {
+      "source_path": "templates/skills/subagent-workcell.md",
+      "installed_path": ".meta-harness/templates/skills/subagent-workcell.md",
+      "content_hash": "44debb09279b9da8ef7ed2c1697a9d966ce4d5d703b54008a0c0744b2978e4df"
+    }
+  ],
+  "manifest_hash": "399a839787efafc0721c960eb5eb9fa0a1b771d4cdcd1e4c068e07e6adc95c18"
+}

@@ -1,0 +1,253 @@
+{
+  "v": 1,
+  "generated_at": "2026-06-06T16:56:43.915Z",
+  "mode": "ratchet",
+  "budgets": {
+    "max_source_file_lines": 500,
+    "max_function_lines": 80,
+    "max_cyclomatic_complexity": 12,
+    "max_cli_flags_per_command": 12
+  },
+  "files": {
+    "bin/meta-harness.js": {
+      "lines": 987,
+      "overbudget": true
+    },
+    "lib/commands/ready.js": {
+      "lines": 134,
+      "overbudget": false
+    },
+    "lib/decision-inbox-check.js": {
+      "lines": 230,
+      "overbudget": false
+    },
+    "lib/decisions.js": {
+      "lines": 446,
+      "overbudget": false
+    },
+    "lib/dirty.js": {
+      "lines": 335,
+      "overbudget": false
+    },
+    "lib/errors.js": {
+      "lines": 115,
+      "overbudget": false
+    },
+    "lib/events.js": {
+      "lines": 122,
+      "overbudget": false
+    },
+    "lib/expert-packet.js": {
+      "lines": 441,
+      "overbudget": false
+    },
+    "lib/json.js": {
+      "lines": 21,
+      "overbudget": false
+    },
+    "lib/packet-rules.js": {
+      "lines": 305,
+      "overbudget": false
+    },
+    "lib/paths.js": {
+      "lines": 68,
+      "overbudget": false
+    },
+    "lib/pm-brief-check.js": {
+      "lines": 286,
+      "overbudget": false
+    },
+    "lib/quality.js": {
+      "lines": 497,
+      "overbudget": false
+    },
+    "lib/ready-check.js": {
+      "lines": 1128,
+      "overbudget": true
+    },
+    "lib/skill-distillation.js": {
+      "lines": 290,
+      "overbudget": false
+    },
+    "lib/state-hash.js": {
+      "lines": 19,
+      "overbudget": false
+    },
+    "lib/subagent-packet.js": {
+      "lines": 88,
+      "overbudget": false
+    },
+    "lib/sync-check.js": {
+      "lines": 365,
+      "overbudget": false
+    },
+    "lib/templates.js": {
+      "lines": 113,
+      "overbudget": false
+    },
+    "lib/zip.js": {
+      "lines": 126,
+      "overbudget": false
+    },
+    "meta_harness.py": {
+      "lines": 386,
+      "overbudget": false
+    },
+    "tests/cli-ready.test.js": {
+      "lines": 584,
+      "overbudget": true
+    },
+    "tests/decision-inbox-check.test.js": {
+      "lines": 400,
+      "overbudget": false
+    },
+    "tests/meta-harness-cli.test.js": {
+      "lines": 750,
+      "overbudget": true
+    },
+    "tests/meta-harness-decisions.test.js": {
+      "lines": 333,
+      "overbudget": false
+    },
+    "tests/meta-harness-dirty.test.js": {
+      "lines": 209,
+      "overbudget": false
+    },
+    "tests/meta-harness-errors.test.js": {
+      "lines": 101,
+      "overbudget": false
+    },
+    "tests/meta-harness-worker-report.test.js": {
+      "lines": 211,
+      "overbudget": false
+    },
+    "tests/packet-rules.test.js": {
+      "lines": 82,
+      "overbudget": false
+    },
+    "tests/pm-brief-check.test.js": {
+      "lines": 370,
+      "overbudget": false
+    },
+    "tests/skill-distillation.test.js": {
+      "lines": 231,
+      "overbudget": false
+    },
+    "tests/subagent-packet.test.js": {
+      "lines": 70,
+      "overbudget": false
+    },
+    "tests/sync-check.test.js": {
+      "lines": 327,
+      "overbudget": false
+    },
+    "tests/test_meta_harness.py": {
+      "lines": 75,
+      "overbudget": false
+    }
+  },
+  "ratchets": {
+    "process_exit": {
+      "count": 0
+    },
+    "main_boundary_missing": {
+      "count": 0
+    },
+    "direct_events_jsonl_append": {
+      "count": 0
+    },
+    "worker_report_flags": {
+      "count": 29,
+      "flags": [
+        "actualWorkType",
+        "allowedScope",
+        "alternatives",
+        "artifacts",
+        "blocker",
+        "commitCreated",
+        "confidence",
+        "credentialsTouched",
+        "dataOutputCreated",
+        "decisionNeeded",
+        "evidenceArtifacts",
+        "forbiddenScope",
+        "humanSummary",
+        "nextAction",
+        "nextGoal",
+        "outcome",
+        "phase",
+        "progress",
+        "providerAccessTouched",
+        "requestedWorkType",
+        "result",
+        "round",
+        "scopeLimit",
+        "stopRule",
+        "stream",
+        "task",
+        "validationsPassed",
+        "validationsSkipped",
+        "worker"
+      ]
+    }
+  },
+  "compatibility": {
+    "command_names": [
+      "brief",
+      "contract",
+      "decisions",
+      "dirty",
+      "distill",
+      "event",
+      "expert-packet",
+      "gate",
+      "init",
+      "lookback",
+      "poll",
+      "quality",
+      "ready",
+      "repos",
+      "state",
+      "status",
+      "sync",
+      "templates",
+      "trust",
+      "worker-report"
+    ],
+    "required_flags": [
+      "--actual-work-type",
+      "--blocker",
+      "--outcome",
+      "--requested-work-type"
+    ],
+    "output_top_fields": [
+      "Confidence",
+      "Outcome",
+      "Phase",
+      "Progress",
+      "Round",
+      "Stream",
+      "Task",
+      "Updated",
+      "Worker"
+    ],
+    "template_primary_skeleton": [
+      "## Accountability",
+      "## Blockers And Next Action",
+      "## Compatibility Metadata",
+      "## Identity",
+      "## Next action",
+      "## Validation / evidence",
+      "## What changed",
+      "## What decision is needed",
+      "## What is blocked",
+      "## Why it matters",
+      "## Worker Accountability",
+      "## Worker Report Artifact",
+      "Confidence: <0-10>/10, or not recorded",
+      "Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>",
+      "Progress: <before>/100 -> <after>/100, or not recorded",
+      "Round: <round or not recorded>"
+    ]
+  }
+}

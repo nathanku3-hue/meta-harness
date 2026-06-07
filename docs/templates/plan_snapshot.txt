@@ -1,0 +1,40 @@
+Plan Snapshot Template
+
+Purpose: planning only. Do not use this template as a final report, worker report,
+SAW report, validation log, or handoff proof.
+
+Recommended next action:
+<one concise recommendation>
+
+P0 risks:
+- <risk + why it blocks or changes the plan>
+
+P1 risks:
+- <risk + why it matters>
+
+Files expected to change:
+- <path or none>
+
+Allowed scope:
+<what this round may touch>
+
+Forbidden scope:
+<what this round must not touch>
+
+High-confidence items:
+- <item + reason>
+
+Unknowns / low-certainty items:
+- <unknown + verification step>
+
+Final response boundary:
+- After execution, do not copy this planning snapshot into the final answer.
+- Do not use numbered command logs, reviewer chatter, or logsheet-style activity
+  summaries as the primary response.
+- Final responses must use the Ship-Fast PM Brief / Worker PM Brief contract:
+  Outcome, Round, Progress, Confidence, What I did, PM-facing status,
+  Key decisions made, Validation / evidence, What is still blocked,
+  Next round recommendation, and Worker accountability.
+- SAW Verdict, ClosurePacket, ClosureValidation, and SAWBlockValidation are
+  evidence-only details under Validation / evidence, not a second primary
+  response skeleton.

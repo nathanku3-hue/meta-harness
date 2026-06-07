@@ -1,0 +1,152 @@
+name: Post-worker SAW
+
+on:
+  workflow_call:
+    inputs:
+      worker_report_glob:
+        required: false
+        type: string
+        default: ".meta-harness/workers/*.md"
+      changed_file_allowlist_regex:
+        required: false
+        type: string
+        default: "^(README\\.md|docs/|templates/|tests/|\\.github/workflows/post-worker-saw\\.yml)$"
+      forbidden_path_regex:
+        required: false
+        type: string
+        default: "(^|/)(\\.env|secret|secrets|credentials|wrds|provider|broker|runtime|data/|dashboard\\.py|app\\.py|strategies/|views/)"
+      require_worker_report:
+        required: false
+        type: boolean
+        default: true
+      check_yaml_markdown:
+        required: false
+        type: boolean
+        default: true
+      base_sha:
+        required: false
+        type: string
+        default: ""
+      head_sha:
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  post-worker-saw:
+    name: Read-only post-worker checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout without write credentials
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Check changed-file allowlist
+        shell: bash
+        env:
+          BASE_SHA_INPUT: ${{ inputs.base_sha }}
+          HEAD_SHA_INPUT: ${{ inputs.head_sha }}
+          EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
+          EVENT_HEAD_SHA: ${{ github.sha }}
+          ALLOWLIST_RE: ${{ inputs.changed_file_allowlist_regex }}
+          FORBIDDEN_RE: ${{ inputs.forbidden_path_regex }}
+        run: |
+          set -euo pipefail
+          base="${BASE_SHA_INPUT:-$EVENT_BASE_SHA}"
+          head="${HEAD_SHA_INPUT:-$EVENT_HEAD_SHA}"
+          if [[ -n "$base" ]] && git cat-file -e "$base^{commit}" 2>/dev/null; then
+            git diff --name-only "$base" "$head" | sort -u > "$RUNNER_TEMP/changed-files.txt"
+          elif git rev-parse HEAD^ >/dev/null 2>&1; then
+            git diff --name-only HEAD^ HEAD | sort -u > "$RUNNER_TEMP/changed-files.txt"
+          else
+            git ls-files | sort -u > "$RUNNER_TEMP/changed-files.txt"
+          fi
+          while IFS= read -r file; do
+            [[ -z "$file" ]] && continue
+            [[ "$file" =~ $ALLOWLIST_RE ]] || { echo "::error::Changed file is outside allowlist: $file"; exit 1; }
+            [[ "$file" =~ $FORBIDDEN_RE ]] && { echo "::error::Changed file hits forbidden path guard: $file"; exit 1; }
+          done < "$RUNNER_TEMP/changed-files.txt"
+
+      - name: Validate worker-report v2 shape
+        shell: bash
+        env:
+          WORKER_REPORT_GLOB: ${{ inputs.worker_report_glob }}
+          REQUIRE_WORKER_REPORT: ${{ inputs.require_worker_report }}
+        run: |
+          node <<'NODE'
+          const fs = require("node:fs");
+          const path = require("node:path");
+          const pattern = process.env.WORKER_REPORT_GLOB || ".meta-harness/workers/*.md";
+          const requireReport = process.env.REQUIRE_WORKER_REPORT === "true";
+          function filesFor(pattern) {
+            if (!pattern.includes("*")) return fs.existsSync(pattern) ? [pattern] : [];
+            const dir = path.dirname(pattern);
+            const name = path.basename(pattern).replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*");
+            if (!fs.existsSync(dir)) return [];
+            const re = new RegExp(`^${name}$`);
+            return fs.readdirSync(dir).filter((item) => re.test(item)).map((item) => path.join(dir, item));
+          }
+          const reports = filesFor(pattern).filter((file) => !file.endsWith("worker-report-template.md"));
+          if (requireReport && reports.length === 0) throw new Error(`No worker reports matched ${pattern}`);
+          const risky = new Set(["code", "test", "provider_probe", "commit", "validation", "execution", "data_output"]);
+          for (const reportPath of reports) {
+            const text = fs.readFileSync(reportPath, "utf8").replace(/\r\n/g, "\n");
+            const lines = text.split("\n").filter((line) => line.trim());
+            if (!/^Outcome: (DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED)$/.test(lines[0] || "")) throw new Error(`${reportPath}: first visible line must be Outcome`);
+            if (!/^Round: /.test(lines[1] || "")) throw new Error(`${reportPath}: Round must be second visible field`);
+            if (!/^Progress: /.test(lines[2] || "")) throw new Error(`${reportPath}: Progress must be third visible field`);
+            if (!/^Confidence: /.test(lines[3] || "")) throw new Error(`${reportPath}: Confidence must be fourth visible field`);
+            for (const section of ["## What changed", "## Why it matters", "## What is blocked", "## What decision is needed", "## Next action", "## Evidence", "## Accountability"]) {
+              if (!text.includes(section)) throw new Error(`${reportPath}: missing ${section}`);
+            }
+            const requested = text.match(/^requested_work_type: (.+)$/m)?.[1]?.trim();
+            const actual = text.match(/^actual_work_type_performed: (.+)$/m)?.[1]?.trim();
+            if (!requested || !actual) throw new Error(`${reportPath}: missing work type accountability`);
+            if (lines[0] === "Outcome: DONE" && risky.has(requested) && ["docs", "none"].includes(actual)) {
+              throw new Error(`${reportPath}: silent docs-only fallback is forbidden`);
+            }
+            const evidenceAt = text.indexOf("\n## Evidence");
+            for (const token of ["SAW Verdict:", "ClosurePacket:", "ClosureValidation:", "SAWBlockValidation:"]) {
+              const tokenAt = text.indexOf(token);
+              if (tokenAt !== -1 && (evidenceAt === -1 || tokenAt < evidenceAt)) throw new Error(`${reportPath}: ${token} must stay under Evidence`);
+            }
+          }
+          NODE
+
+      - name: Check YAML and Markdown safety
+        if: ${{ inputs.check_yaml_markdown }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ruby -e 'require "yaml"; ARGV.each { |f| YAML.load_file(f) }' $(find .github -type f \( -name '*.yml' -o -name '*.yaml' \) | sort)
+          python3 - <<'PY'
+          import pathlib
+          for path in pathlib.Path(".").rglob("*.md"):
+              text = path.read_text(encoding="utf-8")
+              if "\x00" in text:
+                  raise SystemExit(f"{path}: NUL byte found")
+              if "<<<<<<<" in text or ">>>>>>>" in text:
+                  raise SystemExit(f"{path}: merge conflict marker found")
+          PY
+          if grep -RIn --include='*.yml' --include='*.yaml' 'secrets\.' .github/workflows; then
+            echo "::error::Workflow must not reference repository secrets."
+            exit 1
+          fi
+
+      - name: Write SAW evidence summary
+        shell: bash
+        run: |
+          {
+            echo "## Post-worker SAW evidence"
+            echo ""
+            echo "SAW wrapper: PASS"
+            echo "Scope: read-only worker-report, changed-file, YAML, and Markdown checks."
+            echo "Forbidden: secrets, provider access, WRDS, runtime/data output, scoring, broker paths, and repair edits."
+            echo "Next action: reconcile this evidence in the PM-facing worker report; do not use this summary as the primary report format."
+          } >> "$GITHUB_STEP_SUMMARY"

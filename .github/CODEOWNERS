@@ -1,0 +1,10 @@
+# Control-plane paths require review
+/.github/           @nathanku3-hue
+/SECURITY.md        @nathanku3-hue
+/bin/               @nathanku3-hue
+/lib/               @nathanku3-hue
+/templates/         @nathanku3-hue
+/.meta-harness/security-policy.json @nathanku3-hue
+/docs/architecture/owners.json @nathanku3-hue
+/package.json       @nathanku3-hue
+/package-lock.json  @nathanku3-hue

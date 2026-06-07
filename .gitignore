@@ -1,9 +1,62 @@
-.meta-harness/
+# dependencies
 node_modules/
+
+# package/build output
+dist/
+build/
+coverage/
 *.tgz
 
+# logs/temp
+*.log
+tmp/
+.temp/
+.cache/
+
+# Python local artifacts
 __pycache__/
 *.py[cod]
 .pytest_cache/
 
+# OS/editor
 .DS_Store
+.vscode/
+.idea/
+
+# secrets and local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+credentials.json
+secrets.json
+secret.txt
+secrets.txt
+secrets.*
+*.secret
+*.token
+.npmrc
+!.npmrc.example
+.meta-harness/local/locks/
+.meta-harness/*.lock
+.meta-harness/**/*.lock
+.meta-harness/current-run
+.meta-harness/local/events.jsonl
+
+# provider/runtime/governed data
+provider-config/
+runtime/
+data/
+data-output/
+
+# Meta-Harness local state (tracked truth files are NOT ignored)
+.meta-harness/local/
+.meta-harness/snapshots/
+.meta-harness/expert-packets/
+.meta-harness/workers/
+.meta-harness/runs/

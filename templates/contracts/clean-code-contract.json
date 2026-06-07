@@ -1,0 +1,62 @@
+{
+  "v": 1,
+  "mode": "ratchet",
+  "budgets": {
+    "max_source_file_lines": 500,
+    "max_function_lines": 80,
+    "max_cyclomatic_complexity": 12,
+    "max_cli_flags_per_command": 12
+  },
+  "ratchets": {
+    "process_exit": {
+      "grandfather_existing": true,
+      "must_not_increase": true
+    },
+    "main_boundary_missing": {
+      "grandfather_existing": true,
+      "must_not_increase": true
+    },
+    "direct_events_jsonl_append": {
+      "grandfather_existing": true,
+      "must_not_increase": true,
+      "approved_helpers": [
+        "appendEvent"
+      ]
+    },
+    "worker_report_flags": {
+      "must_not_increase_without": [
+        "--from",
+        "--input"
+      ]
+    }
+  },
+  "compatibility": {
+    "default": "no breaking CLI/report behavior",
+    "breaking_requires": [
+      "migration_note",
+      "version_bump",
+      "explicit_approval"
+    ],
+    "block_exact_only": [
+      "command_names",
+      "required_flags",
+      "output_top_fields",
+      "template_primary_skeleton"
+    ]
+  },
+  "excluded_dirs": [
+    ".git",
+    "node_modules",
+    ".meta-harness",
+    "tmp",
+    "dist",
+    "build",
+    "coverage"
+  ],
+  "notes": [
+    "Existing debt may be grandfathered.",
+    "New debt is blocked.",
+    "Touched grandfathered debt must not get worse.",
+    "Compatibility-breaking CLI or report behavior requires explicit approval and a migration note."
+  ]
+}

@@ -43,8 +43,16 @@ Each repository owns its own harness state:
   workers/
     worker-report-template.md
     <worker-id>.md
+  templates/
+    contracts/
+    skills/
+      post-worker-github-actions.md
+  expert-packets/
+    <round-id>.zip
   repos.json
 ```
+
+Repo-level automation may also include `.github/workflows/post-worker-saw.yml` as a reusable read-only workflow for post-worker checks.
 
 ## Human Status Language
 
@@ -77,6 +85,7 @@ Stop criteria:
 Codex-facing worker instructions must answer:
 
 - What is the bounded task?
+- What actually changed?
 - What stream owns it?
 - What files or artifacts matter?
 - What constraints apply?
@@ -84,30 +93,64 @@ Codex-facing worker instructions must answer:
 - What blocker should be reported instead of guessed through?
 - What exact next operation is safe?
 
-Minimum worker report:
+Minimum worker PM brief:
 
 ```md
-# Worker Report
-
+Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
+Round: <round/task>
+Progress: <before>/100 -> <after>/100
+Confidence: <0-10>/10
 Worker:
 Stream:
 Task:
 Phase:
 
-## Result
+## What changed
 
-## Changed Artifacts
+One paragraph answering what actually changed, what artifact/result was produced, and practical effect.
+
+## Why it matters
+
+One short paragraph naming current top-level state and PM/product effect.
+
+## What is blocked
+
+Blocker plus exact reason, or none.
+
+## What decision is needed
+
+Decision needed from user:
+Options considered:
+Scope limit:
+Stop rule:
+
+## Next action
+
+Recommended next action:
+Goal:
+Allowed scope:
+Forbidden scope:
 
 ## Evidence
 
-## Blockers
+Passed:
+Skipped:
+Evidence artifacts:
 
-## Proposed Next Action
+## Accountability
 
-## Human Summary
-
-## Codex Continuation Note
+requested_work_type:
+actual_work_type_performed:
+credentials_touched:
+provider_access_touched:
+data_output_created:
+commit_created:
+remaining_blocker:
 ```
+
+Worker-report generation must reject missing or invalid `Outcome`, `requested_work_type`, or `actual_work_type_performed`. The harness must not infer `PARTIAL_WITH_EXPLICIT_SCOPE` by default, because that would recreate silent fallback behavior.
+
+Generated worker-report artifacts must use artifact v2 only: the first non-empty line is `Outcome:`, with `Round`, `Progress`, and `Confidence` immediately visible. The Ship-Fast Decision Gate concept is folded into `## What decision is needed` as one user decision, options considered, scope limit, and stop rule. Reports must not begin with `# Worker PM Brief`, `# Worker Report`, numbered logs, SAW Verdict, ClosurePacket, or command logs. SAW and ClosurePacket details are evidence only and must not appear as a second primary report skeleton. Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden.
 
 ## Event Memory
 
@@ -173,6 +216,12 @@ The harness can read:
 
 The harness does not launch agents in the MVP.
 
+## Post-Worker GitHub Actions
+
+Post-worker automation is a read-only evidence wrapper. It may validate worker-report v2 shape while excluding `worker-report-template.md`, no-silent-fallback accountability, changed-file allowlists with explicit `base_sha` and `head_sha`, YAML/Markdown hygiene, and SAW evidence placement.
+
+It must not use repository secrets, provider access, WRDS, runtime/dashboard/scoring/broker paths, data output, or untrusted issue/PR/comment text as agent prompt input. Third-party actions and reusable workflow callers must be pinned by full commit SHA before cross-repo production reuse. Repair edits require a separate explicit approval.
+
 ## Multi-Repo Model
 
 Each repo has its own harness.
@@ -202,6 +251,9 @@ meta-harness init
 meta-harness status
 meta-harness event
 meta-harness worker-report
+meta-harness templates
+meta-harness expert-packet
+meta-harness quality
 meta-harness lookback
 meta-harness poll
 meta-harness repos
@@ -214,7 +266,10 @@ Command responsibilities:
 | `init` | Create `.meta-harness/` starter docs. |
 | `status` | Print or refresh official status. |
 | `event` | Append one event. |
-| `worker-report` | Create or ingest worker report. |
+| `worker-report` | Create a PM-facing worker brief and require explicit `Outcome`. |
+| `templates` | List or install reusable scope, boundary, handoff, and reconciliation templates. |
+| `expert-packet` | Build one bounded expert-review zip from current harness truth and optional includes. |
+| `quality` | Install and enforce a repo-local clean-code contract and ratcheting baseline. |
 | `lookback` | Render retrospective from events. |
 | `poll` | Read local/child status files and summarize changes. |
 | `repos` | Manage child repo index. |
@@ -224,7 +279,11 @@ Implemented command examples:
 ```bash
 meta-harness init "Build coding and research visibility"
 meta-harness event --stream research --phase work --action "surveyed adjacent products" --result "copy visibility and persistence"
-meta-harness worker-report codex-researcher --stream research --task "extract patterns" --result "report normalized"
+meta-harness worker-report codex-researcher --stream research --task "extract patterns" --outcome DONE --round ROUND-001 --progress "10/100 -> 20/100" --confidence "9/10" --result "normalized product-pattern PM brief" --human-summary "Research output is ready for PM synthesis." --validations-passed "worker brief parsed" --validations-skipped "none" --evidence-artifacts ".meta-harness/workers/codex-researcher.md" --requested-work-type docs --actual-work-type docs --next-action "synthesize status"
+meta-harness templates install
+meta-harness expert-packet ROUND-001 --include docs/product/product-spec.md
+meta-harness quality init
+meta-harness quality check
 meta-harness status --refresh
 meta-harness lookback --write
 meta-harness repos add child ../child-repo
@@ -239,9 +298,10 @@ Runtime code should be limited to:
 - JSONL append/read;
 - Markdown template rendering;
 - status aggregation;
+- bounded local git metadata capture inside expert packet zips;
 - no network requirement;
 - no model API requirement;
-- no shell execution beyond the CLI itself.
+- no arbitrary shell execution.
 
 ## Acceptance Criteria
 
@@ -251,7 +311,17 @@ The one-shot MVP is acceptable when:
 - `meta-harness init` creates starter Markdown state;
 - `meta-harness event` appends to `events.jsonl`;
 - `meta-harness status` prints official status;
-- `meta-harness worker-report` creates a report from a template;
+- `meta-harness worker-report` creates a worker-report artifact from a template;
+- `meta-harness worker-report` starts generated reports with `Outcome`, `Round`, `Progress`, and `Confidence` as the first visible fields;
+- `meta-harness worker-report` rejects missing or invalid `--outcome`, `--requested-work-type`, or `--actual-work-type`;
+- `meta-harness worker-report` rejects `DONE` when code, test, provider_probe, commit, validation, execution, or data_output work silently falls back to docs-only output;
+- `meta-harness templates install` copies reusable harness templates into local harness state;
+- `meta-harness expert-packet` writes one compact review `.zip` without copying caches, runtime folders, dependencies, or oversized files;
+- `meta-harness quality init` creates `.meta-harness/clean-code-contract.json` and `.meta-harness/baseline/quality-baseline.json`;
+- `meta-harness quality check` blocks new overbudget files and ratchets grandfathered debt;
+- expert packet delivery has no loose sidecar `main.diff`, `main_next_scope.md`, or extra packet files beside the zip;
+- packaged templates include `post-worker-github-actions.md`;
+- repo-level post-worker workflow checks remain read-only and do not use secrets or provider/runtime/data paths;
 - `meta-harness lookback` renders a timeline;
 - `meta-harness poll` reads local and child statuses without launching agents;
 - docs explain the human/Codex translation boundary;
