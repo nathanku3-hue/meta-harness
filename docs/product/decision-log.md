@@ -247,3 +247,30 @@ CI follow-up:
 - CI run 27082674623 passed.
 - Passed steps: checkout, setup Node.js, `npm ci`, tests.
 - Phase 5 baseline implementation remains `8ea739e`.
+
+## D019: GitHub Security Settings Partially Verified
+
+Decision:
+
+Record GitHub repository security-setting verification as partial. Do not convert unavailable or unverified settings into pass.
+
+Rationale:
+
+GitHub settings verification on 2026-06-07 used repository admin credentials and the GitHub REST API.
+
+Verified:
+
+- Dependabot alerts enabled.
+- Dependabot security updates enabled (`automated-security-fixes` returned `enabled: true`, `paused: false`).
+- CI run 27082674623 passed for the `Node tests` job.
+
+Unknown or unavailable:
+
+- Private vulnerability reporting: unknown. The documented repository endpoint returned 404 for this private repository.
+- Dependency graph: unknown. A repository update request was accepted, but repository read-back did not expose a dependency graph status field.
+- CODEOWNERS enforcement: unavailable on the current repository plan/visibility. Branch protection and repository rulesets returned 403: "Upgrade to GitHub Pro or make this repository public to enable this feature."
+- Required CI before merge: unavailable for the same branch-protection/ruleset reason, though the `Node tests` check has completed successfully and is ready to require once repository settings support it.
+
+Next action:
+
+Enable or verify the unknown settings through the GitHub UI or upgraded repository settings access before marking SEC_REPORTING_001, dependency graph, SEC_OWNER_ENFORCE_001, or required CI as fully passed.
