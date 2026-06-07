@@ -239,3 +239,11 @@ Known local-only warnings:
 - SEC_OWNER_ENFORCE_001
 
 These warnings require GitHub settings/API verification: private vulnerability reporting, dependency graph plus Dependabot alerts/security updates, and CODEOWNERS enforcement through branch protection or rulesets. They are expected locally and should fail only in strict/CI/API verification modes when required.
+
+CI follow-up:
+
+- `4227a84 fix(ci): pin node toolchain for npm ci`.
+- Reason: GitHub runner default npm 10.9.8 did not satisfy `devEngines.packageManager`.
+- CI run 27082674623 passed.
+- Passed steps: checkout, setup Node.js, `npm ci`, tests.
+- Phase 5 baseline implementation remains `8ea739e`.
