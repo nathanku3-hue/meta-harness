@@ -8,12 +8,14 @@ test("help output is registry generated and stable enough for operators", () => 
   const output = run(ROOT, ["--help"]);
   assert.match(output, /^meta-harness\n\nMarkdown-first Codex-native workflow visibility harness\./);
   assert.match(output, /meta-harness worker-report \[worker-id\]/);
+  assert.match(output, /meta-harness merge check --base <base> --head <head> --scope <scope>/);
   assert.match(output, /meta-harness repos remove <name>/);
 });
 
 test("unknown command and missing subcommand keep typed human errors", () => {
   assertCliError(runRaw(ROOT, ["unknown-command"]), "MH_USAGE", /unknown command: unknown-command/);
   assertCliError(runRaw(ROOT, ["sync"]), "MH_USAGE", /unknown sync action: missing/);
+  assertCliError(runRaw(ROOT, ["merge"]), "MH_USAGE", /unknown merge action: missing/);
 });
 
 test("missing target keeps human error unless json mode is requested", () => {

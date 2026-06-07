@@ -11,6 +11,7 @@ test("command registry tracks canonical commands separately from aliases", () =>
   assert.equal(names.includes("sync"), true);
   assert.equal(names.includes("brief"), true);
   assert.equal(names.includes("skill"), true);
+  assert.equal(names.includes("merge"), true);
   assert.equal(commandSpecs.some((spec) => Array.isArray(spec.aliases) && spec.aliases.length > 0), false);
 });
 
@@ -26,6 +27,7 @@ test("help text is generated from registry usage lines", () => {
   const help = renderHelp();
   assert.match(help, /^meta-harness\n/);
   assert.match(help, /meta-harness ready --target <repo>/);
+  assert.match(help, /meta-harness merge check --pr <n> --scope <scope>/);
   assert.match(help, /meta-harness skill check --target <repo>/);
   assert.match(help, /meta-harness decisions scan --target <repo>/);
   assert.match(help, /Streams: coding, research, writing, review/);
