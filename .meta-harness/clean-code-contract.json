@@ -3,6 +3,10 @@
   "mode": "ratchet",
   "budgets": {
     "max_source_file_lines": 500,
+    "max_bin_entrypoint_lines": 150,
+    "max_command_module_lines": 300,
+    "max_cli_test_file_lines": 500,
+    "max_test_helper_lines": 400,
     "max_function_lines": 80,
     "max_cyclomatic_complexity": 12,
     "max_cli_flags_per_command": 12
@@ -51,7 +55,11 @@
     "tmp",
     "dist",
     "build",
-    "coverage"
+    "coverage",
+    "tests/fixtures",
+    "tests/tmp",
+    "fixtures",
+    "generated"
   ],
   "notes": [
     "Existing debt may be grandfathered.",

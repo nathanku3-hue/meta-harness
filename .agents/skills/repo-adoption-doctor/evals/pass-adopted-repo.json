@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "name": "pass-adopted-repo",
+  "setup": {
+    "install_templates": true,
+    "files": {
+      ".gitattributes": "* text=auto eol=lf\n*.md text eol=lf\n*.js text eol=lf\n",
+      ".gitignore": ".env\n.env.*\n!.env.example\n*.pem\n*.key\ncredentials.json\nsecrets.json\nprovider-config/\nruntime/\ndata/\ndata-output/\n",
+      "SECURITY.md": "# Security\n\nReport vulnerabilities privately.\n",
+      ".github/CODEOWNERS": "* @nathanku3-hue\n",
+      ".github/dependabot.yml": "version: 2\nupdates: []\n",
+      "package.json": "{\n  \"name\": \"adopted-fixture\",\n  \"version\": \"1.0.0\",\n  \"files\": [\"lib/\", \"README.md\"]\n}\n",
+      ".meta-harness/layout_version": "2\n",
+      ".meta-harness/status.md": "# Status\n\nFixture adopted.\n",
+      ".meta-harness/events.jsonl": "{\"ts\":\"2026-06-07T00:00:00.000Z\",\"actor\":\"test\",\"stream\":\"coding\",\"phase\":\"verify\",\"action\":\"fixture\",\"result\":\"adopted\"}\n"
+    }
+  },
+  "expected": {
+    "ok": true,
+    "findings": []
+  }
+}

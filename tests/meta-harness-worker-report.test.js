@@ -155,6 +155,8 @@ test("worker-report writes PM briefs for valid done partial and rejected reports
   ]);
   const docsReport = fs.readFileSync(reportPath(docsCwd, "docs-worker"), "utf8");
   assert.match(docsReport, /^# Worker PM Brief\n\nOutcome: DONE\nRound: not recorded\nProgress: not recorded\nConfidence: not recorded/m);
+  assert.match(docsReport, /Ship gate tier: FAST/);
+  assert.match(docsReport, /Task resolution: follow-up-queued/);
   assert.match(docsReport, /Goal: not recorded/);
   assert.match(docsReport, /Allowed scope: not recorded/);
   assert.match(docsReport, /Forbidden scope: not recorded/);
@@ -172,6 +174,8 @@ test("worker-report writes PM briefs for valid done partial and rejected reports
   ]);
   const codeReport = fs.readFileSync(reportPath(codeCwd, "code-worker"), "utf8");
   assert.match(codeReport, /# Worker PM Brief/);
+  assert.match(codeReport, /Ship gate tier: REVIEW/);
+  assert.match(codeReport, /Task resolution: follow-up-queued/);
   assert.match(codeReport, /requested_work_type: code/);
   assert.match(codeReport, /actual_work_type_performed: code/);
 
@@ -190,6 +194,8 @@ test("worker-report writes PM briefs for valid done partial and rejected reports
   const partialReport = fs.readFileSync(reportPath(partialCwd, "partial-worker"), "utf8");
   assert.match(partialReport, /# Worker PM Brief/);
   assert.match(partialReport, /Outcome: PARTIAL_WITH_EXPLICIT_SCOPE/);
+  assert.match(partialReport, /Ship gate tier: SLOW/);
+  assert.match(partialReport, /Task resolution: decision-needed/);
   assert.match(partialReport, /remaining_blocker: runtime validation not approved/);
 
   const rejectedCwd = tempDir();
@@ -207,5 +213,7 @@ test("worker-report writes PM briefs for valid done partial and rejected reports
   const rejectedReport = fs.readFileSync(reportPath(rejectedCwd, "rejected-worker"), "utf8");
   assert.match(rejectedReport, /# Worker PM Brief/);
   assert.match(rejectedReport, /Outcome: REJECTED/);
+  assert.match(rejectedReport, /Ship gate tier: BLOCK/);
+  assert.match(rejectedReport, /Task resolution: blocked/);
   assert.match(rejectedReport, /remaining_blocker: data output not authorized/);
 });
