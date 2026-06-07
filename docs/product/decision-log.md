@@ -274,3 +274,38 @@ Unknown or unavailable:
 Next action:
 
 Enable or verify the unknown settings through the GitHub UI or upgraded repository settings access before marking SEC_REPORTING_001, dependency graph, SEC_OWNER_ENFORCE_001, or required CI as fully passed.
+
+## D020: Phase 8 Planning-Only Documentation Authorized
+
+Decision:
+
+Phase 8 planning-only documentation may be proposed before Phase 8 implementation starts.
+
+This decision authorizes only planning artifacts that document a future Phase 8 read-only scout pilot boundary. It does not start Phase 8 implementation and does not authorize scout execution, subagent activation, commands, tests, merge-gate changes, workflow changes, package changes, promotion, or repository writes outside the planning document.
+
+Implementation still requires a separate explicit Phase 8 go decision.
+
+Allowed:
+
+- planning-only docs
+- no implementation
+- no command
+- no tests
+- no scout execution
+- no subagent activation
+
+Still forbidden:
+
+- `lib/`
+- `bin/`
+- `tests/`
+- `.github/`
+- `.meta-harness/`
+- package changes
+- merge-gate changes
+
+Rationale:
+
+Phase 8 is roadmapped as a future read-only subagent scout pilot. A planning artifact is useful for review because it can define the pilot boundary, non-goals, packet schema, fanout budget, and future exit criteria without activating the capability.
+
+This decision preserves the implementation boundary: Phase 8 planning docs may exist, but Phase 8 implementation remains blocked until explicitly approved.
