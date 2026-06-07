@@ -100,6 +100,45 @@ test("merge check rejects paths outside the declared scope", () => {
   assert.match(checkById(result, CHECK_IDS.scope).reason, /docs\/product\/roadmap\.md/);
 });
 
+test("phase8-planning scope allows only the read-only scout planning doc", () => {
+  const { base, cwd } = initRepo();
+  const head = commitFile(cwd, "docs/product/phase-8-readonly-scout-plan.md", "# Phase 8 Read-Only Scout Plan\n");
+
+  const result = runMergeCheck({
+    targetRoot: cwd,
+    base,
+    head,
+    scope: "phase8-planning",
+    expectedBase: base,
+    checksStatus: "pass",
+    decisionId: "D020",
+  });
+
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.changed_paths, ["docs/product/phase-8-readonly-scout-plan.md"]);
+  assert.equal(checkById(result, CHECK_IDS.scope).status, "pass");
+  assert.equal(checkById(result, CHECK_IDS.authority).status, "pass");
+});
+
+test("phase8-planning scope rejects broader roadmap docs", () => {
+  const { base, cwd } = initRepo();
+  const head = commitFile(cwd, "docs/product/roadmap.md", "# Phase 8 roadmap\n");
+
+  const result = runMergeCheck({
+    targetRoot: cwd,
+    base,
+    head,
+    scope: "phase8-planning",
+    expectedBase: base,
+    checksStatus: "pass",
+    decisionId: "D020",
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(checkById(result, CHECK_IDS.scope).status, "fail");
+  assert.match(checkById(result, CHECK_IDS.scope).reason, /docs\/product\/roadmap\.md/);
+});
+
 test("merge check blocks oversize diffs", () => {
   const { base, cwd } = initRepo();
   const head = commitFile(cwd, "lib/merge-check.js", "\"use strict\";\n");
