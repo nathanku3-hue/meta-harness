@@ -800,6 +800,71 @@ PM briefs generated from `meta-harness worker-report` should include the ship-ga
 
 Add MH_SHIPGATE_001 check: verify that the ship-gate module can classify the current change set.
 
+### Code-to-PR workflow contract
+
+Every code task in a PR-capable repository must move through:
+
+```text
+intake
+-> isolate
+-> patch
+-> verify locally
+-> commit
+-> open PR
+-> CI/review
+-> merge
+-> cleanup
+```
+
+If PR, CI, review, or merge infrastructure is unavailable, the task must explicitly record the unavailable/unknown step, the reason, and the substitute local checkpoint.
+
+### PR-to-merge protocol
+
+A PR is merge-ready only when:
+
+- The PR targets the narrowest correct base branch.
+- Stacked PR order is respected; dependent PRs are merged or rebased in order.
+- CI/status checks pass on the latest PR head SHA; if merge queue or test-merge validation is used, required checks also pass on the generated merge-group/test-merge SHA. If a check is unavailable/unknown, record the reason.
+- Required review, CODEOWNERS review, and security/domain/package/workflow approvals are satisfied when applicable.
+- There are no unresolved blocking review comments.
+- The merge method follows repo policy: merge commit, squash merge, rebase merge, or merge queue.
+- If merge queue is enabled, the PR enters the queue and passes queue-required checks before merge.
+- The merged commit SHA or merge result is recorded when available.
+
+After merge:
+
+- Pull/update the target branch.
+- Confirm the merged result is present on the target branch.
+- Delete or archive the source branch according to repo policy.
+- Remove temporary worktrees, local artifacts, and safety snapshots only after confirming the merge contains the intended changes.
+- Record cleanup status or explicitly mark cleanup unavailable/unknown.
+
+A task is not done when code is committed. A task is done when:
+
+- A scoped branch or worktree exists
+- The PR is based on the narrowest correct base branch
+- Unrelated dirty work is excluded or explicitly classified
+- Local verification is recorded
+- CI passes on the exact PR head SHA, or CI is explicitly unavailable/unknown with recorded reason
+- Security, workflow, package, release, runtime, provider, and domain-authority changes have human review, or unavailable enforcement is recorded as unavailable/unknown
+- Merge readiness, merge method, merge result, and cleanup are handled according to the PR-to-merge protocol or explicitly marked unavailable/unknown
+
+Fast-path PRs:
+
+- Docs-only
+- Owned paths
+- Ready passes
+- No security, workflow, domain, runtime, provider, package, or release boundary touched
+
+Slow-path PRs:
+
+- Workflow changes
+- Dependency changes
+- Package or release changes
+- Security policy changes
+- Domain authority changes
+- Permission expansion
+
 ### Exit criteria
 
 - [ ] Fast path exists and ships docs-only owned-path changes without decision inbox
@@ -810,6 +875,8 @@ Add MH_SHIPGATE_001 check: verify that the ship-gate module can classify the cur
 - [ ] Every task resolves to one of: ship, blocked, decision-needed, follow-up-queued
 - [ ] Agent does not ask PM about low-value dirt
 - [ ] Agent does ask PM about authority/boundary changes
+- [ ] Code-to-PR workflow contract is explicit in Phase 6
+- [ ] Local commit is not treated as done until PR, CI/review, merge, and cleanup expectations are satisfied or explicitly marked unavailable
 
 ---
 
