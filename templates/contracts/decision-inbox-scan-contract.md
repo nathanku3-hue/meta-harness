@@ -1,6 +1,6 @@
 # Decision Inbox Scan Contract
 
-Phase 5C scans the current target-form decision inbox contract. This patch must not change `decisions add`, `decisions resolve`, or `lib/decisions.js`. Approved, rejected, and deferred command output remains valid.
+This contract was introduced in Phase 5C and extended in Phase 6 to require `assumption_hash`. Approved, rejected, and deferred command output remains valid.
 
 The scanner is read-only, deterministic, silent in the core API, and must not shell out or write files.
 
@@ -43,6 +43,7 @@ Each decision must be a JSON object with these non-empty string fields:
   "question": "Approve the bounded scope?",
   "recommended": "hold",
   "state_hash": "non-empty",
+  "assumption_hash": "non-empty",
   "reask_when": "source state changes",
   "status": "open"
 }
@@ -72,11 +73,13 @@ rejected
 deferred
 ```
 
-Reject missing required fields, blank-after-trim required fields, duplicate decision ids, duplicate non-empty `state_hash` values, and enum values outside the allowed sets.
+Reject missing required fields, blank-after-trim required fields, duplicate decision ids, duplicate non-empty `identity_hash` values when present, and enum values outside the allowed sets.
 
 `question` must be one explicit decision question. In this phase, reject multi-line question text, semicolon-separated decision text, and text with multiple question marks. Do not require a literal question mark.
 
 `state_hash` must be non-empty so the decision is bound to a concrete state.
+
+`assumption_hash` must be non-empty so stale assumptions have a concrete fingerprint. Multiple decisions may share the same `state_hash` when one repo state requires several decisions.
 
 `reask_when` must be non-empty so stale decisions have an explicit reopen condition.
 
@@ -86,6 +89,4 @@ Extra fields are allowed. This scan validates the required current-contract core
 
 ## Out Of Scope
 
-Do not change Quant, dirty-doc cleanup, `brief pm`, `decisions add`, `decisions resolve`, decision inbox generation, migration behavior, broad workflow framework, Phase 5D planning, `.meta-harness/status.md`, or `.meta-harness/events.jsonl`.
-
-Do not change `lib/decisions.js` in Phase 5C.
+Do not change Quant, dirty-doc cleanup, migration behavior, broad workflow framework, `.meta-harness/status.md`, or `.meta-harness/events.jsonl`.

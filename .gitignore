@@ -56,6 +56,7 @@ data-output/
 
 # Meta-Harness local state (tracked truth files are NOT ignored)
 .meta-harness/local/
+.meta-harness/streams/
 .meta-harness/snapshots/
 .meta-harness/expert-packets/
 .meta-harness/workers/

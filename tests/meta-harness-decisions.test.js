@@ -101,6 +101,7 @@ test("dirty DECISION imports are memoized and resolved same-state decisions stay
   assert.equal(firstInbox.decisions.length, 1);
   assert.equal(firstInbox.decisions[0].kind, "user_decision");
   assert.equal(firstInbox.decisions[0].state_hash, firstDirty.decision_state_hash);
+  assert.match(firstInbox.decisions[0].assumption_hash, /^[a-f0-9]{64}$/);
   assert.match(firstInbox.decisions[0].identity_hash, /^[a-f0-9]{64}$/);
 
   const decisionId = firstInbox.decisions[0].id;
@@ -215,7 +216,7 @@ test("decision and brief commands resolve repo-root paths and reject bad CLI val
   );
 });
 
-test("inbox validation fails closed for invalid status missing state hash and duplicates", () => {
+test("inbox validation fails closed for invalid status missing state hash and duplicate identities", () => {
   const cwd = tempDir();
   initGitRepo(cwd);
   commitBaseline(cwd);
@@ -251,6 +252,7 @@ test("inbox validation fails closed for invalid status missing state hash and du
     question: "Approve duplicate?",
     recommended: "hold",
     state_hash: "state-dup",
+    assumption_hash: "assumption-dup",
     reask_when: "source changes",
     status: "open",
   };
@@ -264,7 +266,7 @@ test("inbox validation fails closed for invalid status missing state hash and du
     v: 1,
     decisions: [{ ...duplicate, id: "D-one" }, { ...duplicate, id: "D-two" }],
   }, null, 2)}\n`);
-  assertCliError(runRaw(cwd, ["decisions", "list"]), /duplicate decision state_hash/);
+  assertCliError(runRaw(cwd, ["decisions", "list"]), /duplicate decision identity_hash/);
 });
 
 test("PM brief is bounded and templates include decision router artifacts", () => {

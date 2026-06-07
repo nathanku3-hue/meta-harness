@@ -25,6 +25,7 @@ function decision(overrides = {}) {
     question: "Approve bounded scope?",
     recommended: "hold",
     state_hash: "state-1",
+    assumption_hash: "assumption-1",
     reask_when: "source state changes",
     status: "open",
     evidence: [".meta-harness/dirty-work.json"],
@@ -221,7 +222,7 @@ test("decision inbox scan is read-only by before and after tree snapshot", () =>
 });
 
 test("decision inbox scan rejects missing required decision fields", () => {
-  for (const field of ["id", "kind", "question", "recommended", "state_hash", "reask_when", "status"]) {
+  for (const field of ["id", "kind", "question", "recommended", "state_hash", "assumption_hash", "reask_when", "status"]) {
     const targetRoot = tempDir();
     const item = decision();
     delete item[field];
@@ -235,7 +236,7 @@ test("decision inbox scan rejects missing required decision fields", () => {
 });
 
 test("decision inbox scan rejects blank-after-trim required decision fields", () => {
-  for (const field of ["id", "kind", "question", "recommended", "state_hash", "reask_when", "status"]) {
+  for (const field of ["id", "kind", "question", "recommended", "state_hash", "assumption_hash", "reask_when", "status"]) {
     const targetRoot = tempDir();
     writeInbox(targetRoot, [decision({ [field]: "   " })]);
 
@@ -293,17 +294,29 @@ test("decision inbox scan rejects duplicate decision ids using trimmed values", 
   assert.match(rejectedDetails(result).join("\n"), /duplicate id: D-dup/);
 });
 
-test("decision inbox scan rejects duplicate state hashes using trimmed values", () => {
+test("decision inbox scan allows multiple decisions for the same state hash", () => {
   const targetRoot = tempDir();
   writeInbox(targetRoot, [
-    decision({ id: "D-001", state_hash: " state-dup " }),
-    decision({ id: "D-002", state_hash: "state-dup" }),
+    decision({ id: "D-001", state_hash: " state-dup ", assumption_hash: "assumption-1" }),
+    decision({ id: "D-002", state_hash: "state-dup", assumption_hash: "assumption-2" }),
+  ]);
+
+  const result = scanDecisionInbox({ targetRoot });
+
+  assert.equal(result.status, "PASS");
+});
+
+test("decision inbox scan rejects duplicate identity hashes when present", () => {
+  const targetRoot = tempDir();
+  writeInbox(targetRoot, [
+    decision({ id: "D-001", state_hash: "state-1", identity_hash: " identity-dup " }),
+    decision({ id: "D-002", state_hash: "state-2", assumption_hash: "assumption-2", identity_hash: "identity-dup" }),
   ]);
 
   const result = scanDecisionInbox({ targetRoot });
 
   assert.equal(result.status, "FAIL");
-  assert.match(rejectedDetails(result).join("\n"), /duplicate state_hash: state-dup/);
+  assert.match(rejectedDetails(result).join("\n"), /duplicate identity_hash: identity-dup/);
 });
 
 test("decision inbox scan rejects broad multi-question text", () => {
