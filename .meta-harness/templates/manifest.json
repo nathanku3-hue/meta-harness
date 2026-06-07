@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-06-06T15:22:34.291Z",
+  "generated_at": "2026-06-07T05:09:03.790Z",
   "template_count": 23,
   "hash_algorithm": "sha256",
   "line_ending_normalization": "LF",
@@ -8,17 +8,17 @@
     {
       "source_path": "templates/contracts/clean-code-contract.json",
       "installed_path": ".meta-harness/templates/contracts/clean-code-contract.json",
-      "content_hash": "190da2a97dca0ae1291835f8355e536de836f2d0079488ad9ddfff3f55ede142"
+      "content_hash": "51fba75ed9c73328299e1beca30432ed94e142c1aae50d6862e33861b7ce2b52"
     },
     {
       "source_path": "templates/contracts/decision-inbox-contract.md",
       "installed_path": ".meta-harness/templates/contracts/decision-inbox-contract.md",
-      "content_hash": "6df238c013a83883a5adaa7f8de3b104ec8a895b43f9c64965da999d598d7b40"
+      "content_hash": "e10a28cb506b8faa7067f420ae35c87174178e5a3cde11574f1e676f356a1c1a"
     },
     {
       "source_path": "templates/contracts/decision-inbox-scan-contract.md",
       "installed_path": ".meta-harness/templates/contracts/decision-inbox-scan-contract.md",
-      "content_hash": "2f77b0240598fa916135dc999f38a2ba056b1df7fdf015e463d64c4503f56eb2"
+      "content_hash": "5d0a5b459abb1356479dd1a5bc78701b95815409e98764b56669e03893d4ede5"
     },
     {
       "source_path": "templates/contracts/decision-reuse-contract.md",
@@ -68,7 +68,7 @@
     {
       "source_path": "templates/contracts/worker-done-contract.md",
       "installed_path": ".meta-harness/templates/contracts/worker-done-contract.md",
-      "content_hash": "390bc8ab47a7e050ccc20525c593724f74692a9e07b69ee542b9c9352ea7d1ed"
+      "content_hash": "7889c632e457adee44292a8a9d0295ebb7dcb8437e8496f5978e901f91177089"
     },
     {
       "source_path": "templates/skills/boundary-gate.md",
@@ -121,5 +121,5 @@
       "content_hash": "44debb09279b9da8ef7ed2c1697a9d966ce4d5d703b54008a0c0744b2978e4df"
     }
   ],
-  "manifest_hash": "399a839787efafc0721c960eb5eb9fa0a1b771d4cdcd1e4c068e07e6adc95c18"
+  "manifest_hash": "3bb9ec8ba93fb3efc017f1761689c40bb923dcace42adaa4bc3768037976f2de"
 }

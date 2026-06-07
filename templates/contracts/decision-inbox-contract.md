@@ -12,6 +12,7 @@ Purpose: keep reusable user decisions small, deterministic, and separate from ra
   "question": "Approve touching inherited dirty path src/owned.js?",
   "recommended": "hold",
   "state_hash": "<source-classification-state-hash>",
+  "assumption_hash": "<canonical-assumptions-hash>",
   "identity_hash": "<canonical-decision-identity-hash>",
   "assumptions": [
     "dirty path existed before current scope",
@@ -38,6 +39,8 @@ resolution: approved | rejected | deferred
 
 `state_hash` is the source classification state hash supplied by `dirty classify` or `decisions add --state-hash`.
 
+`assumption_hash` is computed from the canonical sorted and deduplicated assumptions only. It is stored separately so assumption drift can be detected without changing the identity hash input.
+
 `identity_hash` is computed by Meta-Harness from canonical identity fields:
 
 - kind;
@@ -48,6 +51,8 @@ resolution: approved | rejected | deferred
 - source classification state hash.
 
 Evidence paths are not identity. Moving an evidence file must not reopen a decision.
+
+Multiple decisions may share the same `state_hash` when one repo state requires more than one explicit decision. Duplicate `id` values and duplicate `identity_hash` values are rejected.
 
 ## ID Collision Rule
 

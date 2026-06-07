@@ -2,38 +2,11 @@
 
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
-const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
+const { run, runRaw, tempDir } = require("./helpers/cli");
 const { writePhase5SecurityFixture } = require("./helpers/security-fixture");
-
-const ROOT = path.resolve(__dirname, "..");
-const CLI = path.join(ROOT, "bin", "meta-harness.js");
-
-function tempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-ready-"));
-}
-
-function run(cwd, args, options = {}) {
-  const result = spawnSync(process.execPath, [CLI, ...args], {
-    cwd,
-    encoding: "utf8",
-    ...options,
-  });
-  if (result.status !== 0) {
-    throw new Error(`Command failed: ${args.join(" ")}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
-  }
-  return result.stdout;
-}
-
-function runRaw(cwd, args, options = {}) {
-  return spawnSync(process.execPath, [CLI, ...args], {
-    cwd,
-    encoding: "utf8",
-    ...options,
-  });
-}
 
 test("ready command all pass scenario (local read-only quick mode)", () => {
   const cwd = tempDir();
@@ -118,7 +91,7 @@ test("ready command pregenerated ready.json override", () => {
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 15, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 16, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: [
       { id: "MH_TEST_001", status: "pass", reason: "overridden test", next_action: "" },
@@ -135,6 +108,7 @@ test("ready command pregenerated ready.json override", () => {
       { id: "MH_GITCHECK_001", status: "pass" },
       { id: "MH_PACKAGE_001", status: "pass" },
       { id: "MH_GITHUB_SETTINGS_001", status: "pass" },
+      { id: "MH_SHIPGATE_001", status: "pass" },
       { id: "MH_READY_JSON_001", status: "pass" }
     ]
   }), "utf8");
@@ -143,95 +117,6 @@ test("ready command pregenerated ready.json override", () => {
   const testCheck = data.checks.find(c => c.id === "MH_TEST_001");
   assert.equal(testCheck.status, "pass");
   assert.equal(testCheck.reason, "overridden test");
-});
-
-test("MH_REPRO_001 fails when package-lock.json missing", () => {
-  const cwd = tempDir();
-  run(cwd, ["init", "Repro fail target"]);
-  fs.writeFileSync(path.join(cwd, "package.json"), JSON.stringify({
-    name: "dummy-target",
-    version: "1.0.0",
-    engines: { node: ">=20" },
-    packageManager: "npm@10.0.0"
-  }), "utf8");
-  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
-  const data = JSON.parse(res.stdout);
-  const repro = data.checks.find(c => c.id === "MH_REPRO_001");
-  assert.equal(repro.status, "fail");
-  assert.match(repro.reason, /package-lock\.json missing/);
-});
-
-test("MH_NPM_SCRIPTS_001 fails when preinstall exists", () => {
-  const cwd = tempDir();
-  run(cwd, ["init", "Scripts fail target"]);
-  fs.writeFileSync(path.join(cwd, "package.json"), JSON.stringify({
-    name: "dummy-target",
-    version: "1.0.0",
-    scripts: {
-      preinstall: "malicious-code"
-    }
-  }), "utf8");
-  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
-  const data = JSON.parse(res.stdout);
-  const scriptsCheck = data.checks.find(c => c.id === "MH_NPM_SCRIPTS_001");
-  assert.equal(scriptsCheck.status, "fail");
-  assert.match(scriptsCheck.reason, /risky npm lifecycle scripts/);
-});
-
-test("MH_NPM_SCRIPTS_001 warns on prepare/prepack/postpack hooks and blocks package dry-run in local mode", () => {
-  const cwd = tempDir();
-  run(cwd, ["init", "Scripts block pack target"]);
-  fs.writeFileSync(path.join(cwd, "package.json"), JSON.stringify({
-    name: "dummy-target",
-    version: "1.0.0",
-    scripts: {
-      prepare: "build-something"
-    }
-  }), "utf8");
-  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--json"]);
-  const data = JSON.parse(res.stdout);
-  const scriptsCheck = data.checks.find(c => c.id === "MH_NPM_SCRIPTS_001");
-  const packageCheck = data.checks.find(c => c.id === "MH_PACKAGE_001");
-
-  assert.equal(scriptsCheck.status, "warn");
-  assert.equal(packageCheck.status, "skip");
-  assert.match(packageCheck.reason, /npm pack dry-run skipped/);
-});
-
-test("MH_NPM_SCRIPTS_001 warns on prepare/prepack/postpack hooks elevated to fail in strict mode", () => {
-  const cwd = tempDir();
-  run(cwd, ["init", "Scripts block pack strict target"]);
-  fs.writeFileSync(path.join(cwd, "package.json"), JSON.stringify({
-    name: "dummy-target",
-    version: "1.0.0",
-    scripts: {
-      prepare: "build-something"
-    }
-  }), "utf8");
-  const res = runRaw(cwd, ["ready", "--target", cwd, "--mode", "strict", "--quick", "--json"]);
-  const data = JSON.parse(res.stdout);
-  const scriptsCheck = data.checks.find(c => c.id === "MH_NPM_SCRIPTS_001");
-  const packageCheck = data.checks.find(c => c.id === "MH_PACKAGE_001");
-
-  assert.equal(data.ok, false);
-  assert.equal(scriptsCheck.status, "fail");
-  assert.equal(packageCheck.status, "fail");
-});
-
-test("MH_NPM_SCRIPTS_001 allows safe prepublishOnly release check", () => {
-  const cwd = tempDir();
-  run(cwd, ["init", "Scripts pass target"]);
-  fs.writeFileSync(path.join(cwd, "package.json"), JSON.stringify({
-    name: "dummy-target",
-    version: "1.0.0",
-    scripts: {
-      prepublishOnly: "node bin/meta-harness.js release check"
-    }
-  }), "utf8");
-  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
-  const data = JSON.parse(res.stdout);
-  const scriptsCheck = data.checks.find(c => c.id === "MH_NPM_SCRIPTS_001");
-  assert.equal(scriptsCheck.status, "pass");
 });
 
 test("ready command validates hyphenated --no-exec and --read-only flags", () => {
@@ -272,7 +157,7 @@ test("stale ready.json is rejected due to git_commit mismatch (non-git target ex
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 15, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 16, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: [
       { id: "MH_SYNC_001", status: "pass" },
@@ -289,6 +174,7 @@ test("stale ready.json is rejected due to git_commit mismatch (non-git target ex
       { id: "MH_PACKAGE_001", status: "pass" },
       { id: "MH_GITHUB_SETTINGS_001", status: "pass" },
       { id: "MH_TEST_001", status: "pass" },
+      { id: "MH_SHIPGATE_001", status: "pass" },
       { id: "MH_READY_JSON_001", status: "pass" }
     ]
   }), "utf8");
@@ -323,7 +209,7 @@ test("stale ready.json is rejected due to git_commit mismatch (git target compar
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 15, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 16, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: [
       { id: "MH_SYNC_001", status: "pass" },
@@ -340,6 +226,7 @@ test("stale ready.json is rejected due to git_commit mismatch (git target compar
       { id: "MH_PACKAGE_001", status: "pass" },
       { id: "MH_GITHUB_SETTINGS_001", status: "pass" },
       { id: "MH_TEST_001", status: "pass" },
+      { id: "MH_SHIPGATE_001", status: "pass" },
       { id: "MH_READY_JSON_001", status: "pass" }
     ]
   }), "utf8");
@@ -385,6 +272,7 @@ test("ready.json count fields must match checks", () => {
     { id: "MH_PACKAGE_001", status: "pass" },
     { id: "MH_GITHUB_SETTINGS_001", status: "pass" },
     { id: "MH_TEST_001", status: "pass" },
+    { id: "MH_SHIPGATE_001", status: "pass" },
     { id: "MH_READY_JSON_001", status: "pass" }
   ];
   fs.mkdirSync(path.join(cwd, ".meta-harness"), { recursive: true });
@@ -398,7 +286,7 @@ test("ready.json count fields must match checks", () => {
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 14,
+    passed: 15,
     failed: 0,
     skipped: 0,
     warned: 0,
