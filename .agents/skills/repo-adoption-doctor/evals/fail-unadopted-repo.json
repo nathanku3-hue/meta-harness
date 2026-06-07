@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "name": "fail-unadopted-repo",
+  "setup": {
+    "install_templates": false,
+    "files": {
+      ".meta-harness/runs/old/status.md": "# Old Run\n",
+      ".gitignore": "node_modules/\n"
+    }
+  },
+  "expected": {
+    "ok": false,
+    "findings": [
+      {
+        "id": "ADOPT_SYNC_MISSING_TEMPLATES",
+        "severity": "block"
+      },
+      {
+        "id": "ADOPT_STATE_MISSING_STATUS",
+        "severity": "block"
+      },
+      {
+        "id": "ADOPT_STATE_MISSING_EVENTS",
+        "severity": "block"
+      },
+      {
+        "id": "ADOPT_STATE_OLD_RUNS",
+        "severity": "block"
+      },
+      {
+        "id": "ADOPT_SECURITY_MISSING_GITATTRIBUTES",
+        "severity": "warn"
+      },
+      {
+        "id": "ADOPT_SECURITY_MISSING_SECURITY_MD",
+        "severity": "warn"
+      },
+      {
+        "id": "ADOPT_SECURITY_MISSING_CODEOWNERS",
+        "severity": "warn"
+      },
+      {
+        "id": "ADOPT_SECURITY_MISSING_DEPENDABOT",
+        "severity": "warn"
+      },
+      {
+        "id": "ADOPT_GITIGNORE_WEAK_SECRET_PATTERNS",
+        "severity": "warn"
+      }
+    ]
+  }
+}

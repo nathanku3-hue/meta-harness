@@ -865,6 +865,30 @@ Slow-path PRs:
 - Domain authority changes
 - Permission expansion
 
+#### Deferred follow-up — code-backed merge protocol gate
+
+Phase 6 defines the Code-to-PR and PR-to-merge contract. A later implementation phase may add a code-backed merge protocol gate. This is not required to close Phase 6.
+
+Potential command surface:
+
+```text
+meta-harness merge check --base origin/main --head HEAD --scope <scope>
+meta-harness merge check --pr <number> --scope <scope> --json
+```
+
+Potential checks:
+
+- `MH_MERGE_BASE_001` — PR/head branch merge-base is the expected base.
+- `MH_MERGE_DIFF_SIZE_001` — changed files and line count are under the declared review threshold.
+- `MH_MERGE_SCOPE_001` — changed paths match the declared scope contract.
+- `MH_MERGE_STATUS_001` — in PR/API mode, required checks passed for the latest PR head SHA; when merge queue or test-merge validation is used, required checks also pass on the generated merge-group/test-merge SHA. In local-only mode, unavailable evidence is reported as unknown, not silently passed.
+- `MH_MERGE_WORKTREE_001` — in local mode, local worktree has no unrelated uncommitted edits. In PR/API mode, this check is skipped or reported unknown unless the PR head is checked out locally.
+- `MH_MERGE_PACKAGE_001` — npm pack dry-run has no forbidden leaks.
+- `MH_MERGE_NOISE_001` — no CRLF renormalization, generated-state churn, or broad roadmap flood unless declared.
+- `MH_MERGE_AUTHORITY_001` — no promotion, Phase 8, workflow, dependency, release, or security-boundary change unless decision-approved.
+
+The merge protocol gate should run after local verification and PR CI/review evidence, but before approving or merging a PR.
+
 ### Exit criteria
 
 - [ ] Fast path exists and ships docs-only owned-path changes without decision inbox
