@@ -4,6 +4,10 @@
   "description": "Markdown-first Codex-native workflow visibility harness.",
   "license": "MIT",
   "type": "commonjs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nathanku3-hue/meta-harness.git"
+  },
   "bin": {
     "meta-harness": "bin/meta-harness.js"
   },
@@ -18,7 +22,20 @@
   "scripts": {
     "test": "node --test tests/*.test.js"
   },
+  "packageManager": "npm@11.16.0",
   "engines": {
     "node": ">=20"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=20",
+      "onFail": "error"
+    },
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.6.0",
+      "onFail": "error"
+    }
   }
 }

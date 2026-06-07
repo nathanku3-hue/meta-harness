@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
+const { writePhase5SecurityFixture } = require("./helpers/security-fixture");
 
 const ROOT = path.resolve(__dirname, "..");
 const CLI = path.join(ROOT, "bin", "meta-harness.js");
@@ -52,6 +53,7 @@ test("ready command all pass scenario (local read-only quick mode)", () => {
     lockfileVersion: 3,
     packages: {}
   }), "utf8");
+  writePhase5SecurityFixture(cwd);
 
   run(cwd, ["quality", "init"]);
 
@@ -522,10 +524,8 @@ test("generated ready --json validates as ready.json", () => {
     lockfileVersion: 3,
     packages: {}
   }), "utf8");
-  fs.writeFileSync(path.join(cwd, ".gitignore"), ".env\n.env.*\n*.pem\n*.key\nsecrets.*\n*.secret\n*.token\n.npmrc\n", "utf8");
+  writePhase5SecurityFixture(cwd);
   fs.writeFileSync(path.join(cwd, ".npmignore"), ".meta-harness\n", "utf8");
-  fs.mkdirSync(path.join(cwd, ".github", "workflows"), { recursive: true });
-  fs.writeFileSync(path.join(cwd, ".github", "workflows", "ci.yml"), "steps:\n  - run: npm ci\n", "utf8");
   run(cwd, ["quality", "init"]);
   run(cwd, ["templates", "install", "--allow-dirty"]);
 

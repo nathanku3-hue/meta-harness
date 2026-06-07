@@ -214,3 +214,28 @@ Key changes from earlier plan:
 8. Add state layout versioning, stable check IDs, redaction scanner, security-policy.json, and install/upgrade round-trip tests.
 
 See docs/product/roadmap.md for the full revised phase plan.
+
+## D018: Phase 5 Minimum Security Baseline Implemented
+
+Decision:
+
+Treat Phase 5 as implemented locally, with GitHub repository-setting checks intentionally left at warn/unknown until API-backed verification is available.
+
+Rationale:
+
+The Phase 5 baseline now includes SECURITY.md, CODEOWNERS, Dependabot version-update config, machine-readable security policy, owner map, redaction scanning, security posture checks, package reproducibility checks, package-lock.json, a pinned CI workflow using npm ci, and MH_SECURITY_001 integration in `meta-harness ready`.
+
+Evidence from local verification on 2026-06-07:
+
+- `node --test tests/redaction-check.test.js tests/security-check.test.js tests/cli-ready.test.js` passed.
+- `npm test` passed in the committed Phase 5 tree: 134 pass, 1 skipped.
+- `git diff --check` passed.
+- `node bin/meta-harness.js ready --target . --quick --json` returned `ok: true`.
+
+Known local-only warnings:
+
+- SEC_REPORTING_001
+- SEC_DEP_SETTINGS_001
+- SEC_OWNER_ENFORCE_001
+
+These warnings require GitHub settings/API verification: private vulnerability reporting, dependency graph plus Dependabot alerts/security updates, and CODEOWNERS enforcement through branch protection or rulesets. They are expected locally and should fail only in strict/CI/API verification modes when required.

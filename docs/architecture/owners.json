@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "modules": [
+    { "path": "README.md", "owner": "nathanku3-hue", "risk": "docs" },
+    { "path": "docs/", "owner": "nathanku3-hue", "risk": "docs" },
+    { "path": "templates/", "owner": "nathanku3-hue", "risk": "harness-contract" },
+    { "path": ".github/", "owner": "nathanku3-hue", "risk": "security" },
+    { "path": ".meta-harness/", "owner": "nathanku3-hue", "risk": "control-plane" }
+  ]
+}
