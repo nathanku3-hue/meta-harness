@@ -1,16 +1,16 @@
 # Status
 
 Goal:
-Not set.
+Self-adoption Phase 1 state-layout repair.
 
 Phase:
-handoff
+phase-1-state-layout-repair
 
 Current truth:
-Phase 10 planning contract committed as docs-only FAST change at 6fa255b; no implementation, CI, package script, roadmap, decision-log, baseline, tag, or publish boundary changed
+Root `.meta-harness` state-layout truth is initialized at layout version 2. `.meta-harness/streams/` is ignored local stream state classified by metadata only; no stream contents were read.
 
 Active streams:
-- coding: Phase 10 planning contract committed as docs-only FAST change at 6fa255b; no implementation, CI, package script, roadmap, decision-log, baseline, tag, or publish boundary changed
+- coding: Phase 1 state-layout repair is narrowed to root truth files and local-residue classification
 - research: idle
 - writing: idle
 - review: idle
@@ -25,13 +25,13 @@ Blockers:
 - none
 
 Last verified:
-single staged file docs/product/phase-10-patch-plan.md; git diff --cached --check pass; git diff --check HEAD~1..HEAD pass; final worktree clean
+state check PASS checked=3; sync check PASS checked=24; normal git status clean; .meta-harness/streams ignored by .gitignore:72
 
 Next action:
-Resume Phase 0-5 execution lane with Phase 1 hygiene/self-adoption; do not start Phase 10 implementation until a separate implementation audit
+Run final verification and prepare focused Phase 1 state-layout repair PR
 
 Stop criteria:
 Fresh human and Codex worker can resume from local harness state.
 
 Updated:
-2026-06-08T03:36:13.358Z
+2026-06-08T04:26:02Z
