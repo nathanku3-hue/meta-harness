@@ -1,25 +1,25 @@
 # Phase 10 Patch Plan
 
-Status: Phase 10C external release evidence contract WIP
+Status: Phase 10D live release evidence captured; release blocked/not release-ready
 Roadmap phase: Phase 10 - Release/package enforcement
-Implementation status: local read-only release check and npm publish boundary guard exist; read-only external/full release evidence contract in progress; publish automation remains out of scope
-Decision required before implementation: Phase 10C evidence-contract work authorized by current worker assignment
+Implementation status: local read-only release check, npm publish boundary guard, and read-only external/full release evidence contract exist; Phase 10D records live evidence for `dc7480cdb96fd021e5f5ef0d4316117bfd009e12` as blocked because branch protection/security evidence cannot satisfy the current policy; publish automation remains out of scope
+Decision required before implementation: Phase 10D evidence-only recording authorized by current worker assignment
 Commit plan doc: yes
-Start implementation: Phase 10C read-only release evidence contract only
+Start implementation: Phase 10D evidence-only policy/docs/status update
 Phase 10 quality baseline refresh: no; Phase 9 metadata adoption is handled separately by D022
 Publish: no
-Decision-log entry in this patch: none
-Later decision-log entry: yes, if Phase 10 expands beyond local read-only checks
+Decision-log entry in this patch: D023
+Later decision-log entry: yes, if Phase 10 expands beyond local read-only checks or evidence harvesting
 
 ## Scope
 
 Phase 10 defines release and package enforcement only.
 
-This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is the read-only local implementation check. Phase 10B adds only the package publish-boundary guard. Phase 10C adds only a file-based, read-only external/full release evidence contract.
+This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is the read-only local implementation check. Phase 10B adds only the package publish-boundary guard. Phase 10C adds only a file-based, read-only external/full release evidence contract. Phase 10D records live evidence only and keeps release readiness blocked.
 
 ## Hard Boundary
 
-This document now reflects Phase 10A local implementation status, the Phase 10B package boundary guard, and the Phase 10C read-only evidence contract. It does not permit publish, tag, CI publish automation, evidence harvesting, version bumping, registry writes, provenance publishing, or Phase 11 work.
+This document now reflects Phase 10A local implementation status, the Phase 10B package boundary guard, the Phase 10C read-only evidence contract, and the Phase 10D blocked live-evidence snapshot. It does not permit publish, tag, CI publish automation, evidence harvesting, version bumping, registry writes, provenance publishing, release-ready overrides, or Phase 11 work.
 
 Allowed for Phase 10A:
 
@@ -40,6 +40,13 @@ Allowed for Phase 10C:
 - fixture-backed tests for missing, invalid, and valid evidence states
 - publish-mode `release_ready: true` only in fixture/temp repos with clean local checks and valid evidence
 
+Allowed for Phase 10D:
+
+- record already gathered live evidence in `.meta-harness/release-policy.json` when the policy stores external evidence
+- update this plan, the decision log, and `.meta-harness/status.md`
+- keep `external_evidence` and `full_release` statuses blocked/fail/unknown unless the live evidence satisfies the current policy
+- verify that local gates still pass while release/publish gates remain blocked
+
 Forbidden:
 
 - publish automation
@@ -49,6 +56,7 @@ Forbidden:
 - release tags
 - version bumping
 - registry writes
+- setting evidence status to pass merely to make `release_ready` true
 
 ## No-Side-Effects Rule
 
@@ -56,7 +64,7 @@ All Phase 10 release checks remain read-only with respect to git tags, the npm r
 
 The only allowed writes are temporary files and directories under an isolated temp path. Temp artifacts must be cleaned up after the check, and cleanup success or failure must be recorded in release evidence.
 
-Default local mode must not require network access. Phase 10B `--publish` mode fails closed by returning the release-check JSON and exiting nonzero unless `release_ready` is true. Phase 10C may validate evidence already present in repository files or test fixtures, but it still does not publish, harvest external evidence, call GitHub APIs, or verify trusted publishing. A future publish mode may perform read-only npm registry and GitHub checks when the environment has permission. When local mode lacks network or repository-setting evidence, it should return `skip`, `warn`, or `unknown` instead of failing solely because external evidence is unavailable.
+Default local mode must not require network access. Phase 10B `--publish` mode fails closed by returning the release-check JSON and exiting nonzero unless `release_ready` is true. Phase 10C may validate evidence already present in repository files or test fixtures, but it still does not publish, harvest external evidence, call GitHub APIs, or verify trusted publishing. Phase 10D may record already gathered live evidence and must record blocked/fail/unknown truthfully when the evidence cannot satisfy policy. A future publish mode may perform read-only npm registry and GitHub checks when the environment has permission. When local mode lacks network or repository-setting evidence, it should return `skip`, `warn`, or `unknown` instead of failing solely because external evidence is unavailable.
 
 ## Current Prerequisite Signal
 
@@ -65,6 +73,26 @@ Default local mode must not require network access. Phase 10B `--publish` mode f
 - Quality status: pass with no `MH_COMPLEXITY_LEGACY_BASELINE_METADATA` finding
 - Complexity metadata adoption: adopted under D022; this does not by itself claim full Phase 9 closure
 - Release readiness requirement: clean tree required before a real release; Phase 10A local checks report dirty state without failing local-only checks
+- Phase 10D evidence review: `PHASE10D-REL-EVIDENCE-2026-06-09-dc7480c`
+- Phase 10D decision: D023
+- Live evidence commit: `dc7480cdb96fd021e5f5ef0d4316117bfd009e12`, pushed to `origin/main` before the evidence-only patch
+- CI evidence: run `27152950530`, `Node tests`, success, completed `2026-06-08T16:48:14Z`
+- Release evidence status: blocked/not release-ready until branch protection/security evidence can satisfy policy and evidence is recollected for the exact release commit
+
+## Phase 10D Live Evidence Snapshot
+
+Recorded live evidence for review `PHASE10D-REL-EVIDENCE-2026-06-09-dc7480c` / D023:
+
+- `origin/main` contained exact commit `dc7480cdb96fd021e5f5ef0d4316117bfd009e12` at collection time.
+- CI run `27152950530` for `Node tests` completed successfully at `2026-06-08T16:48:14Z`.
+- Branch protection was `false`.
+- Branch protection and rulesets API evidence was blocked by private repository plan 403 responses.
+- Dependabot/vulnerability alerts were enabled with `0` open alerts.
+- Automated security fixes were enabled.
+- Code scanning was disabled.
+- Secret scanning was disabled or unavailable.
+- Local gates may pass, but full release evidence remains blocked because required branch protection/security evidence does not satisfy the current policy.
+- Evidence must be recollected for the exact commit being released; this Phase 10D patch is evidence-only and does not create an accepted release record.
 
 ## Files
 
@@ -95,6 +123,13 @@ Phase 10C implementation may add or modify:
 - `tests/release-check.test.js`
 - `tests/fixtures/release-evidence/`
 - this plan and status note
+
+Phase 10D evidence-only updates may add or modify only:
+
+- `.meta-harness/release-policy.json`
+- this plan
+- `docs/product/decision-log.md`
+- `.meta-harness/status.md`
 
 Future implementation may add or modify, after audit approval:
 
@@ -249,7 +284,7 @@ Initial expected policy for this package:
 }
 ```
 
-Live repository policy may record `not_evaluated` placeholders, but it must not commit real external/full release evidence unless that evidence has actually been collected.
+Live repository policy may record `not_evaluated` placeholders or blocked/failing live evidence. It must not commit passing external/full release evidence unless that evidence has actually been collected, satisfies the current policy, and is for the exact commit being released. Phase 10D records blocked live evidence only, so `release_ready` must remain false.
 
 `REL_PACKAGE_ID_001` must not infer expected identity solely from the same `package.json` being checked.
 

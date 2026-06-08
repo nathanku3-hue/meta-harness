@@ -35,19 +35,43 @@
   },
   "external_evidence": {
     "github_security": {
-      "status": "not_evaluated",
-      "source": null,
-      "checked_at": null
+      "status": "blocked",
+      "source": "review://PHASE10D-REL-EVIDENCE-2026-06-09-dc7480c",
+      "checked_at": "2026-06-08T16:53:35Z",
+      "review_id": "PHASE10D-REL-EVIDENCE-2026-06-09-dc7480c",
+      "decision_id": "D023",
+      "commit": "dc7480cdb96fd021e5f5ef0d4316117bfd009e12",
+      "ci": {
+        "run_id": "27152950530",
+        "job": "Node tests",
+        "status": "success",
+        "completed_at": "2026-06-08T16:48:14Z"
+      },
+      "repository_security": {
+        "branch_protected": false,
+        "branch_protection_api": "blocked_403_private_repo_plan",
+        "rulesets_api": "blocked_403_private_repo_plan",
+        "dependabot_vulnerability_alerts": "enabled",
+        "open_dependabot_alerts": 0,
+        "automated_security_fixes": "enabled",
+        "code_scanning": "disabled",
+        "secret_scanning": "disabled_or_unavailable"
+      },
+      "reason": "Branch protection is not enabled; protection and rulesets APIs are blocked by the private repository plan 403; code scanning is disabled; secret scanning is disabled or unavailable."
     },
     "full_release": {
-      "status": "not_evaluated",
-      "source": null,
-      "checked_at": null,
+      "status": "blocked",
+      "source": "review://PHASE10D-REL-EVIDENCE-2026-06-09-dc7480c",
+      "checked_at": "2026-06-08T16:53:35Z",
+      "review_id": "PHASE10D-REL-EVIDENCE-2026-06-09-dc7480c",
+      "decision_id": "D023",
+      "commit": "dc7480cdb96fd021e5f5ef0d4316117bfd009e12",
       "artifacts": {
-        "executed_test_result": null,
-        "package_dry_run_output": null,
-        "publish_mode_external_evidence": null
-      }
+        "executed_test_result": "CI run 27152950530 Node tests success, completed 2026-06-08T16:48:14Z. Local Phase 10D validation npm test passed with 202 pass and 1 skipped.",
+        "package_dry_run_output": "Local Phase 10D validation npm pack --dry-run --json --ignore-scripts passed for meta-harness@0.1.0, but this is not accepted full-release evidence while external security evidence is blocked.",
+        "publish_mode_external_evidence": "Publish-mode release check and npm publish --dry-run failed closed with release_ready=false because branch protection/security evidence does not satisfy the current policy."
+      },
+      "reason": "Full release evidence is not accepted because current external branch protection and security evidence cannot satisfy the release policy. Recollect evidence for the exact release commit after repository protections and security signals are satisfied."
     }
   }
 }
