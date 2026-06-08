@@ -1,11 +1,11 @@
 # Phase 10 Patch Plan
 
-Status: Phase 10A local release-check implementation WIP
+Status: Phase 10B publish-boundary guard WIP
 Roadmap phase: Phase 10 - Release/package enforcement
-Implementation status: local read-only release check in progress; publish automation remains out of scope
-Decision required before implementation: Phase 10A implementation authorized by current worker assignment
+Implementation status: local read-only release check exists; npm publish boundary guard in progress; publish automation remains out of scope
+Decision required before implementation: Phase 10B boundary guard authorized by current worker assignment
 Commit plan doc: yes
-Start implementation: Phase 10A local check only
+Start implementation: Phase 10B npm publish-boundary guard only
 Phase 10 quality baseline refresh: no; Phase 9 metadata adoption is handled separately by D022
 Publish: no
 Decision-log entry in this patch: none
@@ -15,11 +15,11 @@ Later decision-log entry: yes, if Phase 10 expands beyond local read-only checks
 
 Phase 10 defines release and package enforcement only.
 
-This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is limited to a read-only local implementation check.
+This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is the read-only local implementation check. Phase 10B adds only the package publish-boundary guard.
 
 ## Hard Boundary
 
-This document now reflects Phase 10A local implementation status. It does not permit publish, tag, CI publish automation, version bumping, registry writes, or Phase 11 work.
+This document now reflects Phase 10A local implementation status and the Phase 10B package boundary guard. It does not permit publish, tag, CI publish automation, version bumping, registry writes, provenance publishing, or Phase 11 work.
 
 Allowed for Phase 10A:
 
@@ -27,9 +27,14 @@ Allowed for Phase 10A:
 - `.meta-harness/release-policy.json` as local package identity policy
 - tests for local pass/fail, missing policy, missing evidence, and package metadata
 
+Allowed for Phase 10B:
+
+- `package.json` `prepublishOnly` guard that runs `node bin/meta-harness.js release check --publish --json`
+- tests proving `npm publish --dry-run` fails closed through that guard
+- lifecycle allowlist updates needed to keep normal readiness green
+
 Forbidden:
 
-- package script edits
 - publish automation
 - CI publish workflow edits
 - release tags
@@ -38,11 +43,11 @@ Forbidden:
 
 ## No-Side-Effects Rule
 
-All Phase 10A release checks are read-only with respect to source files, git tags, the npm registry, GitHub settings, CI configuration, and package scripts.
+All Phase 10 release checks remain read-only with respect to git tags, the npm registry, GitHub settings, and CI configuration. Phase 10B may edit the package lifecycle guard, but the guard command itself must not write release artifacts or publish anything.
 
 The only allowed writes are temporary files and directories under an isolated temp path. Temp artifacts must be cleaned up after the check, and cleanup success or failure must be recorded in release evidence.
 
-Default local mode must not require network access. Phase 10A rejects `--publish` fail-closed because publish-mode verification is out of scope. A future publish mode may perform read-only npm registry and GitHub checks when the environment has permission. When local mode lacks network or repository-setting evidence, it should return `skip`, `warn`, or `unknown` instead of failing solely because external evidence is unavailable.
+Default local mode must not require network access. Phase 10B `--publish` mode fails closed by returning the release-check JSON and exiting nonzero unless `release_ready` is true. It still does not publish, harvest external evidence, or verify trusted publishing. A future publish mode may perform read-only npm registry and GitHub checks when the environment has permission. When local mode lacks network or repository-setting evidence, it should return `skip`, `warn`, or `unknown` instead of failing solely because external evidence is unavailable.
 
 ## Current Prerequisite Signal
 
@@ -63,22 +68,31 @@ Phase 10A implementation may add or modify:
 - `tests/release-check.test.js`
 - `tests/command-registry.test.js`
 
+Phase 10B implementation may add or modify:
+
+- `package.json`
+- `lib/release-check.js`
+- `lib/commands/release.js`
+- `lib/ready-check.js`
+- `lib/command-registry.js`
+- release and readiness tests
+- a status note
+
 Future implementation may add or modify, after audit approval:
 
-- `package.json` `prepublishOnly`
 - CI workflow entries for Dependency Review and trusted publishing
 
 ## Release Check Commands
 
-Phase 10 should define these CLI surfaces. Phase 10A implements the default local check and JSON output; `--publish` is recognized only to reject it clearly.
+Phase 10 should define these CLI surfaces. Phase 10A implements the default local check and JSON output. Phase 10B allows `--publish` to fail closed on release readiness without performing publish automation.
 
 ```text
 meta-harness release check
 meta-harness release check --json
-meta-harness release check --publish  # rejected in Phase 10A
+meta-harness release check --publish --json  # fail-closed guard for npm publish
 ```
 
-Default mode is local implementation readiness, not full release readiness. JSON mode returns the same decision as machine-readable output. Future publish mode adds CI/CD-only trusted-publishing checks and must not be treated as normal local posture.
+Default mode is local implementation readiness, not full release readiness. JSON mode returns the same decision as machine-readable output. Phase 10B publish mode exits on `release_ready`, not `local_ok`, and must not be treated as proof of trusted-publishing posture.
 
 ## Release Check IDs
 
@@ -211,7 +225,7 @@ Initial expected policy for this package:
 ```json
 {
   "scripts": {
-    "prepublishOnly": "node bin/meta-harness.js release check"
+    "prepublishOnly": "node bin/meta-harness.js release check --publish --json"
   }
 }
 ```
@@ -349,7 +363,7 @@ Dependency Review evidence may be:
 
 Local mode must not fail solely because branch or ruleset settings are unavailable.
 
-Trusted publishing belongs to a future publish mode only. Phase 10A rejects `meta-harness release check --publish` before any local fallback. A future publish mode must fail if it cannot verify trusted-publishing or OIDC posture. Default local mode must report trusted publishing as `skip`, not `fail`.
+Trusted publishing evidence remains future work. Phase 10B `meta-harness release check --publish` fails closed on the current release-readiness truth, but it does not verify trusted-publishing or OIDC posture. A future publish mode must fail if it cannot verify trusted-publishing or OIDC posture. Default local mode must report trusted publishing as `skip`, not `fail`.
 
 Publish workflow permissions must keep `contents: read` or equivalent minimal permissions by default. `id-token: write` is allowed only in the publish job that needs OIDC.
 
@@ -375,17 +389,17 @@ Publish mode:
 
 ## prepublishOnly Policy
 
-Future `package.json` changes may add:
+Phase 10B may add:
 
 ```json
 {
   "scripts": {
-    "prepublishOnly": "node bin/meta-harness.js release check"
+    "prepublishOnly": "node bin/meta-harness.js release check --publish --json"
   }
 }
 ```
 
-Official publish automation should run `meta-harness release check --publish` before `npm publish`. The lifecycle hook is a final local/package guard, not the sole trusted-publishing verifier.
+Official publish automation, if later approved, should still run `meta-harness release check --publish` before `npm publish`. The lifecycle hook is a final local/package guard, not publish automation and not the sole trusted-publishing verifier.
 
 ## Incident And Rollback Policy
 
@@ -452,12 +466,11 @@ Future implementation tests should cover:
 - no further baseline refresh as part of Phase 10 implementation
 - no broader Phase 9 closure claim beyond D022 complexity metadata adoption
 - no publish-mode `.meta-harness/release-policy.json` expansion
-- no release command implementation beyond read-only local check
+- no external publish-mode evidence harvesting beyond the fail-closed local release-readiness decision
 - no release automation
 - no CI workflow change before audit
-- no package script change before audit
-- no change to `docs/product/roadmap.md`
-- no change to `docs/product/decision-log.md`
+- no package script change beyond the Phase 10B `prepublishOnly` guard before audit
+- no release-decision change to `docs/product/decision-log.md`
 - no change to `.meta-harness/baseline/quality-baseline.json`
 
 ## Merge Protocol Follow-Up
@@ -468,8 +481,8 @@ Current merge scopes may not yet include this Phase 10 planning filename. Do not
 
 - Confirm default local mode versus publish mode.
 - Confirm `npm ci` should run in CI or isolated temp workspace.
-- Confirm `prepublishOnly` should call default `release check`.
-- Confirm official publish automation should call `release check --publish`.
+- Confirm `prepublishOnly` should call `release check --publish --json`.
+- Confirm official publish automation, if later approved, should call `release check --publish` before `npm publish`.
 - Confirm Dependency Review remains PR/CI enforcement.
 - Confirm trusted publishing requires OIDC evidence only in publish mode.
 - Confirm publish workflow may use `id-token: write` only in publish job.
@@ -480,5 +493,5 @@ Current merge scopes may not yet include this Phase 10 planning filename. Do not
 - Confirm npm lifecycle scripts are blocked or decision-gated except canonical `prepublishOnly`.
 - Confirm package identity includes expected name, version, `private !== true`, and registry/access policy.
 - Confirm package identity has a future policy source of truth.
-- Confirm no decision-log entry is included in this Phase 10A local-check patch.
+- Confirm no decision-log entry is included in this Phase 10B boundary-guard patch.
 - Decide whether accepted Phase 10 contract needs a later D018 or D017 addendum.

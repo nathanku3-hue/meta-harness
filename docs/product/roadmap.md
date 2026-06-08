@@ -1,8 +1,8 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
 Status: active baseline
-Approval scope: Phases 0-7 accepted baseline; Phase 8 planning-only; Phase 9 transition/adoption baseline; Phase 10A local release-check work in progress
-Hold: No roadmap hold on Phase 10A local checks. Future Phase 10 publish automation/full release enforcement needs a separate decision. Phase 11 may start only after a real adopter, domain owner request, and activation decision. Phases 12-14 remain future prototypes.
+Approval scope: Phases 0-7 accepted baseline; Phase 8 planning-only; Phase 9 transition/adoption baseline; Phase 10A local release check plus Phase 10B publish-boundary guard in progress
+Hold: No roadmap hold on Phase 10A/10B local release checks. Future Phase 10 publish automation/full release enforcement needs a separate decision. Phase 11 may start only after a real adopter, domain owner request, and activation decision. Phases 12-14 remain future prototypes.
 Date: 2026-06-08
 Decision: D021 status reset; D022 complexity metadata adoption; D017-D020 remain source decisions
 
@@ -38,7 +38,7 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 7 | One-skill pilot | buildable | accepted baseline |
 | 8 | Read-only subagent scout pilot | buildable | planning-only; implementation not started |
 | 9 | Complexity governor expansion | buildable | transition/adoption baseline; complexity metadata separately marked adopted |
-| 10 | Release/package enforcement | buildable | Phase 10A local read-only release check implemented/in progress; not release-ready enforcement |
+| 10 | Release/package enforcement | buildable | Phase 10A local read-only release check plus Phase 10B publish-boundary guard implemented/in progress; not release-ready automation |
 | 11 | Domain governance pilot (adopter required) | prototype | start criteria explicit; not active without adopter and activation decision |
 | 12 | Self-evolution prototype | prototype | future prototype |
 | 13 | Multi-repo rollup | prototype | future prototype |
@@ -1239,11 +1239,11 @@ Classifications:
 
 Purpose: make shipping safe. No release from a dirty tree, no package includes local state or secrets, no publish without checks green.
 
-Current status: Phase 10A local read-only release check is implemented/in progress. It reports local package/release posture, clean-tree status, and missing external/full release evidence, but it does not claim release-ready enforcement. Publish automation, package script enforcement, registry behavior, tags, CI publish workflow, and full external/publish evidence remain absent.
+Current status: Phase 10A local read-only release check is implemented/in progress. It reports local package/release posture, clean-tree status, and missing external/full release evidence, but it does not claim release-ready enforcement. Phase 10B adds a fail-closed `prepublishOnly` package guard for `npm publish`. Publish automation, registry behavior, tags, CI publish workflow, version bumping, provenance publishing, and full external/publish evidence remain absent.
 
 ### Problem
 
-The `package.json "files"` field already limits published contents to bin/, lib/, docs/product/, docs/sop/, templates/, and README.md. Phase 10A adds a local read-only release-check surface, but the full release gate still does not:
+The `package.json "files"` field already limits published contents to bin/, lib/, docs/product/, docs/sop/, templates/, and README.md. Phase 10A adds a local read-only release-check surface and Phase 10B adds a package publish-boundary guard, but the full release gate still does not:
 
 1. Execute and verify package dry-run output against a forbidden-path list
 2. Enforce a clean git tree before an actual release, beyond the local status signal
@@ -1269,7 +1269,7 @@ Phase 10A subset: local read-only checks for release policy, package identity/me
 Pre-publish checks also run:
 - Tarball Install Smoke Test: after dry-run, install the packed tarball in a temp project and run CLI smoke test (e.g. executing `meta-harness --version`) to verify package contents and local install success.
 - Dependency Review check: runs dependency-review-action or equivalent in CI to block pull requests that introduce vulnerable or risky dependency versions. Must be configured as a required check in CI for pull requests affecting package files.
-- npm trusted publishing / OIDC: future publish mode should verify this; Phase 10A rejects `release check --publish` and has no publish automation.
+- npm trusted publishing / OIDC: future publish mode should verify this; Phase 10B `release check --publish` fails closed on current release readiness and has no publish automation.
 - CODEOWNERS enforcement: verify branch protection rules require review from code owners before pull request merge.
 - Release Incident / Rollback Policy: if release check passes but the publish step fails midway, automatically delete the git tag locally and remotely ONLY if the package was not actually published, the tag was created by the current attempt, and no remote consumer has retrieved it. If package was partially published, tag deletion is forbidden; follow registry immutable version rules, run npm deprecate or unpublish where applicable, and log a failed publish event.
 
@@ -1309,18 +1309,18 @@ PASS  version        0.1.0 matches
 
 #### [MODIFY] package.json
 
-Future full Phase 10 target, not Phase 10A: add a prepublishOnly script:
+Phase 10B target: add a prepublishOnly script:
 
 ```json
 {
   "scripts": {
-    "test": "node --test tests/*.test.js",
-    "prepublishOnly": "node bin/meta-harness.js release check"
+    "test": "node scripts/run-tests.js",
+    "prepublishOnly": "node bin/meta-harness.js release check --publish --json"
   }
 }
 ```
 
-This would block package publishing if the release check fails. Phase 10A does not modify package scripts or automate publishing.
+This blocks package publishing if the release check fails. Phase 10B modifies only the package boundary guard and does not automate publishing.
 
 #### Release readiness summary
 
@@ -1359,7 +1359,7 @@ Machine-readable output for CI:
 - [ ] Rollback/incident policy for failed publish is defined, conditional, and testable
 - [ ] No release from dirty git tree
 - [ ] No package includes .meta-harness local state, secrets, runtime data, or demo run artifacts
-- [ ] `npm publish` blocked by prepublishOnly if release check fails
+- [x] `npm publish` blocked by prepublishOnly if release check fails
 - [ ] Release readiness summary available as JSON
 - [ ] Tests cover clean pass and each individual failure mode
 

@@ -86,11 +86,28 @@ test("MH_NPM_SCRIPTS_001 allows safe prepublishOnly release check", () => {
     name: "dummy-target",
     version: "1.0.0",
     scripts: {
-      prepublishOnly: "node bin/meta-harness.js release check"
+      prepublishOnly: "node bin/meta-harness.js release check --publish --json"
     }
   }), "utf8");
   const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
   const data = JSON.parse(res.stdout);
   const scriptsCheck = data.checks.find(c => c.id === "MH_NPM_SCRIPTS_001");
   assert.equal(scriptsCheck.status, "pass");
+});
+
+test("MH_NPM_SCRIPTS_001 warns on local-only prepublishOnly release check", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Scripts warn target"]);
+  fs.writeFileSync(path.join(cwd, "package.json"), JSON.stringify({
+    name: "dummy-target",
+    version: "1.0.0",
+    scripts: {
+      prepublishOnly: "node bin/meta-harness.js release check"
+    }
+  }), "utf8");
+  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
+  const data = JSON.parse(res.stdout);
+  const scriptsCheck = data.checks.find(c => c.id === "MH_NPM_SCRIPTS_001");
+  assert.equal(scriptsCheck.status, "warn");
+  assert.match(scriptsCheck.reason, /prepublishOnly/);
 });

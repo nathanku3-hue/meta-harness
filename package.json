@@ -20,7 +20,8 @@
     "README.md"
   ],
   "scripts": {
-    "test": "node scripts/run-tests.js"
+    "test": "node scripts/run-tests.js",
+    "prepublishOnly": "node bin/meta-harness.js release check --publish --json"
   },
   "packageManager": "npm@11.16.0",
   "engines": {

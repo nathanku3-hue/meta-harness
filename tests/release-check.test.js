@@ -6,7 +6,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 
-const { run, runRaw, snapshotTree, tempDir } = require("./helpers/cli");
+const { ROOT, run, runRaw, snapshotTree, tempDir } = require("./helpers/cli");
 const { writePhase5SecurityFixture } = require("./helpers/security-fixture");
 const { CHECK_IDS } = require("../lib/release-check");
 
@@ -93,6 +93,20 @@ function git(root, args) {
   return result.stdout;
 }
 
+function commitAll(root) {
+  git(root, ["init"]);
+  git(root, ["add", "."]);
+  git(root, ["-c", "user.name=Meta Harness Test", "-c", "user.email=meta-harness@example.test", "commit", "-m", "fixture"]);
+}
+
+function npmPublishInvocation(args) {
+  const bundledNpmCli = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
+  if (fs.existsSync(bundledNpmCli)) {
+    return { command: process.execPath, args: [bundledNpmCli, ...args] };
+  }
+  return { command: "npm", args };
+}
+
 test("release check --json with external evidence recorded passes local checks without claiming Phase 10A release readiness", () => {
   const root = prepareReleaseTarget();
   const before = snapshotTree(root);
@@ -147,16 +161,77 @@ test("release check reports dirty git tree without failing local checks", () => 
   assert.ok(cleanTree.details.dirty_entries.some((entry) => entry.includes("package.json")));
 });
 
-test("release check --publish is rejected during Phase 10A", () => {
-  const root = prepareReleaseTarget();
+test("release check --publish fails closed on release readiness while preserving local result", () => {
+  const root = prepareReleaseTarget({ evidence: { status: "not_evaluated", source: null, checked_at: null } });
+  commitAll(root);
   const result = runRaw(root, ["release", "check", "--publish", "--json"]);
 
-  assert.equal(result.status, 2);
+  assert.equal(result.status, 1);
   assert.equal(result.stderr, "");
   const data = JSON.parse(result.stdout);
   assert.equal(data.ok, false);
-  assert.equal(data.error.code, "MH_USAGE");
-  assert.equal(data.error.message, "release check --publish is not implemented in Phase 10A");
+  assert.equal(data.local_ok, true);
+  assert.equal(data.release_ready, false);
+  assert.equal(data.mode, "publish");
+  assert.equal(data.publish, true);
+  assert.equal(checkById(data, CHECK_IDS.cleanTree).status, "pass");
+  assert.equal(checkById(data, CHECK_IDS.externalEvidence).status, "unknown");
+  assert.match(checkById(data, CHECK_IDS.externalEvidence).reason, /external GitHub\/security evidence missing/);
+  assert.equal(checkById(data, CHECK_IDS.fullReleaseEvidence).status, "unknown");
+  assert.match(checkById(data, CHECK_IDS.fullReleaseEvidence).reason, /full release evidence/);
+});
+
+test("package prepublishOnly binds npm publish to the fail-closed release check boundary", () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  assert.equal(pkg.scripts?.prepublishOnly, "node bin/meta-harness.js release check --publish --json");
+
+  const npmPublish = npmPublishInvocation(["publish", "--dry-run", "--foreground-scripts"]);
+  const result = spawnSync(npmPublish.command, npmPublish.args, {
+    cwd: ROOT,
+    encoding: "utf8",
+    shell: false,
+    stdio: ["ignore", "pipe", "pipe"],
+    timeout: 20_000,
+  });
+  const output = `${result.stdout}\n${result.stderr}`;
+
+  assert.notEqual(result.status, 0);
+  assert.match(output, /"publish": true/);
+  assert.match(output, /"local_ok": true/);
+  assert.match(output, /"release_ready": false/);
+  assert.match(output, /REL_FULL_RELEASE_EVIDENCE_001/);
+  assert.doesNotMatch(output, /npm notice Publishing to .*\(dry-run\)/);
+});
+
+test("release check allows only the publish-mode prepublishOnly guard", () => {
+  const allowed = prepareReleaseTarget({
+    packageOverrides: {
+      scripts: {
+        test: "node -e \"\"",
+        prepublishOnly: "node bin/meta-harness.js release check --publish --json",
+      },
+    },
+  });
+  const allowedResult = runRaw(allowed, ["release", "check", "--json"]);
+  assert.equal(allowedResult.status, 0);
+  const allowedData = JSON.parse(allowedResult.stdout);
+  assert.equal(checkById(allowedData, CHECK_IDS.lifecycle).status, "pass");
+  assert.equal(checkById(allowedData, CHECK_IDS.packDryRun).status, "pass");
+
+  const blocked = prepareReleaseTarget({
+    packageOverrides: {
+      scripts: {
+        test: "node -e \"\"",
+        prepublishOnly: "node bin/meta-harness.js release check",
+      },
+    },
+  });
+  const blockedResult = runRaw(blocked, ["release", "check", "--json"]);
+  assert.equal(blockedResult.status, 1);
+  const blockedData = JSON.parse(blockedResult.stdout);
+  assert.equal(checkById(blockedData, CHECK_IDS.lifecycle).status, "fail");
+  assert.deepEqual(checkById(blockedData, CHECK_IDS.lifecycle).details.blocked, ["prepublishOnly"]);
+  assert.equal(checkById(blockedData, CHECK_IDS.packDryRun).status, "fail");
 });
 
 test("release check fails local readiness when release policy is missing", () => {
