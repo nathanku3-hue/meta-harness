@@ -9,14 +9,25 @@ coverage/
 
 # logs/temp
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 tmp/
 .temp/
 .cache/
+.npm/
+.pnpm-store/
+.nyc_output/
 
 # Python local artifacts
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
 
 # OS/editor
 .DS_Store
@@ -42,6 +53,8 @@ secrets.*
 *.token
 .npmrc
 !.npmrc.example
+.pypirc
+.netrc
 .meta-harness/local/locks/
 .meta-harness/*.lock
 .meta-harness/**/*.lock
