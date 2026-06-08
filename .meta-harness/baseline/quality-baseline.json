@@ -249,5 +249,693 @@
       "Progress: <before>/100 -> <after>/100, or not recorded",
       "Round: <round or not recorded>"
     ]
-  }
+  },
+  "schema_version": "1.0.0",
+  "generated_by": "meta-harness Phase 9 complexity metadata transition",
+  "previous_baseline_hash": "d21b65e0b8d3956b7159c852def675b48f9b67b3f3290e4942692627ed8283f5",
+  "baseline_policy_hash": "acc33a3beb1c967c85c2229ab6e5d308900d1ac8e551bcd74926a7a5e6fd2ea6",
+  "owners_hash": "5ab5a4c7a3679e2b5ead605ae516302cd7362dc48efd2f6cfd2e37e4301f0730",
+  "manual_override_decision": null,
+  "complexity": {
+    "schema_version": "1.0.0",
+    "module_budgets": {
+      "bin/meta-harness.js": {
+        "lines": 64,
+        "overbudget": false,
+        "max_lines": 150,
+        "budget_category": "entrypoint"
+      },
+      "lib/check-id-registry.js": {
+        "lines": 43,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/cli-args.js": {
+        "lines": 92,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/cli-context.js": {
+        "lines": 23,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/command-registry.js": {
+        "lines": 237,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/commands/brief.js": {
+        "lines": 22,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/contract.js": {
+        "lines": 13,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/decisions.js": {
+        "lines": 22,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/dirty.js": {
+        "lines": 7,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/event.js": {
+        "lines": 42,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/expert-packet.js": {
+        "lines": 42,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/gate.js": {
+        "lines": 7,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/init.js": {
+        "lines": 48,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/lookback.js": {
+        "lines": 57,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/merge.js": {
+        "lines": 57,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/poll.js": {
+        "lines": 46,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/quality.js": {
+        "lines": 14,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/read-only-check.js": {
+        "lines": 44,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/ready.js": {
+        "lines": 76,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/repos.js": {
+        "lines": 64,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/skill-distillation.js": {
+        "lines": 7,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/skill.js": {
+        "lines": 148,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/state.js": {
+        "lines": 13,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/status.js": {
+        "lines": 16,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/sync.js": {
+        "lines": 13,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/templates.js": {
+        "lines": 60,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/trust.js": {
+        "lines": 13,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/worker-report.js": {
+        "lines": 235,
+        "overbudget": true,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/decision-inbox-check.js": {
+        "lines": 246,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/decisions.js": {
+        "lines": 449,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/dirty.js": {
+        "lines": 388,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/errors.js": {
+        "lines": 115,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/events.js": {
+        "lines": 122,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/expert-packet.js": {
+        "lines": 441,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/harness-state.js": {
+        "lines": 334,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/json.js": {
+        "lines": 21,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/merge-check.js": {
+        "lines": 455,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/packet-rules.js": {
+        "lines": 305,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/paths.js": {
+        "lines": 68,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/pm-brief-check.js": {
+        "lines": 286,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/quality-budgets.js": {
+        "lines": 73,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/quality-complexity-imports.js": {
+        "lines": 86,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/quality-complexity.js": {
+        "lines": 497,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/quality-signatures.js": {
+        "lines": 172,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/quality.js": {
+        "lines": 471,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/ready/check-constants.js": {
+        "lines": 21,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/ready-check.js": {
+        "lines": 1120,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/redaction-check.js": {
+        "lines": 168,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/repo-adoption-doctor.js": {
+        "lines": 284,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/root-leak-check.js": {
+        "lines": 65,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/security-check.js": {
+        "lines": 381,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/security-package-check.js": {
+        "lines": 165,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/security-workflow-check.js": {
+        "lines": 157,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/ship-gate/current-change-set.js": {
+        "lines": 118,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/ship-gate-constants.js": {
+        "lines": 87,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/ship-gate.js": {
+        "lines": 487,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/skill-distillation.js": {
+        "lines": 290,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/skill-registry.js": {
+        "lines": 383,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/state-hash.js": {
+        "lines": 19,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/subagent-packet.js": {
+        "lines": 88,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/sync-check.js": {
+        "lines": 365,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/templates.js": {
+        "lines": 113,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/zip.js": {
+        "lines": 126,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "meta_harness.py": {
+        "lines": 386,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "source"
+      },
+      "scripts/run-tests.js": {
+        "lines": 29,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "source"
+      },
+      "tests/cli-args.test.js": {
+        "lines": 34,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/cli-expert-packet.test.js": {
+        "lines": 151,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/cli-help-routing.test.js": {
+        "lines": 34,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/cli-merge.test.js": {
+        "lines": 52,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/cli-quality.test.js": {
+        "lines": 40,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/cli-ready-repro.test.js": {
+        "lines": 96,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/cli-ready.test.js": {
+        "lines": 476,
+        "overbudget": true,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/cli-skill.test.js": {
+        "lines": 99,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/command-module-contract.test.js": {
+        "lines": 28,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/command-registry.test.js": {
+        "lines": 47,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/decision-inbox-check.test.js": {
+        "lines": 413,
+        "overbudget": true,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/harness-state.test.js": {
+        "lines": 36,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/helpers/cli.js": {
+        "lines": 129,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/helpers/security-fixture.js": {
+        "lines": 151,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/merge-check.test.js": {
+        "lines": 216,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/meta-harness-cli.test.js": {
+        "lines": 480,
+        "overbudget": true,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/meta-harness-decisions.test.js": {
+        "lines": 335,
+        "overbudget": true,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/meta-harness-dirty.test.js": {
+        "lines": 268,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/meta-harness-errors.test.js": {
+        "lines": 101,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/meta-harness-worker-report.test.js": {
+        "lines": 219,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/packet-rules.test.js": {
+        "lines": 82,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/pm-brief-check.test.js": {
+        "lines": 370,
+        "overbudget": true,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/quality-complexity.test.js": {
+        "lines": 137,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/ready-timeout.test.js": {
+        "lines": 13,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/redaction-check.test.js": {
+        "lines": 38,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/root-leak-check.test.js": {
+        "lines": 53,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/security-check.test.js": {
+        "lines": 109,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/ship-gate.test.js": {
+        "lines": 254,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/skill-distillation.test.js": {
+        "lines": 231,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/skill-evals/repo-adoption-doctor.test.js": {
+        "lines": 54,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/skill-registry.test.js": {
+        "lines": 81,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/subagent-packet.test.js": {
+        "lines": 70,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/sync-check.test.js": {
+        "lines": 327,
+        "overbudget": true,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/test_meta_harness.py": {
+        "lines": 75,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      }
+    },
+    "surfaces": {
+      "cli_commands": {
+        "count": 22,
+        "max": 25,
+        "commands": [
+          "brief",
+          "contract",
+          "decisions",
+          "dirty",
+          "distill",
+          "event",
+          "expert-packet",
+          "gate",
+          "init",
+          "lookback",
+          "merge",
+          "poll",
+          "quality",
+          "ready",
+          "repos",
+          "skill",
+          "state",
+          "status",
+          "sync",
+          "templates",
+          "trust",
+          "worker-report"
+        ]
+      },
+      "check_ids": {
+        "count": 17,
+        "max": 20,
+        "ids": [
+          "MH_BRIEF_001",
+          "MH_CONTRACT_001",
+          "MH_DECISION_001",
+          "MH_GITCHECK_001",
+          "MH_GITHUB_SETTINGS_001",
+          "MH_NPM_SCRIPTS_001",
+          "MH_PACKAGE_001",
+          "MH_QUALITY_001",
+          "MH_READY_JSON_001",
+          "MH_REPRO_001",
+          "MH_SECURITY_001",
+          "MH_SHIPGATE_001",
+          "MH_STATE_001",
+          "MH_STATE_ROOT_LEAK_001",
+          "MH_SYNC_001",
+          "MH_TEST_001",
+          "MH_TRUST_001"
+        ]
+      },
+      "templates": {
+        "count": 23,
+        "max": 30,
+        "files": [
+          "templates/contracts/clean-code-contract.json",
+          "templates/contracts/decision-inbox-contract.md",
+          "templates/contracts/decision-inbox-scan-contract.md",
+          "templates/contracts/decision-reuse-contract.md",
+          "templates/contracts/dirty-work-contract.md",
+          "templates/contracts/expert-reconciliation-matrix.md",
+          "templates/contracts/pm-brief-scan-contract.md",
+          "templates/contracts/skill-distillation-contract.md",
+          "templates/contracts/skill-sync-contract.md",
+          "templates/contracts/stream-contract.md",
+          "templates/contracts/subagent-workcell-contract.md",
+          "templates/contracts/trust-policy-contract.md",
+          "templates/contracts/worker-done-contract.md",
+          "templates/skills/boundary-gate.md",
+          "templates/skills/dirty-work-autopilot.md",
+          "templates/skills/distilled-taste-capsule.md",
+          "templates/skills/expert-context-packer.md",
+          "templates/skills/expert-front-card.md",
+          "templates/skills/harness-feedback.md",
+          "templates/skills/post-worker-github-actions.md",
+          "templates/skills/scope-selector.md",
+          "templates/skills/ship-fast-decision-router.md",
+          "templates/skills/subagent-workcell.md"
+        ]
+      }
+    }
+  },
+  "new_baseline_hash": "f791455af387a87b9712f753dd88b5318952d28d94281f5f538f34721e99068b"
 }

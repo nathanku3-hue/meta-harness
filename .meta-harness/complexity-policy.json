@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "version": 1,
-  "complexity_adopted_at": null,
-  "complexity_adoption_decision": null,
+  "complexity_adopted_at": "2026-06-08T05:51:58.655Z",
+  "complexity_adoption_decision": "D022",
   "line_budgets": {
     "source": 400,
     "bin_entrypoint": 150,

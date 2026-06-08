@@ -1,10 +1,10 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
-Status: conditional-approved
-Approval scope: Phase 0 through Phase 5
-Hold: Phases 6–14 require previous phase exits + roadmap blocker cleanup
-Date: 2026-06-06
-Decision: D017 pending decision-log update
+Status: active baseline
+Approval scope: Phases 0-7 accepted baseline; Phase 8 planning-only; Phase 9 transition/adoption baseline; Phase 10A local release-check work in progress
+Hold: No roadmap hold on Phase 10A local checks. Future Phase 10 publish automation/full release enforcement needs a separate decision. Phase 11 may start only after a real adopter, domain owner request, and activation decision. Phases 12-14 remain future prototypes.
+Date: 2026-06-08
+Decision: D021 status reset; D022 complexity metadata adoption; D017-D020 remain source decisions
 
 ## Endgame
 
@@ -26,23 +26,23 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 
 ## Phase Summary
 
-| Phase | Name | Class |
-|---|---|---|
-| 0 | Evidence and framing alignment | concrete |
-| 1 | Repo hygiene and state-layout repair | concrete |
-| 2 | Self-adoption closure | concrete |
-| 3 | Cross-platform ready command | concrete |
-| 4 | CLI and test decomposition | concrete |
-| 5 | Minimum security baseline | concrete |
-| 6 | Ship-fast enforcement loop | concrete |
-| 7 | One-skill pilot | buildable |
-| 8 | Read-only subagent scout pilot | buildable |
-| 9 | Complexity governor expansion | buildable |
-| 10 | Release/package enforcement | buildable |
-| 11 | Domain governance pilot (adopter required) | prototype |
-| 12 | Self-evolution prototype | prototype |
-| 13 | Multi-repo rollup | prototype |
-| 14 | Controlled autonomy pilot | prototype |
+| Phase | Name | Class | Current status |
+|---|---|---|---|
+| 0 | Evidence and framing alignment | concrete | accepted baseline |
+| 1 | Repo hygiene and state-layout repair | concrete | accepted baseline |
+| 2 | Self-adoption closure | concrete | accepted baseline |
+| 3 | Cross-platform ready command | concrete | accepted baseline |
+| 4 | CLI and test decomposition | concrete | accepted baseline |
+| 5 | Minimum security baseline | concrete | implemented locally; GitHub settings partial |
+| 6 | Ship-fast enforcement loop | concrete | accepted baseline |
+| 7 | One-skill pilot | buildable | accepted baseline |
+| 8 | Read-only subagent scout pilot | buildable | planning-only; implementation not started |
+| 9 | Complexity governor expansion | buildable | transition/adoption baseline; complexity metadata separately marked adopted |
+| 10 | Release/package enforcement | buildable | Phase 10A local read-only release check implemented/in progress; not release-ready enforcement |
+| 11 | Domain governance pilot (adopter required) | prototype | start criteria explicit; not active without adopter and activation decision |
+| 12 | Self-evolution prototype | prototype | future prototype |
+| 13 | Multi-repo rollup | prototype | future prototype |
+| 14 | Controlled autonomy pilot | prototype | future prototype |
 
 ---
 
@@ -1035,6 +1035,8 @@ This must:
 
 Purpose: prove subagent leverage safely. Start with read-only scouts that produce structured evidence. No write-enabled subagents yet.
 
+Current status: planning-only by D020. `docs/product/phase-8-readonly-scout-plan.md` is allowed planning evidence; it does not start scout execution, subagent activation, commands, tests, promotion, package changes, workflow changes, or repo writes.
+
 ### Problem
 
 `lib/subagent-packet.js` exists but is the thinnest module at 2.6KB. The fanout budget and workcell model are designed in templates but not implemented. The earlier plan jumped straight to write-enabled patch workers, which creates uncontrolled autonomy risk before the safety infrastructure is proven.
@@ -1121,6 +1123,8 @@ Limits subagent resource consumption:
 ## Phase 9 — Complexity governor expansion
 
 Purpose: prevent the project from becoming unmaintainable as capability grows. The quality ratchet already works for file line budgets; this phase extends it to architecture-level controls.
+
+Current status: accepted in transition/adoption mode. Complexity policy metadata is separately marked adopted in `.meta-harness/complexity-policy.json`; that metadata signal does not claim every Phase 9 architecture and quality exit criterion is complete unless a separate Phase 9 closure decision records broader acceptance.
 
 ### Problem
 
@@ -1235,20 +1239,24 @@ Classifications:
 
 Purpose: make shipping safe. No release from a dirty tree, no package includes local state or secrets, no publish without checks green.
 
+Current status: Phase 10A local read-only release check is implemented/in progress. It reports local package/release posture, clean-tree status, and missing external/full release evidence, but it does not claim release-ready enforcement. Publish automation, package script enforcement, registry behavior, tags, CI publish workflow, and full external/publish evidence remain absent.
+
 ### Problem
 
-The `package.json "files"` field already limits published contents to bin/, lib/, docs/product/, docs/sop/, templates/, and README.md. That is good. But there is no automated gate that:
+The `package.json "files"` field already limits published contents to bin/, lib/, docs/product/, docs/sop/, templates/, and README.md. Phase 10A adds a local read-only release-check surface, but the full release gate still does not:
 
-1. Verifies the package dry-run output against a forbidden-path list
-2. Requires a clean git tree before release
-3. Requires `meta-harness ready` to pass before publish
-4. Produces a release readiness summary
+1. Execute and verify package dry-run output against a forbidden-path list
+2. Enforce a clean git tree before an actual release, beyond the local status signal
+3. Require full `meta-harness ready` and test execution before publish
+4. Verify trusted publishing, registry, tag, and repository-setting evidence
 
 ### Deliverables
 
 #### [NEW] lib/release-check.js
 
-Pre-publish gate that runs:
+Full Phase 10 target: a pre-publish gate that runs:
+
+Phase 10A subset: local read-only checks for release policy, package identity/metadata, npm lifecycle posture, reproducibility posture, quality baseline, read-only ready status, test-script eligibility, package dry-run eligibility, clean-tree status, and external/full evidence status. Test execution, package dry-run execution, tarball smoke testing, trusted publishing verification, and publish automation remain future work.
 
 | Check | Failure condition |
 |---|---|
@@ -1261,7 +1269,7 @@ Pre-publish gate that runs:
 Pre-publish checks also run:
 - Tarball Install Smoke Test: after dry-run, install the packed tarball in a temp project and run CLI smoke test (e.g. executing `meta-harness --version`) to verify package contents and local install success.
 - Dependency Review check: runs dependency-review-action or equivalent in CI to block pull requests that introduce vulnerable or risky dependency versions. Must be configured as a required check in CI for pull requests affecting package files.
-- npm trusted publishing / OIDC: verified in publish mode (enforced in `release check --publish`), not in posture checking.
+- npm trusted publishing / OIDC: future publish mode should verify this; Phase 10A rejects `release check --publish` and has no publish automation.
 - CODEOWNERS enforcement: verify branch protection rules require review from code owners before pull request merge.
 - Release Incident / Rollback Policy: if release check passes but the publish step fails midway, automatically delete the git tag locally and remotely ONLY if the package was not actually published, the tag was created by the current attempt, and no remote consumer has retrieved it. If package was partially published, tag deletion is forbidden; follow registry immutable version rules, run npm deprecate or unpublish where applicable, and log a failed publish event.
 
@@ -1301,7 +1309,7 @@ PASS  version        0.1.0 matches
 
 #### [MODIFY] package.json
 
-Add prepublishOnly script:
+Future full Phase 10 target, not Phase 10A: add a prepublishOnly script:
 
 ```json
 {
@@ -1312,7 +1320,7 @@ Add prepublishOnly script:
 }
 ```
 
-This blocks `npm publish` if release check fails.
+This would block package publishing if the release check fails. Phase 10A does not modify package scripts or automate publishing.
 
 #### Release readiness summary
 
@@ -1360,6 +1368,8 @@ Machine-readable output for CI:
 ## Phase 11 — Domain governance pilot (adopter required)
 
 Purpose: avoid speculative platform work. Domain semantic governance is intellectually correct for quant, law, and sport science apps, but Meta-Harness has zero domain code today. This phase activates only when a real downstream repo with domain logic exists.
+
+Current status: start criteria are explicit, but the phase is not active. There is no recorded downstream adopter or activation decision in this repo; Phase 11 work may start only after the activation trigger below is met and recorded.
 
 ### Activation trigger
 

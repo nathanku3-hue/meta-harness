@@ -1,91 +1,91 @@
 # Phase 10 Patch Plan
 
-Status: planning-only
+Status: Phase 10A local release-check implementation WIP
 Roadmap phase: Phase 10 - Release/package enforcement
-Implementation status: not started
-Decision required before implementation: explicit Phase 10 go decision after audit
+Implementation status: local read-only release check in progress; publish automation remains out of scope
+Decision required before implementation: Phase 10A implementation authorized by current worker assignment
 Commit plan doc: yes
-Start implementation: no
-Refresh quality baseline: no
+Start implementation: Phase 10A local check only
+Phase 10 quality baseline refresh: no; Phase 9 metadata adoption is handled separately by D022
 Publish: no
-Decision-log entry in this patch: no
-Later decision-log entry: yes, after acceptance as D018 or D017 addendum
+Decision-log entry in this patch: none
+Later decision-log entry: yes, if Phase 10 expands beyond local read-only checks
 
 ## Scope
 
 Phase 10 defines release and package enforcement only.
 
-This plan may document future release gates, package checks, CI requirements, publish-mode behavior, and incident policy. It does not authorize implementation.
+This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is limited to a read-only local implementation check.
 
 ## Hard Boundary
 
-This document is planning evidence only. It does not start Phase 10, authorize release enforcement, create release policy, change package behavior, or permit publish, tag, CI, or release automation.
+This document now reflects Phase 10A local implementation status. It does not permit publish, tag, CI publish automation, version bumping, registry writes, or Phase 11 work.
 
-Allowed:
+Allowed for Phase 10A:
 
-- docs-only planning in `docs/product/phase-10-patch-plan.md`
+- read-only local `meta-harness release check`
+- `.meta-harness/release-policy.json` as local package identity policy
+- tests for local pass/fail, missing policy, missing evidence, and package metadata
 
 Forbidden:
 
-- edits to `.meta-harness/`
-- quality baseline refresh
-- roadmap edits
-- decision-log edits
 - package script edits
-- release code
-- CI or workflow edits
-- tests
-- release tags
 - publish automation
+- CI publish workflow edits
+- release tags
+- version bumping
+- registry writes
 
 ## No-Side-Effects Rule
 
-All release check modes are read-only with respect to source files, git tags, the npm registry, GitHub settings, CI configuration, and package scripts.
+All Phase 10A release checks are read-only with respect to source files, git tags, the npm registry, GitHub settings, CI configuration, and package scripts.
 
 The only allowed writes are temporary files and directories under an isolated temp path. Temp artifacts must be cleaned up after the check, and cleanup success or failure must be recorded in release evidence.
 
-Default local mode must not require network access. Publish mode may perform read-only npm registry and GitHub checks when the environment has permission. When local mode lacks network or repository-setting evidence, it should return `skip`, `warn`, or `unknown` instead of failing solely because external evidence is unavailable.
+Default local mode must not require network access. Phase 10A rejects `--publish` fail-closed because publish-mode verification is out of scope. A future publish mode may perform read-only npm registry and GitHub checks when the environment has permission. When local mode lacks network or repository-setting evidence, it should return `skip`, `warn`, or `unknown` instead of failing solely because external evidence is unavailable.
 
 ## Current Prerequisite Signal
 
-- Phase 9 status: landed in transition mode
+- Phase 9 status: transition/adoption baseline with complexity metadata adopted
 - Phase 9 commit: `20cbd080a587520839c2951d8fd5dfd735580d0c`
-- Quality status: pass with expected `MH_COMPLEXITY_LEGACY_BASELINE_METADATA`
-- Baseline refresh: not performed
-- Worktree requirement before implementation: clean
+- Quality status: pass with no `MH_COMPLEXITY_LEGACY_BASELINE_METADATA` finding
+- Complexity metadata adoption: adopted under D022; this does not by itself claim full Phase 9 closure
+- Release readiness requirement: clean tree required before a real release; Phase 10A local checks report dirty state without failing local-only checks
 
 ## Files
 
-This planning patch may add:
+Phase 10A implementation may add or modify:
 
-- `docs/product/phase-10-patch-plan.md`
+- `.meta-harness/release-policy.json`
+- `lib/release-check.js`
+- `lib/commands/release.js`
+- `lib/command-registry.js`
+- `tests/release-check.test.js`
+- `tests/command-registry.test.js`
 
 Future implementation may add or modify, after audit approval:
 
-- `lib/release-check.js`
-- `lib/commands/release.js`
-- `tests/release-check.test.js`
-- `.meta-harness/release-policy.json`
 - `package.json` `prepublishOnly`
 - CI workflow entries for Dependency Review and trusted publishing
 
 ## Release Check Commands
 
-Phase 10 should define these CLI surfaces:
+Phase 10 should define these CLI surfaces. Phase 10A implements the default local check and JSON output; `--publish` is recognized only to reject it clearly.
 
 ```text
 meta-harness release check
 meta-harness release check --json
-meta-harness release check --publish
+meta-harness release check --publish  # rejected in Phase 10A
 ```
 
-Default mode is local release readiness. JSON mode returns the same decision as machine-readable output. Publish mode adds CI/CD-only trusted-publishing checks and must not be treated as normal local posture.
+Default mode is local implementation readiness, not full release readiness. JSON mode returns the same decision as machine-readable output. Future publish mode adds CI/CD-only trusted-publishing checks and must not be treated as normal local posture.
 
 ## Release Check IDs
 
 Stable release check IDs:
 
 - `REL_CLEAN_TREE_001`
+- `REL_RELEASE_POLICY_001`
 - `REL_READY_001`
 - `REL_TEST_001`
 - `REL_REPRO_001`
@@ -108,22 +108,24 @@ Stable release check IDs:
 - `REL_PUBLISH_ENV_001`
 - `REL_TRUSTED_PUBLISHER_ENV_001`
 - `REL_PACKAGE_IDENTITY_SOURCE_001`
+- `REL_EXTERNAL_GITHUB_SECURITY_001`
+- `REL_FULL_RELEASE_EVIDENCE_001`
 - `REL_ROLLBACK_POLICY_001`
 
 ## Release Check Contract
 
-`meta-harness release check` must fail when any required release gate fails.
+Full Phase 10 `meta-harness release check` must fail when any required release gate fails. Phase 10A local mode fails only local-required implementation checks; release-only checks such as clean-tree status, external evidence, and full release evidence keep `release_ready: false` without making the local command fail.
 
 Minimum checks:
 
-- clean git tree: fail when `git status --porcelain` is non-empty
-- full ready: run full `meta-harness ready`, not `--quick`, not `--read-only`
-- tests: run or reuse `npm test` evidence
+- clean git tree: fail release readiness when `git status --porcelain` is non-empty
+- full ready: run full `meta-harness ready`, not `--quick`, not `--read-only` in full release mode; Phase 10A local mode uses read-only ready evidence
+- tests: run or reuse `npm test` evidence in full release mode; Phase 10A local mode checks test-script/read-only eligibility only
 - reproducibility: validate package-lock and npm posture
 - package identity: require expected package name, valid version, `private !== true`, and expected registry/access policy
 - package metadata: require license, repository, bin, files, engines, and packageManager metadata
 - npm lifecycle scripts: allow only canonical `prepublishOnly`
-- package dry-run scan: parse `npm pack --dry-run --json`
+- package dry-run scan: parse dry-run JSON in full release mode; Phase 10A local mode checks eligibility only
 - forbidden-path scan: fail if package output includes local state, secrets, runtime data, dependency trees, or demo run artifacts
 - canonical package path matching: normalize tarball entries before forbidden-path matching
 - dry-run/actual equivalence: compare dry-run packlist to actual tarball contents
@@ -169,9 +171,7 @@ The tarball smoke test must install the packed tarball in a temp project.
 
 ## Release Policy Source Of Truth
 
-A future Phase 10 implementation may propose `.meta-harness/release-policy.json` to define expected package identity and publish posture, or may propose an equivalent versioned policy section if the file is deferred.
-
-This planning patch does not add, require, validate, or gate on `.meta-harness/release-policy.json`.
+Phase 10A uses `.meta-harness/release-policy.json` to define expected package identity and publish posture.
 
 The policy should define:
 
@@ -349,7 +349,7 @@ Dependency Review evidence may be:
 
 Local mode must not fail solely because branch or ruleset settings are unavailable.
 
-Trusted publishing belongs to publish mode only. `meta-harness release check --publish` must fail if it cannot verify trusted-publishing or OIDC posture. Default local mode must report trusted publishing as `skip`, not `fail`.
+Trusted publishing belongs to a future publish mode only. Phase 10A rejects `meta-harness release check --publish` before any local fallback. A future publish mode must fail if it cannot verify trusted-publishing or OIDC posture. Default local mode must report trusted publishing as `skip`, not `fail`.
 
 Publish workflow permissions must keep `contents: read` or equivalent minimal permissions by default. `id-token: write` is allowed only in the publish job that needs OIDC.
 
@@ -449,10 +449,10 @@ Future implementation tests should cover:
 - no publish
 - no release tag
 - no package version bump
-- no baseline refresh
-- no Phase 9 strict adoption
-- no `.meta-harness/` change
-- no release command implementation
+- no further baseline refresh as part of Phase 10 implementation
+- no broader Phase 9 closure claim beyond D022 complexity metadata adoption
+- no publish-mode `.meta-harness/release-policy.json` expansion
+- no release command implementation beyond read-only local check
 - no release automation
 - no CI workflow change before audit
 - no package script change before audit
@@ -480,5 +480,5 @@ Current merge scopes may not yet include this Phase 10 planning filename. Do not
 - Confirm npm lifecycle scripts are blocked or decision-gated except canonical `prepublishOnly`.
 - Confirm package identity includes expected name, version, `private !== true`, and registry/access policy.
 - Confirm package identity has a future policy source of truth.
-- Confirm no decision-log entry is included in this planning-only patch.
+- Confirm no decision-log entry is included in this Phase 10A local-check patch.
 - Decide whether accepted Phase 10 contract needs a later D018 or D017 addendum.
