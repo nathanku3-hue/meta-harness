@@ -224,3 +224,31 @@ test("current change classifier uses live git state and no-optional-locks-compat
   assert.equal(result.resolution, "ship");
   assert.deepEqual(result.changed_paths, ["docs/guide.md"]);
 });
+
+test("current change classifier reads module path owners from owners.json", () => {
+  const gitCheck = spawnSync("git", ["--version"]);
+  if (gitCheck.status !== 0) {
+    return;
+  }
+
+  const cwd = tempDir();
+  initGitRepo(cwd);
+  writeFile(cwd, "docs/architecture/owners.json", JSON.stringify({
+    modules: [
+      { path: "docs/", owner: "docs-team", risk: "docs" },
+    ],
+  }, null, 2));
+  writeFile(cwd, "docs/guide.md", "hello\n");
+  git(cwd, ["add", "."]);
+  git(cwd, ["commit", "-m", "baseline"]);
+  writeFile(cwd, "docs/guide.md", "hello again\n");
+
+  const result = classifyCurrentChangeSet({
+    targetRoot: cwd,
+    checks_status: "pass",
+  });
+
+  assert.equal(result.tier, "FAST");
+  assert.equal(result.resolution, "ship");
+  assert.deepEqual(result.changed_paths, ["docs/guide.md"]);
+});

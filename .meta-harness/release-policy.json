@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "package": {
+    "name": "meta-harness",
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "tag_prefix": "v"
+  },
+  "publish": {
+    "workflow": null,
+    "trusted_publisher_environment": null
+  },
+  "external_evidence": {
+    "github_security": {
+      "status": "not_evaluated",
+      "source": null,
+      "checked_at": null
+    }
+  }
+}

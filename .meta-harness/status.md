@@ -1,37 +1,36 @@
 # Status
 
 Goal:
-Self-adoption Phase 1 state-layout repair.
+Keep Meta-Harness source-of-truth docs aligned with Phase 10A local release-check work without claiming unfinished release enforcement.
 
 Phase:
-phase-1-state-layout-repair
+Phase 10A local release-check implementation; Phase 11 start criteria clarified
 
 Current truth:
-Root `.meta-harness` state-layout truth is initialized at layout version 2. `.meta-harness/streams/` is ignored local stream state classified by metadata only; no stream contents were read.
+Phases 6-9 are the accepted current baseline. Phase 8 is planning-only by design and has no scout implementation or activation. Phase 9 is accepted in transition/adoption mode; complexity metadata is separately marked adopted in `.meta-harness/complexity-policy.json`, but that metadata signal is not a blanket claim that every Phase 9 exit criterion is complete. Phase 10A local read-only `meta-harness release check` is implemented/in progress for policy, package metadata, reproducibility, quality, ready, test eligibility, package dry-run eligibility, clean-tree status, and external-evidence status. It is not release-ready enforcement: publish automation, package script enforcement, registry writes, tags, and full external/publish evidence remain absent. Phase 11 domain governance is not active and may start only with a real Meta-Harness-adopted downstream repo, a domain owner request, and an activation decision.
 
 Active streams:
-- coding: Phase 1 state-layout repair is narrowed to root truth files and local-residue classification
+- coding: Phase 10A local release-check reviewer fixes
 - research: idle
 - writing: idle
 - review: idle
 
 Pending human decisions:
-- D017 (2026-06-06T23:07:00+08:00)
-- D017 (2026-06-07T12:12:11+08:00)
-- D018,D019 (2026-06-07T12:46:15+08:00)
-- D018,D019 (2026-06-07T14:21:18+08:00)
+- future Phase 10 expansion decision before publish automation or full release enforcement
+- Phase 11 activation decision, only after a real adopter and domain owner request exist
 
 Blockers:
-- none
+- full Phase 10 release readiness still lacks real external/full release evidence and publish-mode implementation
+- Phase 11 has explicit activation prerequisites, not a general roadmap hold
 
 Last verified:
-state check PASS checked=3; sync check PASS checked=24; normal git status clean; .meta-harness/streams ignored by .gitignore:72
+Roadmap status cross-checked against D017-D022, Phase 8 planning doc, Phase 10A local release-check work, and current complexity-policy metadata.
 
 Next action:
-Run final verification and prepare focused Phase 1 state-layout repair PR
+Review and land the scoped Phase 10A local release-check patch, then require a separate decision before publish automation or Phase 11 activation.
 
 Stop criteria:
-Fresh human and Codex worker can resume from local harness state.
+Fresh human and Codex worker can tell that Phase 10A local read-only release checks exist without mistaking them for full release/package enforcement or Phase 11 activation.
 
 Updated:
-2026-06-08T04:26:02Z
+2026-06-08
