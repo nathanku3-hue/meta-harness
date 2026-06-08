@@ -10,11 +10,44 @@
     "workflow": null,
     "trusted_publisher_environment": null
   },
+  "evidence_requirements": {
+    "github_security": {
+      "required": true,
+      "fields": [
+        "status",
+        "source",
+        "checked_at"
+      ]
+    },
+    "full_release": {
+      "required": true,
+      "fields": [
+        "status",
+        "source",
+        "checked_at"
+      ],
+      "artifacts": [
+        "executed_test_result",
+        "package_dry_run_output",
+        "publish_mode_external_evidence"
+      ]
+    }
+  },
   "external_evidence": {
     "github_security": {
       "status": "not_evaluated",
       "source": null,
       "checked_at": null
+    },
+    "full_release": {
+      "status": "not_evaluated",
+      "source": null,
+      "checked_at": null,
+      "artifacts": {
+        "executed_test_result": null,
+        "package_dry_run_output": null,
+        "publish_mode_external_evidence": null
+      }
     }
   }
 }

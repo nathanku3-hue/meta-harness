@@ -1,0 +1,17 @@
+{
+  "external_evidence": {
+    "github_security": {
+      "status": "pass",
+      "source": "",
+      "checked_at": "not-a-date"
+    },
+    "full_release": {
+      "status": "pass",
+      "source": "fixture://full-release",
+      "checked_at": "2026-06-08T00:00:00.000Z",
+      "artifacts": {
+        "executed_test_result": "fixture://npm-test"
+      }
+    }
+  }
+}

@@ -1,11 +1,11 @@
 # Phase 10 Patch Plan
 
-Status: Phase 10B publish-boundary guard WIP
+Status: Phase 10C external release evidence contract WIP
 Roadmap phase: Phase 10 - Release/package enforcement
-Implementation status: local read-only release check exists; npm publish boundary guard in progress; publish automation remains out of scope
-Decision required before implementation: Phase 10B boundary guard authorized by current worker assignment
+Implementation status: local read-only release check and npm publish boundary guard exist; read-only external/full release evidence contract in progress; publish automation remains out of scope
+Decision required before implementation: Phase 10C evidence-contract work authorized by current worker assignment
 Commit plan doc: yes
-Start implementation: Phase 10B npm publish-boundary guard only
+Start implementation: Phase 10C read-only release evidence contract only
 Phase 10 quality baseline refresh: no; Phase 9 metadata adoption is handled separately by D022
 Publish: no
 Decision-log entry in this patch: none
@@ -15,11 +15,11 @@ Later decision-log entry: yes, if Phase 10 expands beyond local read-only checks
 
 Phase 10 defines release and package enforcement only.
 
-This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is the read-only local implementation check. Phase 10B adds only the package publish-boundary guard.
+This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is the read-only local implementation check. Phase 10B adds only the package publish-boundary guard. Phase 10C adds only a file-based, read-only external/full release evidence contract.
 
 ## Hard Boundary
 
-This document now reflects Phase 10A local implementation status and the Phase 10B package boundary guard. It does not permit publish, tag, CI publish automation, version bumping, registry writes, provenance publishing, or Phase 11 work.
+This document now reflects Phase 10A local implementation status, the Phase 10B package boundary guard, and the Phase 10C read-only evidence contract. It does not permit publish, tag, CI publish automation, evidence harvesting, version bumping, registry writes, provenance publishing, or Phase 11 work.
 
 Allowed for Phase 10A:
 
@@ -33,10 +33,19 @@ Allowed for Phase 10B:
 - tests proving `npm publish --dry-run` fails closed through that guard
 - lifecycle allowlist updates needed to keep normal readiness green
 
+Allowed for Phase 10C:
+
+- read-only validation of file-based GitHub/security and full-release evidence records
+- release-policy evidence requirement declarations
+- fixture-backed tests for missing, invalid, and valid evidence states
+- publish-mode `release_ready: true` only in fixture/temp repos with clean local checks and valid evidence
+
 Forbidden:
 
 - publish automation
 - CI publish workflow edits
+- evidence harvesting
+- GitHub API calls
 - release tags
 - version bumping
 - registry writes
@@ -47,7 +56,7 @@ All Phase 10 release checks remain read-only with respect to git tags, the npm r
 
 The only allowed writes are temporary files and directories under an isolated temp path. Temp artifacts must be cleaned up after the check, and cleanup success or failure must be recorded in release evidence.
 
-Default local mode must not require network access. Phase 10B `--publish` mode fails closed by returning the release-check JSON and exiting nonzero unless `release_ready` is true. It still does not publish, harvest external evidence, or verify trusted publishing. A future publish mode may perform read-only npm registry and GitHub checks when the environment has permission. When local mode lacks network or repository-setting evidence, it should return `skip`, `warn`, or `unknown` instead of failing solely because external evidence is unavailable.
+Default local mode must not require network access. Phase 10B `--publish` mode fails closed by returning the release-check JSON and exiting nonzero unless `release_ready` is true. Phase 10C may validate evidence already present in repository files or test fixtures, but it still does not publish, harvest external evidence, call GitHub APIs, or verify trusted publishing. A future publish mode may perform read-only npm registry and GitHub checks when the environment has permission. When local mode lacks network or repository-setting evidence, it should return `skip`, `warn`, or `unknown` instead of failing solely because external evidence is unavailable.
 
 ## Current Prerequisite Signal
 
@@ -78,6 +87,15 @@ Phase 10B implementation may add or modify:
 - release and readiness tests
 - a status note
 
+Phase 10C implementation may add or modify:
+
+- `lib/release-evidence.js`
+- `lib/release-check.js`
+- `.meta-harness/release-policy.json`
+- `tests/release-check.test.js`
+- `tests/fixtures/release-evidence/`
+- this plan and status note
+
 Future implementation may add or modify, after audit approval:
 
 - CI workflow entries for Dependency Review and trusted publishing
@@ -92,7 +110,7 @@ meta-harness release check --json
 meta-harness release check --publish --json  # fail-closed guard for npm publish
 ```
 
-Default mode is local implementation readiness, not full release readiness. JSON mode returns the same decision as machine-readable output. Phase 10B publish mode exits on `release_ready`, not `local_ok`, and must not be treated as proof of trusted-publishing posture.
+Default mode is local implementation readiness, not full release readiness. JSON mode returns the same decision as machine-readable output. Phase 10B publish mode exits on `release_ready`, not `local_ok`, and must not be treated as proof of trusted-publishing posture. Phase 10C allows `release_ready: true` only when local checks pass and both external GitHub/security and full-release evidence records validate.
 
 ## Release Check IDs
 
@@ -195,6 +213,8 @@ The policy should define:
 - expected tag prefix
 - allowed publish workflow filename
 - trusted publisher environment name, if configured
+- required external GitHub/security evidence fields
+- required full-release evidence fields and artifact references
 
 Initial expected policy for this package:
 
@@ -210,9 +230,26 @@ Initial expected policy for this package:
   "publish": {
     "workflow": null,
     "trusted_publisher_environment": null
+  },
+  "evidence_requirements": {
+    "github_security": {
+      "required": true,
+      "fields": ["status", "source", "checked_at"]
+    },
+    "full_release": {
+      "required": true,
+      "fields": ["status", "source", "checked_at"],
+      "artifacts": [
+        "executed_test_result",
+        "package_dry_run_output",
+        "publish_mode_external_evidence"
+      ]
+    }
   }
 }
 ```
+
+Live repository policy may record `not_evaluated` placeholders, but it must not commit real external/full release evidence unless that evidence has actually been collected.
 
 `REL_PACKAGE_ID_001` must not infer expected identity solely from the same `package.json` being checked.
 
@@ -261,6 +298,9 @@ These scripts are blocked or decision-gated because they are release attack surf
   "npm_version": "11.16.0",
   "meta_harness_version": "0.1.0",
   "release_policy_source": ".meta-harness/release-policy.json",
+  "external_evidence_ok": false,
+  "external_evidence_status": "unknown",
+  "full_release_evidence_status": "unknown",
   "temp_artifacts": {
     "cleanup": "pass"
   },
@@ -465,8 +505,8 @@ Future implementation tests should cover:
 - no package version bump
 - no further baseline refresh as part of Phase 10 implementation
 - no broader Phase 9 closure claim beyond D022 complexity metadata adoption
-- no publish-mode `.meta-harness/release-policy.json` expansion
-- no external publish-mode evidence harvesting beyond the fail-closed local release-readiness decision
+- no publish-mode release-policy expansion beyond read-only evidence requirements
+- no external publish-mode evidence harvesting beyond validating already-recorded file/fixture evidence
 - no release automation
 - no CI workflow change before audit
 - no package script change beyond the Phase 10B `prepublishOnly` guard before audit
