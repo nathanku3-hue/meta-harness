@@ -112,6 +112,8 @@ meta-harness expert-packet ROUND-001 --include docs/product/product-spec.md
 
 `templates install` copies reusable skill and contract templates into `.meta-harness/templates/`. `expert-packet` writes one compact archive at `.meta-harness/expert-packets/<round-id>.zip` using current harness truth, packaged templates, optional includes, and bounded git metadata when the target is a Git repo. Packet consumers should receive the zip only; diff notes, next-scope notes, and other review aids belong inside the archive rather than beside it as separate deliverables.
 
+Patch/status exports must not be written beside the repo with `../...` paths such as `../example-staged.patch`. Use `.meta-harness/local/` for repo-local ignored evidence, or an explicit temp directory for cross-worktree transfer. `ready` includes a root-leak check for common sibling sidecars such as `*_staged.patch`, `*-mixed-workspace.patch`, `*-porcelain-status.txt`, and `*-untracked-files.txt`.
+
 ## Read-Only Trust Checks
 
 Phase 5 closes the source-only trust/sync flywheel with adoption checks that report without mutating target repos:
