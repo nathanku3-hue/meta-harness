@@ -1,6 +1,11 @@
 {
+  "schema_version": "1.0.0",
   "version": 1,
   "modules": [
+    { "path": "bin/", "owner": "nathanku3-hue", "risk": "entrypoint", "budget_lines": 150 },
+    { "path": "lib/commands/", "owner": "nathanku3-hue", "risk": "command", "budget_lines": 200 },
+    { "path": "lib/", "owner": "nathanku3-hue", "risk": "implementation", "budget_lines": 400 },
+    { "path": "tests/", "owner": "nathanku3-hue", "risk": "test", "budget_lines": 300 },
     { "path": "README.md", "owner": "nathanku3-hue", "risk": "docs" },
     { "path": "docs/", "owner": "nathanku3-hue", "risk": "docs" },
     { "path": "templates/", "owner": "nathanku3-hue", "risk": "harness-contract" },

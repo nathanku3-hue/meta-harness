@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "version": 1,
+  "complexity_adopted_at": null,
+  "complexity_adoption_decision": null,
+  "line_budgets": {
+    "source": 400,
+    "bin_entrypoint": 150,
+    "command_module": 200,
+    "test": 300
+  },
+  "surface_ceiling": {
+    "max_cli_commands": 25,
+    "max_check_ids_global_warn": 20,
+    "max_template_count": 30
+  },
+  "duplicate_template_allowlist": [],
+  "generated_files": [],
+  "architecture_exceptions": [],
+  "import_direction": {
+    "bin -> lib/commands": "allowed",
+    "bin -> lib": "allowed",
+    "lib/commands -> lib": "allowed",
+    "lib/commands -> bin": "forbidden",
+    "lib -> bin": "forbidden",
+    "lib -> lib/commands": "forbidden",
+    "templates -> lib": "forbidden"
+  }
+}

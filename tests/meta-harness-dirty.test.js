@@ -207,3 +207,62 @@ test("dirty classify queues generated artifacts and passes clean owned edits", (
   writeScope(cwd, { owned_paths: ["src/owned.js"] });
   assertCliError(runRaw(cwd, ["gate", "scope", "--dirty", ".meta-harness/dirty-work.json", "--scope", ".meta-harness/scope.json"]), /scope hash does not match/);
 });
+
+test("ship gate classifies queue only package risk and stale scope", () => {
+  const queueCwd = tempDir();
+  initGitRepo(queueCwd);
+  commitBaseline(queueCwd);
+  run(queueCwd, ["dirty", "snapshot", "--out", ".meta-harness/snapshots/before.json"]);
+  writeFile(queueCwd, "dist/bundle.js", "generated\n");
+  run(queueCwd, ["dirty", "snapshot", "--out", ".meta-harness/snapshots/after.json"]);
+  writeScope(queueCwd, { owned_paths: ["src/owned.js"], generated_paths: ["dist/"] });
+  classify(queueCwd);
+
+  const queueGate = runRaw(queueCwd, [
+    "gate", "ship",
+    "--dirty", ".meta-harness/dirty-work.json",
+    "--scope", ".meta-harness/scope.json",
+    "--json",
+  ]);
+  assert.equal(queueGate.status, 0);
+  const queueJson = JSON.parse(queueGate.stdout);
+  assert.equal(queueJson.tier, "FAST");
+  assert.equal(queueJson.resolution, "follow-up-queued");
+  assert.deepEqual(queueJson.changed_paths, [".meta-harness/snapshots/before.json", "dist/bundle.js"]);
+
+  const packageCwd = tempDir();
+  initGitRepo(packageCwd);
+  writeFile(packageCwd, "package.json", "{\"name\":\"demo\"}\n");
+  git(packageCwd, ["add", "."]);
+  git(packageCwd, ["commit", "-m", "baseline"]);
+  run(packageCwd, ["dirty", "snapshot", "--out", ".meta-harness/snapshots/before.json"]);
+  writeFile(packageCwd, "package.json", "{\"name\":\"demo\",\"version\":\"1.0.0\"}\n");
+  run(packageCwd, ["dirty", "snapshot", "--out", ".meta-harness/snapshots/after.json"]);
+  writeScope(packageCwd, { owned_paths: ["package.json"] });
+  classify(packageCwd);
+
+  const packageGate = runRaw(packageCwd, [
+    "gate", "ship",
+    "--dirty", ".meta-harness/dirty-work.json",
+    "--scope", ".meta-harness/scope.json",
+    "--json",
+    "--checks-status", "pass",
+  ]);
+  assert.equal(packageGate.status, 1);
+  const packageJson = JSON.parse(packageGate.stdout);
+  assert.equal(packageJson.tier, "SLOW");
+  assert.equal(packageJson.resolution, "decision-needed");
+
+  writeScope(packageCwd, { owned_paths: ["src/"] });
+  const staleGate = runRaw(packageCwd, [
+    "gate", "ship",
+    "--dirty", ".meta-harness/dirty-work.json",
+    "--scope", ".meta-harness/scope.json",
+    "--json",
+  ]);
+  assert.equal(staleGate.status, 1);
+  const staleJson = JSON.parse(staleGate.stdout);
+  assert.equal(staleJson.tier, "BLOCK");
+  assert.equal(staleJson.resolution, "blocked");
+  assert.match(staleJson.reasons.join("\n"), /scope hash/);
+});

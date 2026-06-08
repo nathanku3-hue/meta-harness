@@ -16,6 +16,9 @@ Worker: <worker-id>
 Stream: <coding|research|writing|review|provider_probe|validation|other>
 Task: <bounded task>
 Phase: <intake|plan|work|verify|synthesize|handoff|lookback>
+Updated: <ISO timestamp>
+Ship gate tier: <FAST|REVIEW|SLOW|BLOCK>
+Task resolution: <ship|blocked|decision-needed|follow-up-queued>
 
 ## What changed
 
@@ -61,6 +64,8 @@ provider_access_touched: <true|false>
 data_output_created: <true|false>
 commit_created: <true|false>
 remaining_blocker: <blocker or none>
+ship_gate_tier: <FAST|REVIEW|SLOW|BLOCK>
+task_resolution: <ship|blocked|decision-needed|follow-up-queued>
 ```
 
 ## Identity
@@ -111,8 +116,9 @@ remaining_blocker: <blocker or none>
 Rules:
 - The first non-empty line of generated worker-report artifacts must be `# Worker PM Brief`.
 - The first visible fields after the title must remain `Outcome`, `Round`, `Progress`, and `Confidence`.
+- Generated worker reports must include `Ship gate tier` and `Task resolution` immediately after `Updated`.
 - The first section after metadata must answer what actually changed.
-- The Ship-Fast Decision Gate concept is folded into `## What decision is needed`: one decision, options considered, scope limit, and stop rule.
+- The Ship-Fast Decision Gate concept is visible in top metadata and folded into `## What decision is needed`: one decision, options considered, scope limit, and stop rule.
 - Do not begin with `# Worker Report`, numbered logs, SAW Verdict, ClosurePacket, or command logs.
 - Do not lead with command logs, reviewer chatter, or numbered SAW/logsheet detail.
 - SAW Verdict, ClosurePacket, ClosureValidation, and SAWBlockValidation are evidence only and must appear under `## Validation / evidence` or evidence artifacts.
