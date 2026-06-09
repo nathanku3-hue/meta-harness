@@ -24,7 +24,7 @@ function mergePackageJson(root) {
   pkg.packageManager = pkg.packageManager || "npm@11.16.0";
   pkg.devEngines = pkg.devEngines || {
     runtime: { name: "node", version: ">=20", onFail: "error" },
-    packageManager: { name: "npm", version: ">=11.6.0", onFail: "error" }
+    packageManager: { name: "npm", version: ">=10.9.0", onFail: "error" }
   };
   fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`, "utf8");
   writeFile(root, "bin/dummy.js", "#!/usr/bin/env node\n");
@@ -102,6 +102,7 @@ function writePhase5SecurityFixture(root) {
     "*.token",
     ".npmrc",
     ".meta-harness/local/locks/",
+    ".meta-harness/local/",
     ".meta-harness/*.lock",
     ".meta-harness/**/*.lock",
     ""

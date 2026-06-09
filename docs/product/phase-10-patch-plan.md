@@ -1,25 +1,25 @@
 # Phase 10 Patch Plan
 
-Status: Phase 10 implementation complete through release evidence contract; release blocked/not release-ready
+Status: Phase 10 done-done for release/package enforcement artifacts under D030; registry publishing remains out of scope
 Roadmap phase: Phase 10 - Release/package enforcement
-Implementation status: local read-only release check, npm publish boundary guard, and read-only external/full release evidence contract exist; Phase 10D records live evidence for `dc7480cdb96fd021e5f5ef0d4316117bfd009e12` as blocked because branch protection/security evidence cannot satisfy the current policy; publish remains guarded and fails closed; publish automation remains out of scope
-Decision required before implementation: none for Phase 10 closure; any future release-readiness claim requires external evidence satisfying policy for the exact release commit
+Implementation status: local and publish-mode release checks enforce identity, metadata, reproducibility, canonical publish guard, rollback policy, clean tree, exact release tag, package/tarball smoke, and exact-commit external/full evidence. Tracked D023 blocked evidence is retained as history; ignored local evidence may satisfy the current checkout after a local release commit/tag.
+Decision required before implementation: none for D030 enforcement-artifact closure; any real registry publish, remote tag push, GitHub release, provenance publish, trusted-publisher setup, or CI publish workflow requires a separate decision
 Commit plan doc: yes
-Start implementation: no further Phase 10 code; next release action is external evidence availability/change and exact-commit evidence recollection
-Phase 10 quality baseline refresh: no; Phase 9 metadata adoption is handled separately by D022
-Publish: no
-Decision-log entry in this patch: D024 closure note; D023 remains the live evidence decision
-Later decision-log entry: yes, if Phase 10 expands into evidence harvesting, publish automation, or full release enforcement
+Start implementation: D030 enforcement patch implemented; next release action is validation, exact-checkout evidence, and packaging
+Phase 10 quality baseline refresh: no; new Phase 10 modules remain below adopted complexity/module budgets
+Publish: guarded only; no npm registry write or CI publish automation
+Decision-log entry in this patch: D030 done-done enforcement-artifact closure; D023 remains the historical blocked evidence decision
+Later decision-log entry: yes, if Phase 10 expands into evidence harvesting, publish automation, remote release execution, or trusted-publishing setup
 
 ## Scope
 
 Phase 10 defines release and package enforcement only.
 
-This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is the read-only local implementation check. Phase 10B adds only the package publish-boundary guard. Phase 10C adds only a file-based, read-only external/full release evidence contract. Phase 10D records live evidence only and keeps release readiness blocked. Phase 10 is now implementation-complete through that evidence contract and release-held until required external GitHub/security evidence can satisfy policy for the exact release commit.
+This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is the read-only local implementation check. Phase 10B adds only the package publish-boundary guard. Phase 10C adds only a file-based, read-only external/full release evidence contract. Phase 10D records blocked historical live evidence. D030 completes the enforcement-artifact patch: publish-mode readiness is possible only when local checks pass, a clean tree and exact release tag exist, package/tarball smoke checks pass, rollback policy exists, and exact-commit external/full evidence is present.
 
 ## Hard Boundary
 
-This document now reflects Phase 10A local implementation status, the Phase 10B package boundary guard, the Phase 10C read-only evidence contract, the Phase 10D blocked live-evidence snapshot, and the release hold. It does not permit publish, tag, CI publish automation, evidence harvesting, version bumping, registry writes, provenance publishing, release-ready overrides, or Phase 11 work.
+This document now reflects Phase 10A local implementation status, the Phase 10B package boundary guard, the Phase 10C read-only evidence contract, the Phase 10D blocked live-evidence snapshot, and the D030 done-done enforcement-artifact closure. It does not permit npm registry publish, remote tag push, CI publish automation, evidence harvesting, version bumping, registry writes, provenance publishing, release-ready overrides, or Phase 11 work.
 
 Allowed for Phase 10A:
 
@@ -47,16 +47,30 @@ Allowed for Phase 10D:
 - keep `external_evidence` and `full_release` statuses blocked/fail/unknown unless the live evidence satisfies the current policy
 - verify that local gates still pass while release/publish gates remain blocked
 
+Allowed for Phase 10 D030:
+
+- enforce exact-commit evidence fields in policy and release evidence validation
+- add rollback policy to the release policy source of truth
+- split release-check implementation to stay under complexity/module budgets
+- run publish-mode package/tarball smoke checks without registry writes
+- compare npm dry-run packlists with actual tarball contents
+- install the packed tarball in an isolated temp npm environment with `--ignore-scripts`
+- smoke-test the installed CLI binary
+- require exact `v<package.version>` tag in publish mode without creating, deleting, or moving tags
+- allow ignored `.meta-harness/local/release-evidence.json` to overlay exact-checkout evidence without dirtying the tracked tree
+- add tests for exact-commit evidence pass, invalid evidence, canonical publish guard, and package metadata failures
+- make `npm test` file-isolated with bounded concurrency and per-file timeouts so release-mode `npm test` evidence is deterministic and stays within the release gate budget
+
 Forbidden:
 
 - publish automation
 - CI publish workflow edits
 - evidence harvesting
 - GitHub API calls
-- release tags
+- remote release tag push; local validation tags are allowed as artifacts only
 - version bumping
 - registry writes
-- setting evidence status to pass merely to make `release_ready` true
+- setting evidence status to pass without actual exact-commit evidence
 
 ## No-Side-Effects Rule
 
@@ -64,7 +78,7 @@ All Phase 10 release checks remain read-only with respect to git tags, the npm r
 
 The only allowed writes are temporary files and directories under an isolated temp path. Temp artifacts must be cleaned up after the check, and cleanup success or failure must be recorded in release evidence.
 
-Default local mode must not require network access. Phase 10B `--publish` mode fails closed by returning the release-check JSON and exiting nonzero unless `release_ready` is true. Phase 10C may validate evidence already present in repository files or test fixtures, but it still does not publish, harvest external evidence, call GitHub APIs, or verify trusted publishing. Phase 10D may record already gathered live evidence and must record blocked/fail/unknown truthfully when the evidence cannot satisfy policy. A future publish mode may perform read-only npm registry and GitHub checks when the environment has permission. When local mode lacks network or repository-setting evidence, it should return `skip`, `warn`, or `unknown` instead of failing solely because external evidence is unavailable.
+Default local mode must not require network access. Phase 10B `--publish` mode fails closed by returning the release-check JSON and exiting nonzero unless `release_ready` is true. Phase 10C may validate evidence already present in repository files or test fixtures, but it still does not publish, harvest external evidence, call GitHub APIs, or verify trusted publishing. Phase 10D may record already gathered live evidence and must record blocked/fail/unknown truthfully when the evidence cannot satisfy policy. D030 may read an ignored local evidence overlay for the exact release commit; malformed, stale, missing, or mismatched-commit evidence fails closed. A future publish mode may perform read-only npm registry and GitHub checks when the environment has permission. When local mode lacks network or repository-setting evidence, it should return `skip`, `warn`, or `unknown` instead of failing solely because external evidence is unavailable.
 
 ## Current Prerequisite Signal
 
@@ -77,7 +91,7 @@ Default local mode must not require network access. Phase 10B `--publish` mode f
 - Phase 10D decision: D023
 - Live evidence commit: `dc7480cdb96fd021e5f5ef0d4316117bfd009e12`, pushed to `origin/main` before the evidence-only patch
 - CI evidence: run `27152950530`, `Node tests`, success, completed `2026-06-08T16:48:14Z`
-- Release evidence status: blocked/not release-ready until branch protection/security evidence can satisfy policy and evidence is recollected for the exact release commit
+- Release evidence status: D023 historical evidence remains blocked; D030 release readiness requires exact-checkout evidence for the current commit and rejects stale evidence
 
 ## Phase 10D Live Evidence Snapshot
 
@@ -248,8 +262,9 @@ The policy should define:
 - expected tag prefix
 - allowed publish workflow filename
 - trusted publisher environment name, if configured
-- required external GitHub/security evidence fields
-- required full-release evidence fields and artifact references
+- required external GitHub/security evidence fields, including exact commit
+- required full-release evidence fields and artifact references, including exact commit
+- rollback policy boundaries
 
 Initial expected policy for this package:
 
@@ -269,22 +284,27 @@ Initial expected policy for this package:
   "evidence_requirements": {
     "github_security": {
       "required": true,
-      "fields": ["status", "source", "checked_at"]
+      "fields": ["status", "source", "checked_at", "commit"]
     },
     "full_release": {
       "required": true,
-      "fields": ["status", "source", "checked_at"],
+      "fields": ["status", "source", "checked_at", "commit"],
       "artifacts": [
         "executed_test_result",
         "package_dry_run_output",
         "publish_mode_external_evidence"
       ]
     }
+  },
+  "rollback_policy": {
+    "tag_delete_allowed_only_if_package_unpublished": true,
+    "partial_publish_requires_incident": true,
+    "same_version_retry_requires_human_review": true
   }
 }
 ```
 
-Live repository policy may record `not_evaluated` placeholders or blocked/failing live evidence. It must not commit passing external/full release evidence unless that evidence has actually been collected, satisfies the current policy, and is for the exact commit being released. Phase 10D records blocked live evidence only, so `release_ready` must remain false.
+Live repository policy may record `not_evaluated` placeholders or blocked/failing live evidence. It must not commit passing external/full release evidence unless that evidence has actually been collected, satisfies the current policy, and is for the exact commit being released. The preferred D030 path is an ignored `.meta-harness/local/release-evidence.json` overlay created after the local release commit/tag; tracked D023 blocked evidence remains historical truth.
 
 `REL_PACKAGE_ID_001` must not infer expected identity solely from the same `package.json` being checked.
 
@@ -536,7 +556,7 @@ Future implementation tests should cover:
 ## Explicit Non-Goals
 
 - no publish
-- no release tag
+- no remote release tag push; local validation tags may be present in a review ZIP
 - no package version bump
 - no further baseline refresh as part of Phase 10 implementation
 - no broader Phase 9 closure claim beyond D022 complexity metadata adoption
@@ -545,7 +565,7 @@ Future implementation tests should cover:
 - no release automation
 - no CI workflow change before audit
 - no package script change beyond the Phase 10B `prepublishOnly` guard before audit
-- no release-decision change to `docs/product/decision-log.md`
+- no release-decision change beyond D030 closure
 - no change to `.meta-harness/baseline/quality-baseline.json`
 
 ## Merge Protocol Follow-Up

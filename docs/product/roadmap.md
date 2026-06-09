@@ -1,10 +1,10 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
 Status: active baseline
-Approval scope: Phases 0-8 accepted baseline; Phase 9 transition/adoption baseline; Phase 10 implementation complete through the release evidence contract and release-held; Phase 11 D028 domain-governance done-done closure over the D025 G9 Quant adopter trigger; Phase 12 local governed skill lifecycle closed by D029
-Hold: Phase 10 release readiness is blocked by missing external GitHub/security evidence, not code. Publish remains guarded by `prepublishOnly` and fails closed. Phase 11 is closed for the domain-governance validation/control-plane scope only; it still does not authorize provider credentials, trading/ranking behavior, broker/order/alert paths, ontology product UI, release automation, or Phase 10 policy weakening. Phase 12 is done-done only for the local governed skill lifecycle; release, publish, provenance publishing, workflow, dependency, provider, and external-evidence automation remain out of scope. Phases 13-14 remain future prototypes.
-Date: 2026-06-09
-Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D026 Phase 12A docs/status-only planning authorized; D027 Phase 12 first-slice implementation start authorized; D028 Phase 11 done-done validation closure; D029 Phase 12 local self-evolution lifecycle closure; D017-D020 remain source decisions
+Approval scope: Phases 0-8 accepted baseline; Phase 9 transition/adoption baseline; Phase 10 done-done for release/package enforcement artifacts under D030; Phase 11 D028 domain-governance done-done closure over the D025 G9 Quant adopter trigger; Phase 12 local governed skill lifecycle closed by D029
+Hold: Phase 10 release/package enforcement is closed under D030: publish remains guarded by `prepublishOnly`, publish-mode release readiness requires a clean tree, exact release tag, full ready/test/package smoke checks, rollback policy, and exact-commit external/full evidence. No registry publish automation is included. Phase 11 is closed for the domain-governance validation/control-plane scope only; it still does not authorize provider credentials, trading/ranking behavior, broker/order/alert paths, ontology product UI, release automation, or Phase 10 policy weakening. Phase 12 is done-done only for the local governed skill lifecycle; release, publish, provenance publishing, workflow, dependency, provider, and external-evidence automation remain out of scope. Phases 13-14 remain future prototypes.
+Date: 2026-06-10
+Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D026 Phase 12A docs/status-only planning authorized; D027 Phase 12 first-slice implementation start authorized; D028 Phase 11 done-done validation closure; D029 Phase 12 local self-evolution lifecycle closure; D030 Phase 10 done-done enforcement patch accepted; D017-D020 remain source decisions
 
 ## Endgame
 
@@ -38,7 +38,7 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 7 | One-skill pilot | buildable | accepted baseline |
 | 8 | Read-only subagent scout pilot | buildable | implemented and merged; PR #15 |
 | 9 | Complexity governor expansion | buildable | transition/adoption baseline; complexity metadata separately marked adopted |
-| 10 | Release/package enforcement | buildable | implementation complete through release evidence contract; release-held because external GitHub/security evidence is missing; publish guarded and fails closed |
+| 10 | Release/package enforcement | buildable | done-done for release/package enforcement artifacts under D030; publish guarded; publish-mode readiness is clean-tree/tag/full-check/evidence gated; no registry publish automation |
 | 11 | Domain governance pilot (adopter required) | prototype | D028 done-done validation closure: activation, source→fact→ontology→code→golden-case/review evidence, fact-ID code trace, expired-fact release block, signed review coverage, and `ready` integration implemented; non-goal boundaries unchanged |
 | 12 | Self-evolution prototype | prototype | D029 done-done closure for the local governed skill lifecycle: distillation candidate drafts, inactive candidate enforcement, preflight checks, promotion requiring decision ID, rollback/quarantine, and registry updates implemented; non-goal boundaries unchanged |
 | 13 | Multi-repo rollup | prototype | future prototype |
@@ -1244,16 +1244,11 @@ Classifications:
 
 Purpose: make shipping safe. No release from a dirty tree, no package includes local state or secrets, no publish without checks green.
 
-Current status: Phase 10 implementation is complete through the release evidence contract and is release-held. The local read-only release check reports package/release posture, clean-tree status, and external/full release evidence status. The `prepublishOnly` package guard runs publish mode and fails closed unless `release_ready` is true. For the live Phase 10D evidence, `local_ok` is true, `external_evidence_ok` is false, `release_ready` is false, and publishing remains blocked. The next release action is external GitHub/security evidence availability or repository-setting change followed by exact-commit evidence recollection, not more Phase 10 code. Publish automation, registry behavior, tags, CI publish workflow, version bumping, provenance publishing, and accepted external/publish evidence remain absent.
+Current status: Phase 10 release/package enforcement artifacts are done-done under D030. The release check reports local implementation posture in default mode and requires full publish-mode gates before `release_ready` can be true: clean tree, exact version tag, full ready/test posture, package dry-run, forbidden-path scan, canonical tarball paths, dry-run/actual packlist equivalence, isolated npm environment, `--ignore-scripts` tarball install smoke, installed CLI smoke, rollback policy, dependency-review posture, and exact-commit external/full evidence. The `prepublishOnly` package guard runs publish mode and fails closed unless `release_ready` is true. Publish automation, registry writes, GitHub releases, remote tag pushes, CI publish workflow, version bumping, and provenance publishing remain absent.
 
 ### Problem
 
-The `package.json "files"` field already limits published contents to bin/, lib/, docs/product/, docs/sop/, templates/, and README.md. Phase 10 now has a local read-only release-check surface, package publish-boundary guard, and read-only external/full release evidence contract, but the release remains held because the live external GitHub/security evidence does not satisfy policy. The full release gate still does not:
-
-1. Execute and verify package dry-run output against a forbidden-path list
-2. Enforce a clean git tree before an actual release, beyond the local status signal
-3. Require full `meta-harness ready` and test execution before publish
-4. Verify trusted publishing, registry, tag, and repository-setting evidence
+The `package.json "files"` field limits published contents to bin/, lib/, docs/product/, docs/sop/, templates/, and README.md. D030 closes the artifact gap by turning the release gate into an executable, fail-closed package enforcement check. The remaining non-goals are not artifacts inside Phase 10: actual npm publish, GitHub release creation, remote tag push, trusted-publisher setup, CI publish automation, registry-version checks, and external API evidence harvesting all require a separate decision.
 
 ### Deliverables
 
@@ -1261,7 +1256,7 @@ The `package.json "files"` field already limits published contents to bin/, lib/
 
 Full Phase 10 target: a pre-publish gate that runs:
 
-Implemented subset: local read-only checks for release policy, package identity/metadata, npm lifecycle posture, reproducibility posture, quality baseline, read-only ready status, test-script eligibility, package dry-run eligibility, clean-tree status, and external/full evidence status. Test execution, package dry-run execution, tarball smoke testing, trusted publishing verification, and publish automation remain future work.
+Implemented D030 scope: local checks for release policy, package identity/metadata, npm lifecycle posture, reproducibility posture, quality baseline, read-only ready status, test-script eligibility, clean-tree status, and external/full evidence status; publish mode additionally executes full ready/test posture, `npm pack --dry-run`, actual tarball creation, forbidden-path scanning, canonical tarball path checks, dry-run/actual packlist equivalence, isolated temp npm setup, `--ignore-scripts` smoke install, installed CLI smoke, exact `v<package.version>` tag verification, rollback policy verification, and exact-commit evidence validation.
 
 | Check | Failure condition |
 |---|---|
@@ -1269,14 +1264,14 @@ Implemented subset: local read-only checks for release policy, package identity/
 | Tests pass | `npm test` exits non-zero |
 | Ready passes | `meta-harness ready --target .` (runs full posture checks and tests, no quick mode) exits non-zero |
 | Package contents | `npm pack --dry-run --json` output matches forbidden-path regex, or inspection of generated tarball list fails |
-| Version bump | package.json version matches git tag (SKIP check if no tag is specified or current commit is not tagged) |
+| Version tag | publish mode requires an exact `v<package.version>` tag pointing at HEAD; local mode skips when no release tag points at the current commit |
 
 Pre-publish checks also run:
-- Tarball Install Smoke Test: after dry-run, install the packed tarball in a temp project and run CLI smoke test (e.g. executing `meta-harness --version`) to verify package contents and local install success.
-- Dependency Review check: runs dependency-review-action or equivalent in CI to block pull requests that introduce vulnerable or risky dependency versions. Must be configured as a required check in CI for pull requests affecting package files.
-- npm trusted publishing / OIDC: future publish mode should verify this; `release check --publish` fails closed on current release readiness and has no publish automation.
-- CODEOWNERS enforcement: verify branch protection rules require review from code owners before pull request merge.
-- Release Incident / Rollback Policy: if release check passes but the publish step fails midway, automatically delete the git tag locally and remotely ONLY if the package was not actually published, the tag was created by the current attempt, and no remote consumer has retrieved it. If package was partially published, tag deletion is forbidden; follow registry immutable version rules, run npm deprecate or unpublish where applicable, and log a failed publish event.
+- Tarball Install Smoke Test: after dry-run, create the tarball, install it in an isolated temp project with `--ignore-scripts`, and run the installed CLI help path.
+- Dependency Review posture: accept a dependency-review workflow or exact evidence such as `not_applicable_no_dependency_delta`.
+- npm trusted publishing / OIDC: no publish automation is configured in D030, so trusted-publishing checks pass only as “not configured”; adding trusted publishing requires a later decision and evidence.
+- Publish permissions/environment: no publish workflow is configured in D030; any later workflow must be checked separately.
+- Release Incident / Rollback Policy: tag deletion is allowed only when a package was not published; partial publishes require incident handling and human review before same-version retry.
 
 Forbidden package paths:
 
@@ -1542,7 +1537,7 @@ Checks:
 
 Purpose: make self-improvement governed, not free-running. The system may propose changes to itself, but it cannot silently promote them. This replaces the earlier aspirational criteria ("Meta-Harness can explain every change") with measurable testable gates.
 
-Current status: done-done for the local governed skill lifecycle by D029. D026 recorded the plan, D027 authorized the first implementation slice, and D029 closes the measurable Phase 12 self-evolution gates: distillation-to-candidate draft creation, inactive candidate enforcement, read-only preflight, permission-decision gating, promotion, rollback/quarantine, registry updates, event logging, and focused tests. Release status remains governed by the Phase 10 release evidence hold.
+Current status: done-done for the local governed skill lifecycle by D029. D026 recorded the plan, D027 authorized the first implementation slice, and D029 closes the measurable Phase 12 self-evolution gates: distillation-to-candidate draft creation, inactive candidate enforcement, read-only preflight, permission-decision gating, promotion, rollback/quarantine, registry updates, event logging, and focused tests. Release status remains governed by the Phase 10 D030 exact-commit release/package enforcement gate.
 
 ### Problem
 

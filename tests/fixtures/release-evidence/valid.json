@@ -3,7 +3,9 @@
     "github_security": {
       "status": "pass",
       "source": "fixture://github-security",
-      "checked_at": "2026-06-08T00:00:00.000Z"
+      "checked_at": "2026-06-08T00:00:00.000Z",
+      "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "dependency_review": "not_applicable_no_dependency_delta"
     },
     "full_release": {
       "status": "pass",
@@ -13,7 +15,8 @@
         "executed_test_result": "fixture://npm-test",
         "package_dry_run_output": "fixture://npm-pack-dry-run",
         "publish_mode_external_evidence": "fixture://publish-mode"
-      }
+      },
+      "commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
   }
 }

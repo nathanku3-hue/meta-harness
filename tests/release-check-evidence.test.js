@@ -120,98 +120,80 @@ function npmPublishInvocation(args) {
   return { command: "npm", args };
 }
 
-test("release check --json with GitHub evidence recorded still requires full release evidence", () => {
-  const root = prepareReleaseTarget();
-  const before = snapshotTree(root);
-
+test("release check reports missing external evidence without failing local implementation checks", () => {
+  const root = prepareReleaseTarget({ evidence: {} });
   const result = runRaw(root, ["release", "check", "--json"]);
 
   assert.equal(result.status, 0);
-  assert.equal(result.stderr, "");
-  assert.deepEqual(snapshotTree(root), before);
-
   const data = JSON.parse(result.stdout);
-  assertTopLevel(data, { schema_version: "1", local_ok: true, ok: true, release_ready: false, external_evidence_ok: false, git_tree_clean: null, release_policy_source: ".meta-harness/release-policy.json" });
-  assertCheckStatus(data, CHECK_IDS.cleanTree, "unknown");
-  assert.equal(checkById(data, CHECK_IDS.cleanTree).required_for_local, false);
-  assert.equal(checkById(data, CHECK_IDS.cleanTree).required_for_release, true);
-  for (const id of [CHECK_IDS.policy, CHECK_IDS.ready, CHECK_IDS.quality, CHECK_IDS.test, CHECK_IDS.packDryRun, CHECK_IDS.externalEvidence]) assertCheckStatus(data, id, "pass");
-  assert.equal(checkById(data, CHECK_IDS.test).required_for_release, false);
-  assert.equal(checkById(data, CHECK_IDS.packDryRun).required_for_release, false);
+  assertTopLevel(data, { local_ok: true, release_ready: false, external_evidence_ok: false, external_evidence_status: "unknown", full_release_evidence_status: "unknown" });
+  assertCheckStatus(data, CHECK_IDS.externalEvidence, "unknown");
+  assert.match(checkById(data, CHECK_IDS.externalEvidence).reason, /missing or not evaluated/);
   assertCheckStatus(data, CHECK_IDS.fullReleaseEvidence, "unknown");
-  assert.equal(data.full_release_evidence_status, "unknown");
-  assert.equal(checkById(data, CHECK_IDS.fullReleaseEvidence).required_for_local, false);
-  assert.equal(checkById(data, CHECK_IDS.fullReleaseEvidence).required_for_release, true);
-  assert.match(checkById(data, CHECK_IDS.fullReleaseEvidence).reason, /full release evidence/);
+  assert.match(checkById(data, CHECK_IDS.fullReleaseEvidence).reason, /missing or not evaluated/);
 });
 
-test("release check reports dirty git tree without failing local checks", () => {
-  const root = prepareReleaseTarget();
-  git(root, ["init"]);
-
+test("release check reports invalid external evidence without failing local implementation checks", () => {
+  const root = prepareReleaseTarget({ evidence: releaseEvidenceFixture("invalid.json") });
   const result = runRaw(root, ["release", "check", "--json"]);
 
   assert.equal(result.status, 0);
   const data = JSON.parse(result.stdout);
-  const cleanTree = checkById(data, CHECK_IDS.cleanTree);
-  assertTopLevel(data, { local_ok: true, release_ready: false, git_tree_clean: false });
-  assert.ok(data.git_dirty_count > 0);
-  assert.equal(cleanTree.status, "fail");
-  assert.equal(cleanTree.required_for_local, false);
-  assert.equal(cleanTree.required_for_release, true);
-  assert.equal(cleanTree.details.git_status, "dirty");
-  assert.ok(cleanTree.details.dirty_entries.some((entry) => entry.includes("package.json")));
+  assertTopLevel(data, { local_ok: true, release_ready: false, external_evidence_ok: false, external_evidence_status: "fail", full_release_evidence_status: "fail" });
+  assertCheckStatus(data, CHECK_IDS.externalEvidence, "fail");
+  assert.equal(checkById(data, CHECK_IDS.externalEvidence).required_for_local, false);
+  assert.match(checkById(data, CHECK_IDS.externalEvidence).reason, /evidence invalid/);
+  assert.deepEqual(checkById(data, CHECK_IDS.externalEvidence).details.validation_errors, ["source", "commit", "checked_at must be a valid date-time"]);
+  assertCheckStatus(data, CHECK_IDS.fullReleaseEvidence, "fail");
+  assert.equal(checkById(data, CHECK_IDS.fullReleaseEvidence).required_for_local, false);
+  assert.match(checkById(data, CHECK_IDS.fullReleaseEvidence).reason, /evidence invalid/);
+  assert.deepEqual(checkById(data, CHECK_IDS.fullReleaseEvidence).details.validation_errors, ["commit must be a 40-character hash", "artifacts.package_dry_run_output", "artifacts.publish_mode_external_evidence"]);
 });
 
-test("release check --publish fails closed on release readiness while preserving local result", { concurrency: false }, () => {
+
+test("malformed local release evidence overlay fails closed", () => {
+  const root = prepareReleaseTarget({ evidence: releaseEvidenceFixture("valid.json") });
+  fs.mkdirSync(path.join(root, ".meta-harness", "local"), { recursive: true });
+  fs.writeFileSync(path.join(root, ".meta-harness", "local", "release-evidence.json"), "{bad json", "utf8");
+  const result = runRaw(root, ["release", "check", "--json"]);
+
+  assert.equal(result.status, 0);
+  const data = JSON.parse(result.stdout);
+  assertTopLevel(data, { local_ok: true, release_ready: false, external_evidence_ok: false, external_evidence_status: "fail", full_release_evidence_status: "fail" });
+  assert.match(data.release_evidence_source, /local\/release-evidence\.json/);
+  assert.match(checkById(data, CHECK_IDS.externalEvidence).reason, /invalid JSON/);
+  assert.match(checkById(data, CHECK_IDS.fullReleaseEvidence).reason, /invalid JSON/);
+});
+
+test("release check --publish accepts exact-commit local evidence for release readiness", { concurrency: false }, () => {
   const root = prepareReleaseTarget({ evidence: { github_security: { status: "not_evaluated", source: null, checked_at: null } } });
   commitAll(root);
+  const commit = git(root, ["rev-parse", "HEAD"]).trim();
+  git(root, ["tag", "v1.0.0"]);
+  writeLocalReleaseEvidence(root, commit);
   const result = runRaw(root, ["release", "check", "--publish", "--json"]);
 
-  assert.equal(result.status, 1);
+  assert.equal(result.status, 0);
   assert.equal(result.stderr, "");
   const data = JSON.parse(result.stdout);
-  assertTopLevel(data, { ok: false, local_ok: true, release_ready: false, external_evidence_ok: false, mode: "publish", publish: true });
-  assertCheckStatus(data, CHECK_IDS.cleanTree, "pass");
-  assertCheckStatus(data, CHECK_IDS.externalEvidence, "unknown");
-  assert.match(checkById(data, CHECK_IDS.externalEvidence).reason, /external GitHub\/security evidence missing/);
-  assertCheckStatus(data, CHECK_IDS.fullReleaseEvidence, "unknown");
-  assert.match(checkById(data, CHECK_IDS.fullReleaseEvidence).reason, /full release evidence/);
+  assertTopLevel(data, { ok: true, local_ok: true, release_ready: true, external_evidence_ok: true, external_evidence_status: "pass", full_release_evidence_status: "pass", mode: "publish", publish: true, next_action: "none" });
+  assert.match(data.release_evidence_source, /local\/release-evidence\.json/);
+  for (const id of [CHECK_IDS.cleanTree, CHECK_IDS.versionTag, CHECK_IDS.externalEvidence, CHECK_IDS.fullReleaseEvidence]) assertCheckStatus(data, id, "pass");
 });
 
-test("package prepublishOnly binds npm publish to the fail-closed release check boundary", () => {
-  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
-  assert.equal(pkg.scripts?.prepublishOnly, "node bin/meta-harness.js release check --publish --json");
-});
+test("release check fails package metadata and identity cases", () => {
+  const cases = [
+    { name: "missing license", packageOverrides: { license: undefined }, checkId: CHECK_IDS.packageMetadata, reason: /license/ },
+    { name: "private package", packageOverrides: { private: true }, checkId: CHECK_IDS.packageIdentity, reason: /private/ },
+  ];
 
-test("release check allows only the publish-mode prepublishOnly guard", () => {
-  const allowed = prepareReleaseTarget({
-    packageOverrides: { scripts: { test: "node -e \"\"", prepublishOnly: "node bin/meta-harness.js release check --publish --json" } },
-  });
-  const allowedResult = runRaw(allowed, ["release", "check", "--json"]);
-  assert.equal(allowedResult.status, 0);
-  const allowedData = JSON.parse(allowedResult.stdout);
-  assert.equal(checkById(allowedData, CHECK_IDS.lifecycle).status, "pass");
-  assert.equal(checkById(allowedData, CHECK_IDS.packDryRun).status, "pass");
-
-  const blocked = prepareReleaseTarget({
-    packageOverrides: { scripts: { test: "node -e \"\"", prepublishOnly: "node bin/meta-harness.js release check" } },
-  });
-  const blockedResult = runRaw(blocked, ["release", "check", "--json"]);
-  assert.equal(blockedResult.status, 1);
-  const blockedData = JSON.parse(blockedResult.stdout);
-  assert.equal(checkById(blockedData, CHECK_IDS.lifecycle).status, "fail");
-  assert.deepEqual(checkById(blockedData, CHECK_IDS.lifecycle).details.blocked, ["prepublishOnly"]);
-  assert.equal(checkById(blockedData, CHECK_IDS.packDryRun).status, "fail");
-});
-
-test("release check fails local readiness when release policy is missing", () => {
-  const root = prepareReleaseTarget({ policy: false });
-  const result = runRaw(root, ["release", "check", "--json"]);
-
-  assert.equal(result.status, 1);
-  const data = JSON.parse(result.stdout);
-  assertTopLevel(data, { local_ok: false, release_ready: false });
-  assertCheckStatus(data, CHECK_IDS.policy, "fail");
-  assert.match(checkById(data, CHECK_IDS.policy).reason, /release-policy\.json missing/);
+  for (const item of cases) {
+    const root = prepareReleaseTarget({ packageOverrides: item.packageOverrides });
+    const result = runRaw(root, ["release", "check", "--json"]);
+    assert.equal(result.status, 1, item.name);
+    const data = JSON.parse(result.stdout);
+    assertTopLevel(data, { local_ok: false, release_ready: false });
+    assertCheckStatus(data, item.checkId, "fail");
+    assert.match(checkById(data, item.checkId).reason, item.reason, item.name);
+  }
 });

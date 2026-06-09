@@ -564,3 +564,34 @@ Verification expected:
 Rationale:
 
 Phase 12 is high risk because self-modification can silently shape future agent behavior. The D029 patch makes that lifecycle explicit and reversible: distillation drafts candidates, candidates remain inactive, preflight blocks missing evidence and unauthorized permission expansion, promotion requires a decision and records rollback evidence, rollback restores a prior hash and quarantines the current version, and events provide a redacted audit trail. This closes the measurable local Phase 12 gates without weakening the Phase 10 release hold or expanding publish automation.
+
+## D030: Phase 10 Done-Done Release Enforcement Artifact Closure
+
+Decision:
+
+Accept the Phase 10 done-done enforcement patch as the release/package enforcement artifact closure.
+
+Scope accepted:
+
+- exact-commit `commit` fields are required for external GitHub/security and full-release pass evidence
+- pass evidence is rejected when its commit does not match the checkout `HEAD`
+- `.meta-harness/local/release-evidence.json` may overlay ignored exact-checkout evidence after a local release commit/tag without dirtying the tracked tree
+- publish mode requires a clean tree, exact `v<package.version>` tag, full ready/test posture, canonical package metadata, rollback policy, package dry-run, forbidden-path scan, tarball canonicalization, dry-run/actual packlist equivalence, isolated npm environment, `--ignore-scripts` smoke install, and installed CLI smoke
+- the tracked D023 blocked evidence remains historical truth rather than being rewritten as passing evidence
+- `npm test` runs test files in isolated child processes with bounded parallelism, serial release/ready-sensitive files, and per-file timeouts so release-mode evidence is deterministic
+
+Out of scope:
+
+- npm registry publish
+- GitHub release
+- remote tag push
+- version bump
+- provenance publishing
+- CI publish workflow
+- evidence harvesting APIs
+- trusted-publisher setup
+- Phase 11 or Phase 12 expansion
+
+Rationale:
+
+The previous Phase 10 state was honest but release-held because the code path did not yet prove the full package/tarball and exact-evidence boundary required for a done-done enforcement claim. This decision closes the artifact gap without weakening the release policy: release readiness is possible only for a clean, tagged checkout with exact-commit evidence and passing package smoke gates. The patch still does not publish anything and does not claim that broader Phase 1-12 work is complete.

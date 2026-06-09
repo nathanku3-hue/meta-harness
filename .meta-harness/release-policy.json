@@ -16,7 +16,8 @@
       "fields": [
         "status",
         "source",
-        "checked_at"
+        "checked_at",
+        "commit"
       ]
     },
     "full_release": {
@@ -24,7 +25,8 @@
       "fields": [
         "status",
         "source",
-        "checked_at"
+        "checked_at",
+        "commit"
       ],
       "artifacts": [
         "executed_test_result",
@@ -73,5 +75,10 @@
       },
       "reason": "Full release evidence is not accepted because current external branch protection and security evidence cannot satisfy the release policy. Recollect evidence for the exact release commit after repository protections and security signals are satisfied."
     }
+  },
+  "rollback_policy": {
+    "tag_delete_allowed_only_if_package_unpublished": true,
+    "partial_publish_requires_incident": true,
+    "same_version_retry_requires_human_review": true
   }
 }
