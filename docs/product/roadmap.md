@@ -1,10 +1,10 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
 Status: active baseline
-Approval scope: Phases 0-7 accepted baseline; Phase 8 planning-only; Phase 9 transition/adoption baseline; Phase 10 implementation complete through the release evidence contract and release-held; Phase 11 D025 G9 Quant pilot active as bounded first slice
-Hold: Phase 10 release readiness is blocked by missing external GitHub/security evidence, not code. Publish remains guarded by `prepublishOnly` and fails closed. Phase 11 is active only for the bounded D025 G9 Quant pilot; expansion requires a separate decision. Phases 12-14 remain future prototypes.
+Approval scope: Phases 0-7 accepted baseline; Phase 8 planning-only; Phase 9 transition/adoption baseline; Phase 10 implementation complete through the release evidence contract and release-held; Phase 11 D025 G9 Quant pilot exit recorded as bounded first slice; Phase 12A docs/status-only planning authorized by D026; Phase 12 first-slice implementation start authorized by D027
+Hold: Phase 10 release readiness is blocked by missing external GitHub/security evidence, not code. Publish remains guarded by `prepublishOnly` and fails closed. Phase 11 expansion requires a separate decision. Phase 12 implementation is limited to the D027 read-only promotion-preflight first slice; expansion requires a separate decision. Phases 13-14 remain future prototypes.
 Date: 2026-06-09
-Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D017-D020 remain source decisions
+Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D026 Phase 12A docs/status-only planning authorized; D027 Phase 12 first-slice implementation start authorized; D017-D020 remain source decisions
 
 ## Endgame
 
@@ -39,8 +39,8 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 8 | Read-only subagent scout pilot | buildable | planning-only; implementation not started |
 | 9 | Complexity governor expansion | buildable | transition/adoption baseline; complexity metadata separately marked adopted |
 | 10 | Release/package enforcement | buildable | implementation complete through release evidence contract; release-held because external GitHub/security evidence is missing; publish guarded and fails closed |
-| 11 | Domain governance pilot (adopter required) | prototype | D025 G9 Quant pilot active for real downstream adopter; bounded to FINRA short-interest signal-card chain; no broad framework implementation |
-| 12 | Self-evolution prototype | prototype | future prototype |
+| 11 | Domain governance pilot (adopter required) | prototype | D025 G9 Quant pilot bounded first-slice exit recorded at `2b04dfef59b7b1936d5712f35c5a2bc7fedf6d7a`; no broad framework implementation |
+| 12 | Self-evolution prototype | prototype | D027 authorizes only the bounded read-only promotion-preflight first slice |
 | 13 | Multi-repo rollup | prototype | future prototype |
 | 14 | Controlled autonomy pilot | prototype | future prototype |
 
@@ -1369,7 +1369,7 @@ Machine-readable output for CI:
 
 Purpose: avoid speculative platform work. Domain semantic governance is intellectually correct for quant, law, and sport science apps, but Meta-Harness has zero domain code today. This phase activates only when a real downstream repo with domain logic exists.
 
-Current status: D025 activates a real downstream G9 Quant pilot for `E:\Code\Quant-g9-market-behavior-signal-card`, remote `https://github.com/nathanku3-hue/Quant.git`, branch `codex/v2-d0-wrds-permission-snapshot-provenance-20260601`, HEAD `61edd14949fc8a7d7232748c27f75e7706010490`. The pilot is bounded to the FINRA short-interest G9 market-behavior signal card. Downstream `meta-harness ready` passed with `ok: true`, `passed: 12`, `failed: 0`, state hash `ed879a175a5872ec0ff90aa54b03f62264c0df54d52dc7429a85ecad6ec46332`, generated at `2026-06-09T02:45:07.298Z`. `meta-harness domain-governance check` passed for `D025` / `PHASE11-G9-FINRA-SHORT-INTEREST-001` with 9 pass and 0 fail. No broad Phase 11 framework or core implementation is active.
+Current status: D025 activates a real downstream G9 Quant pilot for `E:\Code\Quant-g9-market-behavior-signal-card`, remote `https://github.com/nathanku3-hue/Quant.git`, branch `codex/v2-d0-wrds-permission-snapshot-provenance-20260601`, HEAD `61edd14949fc8a7d7232748c27f75e7706010490`. The pilot is bounded to the FINRA short-interest G9 market-behavior signal card. Downstream `meta-harness ready` passed with `ok: true`, `passed: 12`, `failed: 0`, state hash `ed879a175a5872ec0ff90aa54b03f62264c0df54d52dc7429a85ecad6ec46332`, generated at `2026-06-09T02:45:07.298Z`. `meta-harness domain-governance check` passed for `D025` / `PHASE11-G9-FINRA-SHORT-INTEREST-001` with 9 pass and 0 fail. The bounded first-slice exit is recorded on main at `2b04dfef59b7b1936d5712f35c5a2bc7fedf6d7a`. No broad Phase 11 framework or core implementation is active.
 
 ### D025 pilot boundary
 
@@ -1529,6 +1529,8 @@ Checks:
 ## Phase 12 — Self-evolution prototype
 
 Purpose: make self-improvement governed, not free-running. The system may propose changes to itself, but it cannot silently promote them. This replaces the earlier aspirational criteria ("Meta-Harness can explain every change") with measurable testable gates.
+
+Current status: Phase 12A docs/status-only planning is authorized by D026. The Phase 12 plan has been independently reviewed and accepted, and D027 authorizes implementation start only for the bounded read-only promotion-preflight first slice. Expansion beyond candidate preflight requires a separate decision. Release status: still governed by the Phase 10 release evidence hold.
 
 ### Problem
 

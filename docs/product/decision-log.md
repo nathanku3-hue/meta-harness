@@ -405,3 +405,92 @@ Out of scope:
 Rationale:
 
 This is the first real downstream adopter trigger for Phase 11, and all activation criteria are now represented by concrete evidence. The decision authorizes only the bounded G9 Quant pilot activation path for the recorded downstream commit and pilot chain. The first implementation slice is limited to a validator command plus pilot evidence files for this boundary. It does not authorize broad Phase 11 framework work, provider credential access, trading signals, ranking/scoring, broker/order/alert paths, release/publish automation, or any weakening of Phase 10. Phase 10 release readiness remains blocked/not release-ready until external GitHub/security evidence satisfies policy for the exact release commit.
+
+## D026: Phase 12A Docs/Status-Only Planning Authorized
+
+Decision:
+
+Authorize only a Phase 12A planning patch.
+
+This decision records the Phase 11 D025 bounded pilot first-slice exit on main at `2b04dfef59b7b1936d5712f35c5a2bc7fedf6d7a` and permits a Phase 12 patch plan. It does not start Phase 12 implementation and is not the later implementation-start decision ID.
+
+Scope allowed:
+
+- add `docs/product/phase-12-patch-plan.md`
+- update `docs/product/roadmap.md` current status
+- append this decision to `docs/product/decision-log.md`
+- update `.meta-harness/status.md` current truth
+
+Scope forbidden:
+
+- runtime code
+- new commands
+- policy weakening
+- release-ready claims
+- publish automation
+- tags
+- version bumps
+- registry writes
+- provenance publishing
+- active skill promotion
+- autonomy expansion
+- broad framework work
+- `.meta-harness/events.jsonl` append
+
+Phase 12 implementation requires a later explicit implementation-start decision ID after the Phase 12 plan is reviewed and accepted.
+
+Rationale:
+
+Phase 12 self-evolution is high risk because bad self-modification can silently shape future agent behavior. The safest next move is a docs/status-only planning patch that defines the goal, start criteria, first reviewable implementation slice, non-goals, release impact, validation gates, and fail-closed behavior before any runtime work begins. The Phase 10 release evidence hold remains active and must not be weakened by Phase 12 planning.
+
+## D027: Phase 12 First-Slice Implementation Start Authorized
+
+Decision:
+
+Accept `docs/product/phase-12-patch-plan.md` after independent planning review and authorize Phase 12 implementation start only for the bounded promotion-preflight first slice.
+
+Review evidence:
+
+- reviewer: Codex subagent planning audit
+- review date: 2026-06-09
+- accepted artifact: `docs/product/phase-12-patch-plan.md`
+- required review follow-ups recorded before implementation: separate implementation-start decision ID and concrete first-slice ready/test expectations
+
+Scope allowed:
+
+- add a read-only promotion preflight implementation for candidate skills
+- validate candidate skill directory shape for `.agents/candidate/<skill-name>/SKILL.md`
+- prove candidate skills remain inactive unless promoted by a later decision
+- detect permission differences between candidate and active skill metadata
+- fail closed when eval evidence, permission authorization, complexity evidence, or rollback evidence is missing
+- add focused tests for pass and blocked preflight behavior
+- expose only a read-only `meta-harness skill preflight` entry point if needed for reviewable evidence
+
+Scope forbidden:
+
+- moving candidate skills into `.agents/skills/`
+- writing `.meta-harness/skill-registry.json`
+- writing `.meta-harness/events.jsonl`
+- active skill promotion
+- distillation integration
+- rollback or quarantine execution
+- provenance publishing
+- release automation
+- publish behavior changes
+- tags
+- version bumps
+- dependency updates
+- CI workflow changes
+- autonomy expansion
+
+Ready and test expectations:
+
+- focused skill tests pass for registry/preflight behavior
+- `npm test` passes before merge
+- `meta-harness ready --target . --quick --read-only --json` passes, or a failure blocks merge
+- `meta-harness release check --publish --json` remains fail-closed with `release_ready: false` unless Phase 10 external evidence is separately satisfied
+- package metadata, `prepublishOnly`, release policy, and publish guard remain unchanged
+
+Rationale:
+
+The Phase 12 plan is now reviewed and accepted, and the implementation-start decision is separate from D026. The first slice is small enough to review because it can only answer whether a candidate skill is eligible for future promotion. It cannot promote, write the registry, publish provenance, relax release evidence, or expand autonomy. This preserves the Phase 10 release evidence hold while allowing one testable self-evolution safety gate to be built.
