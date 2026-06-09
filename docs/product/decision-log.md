@@ -495,7 +495,6 @@ Rationale:
 
 The Phase 12 plan is now reviewed and accepted, and the implementation-start decision is separate from D026. The first slice is small enough to review because it can only answer whether a candidate skill is eligible for future promotion. It cannot promote, write the registry, publish provenance, relax release evidence, or expand autonomy. This preserves the Phase 10 release evidence hold while allowing one testable self-evolution safety gate to be built.
 
-
 ## D028: Phase 11 Done-Done Validation Closure
 
 Decision:
@@ -522,3 +521,46 @@ Verification:
 
 - `npm_config_force=true node --test tests/domain-governance.test.js tests/cli-domain-governance.test.js tests/cli-ready.test.js tests/command-registry.test.js` passed, 30/30.
 - `node bin/meta-harness.js quality check` passed.
+
+## D029: Phase 12 Local Self-Evolution Lifecycle Closed Done-Done
+
+Decision:
+
+Close Phase 12 as done-done for the local governed skill lifecycle only.
+
+Scope accepted:
+
+- connect reviewed distillation records to inactive candidate skill drafts under `.agents/candidate/`
+- keep candidate records inactive until explicit eval, complexity, rollback, and permission evidence is present
+- keep read-only `meta-harness skill preflight` as the fail-closed promotion gate
+- add `meta-harness skill promote <skill-name> --target <repo> --decision-id <id>`
+- add `meta-harness skill rollback <skill-name> --target <repo> --decision-id <id>`
+- write skill-registry lifecycle fields during promotion and rollback, including `promotion_decision`, `promotion_date`, `previous_version_hash`, `rollback_hash`, and `rollback_path`
+- quarantine superseded or rolled-back skill versions under `.agents/quarantine/`
+- append redacted `skill.promote` and `skill.rollback` events to `.meta-harness/events.jsonl`
+- cover successful promotion, blocked promotion, permission-decision gating, rollback, quarantine, candidate inactivity, candidate deletion, and distillation-to-candidate behavior in tests
+
+Scope still forbidden:
+
+- release readiness claims
+- publishing, tags, version bumps, or dependency updates
+- CI workflow changes
+- GitHub evidence harvesting or release evidence automation
+- provenance publishing
+- provider access, runtime/dashboard/scoring/broker paths, data output, or autonomous skill promotion
+- treating `.agents/candidate/` content as active guidance before promotion succeeds
+
+Done-done boundary:
+
+This decision supports a Phase 12 done-done claim only for the repo-local self-evolution lifecycle described in the Phase 12 roadmap. It does not convert Phase 10 to release-ready, does not close Phase 8 beyond planning-only, does not expand Phase 11 beyond the D025 bounded pilot, and does not authorize a broader Phase 1-12 aggregate done-done claim.
+
+Verification expected:
+
+- `node --test tests/skill-registry.test.js tests/cli-skill.test.js tests/skill-promotion-lifecycle.test.js tests/skill-distillation.test.js tests/skill-distillation-candidate.test.js tests/command-registry.test.js` passes
+- `node bin/meta-harness.js quality check --json` passes
+- `node bin/meta-harness.js ready --target . --quick --read-only --json` passes, or any failure is reported as a blocker
+- `node bin/meta-harness.js release check --publish --json` remains fail-closed with `release_ready: false` unless Phase 10 external evidence is separately satisfied
+
+Rationale:
+
+Phase 12 is high risk because self-modification can silently shape future agent behavior. The D029 patch makes that lifecycle explicit and reversible: distillation drafts candidates, candidates remain inactive, preflight blocks missing evidence and unauthorized permission expansion, promotion requires a decision and records rollback evidence, rollback restores a prior hash and quarantines the current version, and events provide a redacted audit trail. This closes the measurable local Phase 12 gates without weakening the Phase 10 release hold or expanding publish automation.
