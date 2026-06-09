@@ -43,6 +43,7 @@ test("help text is generated from registry usage lines", () => {
   assert.match(help, /meta-harness ready --target <repo>/);
   assert.match(help, /meta-harness merge check --pr <n> --scope <scope>/);
   assert.match(help, /meta-harness skill check --target <repo>/);
+  assert.match(help, /meta-harness skill preflight <skill-name> --target <repo> \[--json\]/);
   assert.match(help, /meta-harness release check \[--target <repo>\] \[--json\] \[--publish\]/);
   assert.match(help, /meta-harness decisions scan --target <repo>/);
   assert.match(help, /Streams: coding, research, writing, review/);
