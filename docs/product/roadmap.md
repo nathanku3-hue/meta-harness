@@ -1,10 +1,10 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
 Status: active baseline
-Approval scope: Phases 0-7 accepted baseline; Phase 8 planning-only; Phase 9 transition/adoption baseline; Phase 10A local release check plus Phase 10B publish-boundary guard in progress
-Hold: No roadmap hold on Phase 10A/10B local release checks. Future Phase 10 publish automation/full release enforcement needs a separate decision. Phase 11 may start only after a real adopter, domain owner request, and activation decision. Phases 12-14 remain future prototypes.
-Date: 2026-06-08
-Decision: D021 status reset; D022 complexity metadata adoption; D017-D020 remain source decisions
+Approval scope: Phases 0-7 accepted baseline; Phase 8 planning-only; Phase 9 transition/adoption baseline; Phase 10 implementation complete through the release evidence contract and release-held; Phase 11 D025 G9 Quant pilot active as bounded first slice
+Hold: Phase 10 release readiness is blocked by missing external GitHub/security evidence, not code. Publish remains guarded by `prepublishOnly` and fails closed. Phase 11 is active only for the bounded D025 G9 Quant pilot; expansion requires a separate decision. Phases 12-14 remain future prototypes.
+Date: 2026-06-09
+Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D017-D020 remain source decisions
 
 ## Endgame
 
@@ -38,8 +38,8 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 7 | One-skill pilot | buildable | accepted baseline |
 | 8 | Read-only subagent scout pilot | buildable | planning-only; implementation not started |
 | 9 | Complexity governor expansion | buildable | transition/adoption baseline; complexity metadata separately marked adopted |
-| 10 | Release/package enforcement | buildable | Phase 10A local read-only release check plus Phase 10B publish-boundary guard implemented/in progress; not release-ready automation |
-| 11 | Domain governance pilot (adopter required) | prototype | start criteria explicit; not active without adopter and activation decision |
+| 10 | Release/package enforcement | buildable | implementation complete through release evidence contract; release-held because external GitHub/security evidence is missing; publish guarded and fails closed |
+| 11 | Domain governance pilot (adopter required) | prototype | D025 G9 Quant pilot active for real downstream adopter; bounded to FINRA short-interest signal-card chain; no broad framework implementation |
 | 12 | Self-evolution prototype | prototype | future prototype |
 | 13 | Multi-repo rollup | prototype | future prototype |
 | 14 | Controlled autonomy pilot | prototype | future prototype |
@@ -1239,11 +1239,11 @@ Classifications:
 
 Purpose: make shipping safe. No release from a dirty tree, no package includes local state or secrets, no publish without checks green.
 
-Current status: Phase 10A local read-only release check is implemented/in progress. It reports local package/release posture, clean-tree status, and missing external/full release evidence, but it does not claim release-ready enforcement. Phase 10B adds a fail-closed `prepublishOnly` package guard for `npm publish`. Publish automation, registry behavior, tags, CI publish workflow, version bumping, provenance publishing, and full external/publish evidence remain absent.
+Current status: Phase 10 implementation is complete through the release evidence contract and is release-held. The local read-only release check reports package/release posture, clean-tree status, and external/full release evidence status. The `prepublishOnly` package guard runs publish mode and fails closed unless `release_ready` is true. For the live Phase 10D evidence, `local_ok` is true, `external_evidence_ok` is false, `release_ready` is false, and publishing remains blocked. The next release action is external GitHub/security evidence availability or repository-setting change followed by exact-commit evidence recollection, not more Phase 10 code. Publish automation, registry behavior, tags, CI publish workflow, version bumping, provenance publishing, and accepted external/publish evidence remain absent.
 
 ### Problem
 
-The `package.json "files"` field already limits published contents to bin/, lib/, docs/product/, docs/sop/, templates/, and README.md. Phase 10A adds a local read-only release-check surface and Phase 10B adds a package publish-boundary guard, but the full release gate still does not:
+The `package.json "files"` field already limits published contents to bin/, lib/, docs/product/, docs/sop/, templates/, and README.md. Phase 10 now has a local read-only release-check surface, package publish-boundary guard, and read-only external/full release evidence contract, but the release remains held because the live external GitHub/security evidence does not satisfy policy. The full release gate still does not:
 
 1. Execute and verify package dry-run output against a forbidden-path list
 2. Enforce a clean git tree before an actual release, beyond the local status signal
@@ -1256,7 +1256,7 @@ The `package.json "files"` field already limits published contents to bin/, lib/
 
 Full Phase 10 target: a pre-publish gate that runs:
 
-Phase 10A subset: local read-only checks for release policy, package identity/metadata, npm lifecycle posture, reproducibility posture, quality baseline, read-only ready status, test-script eligibility, package dry-run eligibility, clean-tree status, and external/full evidence status. Test execution, package dry-run execution, tarball smoke testing, trusted publishing verification, and publish automation remain future work.
+Implemented subset: local read-only checks for release policy, package identity/metadata, npm lifecycle posture, reproducibility posture, quality baseline, read-only ready status, test-script eligibility, package dry-run eligibility, clean-tree status, and external/full evidence status. Test execution, package dry-run execution, tarball smoke testing, trusted publishing verification, and publish automation remain future work.
 
 | Check | Failure condition |
 |---|---|
@@ -1269,7 +1269,7 @@ Phase 10A subset: local read-only checks for release policy, package identity/me
 Pre-publish checks also run:
 - Tarball Install Smoke Test: after dry-run, install the packed tarball in a temp project and run CLI smoke test (e.g. executing `meta-harness --version`) to verify package contents and local install success.
 - Dependency Review check: runs dependency-review-action or equivalent in CI to block pull requests that introduce vulnerable or risky dependency versions. Must be configured as a required check in CI for pull requests affecting package files.
-- npm trusted publishing / OIDC: future publish mode should verify this; Phase 10B `release check --publish` fails closed on current release readiness and has no publish automation.
+- npm trusted publishing / OIDC: future publish mode should verify this; `release check --publish` fails closed on current release readiness and has no publish automation.
 - CODEOWNERS enforcement: verify branch protection rules require review from code owners before pull request merge.
 - Release Incident / Rollback Policy: if release check passes but the publish step fails midway, automatically delete the git tag locally and remotely ONLY if the package was not actually published, the tag was created by the current attempt, and no remote consumer has retrieved it. If package was partially published, tag deletion is forbidden; follow registry immutable version rules, run npm deprecate or unpublish where applicable, and log a failed publish event.
 
@@ -1320,7 +1320,7 @@ Phase 10B target: add a prepublishOnly script:
 }
 ```
 
-This blocks package publishing if the release check fails. Phase 10B modifies only the package boundary guard and does not automate publishing.
+This blocks package publishing if the release check fails. The package boundary guard does not automate publishing.
 
 #### Release readiness summary
 
@@ -1360,7 +1360,7 @@ Machine-readable output for CI:
 - [ ] No release from dirty git tree
 - [ ] No package includes .meta-harness local state, secrets, runtime data, or demo run artifacts
 - [x] `npm publish` blocked by prepublishOnly if release check fails
-- [ ] Release readiness summary available as JSON
+- [x] Release readiness summary available as JSON
 - [ ] Tests cover clean pass and each individual failure mode
 
 ---
@@ -1369,7 +1369,48 @@ Machine-readable output for CI:
 
 Purpose: avoid speculative platform work. Domain semantic governance is intellectually correct for quant, law, and sport science apps, but Meta-Harness has zero domain code today. This phase activates only when a real downstream repo with domain logic exists.
 
-Current status: start criteria are explicit, but the phase is not active. There is no recorded downstream adopter or activation decision in this repo; Phase 11 work may start only after the activation trigger below is met and recorded.
+Current status: D025 activates a real downstream G9 Quant pilot for `E:\Code\Quant-g9-market-behavior-signal-card`, remote `https://github.com/nathanku3-hue/Quant.git`, branch `codex/v2-d0-wrds-permission-snapshot-provenance-20260601`, HEAD `61edd14949fc8a7d7232748c27f75e7706010490`. The pilot is bounded to the FINRA short-interest G9 market-behavior signal card. Downstream `meta-harness ready` passed with `ok: true`, `passed: 12`, `failed: 0`, state hash `ed879a175a5872ec0ff90aa54b03f62264c0df54d52dc7429a85ecad6ec46332`, generated at `2026-06-09T02:45:07.298Z`. `meta-harness domain-governance check` passed for `D025` / `PHASE11-G9-FINRA-SHORT-INTEREST-001` with 9 pass and 0 fail. No broad Phase 11 framework or core implementation is active.
+
+### D025 pilot boundary
+
+Owner/requester: `nathanku3-hue`
+
+Reviewer: `codex-phase-11-reviewer`
+
+Governed in scope:
+
+- FINRA short-interest source interpretation
+- observed-vs-estimated classification
+- signal-card fact records
+- ontology terms
+- code mapping
+- golden case
+
+Out of scope:
+
+- buy/sell signals
+- ranking/scoring
+- provider credential access
+- broker/order/alert paths
+- broad ontology platform
+- release/publish automation
+
+Pilot evidence files:
+
+- `.meta-harness/domain-governance/activation.json`
+- `.meta-harness/domain-governance/pilot-chain.json`
+- `opportunity_engine/signal_card.py`
+- `opportunity_engine/signal_card_schema.py`
+- `data/signal_cards/FINRA_short_interest_signal_card_v0.json`
+- `data/signal_cards/FINRA_short_interest_signal_card_v0.manifest.json`
+- `tests/test_g9_market_behavior_signal_card.py`
+- `docs/architecture/g9_finra_short_interest_signal_card_policy.md`
+
+First slice:
+
+- validator command
+- pilot evidence files only
+- no provider credentials, trading/ranking behavior, broker/order/alert integration, broad ontology platform, publish automation, or Phase 10 release-policy weakening
 
 ### Activation trigger
 
@@ -1378,6 +1419,9 @@ This phase does NOT start until:
 - At least one downstream repo has domain-specific code (quant pricing, legal rules, sport science metrics, or equivalent)
 - That repo is Meta-Harness adopted (passes `meta-harness ready`)
 - The domain owner requests fact/ontology governance
+- A named reviewer is recorded
+- A governed-data boundary is defined
+- An activation decision is recorded
 
 Until then, domain governance exists only as a template/spec, not as core infrastructure.
 

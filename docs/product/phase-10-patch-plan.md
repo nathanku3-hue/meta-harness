@@ -1,25 +1,25 @@
 # Phase 10 Patch Plan
 
-Status: Phase 10D live release evidence captured; release blocked/not release-ready
+Status: Phase 10 implementation complete through release evidence contract; release blocked/not release-ready
 Roadmap phase: Phase 10 - Release/package enforcement
-Implementation status: local read-only release check, npm publish boundary guard, and read-only external/full release evidence contract exist; Phase 10D records live evidence for `dc7480cdb96fd021e5f5ef0d4316117bfd009e12` as blocked because branch protection/security evidence cannot satisfy the current policy; publish automation remains out of scope
-Decision required before implementation: Phase 10D evidence-only recording authorized by current worker assignment
+Implementation status: local read-only release check, npm publish boundary guard, and read-only external/full release evidence contract exist; Phase 10D records live evidence for `dc7480cdb96fd021e5f5ef0d4316117bfd009e12` as blocked because branch protection/security evidence cannot satisfy the current policy; publish remains guarded and fails closed; publish automation remains out of scope
+Decision required before implementation: none for Phase 10 closure; any future release-readiness claim requires external evidence satisfying policy for the exact release commit
 Commit plan doc: yes
-Start implementation: Phase 10D evidence-only policy/docs/status update
+Start implementation: no further Phase 10 code; next release action is external evidence availability/change and exact-commit evidence recollection
 Phase 10 quality baseline refresh: no; Phase 9 metadata adoption is handled separately by D022
 Publish: no
-Decision-log entry in this patch: D023
-Later decision-log entry: yes, if Phase 10 expands beyond local read-only checks or evidence harvesting
+Decision-log entry in this patch: D024 closure note; D023 remains the live evidence decision
+Later decision-log entry: yes, if Phase 10 expands into evidence harvesting, publish automation, or full release enforcement
 
 ## Scope
 
 Phase 10 defines release and package enforcement only.
 
-This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is the read-only local implementation check. Phase 10B adds only the package publish-boundary guard. Phase 10C adds only a file-based, read-only external/full release evidence contract. Phase 10D records live evidence only and keeps release readiness blocked.
+This plan documents release gates, package checks, CI requirements, publish-mode behavior, and incident policy. Phase 10A is the read-only local implementation check. Phase 10B adds only the package publish-boundary guard. Phase 10C adds only a file-based, read-only external/full release evidence contract. Phase 10D records live evidence only and keeps release readiness blocked. Phase 10 is now implementation-complete through that evidence contract and release-held until required external GitHub/security evidence can satisfy policy for the exact release commit.
 
 ## Hard Boundary
 
-This document now reflects Phase 10A local implementation status, the Phase 10B package boundary guard, the Phase 10C read-only evidence contract, and the Phase 10D blocked live-evidence snapshot. It does not permit publish, tag, CI publish automation, evidence harvesting, version bumping, registry writes, provenance publishing, release-ready overrides, or Phase 11 work.
+This document now reflects Phase 10A local implementation status, the Phase 10B package boundary guard, the Phase 10C read-only evidence contract, the Phase 10D blocked live-evidence snapshot, and the release hold. It does not permit publish, tag, CI publish automation, evidence harvesting, version bumping, registry writes, provenance publishing, release-ready overrides, or Phase 11 work.
 
 Allowed for Phase 10A:
 

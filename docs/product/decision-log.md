@@ -351,3 +351,57 @@ Rationale:
 The gathered live evidence cannot satisfy the current release policy. Commit `dc7480cdb96fd021e5f5ef0d4316117bfd009e12` was pushed to `origin/main`, and CI run `27152950530` (`Node tests`) succeeded, completing at `2026-06-08T16:48:14Z`. However, branch protection was `false`, protection/rulesets API evidence was blocked by private repository plan 403 responses, code scanning was disabled, and secret scanning was disabled or unavailable. Dependabot/vulnerability alerts were enabled with `0` open alerts, and automated security fixes were enabled, but those passing signals do not compensate for the missing branch protection and security evidence required by policy.
 
 This decision authorizes only an evidence-only policy/docs/status update. It does not authorize harvesting APIs, publish automation, tags, version bumps, GitHub releases, registry writes, provenance, Phase 11 work, or changing release-check code/tests. External/full-release evidence must not be marked `pass` until the policy can be satisfied and evidence is recollected for the exact commit being released.
+
+## D024: Phase 10 Implementation Closed Release-Held
+
+Decision:
+
+Close Phase 10 as implemented through the local release check, fail-closed `prepublishOnly` publish guard, and read-only external/full release evidence contract, while keeping release readiness blocked/not release-ready.
+
+Rationale:
+
+Phase 10 has reached the intended honest state: local implementation evidence can pass, publish behavior is guarded by `prepublishOnly` and fails closed, and `release_ready` remains false because required external GitHub/security evidence cannot satisfy the current policy. The private-repository plan/settings limitation is release evidence debt, not a reason to weaken release policy, mark missing evidence optional, add bypasses, or add publish automation.
+
+The next release action is external evidence availability or repository-setting change followed by exact-commit evidence recollection. Phase 11 may proceed only to activation evaluation if a real adopted downstream repo, ready pass, named domain owner request, named reviewer, governed-data boundary, and activation decision exist. No Phase 11 core implementation is authorized without a traceable pilot chain from source to fact, ontology term, code mapping, golden case, and review.
+
+## D025: Phase 11 G9 Quant Pilot Activated
+
+Decision:
+
+Activate a bounded Phase 11 pilot for the real downstream G9 Quant FINRA short-interest signal-card path.
+
+Activation evidence:
+
+- Downstream path: `E:\Code\Quant-g9-market-behavior-signal-card`
+- Remote: `https://github.com/nathanku3-hue/Quant.git`
+- Branch: `codex/v2-d0-wrds-permission-snapshot-provenance-20260601`
+- HEAD: `61edd14949fc8a7d7232748c27f75e7706010490`
+- Owner/requester: `nathanku3-hue`
+- Reviewer: `codex-phase-11-reviewer`
+- Boundary: FINRA short-interest G9 market-behavior signal card
+- Ready evidence: `node E:\Code\meta-harness\bin\meta-harness.js ready --target E:\Code\Quant-g9-market-behavior-signal-card --json` returned `ok: true`, `passed: 12`, `failed: 0`, state hash `ed879a175a5872ec0ff90aa54b03f62264c0df54d52dc7429a85ecad6ec46332`, generated at `2026-06-09T02:45:07.298Z`
+- Pilot chain: `PHASE11-G9-FINRA-SHORT-INTEREST-001`
+- Governance check: `meta-harness domain-governance check --target E:\Code\Quant-g9-market-behavior-signal-card --json` returned `ok: true`, 9 pass, 0 fail
+- Domain files: `opportunity_engine/signal_card.py`, `opportunity_engine/signal_card_schema.py`, `data/signal_cards/FINRA_short_interest_signal_card_v0.json`, `data/signal_cards/FINRA_short_interest_signal_card_v0.manifest.json`, `tests/test_g9_market_behavior_signal_card.py`, `docs/architecture/g9_finra_short_interest_signal_card_policy.md`
+
+Governed in scope:
+
+- FINRA short-interest source interpretation
+- observed-vs-estimated classification
+- signal-card fact records
+- ontology terms
+- code mapping
+- golden case
+
+Out of scope:
+
+- buy/sell signals
+- ranking/scoring
+- provider credential access
+- broker/order/alert paths
+- broad ontology platform
+- release/publish automation
+
+Rationale:
+
+This is the first real downstream adopter trigger for Phase 11, and all activation criteria are now represented by concrete evidence. The decision authorizes only the bounded G9 Quant pilot activation path for the recorded downstream commit and pilot chain. The first implementation slice is limited to a validator command plus pilot evidence files for this boundary. It does not authorize broad Phase 11 framework work, provider credential access, trading signals, ranking/scoring, broker/order/alert paths, release/publish automation, or any weakening of Phase 10. Phase 10 release readiness remains blocked/not release-ready until external GitHub/security evidence satisfies policy for the exact release commit.
