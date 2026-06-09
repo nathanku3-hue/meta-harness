@@ -1,7 +1,7 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
 Status: active baseline
-Approval scope: Phases 0-7 accepted baseline; Phase 8 planning-only; Phase 9 transition/adoption baseline; Phase 10 implementation complete through the release evidence contract and release-held; Phase 11 D025 G9 Quant pilot exit recorded as bounded first slice; Phase 12A docs/status-only planning authorized by D026; Phase 12 first-slice implementation start authorized by D027
+Approval scope: Phases 0-8 accepted baseline; Phase 9 transition/adoption baseline; Phase 10 implementation complete through the release evidence contract and release-held; Phase 11 D025 G9 Quant pilot exit recorded as bounded first slice; Phase 12A docs/status-only planning authorized by D026; Phase 12 first-slice implementation start authorized by D027
 Hold: Phase 10 release readiness is blocked by missing external GitHub/security evidence, not code. Publish remains guarded by `prepublishOnly` and fails closed. Phase 11 expansion requires a separate decision. Phase 12 implementation is limited to the D027 read-only promotion-preflight first slice; expansion requires a separate decision. Phases 13-14 remain future prototypes.
 Date: 2026-06-09
 Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D026 Phase 12A docs/status-only planning authorized; D027 Phase 12 first-slice implementation start authorized; D017-D020 remain source decisions
@@ -36,7 +36,7 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 5 | Minimum security baseline | concrete | implemented locally; GitHub settings partial |
 | 6 | Ship-fast enforcement loop | concrete | accepted baseline |
 | 7 | One-skill pilot | buildable | accepted baseline |
-| 8 | Read-only subagent scout pilot | buildable | planning-only; implementation not started |
+| 8 | Read-only subagent scout pilot | buildable | implemented and merged; PR #15 |
 | 9 | Complexity governor expansion | buildable | transition/adoption baseline; complexity metadata separately marked adopted |
 | 10 | Release/package enforcement | buildable | implementation complete through release evidence contract; release-held because external GitHub/security evidence is missing; publish guarded and fails closed |
 | 11 | Domain governance pilot (adopter required) | prototype | D025 G9 Quant pilot bounded first-slice exit recorded at `2b04dfef59b7b1936d5712f35c5a2bc7fedf6d7a`; no broad framework implementation |
@@ -1035,7 +1035,12 @@ This must:
 
 Purpose: prove subagent leverage safely. Start with read-only scouts that produce structured evidence. No write-enabled subagents yet.
 
-Current status: planning-only by D020. `docs/product/phase-8-readonly-scout-plan.md` is allowed planning evidence; it does not start scout execution, subagent activation, commands, tests, promotion, package changes, workflow changes, or repo writes.
+Current status: implemented and merged under PR #15 (commit `53e2c3409424957f6b334e93abdc8fe66e8f28b9`). Read-only scout infrastructure is fully implemented, bounded by enforced fanout limits, and reconciled as evidence-only.
+
+Remaining exclusions:
+- No write-enabled subagents
+- No auto-merge or multi-agent repair loops
+- No package, workflow, release, provider, runtime, or domain-authority changes
 
 ### Problem
 
@@ -1110,13 +1115,13 @@ Limits subagent resource consumption:
 
 ### Exit criteria
 
-- [ ] Scout packets have bounded paths, forbidden paths, and allowed commands
-- [ ] Scout output is structured JSON matching return_schema
-- [ ] Reconciler validates scout claims against repo state
-- [ ] Main agent / reconciler remains the only authority
-- [ ] No subagent writes to repo in this phase
-- [ ] Fanout budget exists and limits concurrent scouts and context size
-- [ ] Tests cover scout packet generation, reconciler dedup, and budget enforcement
+- [x] Scout packets have bounded paths, forbidden paths, and allowed commands
+- [x] Scout output is structured JSON matching return_schema
+- [x] Reconciler validates scout claims against repo state
+- [x] Main agent / reconciler remains the only authority
+- [x] No subagent writes to repo in this phase
+- [x] Fanout budget exists and limits concurrent scouts and context size
+- [x] Tests cover scout packet generation, reconciler dedup, and budget enforcement
 
 ---
 
