@@ -40,7 +40,7 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 9 | Complexity governor expansion | buildable | transition/adoption baseline; complexity metadata separately marked adopted |
 | 10 | Release/package enforcement | buildable | implementation complete through release evidence contract; release-held because external GitHub/security evidence is missing; publish guarded and fails closed |
 | 11 | Domain governance pilot (adopter required) | prototype | D028 done-done validation closure: activation, source→fact→ontology→code→golden-case/review evidence, fact-ID code trace, expired-fact release block, signed review coverage, and `ready` integration implemented; non-goal boundaries unchanged |
-| 12 | Self-evolution prototype | prototype | D027 authorizes only the bounded read-only promotion-preflight first slice |
+| 12 | Self-evolution prototype | prototype | D029 done-done closure for the local governed skill lifecycle: distillation candidate drafts, inactive candidate enforcement, preflight checks, promotion requiring decision ID, rollback/quarantine, and registry updates implemented; non-goal boundaries unchanged |
 | 13 | Multi-repo rollup | prototype | future prototype |
 | 14 | Controlled autonomy pilot | prototype | future prototype |
 
@@ -1542,7 +1542,7 @@ Checks:
 
 Purpose: make self-improvement governed, not free-running. The system may propose changes to itself, but it cannot silently promote them. This replaces the earlier aspirational criteria ("Meta-Harness can explain every change") with measurable testable gates.
 
-Current status: done-done for the local governed skill lifecycle by D028. D026 recorded the plan, D027 authorized the first implementation slice, and D028 closes the measurable Phase 12 self-evolution gates: distillation-to-candidate draft creation, inactive candidate enforcement, read-only preflight, permission-decision gating, promotion, rollback/quarantine, registry updates, event logging, and focused tests. Release status remains governed by the Phase 10 release evidence hold.
+Current status: done-done for the local governed skill lifecycle by D029. D026 recorded the plan, D027 authorized the first implementation slice, and D029 closes the measurable Phase 12 self-evolution gates: distillation-to-candidate draft creation, inactive candidate enforcement, read-only preflight, permission-decision gating, promotion, rollback/quarantine, registry updates, event logging, and focused tests. Release status remains governed by the Phase 10 release evidence hold.
 
 ### Problem
 

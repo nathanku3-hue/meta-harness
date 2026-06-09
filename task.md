@@ -1,0 +1,21 @@
+- [x] Prepare Git branches for Phase 11 and Phase 12
+    - [x] Extract zip files and verify contents
+    - [x] Save Phase 12 into a temporary branch `temp/phase12-import`
+    - [x] Setup `codex/phase-11-governance-pilot` on the correct Phase 11 commit
+- [x] Merge Phase 11 into main
+    - [x] Rebase/merge `codex/phase-11-governance-pilot` on top of `main`
+    - [x] Resolve conflicts in `.meta-harness/status.md` and `docs/product/roadmap.md`
+    - [x] Run Phase 11 tests to verify success
+- [x] Open PR for Phase 11
+    - [x] Push `codex/phase-11-governance-pilot` to GitHub
+    - [x] Open Phase 11 PR targeting `main` and merge it
+- [x] Merge Phase 12 into main / Phase 11
+    - [x] Rebase/merge Phase 12 on top of the Phase 11 branch
+    - [x] Resolve any conflicts
+    - [x] Run Phase 12 tests to verify success
+- [x] Open PR for Phase 12
+    - [x] Push Phase 12 branch to GitHub
+    - [x] Open Phase 12 PR targeting `main` and merge it
+- [x] Run final validations and cleanup
+- [x] Resolve document consistency fixes (stale status/roadmap language & references)
+- [x] Expose walkthrough.md and task.md in repository root

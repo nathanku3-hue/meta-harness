@@ -33,17 +33,17 @@ Blockers:
 - live full Phase 10 release readiness is blocked because branch protection/security evidence cannot satisfy current policy
 - evidence must be recollected for the exact release commit after branch protection/security evidence can satisfy policy
 - publish automation decisions remain unmade
-- no Phase 11 expansion beyond D025 bounded pilot without a separate decision
+- no Phase 11 expansion beyond the D028 validation/control-plane scope without a separate decision
 - no Phase 12 expansion beyond explicit local skill lifecycle commands without a separate decision
 
 Last verified:
 Roadmap status cross-checked against D017-D029, Phase 8 planning doc, Phase 10A/10B release-check work, Phase 10C evidence-contract scope, Phase 10D live evidence review `PHASE10D-REL-EVIDENCE-2026-06-09-dc7480c`, current complexity-policy metadata, D025 downstream G9 Quant ready evidence, D025 pilot-chain governance check, Phase 11 D028 rule-chain validation, Phase 12A patch plan, Phase 12 D027 implementation-start boundary, and D029 lifecycle closure tests. Local verification for D029: `node --test tests/skill-registry.test.js tests/cli-skill.test.js tests/skill-promotion-lifecycle.test.js tests/skill-distillation.test.js tests/skill-distillation-candidate.test.js tests/command-registry.test.js` passed 33/33; `node bin/meta-harness.js quality check` passed.
 
 Next action:
-Review and merge the D029 Phase 12 lifecycle closure patch. Do not expand release automation, publishing, or other out-of-scope boundaries without a separate decision.
+Resolve document consistency fixes, expose walkthrough.md and task.md in the repository root, and confirm final done-done status.
 
 Stop criteria:
-Fresh human and Codex worker can tell that Phase 10 is implemented through the evidence contract, release-held by missing external evidence, publish-guarded with `release_ready: false`, and not weakened by D025-D029. They can also tell that Phase 11 D025 bounded first-slice exit is recorded and Phase 12 is done-done only for the local governed skill lifecycle, not for release automation or an aggregate Phase 1-12 done-done claim.
+Fresh human and Codex worker can tell that Phase 10 is implemented through the evidence contract, release-held by missing external evidence, publish-guarded with `release_ready: false`, and not weakened by D025-D029. They can also tell that Phase 11 is closed by D028 for the validation/control-plane scope and Phase 12 is done-done by D029 for the local governed skill lifecycle, not for release automation or an aggregate Phase 1-12 done-done claim.
 
 Updated:
 2026-06-09
