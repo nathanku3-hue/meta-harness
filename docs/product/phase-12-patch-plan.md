@@ -23,7 +23,7 @@ Phase 12A recorded the plan, boundaries, first slice, validation gates, and impl
 
 ## Why Phase 11 Unblocks Planning
 
-Phase 11 proved that a high-risk governance capability can be activated as a bounded, evidence-backed pilot instead of as a broad framework. The D025 G9 Quant pilot has a recorded adopter, reviewer, governed-data boundary, ready evidence, pilot chain, and passing governance check.
+Phase 11 proved that a high-risk governance capability can be activated as a bounded, evidence-backed pilot instead of as a broad framework. The D025 G9 Quant pilot has a recorded adopter, reviewer, governed-data boundary, ready evidence, pilot chain, and passing governance check. D028 later closes the Phase 11 validation/control-plane scope by requiring activation, pilot-chain, fact-ledger, ontology, fact-to-code mapping, golden-case, review, code-trace, patch-plan coverage, expiry, and ready-integration evidence; it does not authorize provider access, trading/ranking behavior, release automation, or ontology UI.
 
 That exit evidence unblocks Phase 12 planning because Phase 12 can now reuse the same operating pattern:
 
@@ -49,7 +49,7 @@ D027 records the implementation-start decision after that review. D027 does not 
 
 Phase 12 first-slice implementation is unblocked only when all of these are true:
 
-- Phase 11 D025 bounded pilot exit is recorded in roadmap, status, and decision log.
+- Phase 11 D025 bounded pilot exit and D028 validation/control-plane closure are recorded in roadmap, status, and decision log.
 - This Phase 12 patch plan exists.
 - This Phase 12 patch plan has been reviewed and accepted.
 - Phase 12 scope is bounded to a first reviewable slice.

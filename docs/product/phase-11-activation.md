@@ -1,13 +1,13 @@
 # Phase 11 Activation - G9 Quant Pilot
 
-Status: D025 active bounded pilot; downstream ready and pilot governance evidence passed
+Status: D028 done-done validation closure; D025 downstream pilot remains the adopter trigger
 Date: 2026-06-09
 
 ## Decision
 
 D025 records a Phase 11 activation decision for a real downstream G9 Quant pilot. The pilot is active only for the bounded FINRA short-interest G9 market-behavior signal-card path recorded here.
 
-This is not broad Phase 11 framework approval.
+This is not provider access, trading/ranking behavior, broker/order/alert integration, ontology product UI, release automation, or Phase 10 release-policy weakening.
 
 ## Downstream Evidence
 
@@ -88,3 +88,25 @@ Non-goals:
 ## Release Impact
 
 Phase 11 D025 does not change Phase 10 release policy. Phase 10 release readiness remains blocked/not release-ready until external GitHub/security evidence satisfies policy and is recollected for the exact release commit. Publish remains guarded by `prepublishOnly` and must continue to fail closed while `release_ready` is false.
+
+
+## D028 Done-Done Validation Closure
+
+D028 closes Phase 11 for the validation/control-plane scope. The CLI now requires the full source-to-code chain instead of accepting only bounded pilot metadata:
+
+- `domain/facts/ledger.jsonl` with `source`, `effective_date`, owner, claim, and non-expired fact state.
+- `domain/ontology/terms.json` with owned terms linked to facts.
+- `domain/mappings/fact-to-code.json` linking facts and terms to code paths and golden-case IDs.
+- `domain/golden-cases/*.json` with expected outputs and source references.
+- `domain/reviews/*.json` with signed reviewer coverage for mapped facts, terms, and golden cases.
+- mapped domain code containing the mapped `fact_id`.
+- every code file listed in the activation patch plan represented by a fact-to-code mapping.
+
+`meta-harness ready` now reports `MH_DOMAIN_GOVERNANCE_001`. Repos with no domain-governance surface skip the check; repos with activation, pilot, or domain evidence must pass it. Expired facts fail the domain-governance check, which makes ready fail and blocks local release readiness through the existing release `ready` dependency.
+
+Verification for this closure:
+
+- `npm_config_force=true node --test tests/domain-governance.test.js tests/cli-domain-governance.test.js tests/cli-ready.test.js tests/command-registry.test.js` passed, 30/30.
+- `node bin/meta-harness.js quality check` passed.
+
+Phase 11 remains bounded to governance validation. It still does not publish, trade, rank, call providers, handle credentials, create broker/order/alert paths, weaken Phase 10 release policy, or make the downstream G9 repo itself release-ready.

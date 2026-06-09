@@ -129,6 +129,17 @@ meta-harness decisions scan --target <repo>
 
 These checks detect template drift, untrusted local skill references, old contract headings, state-layout drift, PM brief shape drift, and malformed, invalid, or duplicate decision-inbox records. They do not install templates, clean inherited dirty files, rewrite generators, or write `.meta-harness/status.md` or `.meta-harness/events.jsonl`.
 
+## Domain Governance Validation
+
+Phase 11 closes the downstream domain-governance validation/control-plane gate without adding provider credentials, trading, ranking, broker/order paths, ontology UI, release automation, or publish behavior.
+
+```bash
+meta-harness domain-governance check --target <repo> --json
+meta-harness ready --target <repo> --quick --read-only --json
+```
+
+For repos that declare a domain-governance surface, the gate requires activation and pilot-chain evidence plus a source-to-code rule chain: `domain/facts/ledger.jsonl`, `domain/ontology/terms.json`, `domain/mappings/fact-to-code.json`, `domain/golden-cases/*.json`, `domain/reviews/*.json`, `fact_id` references in mapped code, patch-plan code coverage, and non-expired facts. Repos without that surface skip `MH_DOMAIN_GOVERNANCE_001`; repos with that surface must pass it before local release readiness can pass.
+
 ## Pre-MVP Prototype CLI
 
 The current Python script is an earlier local prototype. It is useful as a behavior sketch, not the final product packaging target.
@@ -160,6 +171,8 @@ The CLI writes:
 
 ```bash
 npm test
+node bin/meta-harness.js quality check
+npm_config_force=true node --test tests/domain-governance.test.js tests/cli-domain-governance.test.js tests/cli-ready.test.js tests/command-registry.test.js
 ```
 
 The older Python prototype test can still be run separately with `python -m unittest discover -s tests`.

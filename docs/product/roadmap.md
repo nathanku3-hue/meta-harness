@@ -1,10 +1,10 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
 Status: active baseline
-Approval scope: Phases 0-8 accepted baseline; Phase 9 transition/adoption baseline; Phase 10 implementation complete through the release evidence contract and release-held; Phase 11 D025 G9 Quant pilot exit recorded as bounded first slice; Phase 12A docs/status-only planning authorized by D026; Phase 12 first-slice implementation start authorized by D027
-Hold: Phase 10 release readiness is blocked by missing external GitHub/security evidence, not code. Publish remains guarded by `prepublishOnly` and fails closed. Phase 11 expansion requires a separate decision. Phase 12 implementation is limited to the D027 read-only promotion-preflight first slice; expansion requires a separate decision. Phases 13-14 remain future prototypes.
+Approval scope: Phases 0-8 accepted baseline; Phase 9 transition/adoption baseline; Phase 10 implementation complete through the release evidence contract and release-held; Phase 11 D028 domain-governance done-done closure over the D025 G9 Quant adopter trigger; Phase 12A docs/status-only planning authorized by D026; Phase 12 first-slice implementation start authorized by D027
+Hold: Phase 10 release readiness is blocked by missing external GitHub/security evidence, not code. Publish remains guarded by `prepublishOnly` and fails closed. Phase 11 is closed for the domain-governance validation/control-plane scope only; it still does not authorize provider credentials, trading/ranking behavior, broker/order/alert paths, ontology product UI, release automation, or Phase 10 policy weakening. Phase 12 implementation is limited to the D027 read-only promotion-preflight first slice; expansion requires a separate decision. Phases 13-14 remain future prototypes.
 Date: 2026-06-09
-Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D026 Phase 12A docs/status-only planning authorized; D027 Phase 12 first-slice implementation start authorized; D017-D020 remain source decisions
+Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D026 Phase 12A docs/status-only planning authorized; D027 Phase 12 first-slice implementation start authorized; D028 Phase 11 done-done validation closure; D017-D020 remain source decisions
 
 ## Endgame
 
@@ -39,7 +39,7 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 8 | Read-only subagent scout pilot | buildable | implemented and merged; PR #15 |
 | 9 | Complexity governor expansion | buildable | transition/adoption baseline; complexity metadata separately marked adopted |
 | 10 | Release/package enforcement | buildable | implementation complete through release evidence contract; release-held because external GitHub/security evidence is missing; publish guarded and fails closed |
-| 11 | Domain governance pilot (adopter required) | prototype | D025 G9 Quant pilot bounded first-slice exit recorded at `2b04dfef59b7b1936d5712f35c5a2bc7fedf6d7a`; no broad framework implementation |
+| 11 | Domain governance pilot (adopter required) | prototype | D028 done-done validation closure: activation, source→fact→ontology→code→golden-case/review evidence, fact-ID code trace, expired-fact release block, signed review coverage, and `ready` integration implemented; non-goal boundaries unchanged |
 | 12 | Self-evolution prototype | prototype | D027 authorizes only the bounded read-only promotion-preflight first slice |
 | 13 | Multi-repo rollup | prototype | future prototype |
 | 14 | Controlled autonomy pilot | prototype | future prototype |
@@ -1374,7 +1374,7 @@ Machine-readable output for CI:
 
 Purpose: avoid speculative platform work. Domain semantic governance is intellectually correct for quant, law, and sport science apps, but Meta-Harness has zero domain code today. This phase activates only when a real downstream repo with domain logic exists.
 
-Current status: D025 activates a real downstream G9 Quant pilot for `E:\Code\Quant-g9-market-behavior-signal-card`, remote `https://github.com/nathanku3-hue/Quant.git`, branch `codex/v2-d0-wrds-permission-snapshot-provenance-20260601`, HEAD `61edd14949fc8a7d7232748c27f75e7706010490`. The pilot is bounded to the FINRA short-interest G9 market-behavior signal card. Downstream `meta-harness ready` passed with `ok: true`, `passed: 12`, `failed: 0`, state hash `ed879a175a5872ec0ff90aa54b03f62264c0df54d52dc7429a85ecad6ec46332`, generated at `2026-06-09T02:45:07.298Z`. `meta-harness domain-governance check` passed for `D025` / `PHASE11-G9-FINRA-SHORT-INTEREST-001` with 9 pass and 0 fail. The bounded first-slice exit is recorded on main at `2b04dfef59b7b1936d5712f35c5a2bc7fedf6d7a`. No broad Phase 11 framework or core implementation is active.
+Current status: D025 activated a real downstream G9 Quant pilot for `E:\Code\Quant-g9-market-behavior-signal-card`, remote `https://github.com/nathanku3-hue/Quant.git`, branch `codex/v2-d0-wrds-permission-snapshot-provenance-20260601`, HEAD `61edd14949fc8a7d7232748c27f75e7706010490`. The pilot is bounded to the FINRA short-interest G9 market-behavior signal card. Downstream `meta-harness ready` passed with `ok: true`, `passed: 12`, `failed: 0`, state hash `ed879a175a5872ec0ff90aa54b03f62264c0df54d52dc7429a85ecad6ec46332`, generated at `2026-06-09T02:45:07.298Z`. D028 closes Phase 11 for the validation/control-plane scope by promoting the first-slice validator into a full domain-governance gate: `meta-harness domain-governance check` now validates activation, pilot chain, `domain/facts/ledger.jsonl`, `domain/ontology/terms.json`, `domain/mappings/fact-to-code.json`, `domain/golden-cases/*.json`, `domain/reviews/*.json`, fact-ID references in mapped domain code, patch-plan code coverage, signed domain reviews, and expired facts. `meta-harness ready` includes `MH_DOMAIN_GOVERNANCE_001`; when a repo has a domain-governance surface, failures become readiness failures and therefore block local release readiness through the existing `REL_READY_001` path. This is the Phase 11 done-done claim for evidence validation only, not provider access, trading/ranking behavior, broker/order/alert integration, ontology product UI, release automation, or Phase 10 release-policy weakening.
 
 ### D025 pilot boundary
 
@@ -1500,7 +1500,13 @@ source (paper, regulation, protocol, authority)
 }
 ```
 
-#### [NEW] lib/domain-check.js
+#### [NEW] domain/reviews/*.json
+
+```json
+{"id":"R001","reviewer":"DOMAIN_EXPERT","reviewed_at":"2026-06-09","signed_off":true,"fact_ids":["F001"],"term_ids":["T001"],"golden_case_ids":["GC001"]}
+```
+
+#### [DONE] lib/domain-rule-check.js and `meta-harness domain-governance check`
 
 Checks:
 
@@ -1508,8 +1514,9 @@ Checks:
 2. No fact without source and effective_date
 3. No ontology term without owner
 4. No mapped fact without golden case
-5. Expired facts block release
-6. Domain reviewer can trace every rule from source to code
+5. Domain review coverage is signed for mapped facts, terms, and golden cases
+6. Expired facts block release
+7. Domain reviewer can trace every rule from source to code
 
 ### Domain examples by vertical
 
@@ -1521,13 +1528,13 @@ Checks:
 
 ### Exit criteria
 
-- [ ] Activation trigger met (real adopter with domain code)
-- [ ] One real domain rule maps source → fact → ontology → code → golden case
-- [ ] No domain code exists without fact_id reference
-- [ ] No fact exists without source and effective_date
-- [ ] No mapped fact exists without golden case
-- [ ] Expired facts block release
-- [ ] Domain check integrates with `meta-harness ready`
+- [x] Activation trigger met (real adopter with domain code)
+- [x] One real domain rule maps source → fact → ontology → code → golden case
+- [x] No domain code exists without fact_id reference
+- [x] No fact exists without source and effective_date
+- [x] No mapped fact exists without golden case
+- [x] Expired facts block release
+- [x] Domain check integrates with `meta-harness ready`
 
 ---
 
