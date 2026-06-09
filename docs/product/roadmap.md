@@ -1,10 +1,10 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
 Status: active baseline
-Approval scope: Phases 0-8 accepted baseline; Phase 9 transition/adoption baseline; Phase 10 implementation complete through the release evidence contract and release-held; Phase 11 D028 domain-governance done-done closure over the D025 G9 Quant adopter trigger; Phase 12A docs/status-only planning authorized by D026; Phase 12 first-slice implementation start authorized by D027
-Hold: Phase 10 release readiness is blocked by missing external GitHub/security evidence, not code. Publish remains guarded by `prepublishOnly` and fails closed. Phase 11 is closed for the domain-governance validation/control-plane scope only; it still does not authorize provider credentials, trading/ranking behavior, broker/order/alert paths, ontology product UI, release automation, or Phase 10 policy weakening. Phase 12 implementation is limited to the D027 read-only promotion-preflight first slice; expansion requires a separate decision. Phases 13-14 remain future prototypes.
+Approval scope: Phases 0-8 accepted baseline; Phase 9 transition/adoption baseline; Phase 10 implementation complete through the release evidence contract and release-held; Phase 11 D028 domain-governance done-done closure over the D025 G9 Quant adopter trigger; Phase 12 local governed skill lifecycle closed by D029
+Hold: Phase 10 release readiness is blocked by missing external GitHub/security evidence, not code. Publish remains guarded by `prepublishOnly` and fails closed. Phase 11 is closed for the domain-governance validation/control-plane scope only; it still does not authorize provider credentials, trading/ranking behavior, broker/order/alert paths, ontology product UI, release automation, or Phase 10 policy weakening. Phase 12 is done-done only for the local governed skill lifecycle; release, publish, provenance publishing, workflow, dependency, provider, and external-evidence automation remain out of scope. Phases 13-14 remain future prototypes.
 Date: 2026-06-09
-Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D026 Phase 12A docs/status-only planning authorized; D027 Phase 12 first-slice implementation start authorized; D028 Phase 11 done-done validation closure; D017-D020 remain source decisions
+Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D026 Phase 12A docs/status-only planning authorized; D027 Phase 12 first-slice implementation start authorized; D028 Phase 11 done-done validation closure; D029 Phase 12 local self-evolution lifecycle closure; D017-D020 remain source decisions
 
 ## Endgame
 
@@ -1542,7 +1542,7 @@ Checks:
 
 Purpose: make self-improvement governed, not free-running. The system may propose changes to itself, but it cannot silently promote them. This replaces the earlier aspirational criteria ("Meta-Harness can explain every change") with measurable testable gates.
 
-Current status: Phase 12A docs/status-only planning is authorized by D026. The Phase 12 plan has been independently reviewed and accepted, and D027 authorizes implementation start only for the bounded read-only promotion-preflight first slice. Expansion beyond candidate preflight requires a separate decision. Release status: still governed by the Phase 10 release evidence hold.
+Current status: done-done for the local governed skill lifecycle by D028. D026 recorded the plan, D027 authorized the first implementation slice, and D028 closes the measurable Phase 12 self-evolution gates: distillation-to-candidate draft creation, inactive candidate enforcement, read-only preflight, permission-decision gating, promotion, rollback/quarantine, registry updates, event logging, and focused tests. Release status remains governed by the Phase 10 release evidence hold.
 
 ### Problem
 
@@ -1581,16 +1581,16 @@ Staging directory for skills that have not yet been promoted:
   quarantine/                  # disabled/rolled-back skills
 ```
 
-A candidate skill must NOT be read by agents as active guidance. Only promoted skills in `.agents/skills/` are active.
+A candidate skill must NOT be read by agents as active guidance. Only promoted skills in `.agents/skills/` are active. `meta-harness distill candidate <distillation-id> --target <repo>` creates candidate drafts from reviewed distillation records and writes them only under `.agents/candidate/`.
 
 #### [NEW] lib/skill-promotion.js
 
-Promotion gate that checks before moving a candidate to active:
+Promotion lifecycle implementation that checks before moving a candidate to active and also performs promotion and rollback:
 
 | Gate | Failure condition |
 |---|---|
-| Eval pass | Skill eval command exits non-zero |
-| Security check | Skill expands allowed_tools, removes forbidden_paths, or adds write access without decision inbox entry |
+| Eval pass | Missing or failing eval evidence |
+| Security check | Skill expands allowed_tools, removes forbidden_paths, or adds write access without decision evidence |
 | Complexity check | Skill adds files that violate line budgets |
 | Permission diff | New version expands permissions vs previous active version |
 | Rollback path | No rollback_hash recorded for current active version |
@@ -1598,7 +1598,7 @@ Promotion gate that checks before moving a candidate to active:
 #### [MODIFY] meta-harness skill promote
 
 ```text
-meta-harness skill promote <skill-name>
+meta-harness skill promote <skill-name> --target <repo> --decision-id <id>
 
 PROMOTION: BLOCK
 
@@ -1608,13 +1608,13 @@ PASS  security          no forbidden_path removals
 PASS  complexity        SKILL.md under budget
 PASS  rollback          previous hash recorded
 
-Decision required: approve permission expansion via decision inbox
+Decision required: `--decision-id <id>` for every promotion; permission expansion also requires an explicit permission decision or promotion decision.
 ```
 
 #### [MODIFY] meta-harness skill rollback
 
 ```text
-meta-harness skill rollback <skill-name>
+meta-harness skill rollback <skill-name> --target <repo> --decision-id <id>
 ```
 
 This must:
@@ -1662,15 +1662,15 @@ These replace the earlier aspirational statements:
 
 ### Exit criteria
 
-- [ ] One repeated correction becomes one candidate skill in `.agents/candidate/`
-- [ ] Candidate skill stays inactive until eval passes
-- [ ] Promotion writes skill-registry entry with version_hash and promotion_decision
-- [ ] Permission expansion requires decision inbox entry — promotion blocks without it
-- [ ] Rollback restores previous active skill version from hash
-- [ ] Bad candidate can be deleted from `.agents/candidate/` without affecting active skills
-- [ ] Distillation creates drafts in candidate/, never directly in skills/
-- [ ] All promotion and rollback events append to events.jsonl
-- [ ] Tests cover: successful promotion, blocked promotion (eval fail), blocked promotion (permission expansion), rollback, quarantine
+- [x] One repeated correction becomes one candidate skill in `.agents/candidate/`
+- [x] Candidate skill stays inactive until eval passes
+- [x] Promotion writes skill-registry entry with content_hash, rollback_hash, previous_version_hash, and promotion_decision
+- [x] Permission expansion requires decision evidence — preflight and promotion block without it
+- [x] Rollback restores previous active skill version from hash
+- [x] Bad candidate can be deleted from `.agents/candidate/` without affecting active skills
+- [x] Distillation creates drafts in candidate/, never directly in skills/
+- [x] All promotion and rollback events append to events.jsonl
+- [x] Tests cover: successful promotion, blocked promotion (missing/failing evidence), blocked promotion/preflight permission expansion, rollback, and quarantine
 
 ---
 

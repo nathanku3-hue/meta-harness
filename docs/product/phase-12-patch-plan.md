@@ -1,25 +1,41 @@
 # Phase 12 Patch Plan
 
-Status: reviewed and accepted for bounded first implementation slice
+Status: closed done-done for local governed skill lifecycle by D028
 Roadmap phase: Phase 12 - Self-evolution prototype
-Implementation status: D027 authorizes only the first promotion-preflight slice
+Implementation status: D028 implements candidate drafting, preflight, promotion, rollback, quarantine, registry updates, and lifecycle event logging
 Start implementation: D027 records post-review implementation start for the bounded first slice only
 Release status: still governed by the Phase 10 release evidence hold
 Publish: no
 Runtime code before D027: no
-Runtime code after D027: read-only promotion preflight only
+Runtime code after D028: candidate drafting, read-only promotion preflight, explicit-decision promotion, and explicit-decision rollback
 New commands before D027: no
-New commands after D027: read-only `meta-harness skill preflight` only
-Skill registry writes: no
-Active skill promotion: no
+New commands after D028: `meta-harness skill preflight`, `meta-harness skill promote`, `meta-harness skill rollback`, and `meta-harness distill candidate`
+Skill registry writes: yes, only for explicit candidate drafting, promotion, and rollback lifecycle operations
+Active skill promotion: yes, only through `meta-harness skill promote <skill-name> --target <repo> --decision-id <id>` after preflight passes
 Autonomy expansion: no
-Decision-log entries: D026 planning authorization; D027 implementation-start authorization
+Decision-log entries: D026 planning authorization; D027 implementation-start authorization; D028 local lifecycle done-done closure
 
 ## Goal
 
 Phase 12 makes self-improvement governed, reversible, and reviewable. The system may eventually propose changes to its own skills, but it must not silently promote them, expand permissions, or rewrite active guidance.
 
 Phase 12A recorded the plan, boundaries, first slice, validation gates, and implementation-start criteria before any code changes began. D027 accepts this plan for the bounded first implementation slice only.
+
+D028 closes the local Phase 12 lifecycle by implementing the full measurable loop: a reviewed distillation can create an inactive candidate skill, preflight fails closed on missing evidence or unauthorized permission expansion, promotion requires an explicit decision and records rollback metadata, rollback restores a previous hash and quarantines the current version, and promotion/rollback append redacted lifecycle events.
+
+## D028 Closure Scope
+
+D028 is the done-done closure for the local governed skill lifecycle only. It adds:
+
+- `meta-harness distill candidate <distillation-id> --target <repo> [--json]` for candidate draft creation under `.agents/candidate/`
+- `meta-harness skill preflight <skill-name> --target <repo> [--json] [--permission-decision <id>]` for read-only fail-closed eligibility checks
+- `meta-harness skill promote <skill-name> --target <repo> --decision-id <id> [--json] [--dry-run]` for explicit-decision promotion
+- `meta-harness skill rollback <skill-name> --target <repo> --decision-id <id> [--json] [--dry-run]` for explicit-decision rollback
+- quarantined superseded and rolled-back skill versions under `.agents/quarantine/`
+- registry lifecycle fields for promotion date, promotion decision, permission diff, previous version hash, rollback hash, and rollback path
+- redacted `skill.promote` and `skill.rollback` events in `.meta-harness/events.jsonl`
+
+D028 does not weaken Phase 10 release evidence, publish behavior, `prepublishOnly`, package metadata, dependencies, CI workflows, provenance publishing, provider access, runtime paths, dashboard/scoring/broker paths, or external evidence automation.
 
 ## Why Phase 11 Unblocks Planning
 
@@ -73,9 +89,9 @@ The first implementation slice authorized by D027 is a promotion preflight slice
 
 Reviewable output for this slice is limited to a read-only preflight result and tests. The first slice must not move files into `.agents/skills/`, write `.meta-harness/skill-registry.json`, integrate distillation, quarantine active skills, execute rollback behavior, publish provenance, or add publish/release behavior.
 
-## Non-Goals
+## D027 First-Slice Non-Goals
 
-Phase 12 first-slice implementation does not include:
+D027 first-slice implementation did not include these items. D028 explicitly authorizes the local candidate drafting, promotion, rollback, registry-write, and event-log behavior listed in the closure scope above while keeping release/publish/provider automation forbidden.
 
 - runtime code outside read-only promotion preflight
 - new commands outside `meta-harness skill preflight`
@@ -115,6 +131,14 @@ Phase 12 D027 first-slice implementation validation expects:
 - `node bin/meta-harness.js release check --publish --json` fails closed with `release_ready: false` unless Phase 10 external evidence is separately satisfied
 - `node bin/meta-harness.js skill preflight <candidate-skill> --target <fixture> --json` reports read-only pass/fail results in focused tests
 - `git diff -- package.json package-lock.json .github` is empty unless a separate decision authorizes release, workflow, dependency, or package metadata changes
+
+Phase 12 D028 closure validation expects:
+
+- `node --test tests/skill-registry.test.js tests/cli-skill.test.js tests/skill-promotion-lifecycle.test.js tests/skill-distillation.test.js tests/skill-distillation-candidate.test.js tests/command-registry.test.js` passes
+- `node bin/meta-harness.js quality check --json` passes
+- `node bin/meta-harness.js ready --target . --quick --read-only --json` passes, or any failure is recorded as a blocker
+- `node bin/meta-harness.js release check --publish --json` remains fail-closed with `release_ready: false` unless Phase 10 external evidence is separately satisfied
+- `git diff -- package.json package-lock.json .github` remains empty
 
 ## Validation Gates
 
@@ -234,9 +258,7 @@ Post-commit validation, if a commit is created later:
 
 ## Rollback / Fail-Closed Behavior
 
-Phase 12A rollback is a docs/status revert only. It must not require registry cleanup, event-log cleanup, tag deletion, package changes, or runtime migration.
-
-Future Phase 12 implementation must fail closed:
+Phase 12A rollback was docs/status revert only. D028 lifecycle rollback is now explicit command behavior and must still fail closed:
 
 - candidate skills remain inactive by default
 - promotion blocks when eval evidence is missing or failing

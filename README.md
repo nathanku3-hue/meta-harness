@@ -100,6 +100,20 @@ The workflow validates worker-report artifact v2 shape, skips `worker-report-tem
 
 For cross-repo reuse, call the workflow with `workflow_call` from a job-level `uses:` reference pinned to a full commit SHA after audit.
 
+## Governed Skill Self-Evolution
+
+Phase 12 closes the local self-evolution lifecycle without adding publish automation or external evidence harvesting. Candidate drafts stay inactive under `.agents/candidate/` until explicit evidence and decision gates pass:
+
+```bash
+meta-harness distill candidate <distillation-id> --target . --json
+meta-harness skill preflight <skill-name> --target . --json
+meta-harness skill preflight <skill-name> --target . --json --permission-decision D028
+meta-harness skill promote <skill-name> --target . --decision-id D028 --json
+meta-harness skill rollback <skill-name> --target . --decision-id D029 --json
+```
+
+Promotion requires explicit eval, complexity, rollback, and permission evidence. Promotion writes registry lifecycle fields and appends a redacted `skill.promote` event. Rollback restores the previous hash, quarantines the current version, updates the registry, and appends a redacted `skill.rollback` event. Candidate skills are never active guidance before promotion.
+
 ## Expert Packets And Scope Contracts
 
 The CLI now ships a small generic kit for bounded review and delegated work:
