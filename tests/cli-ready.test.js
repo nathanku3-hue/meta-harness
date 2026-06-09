@@ -91,9 +91,9 @@ test("ready command pregenerated ready.json override", () => {
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 17, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 18, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
-    checks: [
+    checks: [{ id: "MH_DOMAIN_GOVERNANCE_001", status: "pass" },
       { id: "MH_TEST_001", status: "pass", reason: "overridden test", next_action: "" },
       { id: "MH_SYNC_001", status: "pass" },
       { id: "MH_TRUST_001", status: "pass" },
@@ -158,9 +158,9 @@ test("stale ready.json is rejected due to git_commit mismatch (non-git target ex
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 17, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 18, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
-    checks: [
+    checks: [{ id: "MH_DOMAIN_GOVERNANCE_001", status: "pass" },
       { id: "MH_SYNC_001", status: "pass" },
       { id: "MH_TRUST_001", status: "pass" },
       { id: "MH_CONTRACT_001", status: "pass" },
@@ -211,9 +211,9 @@ test("stale ready.json is rejected due to git_commit mismatch (git target compar
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 17, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 18, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
-    checks: [
+    checks: [{ id: "MH_DOMAIN_GOVERNANCE_001", status: "pass" },
       { id: "MH_SYNC_001", status: "pass" },
       { id: "MH_TRUST_001", status: "pass" },
       { id: "MH_CONTRACT_001", status: "pass" },
@@ -260,7 +260,7 @@ test("ready.json count fields must match checks", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Count mismatch target"]);
   const { computeReadyStateHash } = require("../lib/ready-check");
-  const checks = [
+  const checks = [{ id: "MH_DOMAIN_GOVERNANCE_001", status: "pass" },
     { id: "MH_SYNC_001", status: "pass" },
     { id: "MH_TRUST_001", status: "pass" },
     { id: "MH_CONTRACT_001", status: "pass" },

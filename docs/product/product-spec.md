@@ -216,6 +216,17 @@ The harness can read:
 
 The harness does not launch agents in the MVP.
 
+## Domain Governance Validation Surface
+
+Phase 11 adds a read-only validation/control-plane gate for downstream domain governance. The product surface is evidence validation, not domain execution: no provider credentials, trading/ranking behavior, broker/order/alert paths, ontology UI, release automation, or publish-policy weakening is authorized.
+
+```bash
+meta-harness domain-governance check --target <repo> --json
+meta-harness ready --target <repo> --quick --read-only --json
+```
+
+When a repo has `.meta-harness/domain-governance/activation.json`, `.meta-harness/domain-governance/pilot-chain.json`, or `domain/` rule evidence, `ready` runs `MH_DOMAIN_GOVERNANCE_001`. The gate validates activation, pilot chain, fact ledger, ontology terms, fact-to-code mappings, golden cases, signed domain reviews, mapped `fact_id` references in code, patch-plan code coverage, and expired facts. Repos without a domain-governance surface skip the check.
+
 ## Post-Worker GitHub Actions
 
 Post-worker automation is a read-only evidence wrapper. It may validate worker-report v2 shape while excluding `worker-report-template.md`, no-silent-fallback accountability, changed-file allowlists with explicit `base_sha` and `head_sha`, YAML/Markdown hygiene, and SAW evidence placement.

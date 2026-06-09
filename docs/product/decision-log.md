@@ -494,3 +494,31 @@ Ready and test expectations:
 Rationale:
 
 The Phase 12 plan is now reviewed and accepted, and the implementation-start decision is separate from D026. The first slice is small enough to review because it can only answer whether a candidate skill is eligible for future promotion. It cannot promote, write the registry, publish provenance, relax release evidence, or expand autonomy. This preserves the Phase 10 release evidence hold while allowing one testable self-evolution safety gate to be built.
+
+
+## D028: Phase 11 Done-Done Validation Closure
+
+Decision:
+
+Close Phase 11 for the domain-governance validation/control-plane scope on top of the D025 G9 Quant adopter trigger. The earlier first-slice validator is no longer enough by itself: an activated downstream domain-governance surface must include a fact ledger, ontology terms, fact-to-code mappings, golden cases, signed domain reviews, mapped `fact_id` references in code, patch-plan code coverage, and non-expired facts.
+
+Implemented artifacts:
+
+- `lib/domain-rule-check.js` validates `domain/facts/ledger.jsonl`, `domain/ontology/terms.json`, `domain/mappings/fact-to-code.json`, `domain/golden-cases/*.json`, `domain/reviews/*.json`, mapped code fact IDs, patch-plan code coverage, signed domain reviews, and expired facts.
+- `lib/domain-governance.js` combines D025 activation/pilot-chain validation with the full rule-chain validator.
+- `lib/check-id-registry.js` registers `MH_DOMAIN_GOVERNANCE_001`.
+- `lib/ready-check.js` runs `MH_DOMAIN_GOVERNANCE_001` when a target has activation, pilot, or domain evidence; repos without a domain-governance surface skip it.
+- Tests cover full-pass evidence, missing rule evidence, mismatched ready commit, bad boundary, bad reviewer signoff, missing fact IDs in code, expired facts, CLI JSON output, ready JSON schema updates, and the check registry.
+
+Rationale:
+
+The roadmap exit criteria require more than a pilot activation note. They require one real source → fact → ontology → code → golden-case chain, no unmapped domain code, source/effective-date facts, mapped facts with golden cases, expired facts blocking release, and `ready` integration. This patch makes those conditions executable and test-covered while preserving the D025 non-goals.
+
+Boundaries:
+
+This decision does not authorize provider credentials, trading/ranking behavior, buy/sell signals, broker/order/alert paths, ontology product UI, release automation, publish automation, external evidence harvesting, tags, version bumps, provenance publishing, or weakening Phase 10 release policy. Phase 10 release readiness remains blocked until required external GitHub/security evidence can satisfy policy for the exact release commit.
+
+Verification:
+
+- `npm_config_force=true node --test tests/domain-governance.test.js tests/cli-domain-governance.test.js tests/cli-ready.test.js tests/command-registry.test.js` passed, 30/30.
+- `node bin/meta-harness.js quality check` passed.

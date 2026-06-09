@@ -31,7 +31,7 @@ function initGitFixture() {
   git(root, ["config", "user.email", "test@test.com"]);
   writeText(root, "docs/boundary.md", "Boundary\n");
   writeText(root, "data/source.txt", "Source\n");
-  writeText(root, "src/mapping.js", "module.exports = {};\n");
+  writeText(root, "src/mapping.js", "const FACT_ID = \"fact-001\";\nmodule.exports = { FACT_ID };\n");
   writeText(root, "test/golden.txt", "Golden\n");
   git(root, ["add", "."]);
   if (git(root, ["commit", "-m", "fixture"]).status !== 0) return null;
@@ -124,10 +124,41 @@ function writeGovernance(root, activationValue, pilotValue) {
   writeJson(root, ".meta-harness/domain-governance/pilot-chain.json", pilotValue);
 }
 
-test("domain governance passes with bounded activation and pilot chain", () => {
+function writeDomainRule(root, overrides = {}) {
+  const fact = {
+    fact_id: "fact-001",
+    source: "data/source.txt",
+    source_date: "2026-06-09",
+    effective_date: "2026-06-09",
+    expiry_date: null,
+    domain: "clinical-demo",
+    claim: "The source supports the mapped term.",
+    owner: "owner-a",
+    status: "active",
+    ...overrides.fact,
+  };
+  writeText(root, "domain/facts/ledger.jsonl", `${JSON.stringify(fact)}\n`);
+  writeJson(root, "domain/ontology/terms.json", {
+    version: 1,
+    terms: [{ id: "term-001", name: "mapped_term", domain: "clinical-demo", definition: "A bounded term for the pilot.", owner: "owner-a", fact_ids: ["fact-001"] }],
+  });
+  writeJson(root, "domain/mappings/fact-to-code.json", {
+    version: 1,
+    mappings: [{ fact_id: "fact-001", term_id: "term-001", code_path: "src/mapping.js", function: "FACT_ID", golden_case_ids: ["golden-001"] }],
+  });
+  writeJson(root, "domain/golden-cases/golden-001.json", {
+    id: "golden-001", fact_ids: ["fact-001"], term_ids: ["term-001"], input: { source: "data/source.txt" }, expected_output: { mapped: true }, source: "data/source.txt",
+  });
+  writeJson(root, "domain/reviews/review-001.json", {
+    id: "review-001", reviewer: "reviewer-a", reviewed_at: "2026-06-09", signed_off: true, fact_ids: ["fact-001"], term_ids: ["term-001"], golden_case_ids: ["golden-001"],
+  });
+}
+
+test("domain governance passes with bounded activation and full rule evidence", () => {
   const fixture = initGitFixture();
   if (!fixture) return;
   writeGovernance(fixture.root, activation(fixture.head), pilotChain());
+  writeDomainRule(fixture.root);
 
   const result = checkDomainGovernance({ targetRoot: fixture.root });
 
@@ -197,4 +228,63 @@ test("domain governance fails unsigned or mismatched reviewer signoff", () => {
   assert.equal(signoff.status, "fail");
   assert.match(signoff.reason, /reviewer must match/);
   assert.match(signoff.reason, /signed_off/);
+});
+
+
+test("domain governance fails when full rule evidence is absent", () => {
+  const fixture = initGitFixture();
+  if (!fixture) return;
+  writeGovernance(fixture.root, activation(fixture.head), pilotChain());
+
+  const result = checkDomainGovernance({ targetRoot: fixture.root });
+  const factLedger = result.checks.find((item) => item.id === "MH_DG_FACT_LEDGER_001");
+
+  assert.equal(result.ok, false);
+  assert.equal(factLedger.status, "fail");
+  assert.match(factLedger.reason, /missing file/);
+});
+
+test("domain governance fails when mapped code lacks fact_id reference", () => {
+  const fixture = initGitFixture();
+  if (!fixture) return;
+  writeGovernance(fixture.root, activation(fixture.head), pilotChain());
+  writeDomainRule(fixture.root);
+  writeText(fixture.root, "src/mapping.js", "module.exports = {};\n");
+
+  const result = checkDomainGovernance({ targetRoot: fixture.root });
+  const codeTrace = result.checks.find((item) => item.id === "MH_DG_CODE_TRACE_001");
+
+  assert.equal(result.ok, false);
+  assert.equal(codeTrace.status, "fail");
+  assert.match(codeTrace.reason, /lacks fact_id reference/);
+});
+
+test("domain governance fails expired facts so release gates can block", () => {
+  const fixture = initGitFixture();
+  if (!fixture) return;
+  writeGovernance(fixture.root, activation(fixture.head), pilotChain());
+  writeDomainRule(fixture.root, { fact: { expiry_date: "2000-01-01" } });
+
+  const result = checkDomainGovernance({ targetRoot: fixture.root });
+  const expiry = result.checks.find((item) => item.id === "MH_DG_EXPIRY_001");
+
+  assert.equal(result.ok, false);
+  assert.equal(expiry.status, "fail");
+  assert.match(expiry.reason, /expired fact/);
+});
+
+
+test("domain governance fails unsigned domain review", () => {
+  const fixture = initGitFixture();
+  if (!fixture) return;
+  writeGovernance(fixture.root, activation(fixture.head), pilotChain());
+  writeDomainRule(fixture.root);
+  writeJson(fixture.root, "domain/reviews/review-001.json", { id: "review-001", reviewer: "reviewer-a", reviewed_at: "2026-06-09", signed_off: false, fact_ids: ["fact-001"], term_ids: ["term-001"], golden_case_ids: ["golden-001"] });
+
+  const result = checkDomainGovernance({ targetRoot: fixture.root });
+  const review = result.checks.find((item) => item.id === "MH_DG_REVIEW_001");
+
+  assert.equal(result.ok, false);
+  assert.equal(review.status, "fail");
+  assert.match(review.reason, /signed_off/);
 });
