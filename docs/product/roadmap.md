@@ -1,10 +1,10 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
 Status: active baseline
-Approval scope: Phases 0-8 accepted baseline; Phase 9 transition/adoption baseline; Phase 10 done-done for release/package enforcement artifacts under D030; Phase 11 D028 domain-governance done-done closure over the D025 G9 Quant adopter trigger; Phase 12 local governed skill lifecycle closed by D029
-Hold: Phase 10 release/package enforcement is closed under D030: publish remains guarded by `prepublishOnly`, publish-mode release readiness requires a clean tree, exact release tag, full ready/test/package smoke checks, rollback policy, and exact-commit external/full evidence. No registry publish automation is included. Phase 11 is closed for the domain-governance validation/control-plane scope only; it still does not authorize provider credentials, trading/ranking behavior, broker/order/alert paths, ontology product UI, release automation, or Phase 10 policy weakening. Phase 12 is done-done only for the local governed skill lifecycle; release, publish, provenance publishing, workflow, dependency, provider, and external-evidence automation remain out of scope. Phases 13-14 remain future prototypes.
+Approval scope: Phase 1–12 aggregate completion under accepted roadmap scopes, closed by D031 at commit 585189b0f8c8f363b3a933d191c73b98d50a3b36
+Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phases 13–14 remain future prototypes.
 Date: 2026-06-10
-Decision: D021 status reset; D022 complexity metadata adoption; D023 Phase 10D blocked release evidence; D024 Phase 10 implementation closed release-held; D025 Phase 11 G9 Quant pilot activated; D026 Phase 12A docs/status-only planning authorized; D027 Phase 12 first-slice implementation start authorized; D028 Phase 11 done-done validation closure; D029 Phase 12 local self-evolution lifecycle closure; D030 Phase 10 done-done enforcement patch accepted; D017-D020 remain source decisions
+Decision: D031 aggregate closure; D021–D030 remain source decisions; D017–D020 remain source decisions
 
 ## Endgame
 
@@ -1129,7 +1129,7 @@ Limits subagent resource consumption:
 
 Purpose: prevent the project from becoming unmaintainable as capability grows. The quality ratchet already works for file line budgets; this phase extends it to architecture-level controls.
 
-Current status: accepted in transition/adoption mode. Complexity policy metadata is separately marked adopted in `.meta-harness/complexity-policy.json`; that metadata signal does not claim every Phase 9 architecture and quality exit criterion is complete unless a separate Phase 9 closure decision records broader acceptance.
+Current status: explicitly closed by D031. Complexity policy metadata is adopted, module ownership map is established, and quality check enforces per-module budgets, reverse import direction, and ceilings.
 
 ### Problem
 
