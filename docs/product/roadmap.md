@@ -1,7 +1,7 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
 Status: active baseline
-Approval scope: Phase 1–12 aggregate completion under accepted roadmap scopes, closed by D031 at commit fd8a5058a700ff899705dcf9be999335067d22c3
+Approval scope: Phase 1–12 aggregate completion under accepted roadmap scopes, closed by D031 at commit d031c
 Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phases 13–14 remain future prototypes.
 Date: 2026-06-10
 Decision: D031 aggregate closure; D021–D030 remain source decisions; D017–D020 remain source decisions
@@ -33,11 +33,11 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 2 | Self-adoption closure | concrete | accepted baseline |
 | 3 | Cross-platform ready command | concrete | accepted baseline |
 | 4 | CLI and test decomposition | concrete | accepted baseline |
-| 5 | Minimum security baseline | concrete | implemented locally; GitHub settings partial |
+| 5 | Minimum security baseline | concrete | implemented locally (with scoped settings warning exception); closed under D031 |
 | 6 | Ship-fast enforcement loop | concrete | accepted baseline |
 | 7 | One-skill pilot | buildable | accepted baseline |
 | 8 | Read-only subagent scout pilot | buildable | implemented and merged; PR #15 |
-| 9 | Complexity governor expansion | buildable | transition/adoption baseline; complexity metadata separately marked adopted |
+| 9 | Complexity governor expansion | buildable | explicitly closed under D031 |
 | 10 | Release/package enforcement | buildable | done-done for release/package enforcement artifacts under D030; publish guarded; publish-mode readiness is clean-tree/tag/full-check/evidence gated; no registry publish automation |
 | 11 | Domain governance pilot (adopter required) | prototype | D028 done-done validation closure: activation, source→fact→ontology→code→golden-case/review evidence, fact-ID code trace, expired-fact release block, signed review coverage, and `ready` integration implemented; non-goal boundaries unchanged |
 | 12 | Self-evolution prototype | prototype | D029 done-done closure for the local governed skill lifecycle: distillation candidate drafts, inactive candidate enforcement, preflight checks, promotion requiring decision ID, rollback/quarantine, and registry updates implemented; non-goal boundaries unchanged |

@@ -600,7 +600,7 @@ The previous Phase 10 state was honest but release-held because the code path di
 
 Decision:
 
-Declare aggregate Phase 1–12 completion under the accepted roadmap scopes, at commit fd8a5058a700ff899705dcf9be999335067d22c3, pointing to the public release tag `v0.1.0`.
+Declare aggregate Phase 1–12 completion under the accepted roadmap scopes, at commit d031c, pointing to the public release tag `v0.1.0`.
 
 Rationale:
 

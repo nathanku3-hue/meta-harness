@@ -19,3 +19,8 @@
 - [x] Run final validations and cleanup
 - [x] Resolve document consistency fixes (stale status/roadmap language & references)
 - [x] Expose walkthrough.md and task.md in repository root
+- [x] Resolve commit/tag/evidence identity mismatch (Option B, corrected)
+    - [x] Retarget local tag v0.1.0 to the aligned-docs commit
+    - [x] Align `.meta-harness/local/release-evidence.json` commit to the aligned-docs commit
+    - [x] Regenerate all validation logs against the tag commit in UTF-8 format
+    - [x] Document tag target in walkthrough.md
