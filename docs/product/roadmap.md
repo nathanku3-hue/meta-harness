@@ -1,7 +1,7 @@
 # Meta-Harness Roadmap — Local-Audit-Driven Revision
 
 Status: active baseline
-Approval scope: Phase 1–12 aggregate completion under accepted roadmap scopes, closed by D031 at commit a311dbd2f423b3de0217da04b73f6dac60d270f9
+Approval scope: Phase 1–12 aggregate completion under accepted roadmap scopes, closed by D031 at commit fd8a5058a700ff899705dcf9be999335067d22c3
 Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phases 13–14 remain future prototypes.
 Date: 2026-06-10
 Decision: D031 aggregate closure; D021–D030 remain source decisions; D017–D020 remain source decisions
