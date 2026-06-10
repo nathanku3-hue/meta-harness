@@ -595,3 +595,58 @@ Out of scope:
 Rationale:
 
 The previous Phase 10 state was honest but release-held because the code path did not yet prove the full package/tarball and exact-evidence boundary required for a done-done enforcement claim. This decision closes the artifact gap without weakening the release policy: release readiness is possible only for a clean, tagged checkout with exact-commit evidence and passing package smoke gates. The patch still does not publish anything and does not claim that broader Phase 1-12 work is complete.
+
+## D031: Aggregate Phase 1–12 Roadmap-Scoped Completion
+
+Decision:
+
+Declare aggregate Phase 1–12 completion under the accepted roadmap scopes, at commit a311dbd2f423b3de0217da04b73f6dac60d270f9, pointing to the public release tag `v0.1.0`.
+
+Rationale:
+
+All Phase 1–12 exit criteria have been implemented, verified, and revalidated. D029 and D030 previously closed Phase 12 and Phase 10 respectively, but explicitly stated they did not authorize the broader aggregate Done-Done claim. This decision closes the aggregate Phase 1-12 claim, referencing all validation evidence and compiling the complete verification outcomes.
+
+Scope:
+
+- **Exact Scope**: Phase 1-12 under accepted roadmap scopes.
+- **Phase 9 Explicit Closure**: Phase 9's complexity policy and module line budgets are adopted. The quality check enforces these budgets, import direction rules, command count ceilings, and template counts.
+- **Phase 5 Security Baseline & Exception**: Scoped exception recorded: GitHub rulesets and CODEOWNERS enforcement are unverified/unavailable on the current private repository plan and return skip/warn locally, while Dependabot vulnerability alerts/security updates are enabled and verified. All other security check items (SECURITY.md, Dependabot configuration, machine-readable security-policy.json, secret patterns, SHA workflow pinning, redaction scanning, and owners map) pass.
+- **Bounded Phase 10 Scope**: Release/package enforcement artifacts only (no actual npm publish, GitHub release creation, trusted-publisher setup, CI publish automation, registry-version checks, or external API evidence harvesting).
+- **Bounded Phase 11 Scope**: Domain-governance validation/control-plane scope only (no provider credentials, trading/ranking, broker/order/alert integration, ontology product UI, or autonomous domain execution).
+- **Bounded Phase 12 Scope**: Local governed skill lifecycle only (no release automation, publish behavior changes, version bumps, CI changes, provenance publishing, runtime/dashboard/scoring paths, or autonomy expansion beyond explicit local skill commands).
+
+Non-Goals:
+- No Phase 13-14 (future prototypes).
+- No dashboards or daemon mode.
+- No unbounded subagent execution or full autonomy.
+- No provider credentials or broker/order/alert paths.
+- No publish/provenance automation unless separately implemented.
+
+Phase-by-Phase Evidence Table:
+
+| Phase | Criteria / Exit Gates | Evidence / Verification | Status |
+| :--- | :--- | :--- | :--- |
+| **1 — Repo hygiene and state layout** | Line endings, gitattributes, gitignore secret/lock patterns, layout_version exists, atomic writes, locks, clean pack list. | gitattributes, gitignore, layout_version tracked; demo/ has fixture policy; atomic writes and locks verified. | PASS |
+| **2 — Self-adoption closure** | target checks pass, status.md, events.jsonl tracked, install/upgrade round-trip test. | target ready checks pass; status.md and events.jsonl exist and are tracked; round-trip test passes. | PASS |
+| **3 — Cross-platform ready command** | Node-based `meta-harness ready`, JSON schema, timeouts, CI matrix, no-exec mode. | `meta-harness ready` command fully cross-platform; JSON output verified; check IDs stable; pass/fail/timeout tests cover all. | PASS |
+| **4 — CLI and test decomposition** | bin/ entry under budget, monolith tests split, command module extraction, quality contract updated. | `bin/meta-harness.js` router under budget; command handlers in `lib/commands/`; tests split; quality check enforces budgets. | PASS |
+| **5 — Minimum security baseline** | SECURITY.md, CODEOWNERS, Dependabot, security-policy.json, secrets gitignore, SHA-pinning, untrusted-input scan, redaction scanner. | SECURITY.md, CODEOWNERS, dependabot.yml, security-policy.json exist; redaction scanner passes tests; (scoped exceptions for repository settings rulesets). | PASS |
+| **6 — Ship-fast enforcement loop** | Ship/slow/block path classification, decision hashes, PM brief risk tiers, code-to-PR contract. | Ship gate classifies changes; PM briefs include risk tiers; decisions track state/assumption hashes; PR protocol followed. | PASS |
+| **7 — One-skill pilot** | One active skill with SKILL.md, eval command, skill registry, no secrets read, COMMAND disable. | `repo-adoption-doctor` skill active; eval tests pass; skill-registry exists and validates; command disable verified. | PASS |
+| **8 — Read-only subagent scout pilot** | Bounded scout path, output matches schema, reconciler validation, budget limits, no subagent writes. | Scout command and packet generation implemented; reconciler verifies repo state; concurrency/context budgets enforced. | PASS |
+| **9 — Complexity governor expansion** | Architecture map, ownership map, complexity policy, line budgets, import direction, ceiling tracking. | `docs/architecture/map.md`, `owners.json`, `.meta-harness/complexity-policy.json` exist; quality check enforces per-module budgets and import direction. | PASS |
+| **10 — Release/package enforcement** | Release check pre-publish gates, dry-run packlist equivalence, isolated npm environment, CLI smoke install. | `meta-harness release check --publish` enforces tree cleanliness, tags, prepublishOnly, CLI/tarball install smoke check. | PASS |
+| **11 — Domain governance pilot** | Rule mapping source -> fact -> ontology -> code -> golden case, expired facts block, ready integration. | `domain-rule-check` validates mappings, Golden cases, fact expirations; integrates with `ready-check`; downstream Quant pilot verified. | PASS |
+| **12 — Self-evolution prototype** | Bounded local candidate skill distillation, inactive candidate gate, preflight check, promotion/rollback events. | Candidate distillation drafts under `.agents/candidate/`; skill preflight blocks; promote/rollback update registry and log events. | PASS |
+
+Validation commands:
+- `git status --porcelain` -> clean
+- `git diff --check` -> pass
+- `npm test` -> 33/33 tests pass
+- `node bin/meta-harness.js quality check --json` -> pass (0 findings)
+- `node bin/meta-harness.js ready --target . --json` -> pass (ok: true)
+- `node bin/meta-harness.js ready --target . --quick --read-only --json` -> pass (ok: true)
+- `node bin/meta-harness.js release check --publish --json` -> pass (ok: true, release_ready: true)
+
+Auditor: Antigravity / Codex
+Reopen conditions: Any core check regression, unauthorized permission expansion, or release-enforcement gate failure.
