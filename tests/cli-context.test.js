@@ -34,6 +34,21 @@ function writePrebuiltGate(root) {
   writeFile(root, ".meta-harness/local/context/ROUND-001.json", output);
 }
 
+function writePackageName(root, name) {
+  const packagePath = path.join(root, "package.json");
+  const pkg = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+  pkg.name = name;
+  fs.writeFileSync(packagePath, `${JSON.stringify(pkg, null, 2)}\n`, "utf8");
+}
+
+function writeQuestionGate(root, roundId, questions) {
+  writeFile(root, `.meta-harness/local/context/${roundId}.json`, `${JSON.stringify({
+    round_id: roundId,
+    verdict: "blocked",
+    questions,
+  }, null, 2)}\n`);
+}
+
 test("context check emits valid JSON and writes local ignored artifacts by default", () => {
   const cwd = copyFixture("complete");
 
@@ -77,6 +92,78 @@ test("context ask returns at most three blocker-clearing questions", () => {
   assert.equal(data.round_id, "ROUND-001");
   assert.ok(Array.isArray(data.questions));
   assert.equal(data.questions.length <= 3, true);
+});
+
+test("context check --target reads target repo from outside its directory", () => {
+  const caller = tempDir();
+  const target = copyFixture("complete");
+  writeFile(caller, "package.json", "{\n  \"name\": \"caller-context-check-fixture\"\n}\n");
+  writePackageName(target, "target-context-check-fixture");
+
+  const stdout = run(caller, [
+    "context",
+    "check",
+    "--target",
+    target,
+    "--from",
+    "plan",
+    "--to",
+    "work",
+    "--round",
+    "ROUND-042",
+    "--json",
+  ]);
+  const gate = unwrapGateEnvelope(JSON.parse(stdout));
+
+  assert.match(gate.context_summary.stack, /target-context-check-fixture/);
+  assert.doesNotMatch(gate.context_summary.stack, /caller-context-check-fixture/);
+  assert.equal(fs.existsSync(path.join(target, ".meta-harness", "local", "context", "ROUND-042.json")), true);
+  assert.equal(fs.existsSync(path.join(caller, ".meta-harness", "local", "context", "ROUND-042.json")), false);
+});
+
+test("context packet --target reads target repo artifacts from outside its directory", () => {
+  const caller = copyFixture("complete");
+  const target = copyFixture("complete");
+  writePackageName(caller, "caller-context-packet-fixture");
+  writePackageName(target, "target-context-packet-fixture");
+  writePrebuiltGate(caller);
+  writePrebuiltGate(target);
+
+  const stdout = run(caller, [
+    "context",
+    "packet",
+    "--target",
+    target,
+    "ROUND-001",
+    "--for",
+    "worker",
+    "--json",
+  ]);
+  const data = JSON.parse(stdout);
+
+  assert.match(data.packet_markdown, /target-context-packet-fixture/);
+  assert.doesNotMatch(data.packet_markdown, /caller-context-packet-fixture/);
+});
+
+test("context ask --target reads target repo questions from outside its directory", () => {
+  const caller = tempDir();
+  const target = copyFixture("complete");
+  writeQuestionGate(caller, "ROUND-077", ["caller question should not be read"]);
+  writeQuestionGate(target, "ROUND-077", ["target question should be read"]);
+
+  const stdout = run(caller, [
+    "context",
+    "ask",
+    "--target",
+    target,
+    "ROUND-077",
+    "--json",
+  ]);
+  const data = JSON.parse(stdout);
+
+  assert.equal(data.round_id, "ROUND-077");
+  assert.deepEqual(data.questions, ["target question should be read"]);
+  assert.equal(data.source, ".meta-harness/local/context/ROUND-077.json");
 });
 
 test("context check rejects invalid phase transitions", () => {

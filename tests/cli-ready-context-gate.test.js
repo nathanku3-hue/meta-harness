@@ -1,6 +1,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
@@ -40,6 +41,66 @@ function writeContextArtifact(root, roundId, content) {
   const contextDir = path.join(root, ".meta-harness", "local", "context");
   fs.mkdirSync(contextDir, { recursive: true });
   fs.writeFileSync(path.join(contextDir, `${roundId}.json`), JSON.stringify(content), "utf8");
+}
+
+function writeTrackedContextArtifact(root, roundId, content) {
+  const contextDir = path.join(root, ".meta-harness", "context");
+  fs.mkdirSync(contextDir, { recursive: true });
+  fs.writeFileSync(path.join(contextDir, `${roundId}.json`), JSON.stringify(content), "utf8");
+}
+
+function slashPath(value) {
+  return value.split(path.sep).join("/");
+}
+
+function hashFile(filePath) {
+  return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+}
+
+function snapshotFilesystem(root) {
+  const entries = new Map();
+
+  function walk(directoryPath) {
+    for (const name of fs.readdirSync(directoryPath).sort((left, right) => left.localeCompare(right))) {
+      const itemPath = path.join(directoryPath, name);
+      const relativePath = slashPath(path.relative(root, itemPath));
+      const stat = fs.lstatSync(itemPath);
+
+      if (stat.isDirectory()) {
+        entries.set(relativePath, { type: "dir" });
+        walk(itemPath);
+      } else if (stat.isFile()) {
+        entries.set(relativePath, {
+          type: "file",
+          sha256: hashFile(itemPath),
+        });
+      } else if (stat.isSymbolicLink()) {
+        entries.set(relativePath, {
+          type: "symlink",
+          target: fs.readlinkSync(itemPath),
+        });
+      } else {
+        entries.set(relativePath, { type: "other" });
+      }
+    }
+  }
+
+  walk(root);
+  return Object.fromEntries([...entries.entries()].sort(([left], [right]) => left.localeCompare(right)));
+}
+
+function contextArtifactPaths(snapshot) {
+  return Object.keys(snapshot).filter((entryPath) =>
+    entryPath === ".meta-harness/local/context" ||
+    entryPath.startsWith(".meta-harness/local/context/") ||
+    entryPath === ".meta-harness/context" ||
+    entryPath.startsWith(".meta-harness/context/")
+  );
+}
+
+function assertFilesystemUnchanged(before, after) {
+  assert.deepEqual(Object.keys(after), Object.keys(before));
+  assert.deepEqual(after, before);
 }
 
 function readyJson(root, args = []) {
@@ -90,4 +151,46 @@ test("ready treats missing context gate surface as not applicable in strict and 
     assert.equal(check.applicable, false);
     assert.doesNotMatch(check.reason, /required in/);
   }
+});
+
+test("ready --quick --read-only --json does not create context artifacts when no context surface exists", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "No context gate read-only"]);
+
+  const before = snapshotFilesystem(cwd);
+  assert.deepEqual(contextArtifactPaths(before), []);
+
+  const data = readyJson(cwd, ["--quick", "--read-only"]);
+
+  const after = snapshotFilesystem(cwd);
+  assertFilesystemUnchanged(before, after);
+  assert.deepEqual(contextArtifactPaths(after), []);
+
+  const check = contextCheck(data);
+  assert.equal(check.status, "skip");
+  assert.equal(check.applicable, false);
+});
+
+test("ready --quick --read-only --json does not mutate existing context artifacts", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Existing context gate read-only"]);
+  writeContextArtifact(cwd, "ROUND-001", artifact());
+  writeTrackedContextArtifact(cwd, "ROUND-002", artifact({ round_id: "ROUND-002" }));
+
+  const before = snapshotFilesystem(cwd);
+  assert.deepEqual(contextArtifactPaths(before), [
+    ".meta-harness/context",
+    ".meta-harness/context/ROUND-002.json",
+    ".meta-harness/local/context",
+    ".meta-harness/local/context/ROUND-001.json",
+  ]);
+
+  const data = readyJson(cwd, ["--quick", "--read-only"]);
+
+  const after = snapshotFilesystem(cwd);
+  assertFilesystemUnchanged(before, after);
+
+  const check = contextCheck(data);
+  assert.equal(check.status, "pass");
+  assert.match(check.reason, /ROUND-002/);
 });

@@ -74,6 +74,24 @@ meta-harness quality explain
 The gate runs in ratchet mode: existing debt may be grandfathered, new debt is blocked, touched debt must not get worse, and compatibility-breaking CLI or report behavior requires an explicit migration note and approval.
 Refreshing the baseline is audited maintenance only; normal patch work should fix findings rather than run `quality baseline --force`.
 
+## Context Quality Gate
+
+`context` checks whether a round has enough compact, evidence-backed context for a fresh worker to execute without guessing product intent, scope, or stop rules:
+
+```bash
+meta-harness context check --target . --from plan --to work --round ROUND-013 --json
+meta-harness context ask --target . ROUND-013 --json
+meta-harness context packet --target . ROUND-013 --for worker --json
+```
+
+The gate scores eight dimensions: product outcome, scope boundary, repo/stack, owned surface, evidence plan, risk/stop rules, freshness, and handoff completeness. It returns `blocked`, `narrowed`, `proceed`, or `excellent`.
+
+- `blocked`: answer the blocker-clearing questions before proceeding.
+- `narrowed`: proceed only within the narrowed scope recorded in the packet.
+- `proceed` or `excellent`: context is sufficient for a fresh worker.
+
+Artifacts are written to `.meta-harness/local/context/` by default. Use `--commit-artifact` to write tracked `.meta-harness/context/` artifacts after redaction checks pass. `ready --quick --read-only` validates present artifacts without creating new ones.
+
 ## Worker PM Briefs
 
 `worker-report` now requires an explicit outcome, requested work type, and actual work type:

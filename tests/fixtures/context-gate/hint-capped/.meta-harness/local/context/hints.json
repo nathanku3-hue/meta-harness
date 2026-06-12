@@ -1,0 +1,11 @@
+{
+  "hints": [
+    {
+      "dimension": "freshness",
+      "value": 10,
+      "reason": "Human confirmed freshness, but excellent proof must still come from file evidence.",
+      "author": "worker-a",
+      "expires_at": "2026-06-19T00:00:00Z"
+    }
+  ]
+}

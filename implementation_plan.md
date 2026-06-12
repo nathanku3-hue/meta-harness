@@ -1,5 +1,9 @@
 # Phase 13A: Context Quality Gate
 
+## Phase 13B Status Note
+
+As of 2026-06-12, D034 authorizes a bounded Phase 13B dogfood/readiness hardening pass after the patched plan. The local implementation fixes placeholder status evidence handling, adds real `context --target` routing for check/ask/packet, expands deterministic verdict fixtures, proves the excellent fixture with file evidence rather than hints, adds ready read-only filesystem snapshot coverage, and reruns dogfood with explicit ROUND-011/012/013 artifacts.
+
 ## D033 Status Update
 
 As of 2026-06-12, D033 records the bounded local Phase 13A implementation authorized after the user request to patch the plan and implement via subagents. The D032 planning-only language below is retained as historical planning context; it no longer means the implemented context CLI/core helpers/templates/tests/ready/security wiring are pending.

@@ -1,0 +1,6 @@
+{
+  "redaction": {
+    "secrets": "blocked"
+  },
+  "provider_access": "forbidden"
+}

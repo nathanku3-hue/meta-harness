@@ -4,6 +4,16 @@ We have imported the done-done artifacts for Phase 11 (domain governance validat
 
 In addition, we have resolved the document consistency fixes to achieve final "done-done" status.
 
+## Phase 13A/13B Context Gate Readiness
+
+Phase 13A shipped the local context quality gate surfaces: `meta-harness context check`, `meta-harness context ask`, `meta-harness context packet`, ignored local artifacts under `.meta-harness/local/context/`, `MH_CONTEXT_GATE_001` ready integration, and the supporting context gate templates/security wiring.
+
+The Phase 13B audit dogfood baseline initially blocked `intake -> plan`, `plan -> work`, and `work -> verify` because the repo did not record an owned/forbidden surface clearly enough. Phase 13B re-ran dogfood after the placeholder-status and `--target` fixes using explicit ROUND-011/012/013 artifacts; the refreshed transitions produced proceed verdicts with no blocker questions.
+
+The patched Phase 13B plan requires placeholder status values such as `Not set.`, `none`, `n/a`, and `todo` to count as absent context evidence rather than semantic product evidence. The runtime now filters those placeholders and the root status carries a real Phase 13B goal, owned surface, forbidden surface, next action, and stop criteria before dogfood evidence is treated as meaningful.
+
+`ready --quick --read-only --json` validates existing context artifacts without creating or mutating `.meta-harness/local/context/` or tracked `.meta-harness/context/` outputs. Phase 13B covers that with path-set plus content-hash filesystem snapshot tests.
+
 ## Changes Made
 
 ### Phase 11: Domain Governance Validation Gate

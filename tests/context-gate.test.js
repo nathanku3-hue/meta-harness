@@ -80,6 +80,17 @@ function assertSchemaValid(output) {
   assert.equal(result.ok, true, result.errors ? result.errors.join("\n") : JSON.stringify(result));
 }
 
+function assertFileEvidenceExcellent(output) {
+  assert.equal(output.verdict, "excellent");
+  assert.equal(output.overall_score, 10);
+  if ((output.hints_applied || []).length > 0) {
+    assert.fail("excellent proof requires file evidence without hints");
+  }
+  for (const dimension of DIMENSIONS) {
+    assert.equal(output.scores[dimension], 10, `${dimension} must be 10 from file evidence`);
+  }
+}
+
 test("context gate computes scores from a complete harness fixture", async () => {
   const root = copyFixture("complete");
 
@@ -96,6 +107,81 @@ test("context gate computes scores from a complete harness fixture", async () =>
   assert.equal(output.scores.scope_boundary >= 6, true);
   assert.equal(output.scores.repo_and_stack >= 6, true);
   assert.equal(output.questions.length <= 3, true);
+  assertSchemaValid(output);
+});
+
+test("placeholder status fields do not count as semantic evidence", async () => {
+  const root = copyFixture("placeholder-goal");
+
+  const output = await runGate(root);
+
+  assert.equal(output.verdict, "blocked");
+  assert.equal(output.scores.product_outcome, 1);
+  assert.ok(output.unknown_dimensions.includes("product_outcome"));
+  assert.ok(output.evidence_gap_dimensions.includes("product_outcome"));
+  assert.match(output.questions.join("\n"), /product outcome/i);
+  assert.equal(output.context_summary.goal, "");
+  assert.equal(output.evidence.product_outcome.includes(".meta-harness/status.md Goal"), false);
+  assert.equal(output.evidence.product_outcome.includes(".meta-harness/status.md Current truth"), false);
+  assert.equal(output.evidence.product_outcome.includes(".meta-harness/status.md Next action"), false);
+  assert.equal(output.evidence.scope_boundary.includes(".meta-harness/status.md Stop criteria"), false);
+  assert.equal(output.evidence.risk_and_stop_rules.includes(".meta-harness/status.md Stop criteria"), false);
+  assert.equal(output.evidence.handoff_completeness.includes(".meta-harness/status.md Next action"), false);
+  assert.equal(output.evidence.handoff_completeness.includes(".meta-harness/status.md Stop criteria"), false);
+  assert.equal(output.evidence.handoff_completeness.includes(".meta-harness/status.md Pending human decisions"), false);
+  assertSchemaValid(output);
+});
+
+test("narrowed fixture produces deterministic narrowed verdict", async () => {
+  const root = copyFixture("narrowed");
+
+  const output = await runGate(root);
+
+  assert.equal(output.verdict, "narrowed");
+  assert.equal(output.overall_score >= 6, true);
+  assert.equal(output.overall_score <= 7, true);
+  assert.equal(output.unknown_dimensions.length, 0);
+  assertSchemaValid(output);
+});
+
+test("proceed fixture produces deterministic proceed verdict", async () => {
+  const root = copyFixture("proceed");
+
+  const output = await runGate(root);
+
+  assert.equal(output.verdict, "proceed");
+  assert.equal(output.overall_score >= 8, true);
+  assert.equal(output.overall_score <= 9, true);
+  assert.equal(output.unknown_dimensions.length, 0);
+  assert.equal(output.hints_applied.length, 0);
+  assertSchemaValid(output);
+});
+
+test("excellent fixture reaches score 10 from file evidence without hints", async () => {
+  const root = copyFixture("excellent");
+
+  const output = await runGate(root);
+
+  assertFileEvidenceExcellent(output);
+  assert.equal(output.evidence.product_outcome.includes(".meta-harness/status.md Product outcome evidence"), true);
+  assert.equal(output.evidence.scope_boundary.includes(".meta-harness/status.md Scope boundary evidence"), true);
+  assert.equal(output.evidence.repo_and_stack.includes("README.md Stack Evidence"), true);
+  assert.equal(output.evidence.owned_surface.includes(".meta-harness/status.md Owned surface evidence"), true);
+  assert.equal(output.questions.length, 0);
+  assertSchemaValid(output);
+});
+
+test("a hinted 9 is not accepted as file-evidence proof of excellent", async () => {
+  const root = copyFixture("hint-capped");
+
+  const output = await runGate(root);
+
+  assert.equal(output.hints_applied.length, 1);
+  assert.equal(output.hints_applied[0].dimension, "freshness");
+  assert.equal(output.hints_applied[0].to, 9);
+  assert.equal(output.scores.freshness, 9);
+  assert.equal(output.verdict, "proceed");
+  assert.equal(output.overall_score, 9);
   assertSchemaValid(output);
 });
 

@@ -699,3 +699,35 @@ Non-Goals:
 - No autonomy daemon or dashboard.
 - No model/network scoring.
 - No release/publish automation or weakening of existing gates.
+
+## D034: Phase 13B Context Gate Dogfood Authorization
+
+Decision:
+
+Authorize a bounded Phase 13B hardening pass for the Phase 13A local context quality gate.
+
+Rationale:
+
+The first local dogfood pass proved the context gate surfaces run, but it also exposed readiness gaps that must be fixed before dogfood results can be treated as semantic evidence. Phase 13B is authorized to harden the local gate, expand deterministic coverage, and prove ready integration remains read-only without broadening into orchestration, dashboards, network scoring, or release behavior.
+
+Scope:
+
+- Fix placeholder status values so boilerplate such as `Not set.`, `not set`, `none`, `n/a`, `todo`, empty boilerplate, and whitespace-only values are not treated as semantic context evidence.
+- Add or remove `context --target` support consistently across implementation, tests, docs, and examples. The preferred path is real `--target <repo>` support for `context check`, `context packet`, and `context ask`.
+- Exercise `context check`, `context packet`, and `context ask` against this repo after the placeholder and `--target` fixes land.
+- Add fixture coverage for blocked, narrowed, proceed, and excellent verdicts.
+- Prove `excellent` requires file-derived evidence for every scoring dimension and cannot be reached solely through capped hint math.
+- Add README and walkthrough examples showing correct local context gate use, including `--target` examples when target support is implemented.
+- Prove `ready --quick --read-only --json` validates context artifacts without creating or mutating `.meta-harness/local/context/` or tracked `.meta-harness/context/` artifacts.
+- Re-run the required dogfood commands after fixes land and record score behavior, blocker questions, artifact freshness, and read-only non-mutation evidence.
+
+Non-Goals:
+
+- No multi-repo rollup.
+- No Context7/MCP.
+- No context dashboard.
+- No auto-worker routing.
+- No model/network scoring.
+- No daemon.
+- No tracked `.meta-harness/context/` artifacts by default.
+- No release/publish automation or weakening of existing ready, security, release, or redaction gates.
