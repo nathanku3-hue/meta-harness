@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-06-12T09:14:37.919Z",
-  "template_count": 26,
+  "generated_at": "2026-06-12T15:33:17.948Z",
+  "template_count": 27,
   "hash_algorithm": "sha256",
   "line_ending_normalization": "LF",
   "templates": [
@@ -9,6 +9,11 @@
       "source_path": "templates/contracts/clean-code-contract.json",
       "installed_path": ".meta-harness/templates/contracts/clean-code-contract.json",
       "content_hash": "51fba75ed9c73328299e1beca30432ed94e142c1aae50d6862e33861b7ce2b52"
+    },
+    {
+      "source_path": "templates/contracts/context-adoption-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/context-adoption-contract.md",
+      "content_hash": "30349e7e38dd036ca5ed82a83c45d388c3ade04d7e4d14e208efec24552767c0"
     },
     {
       "source_path": "templates/contracts/context-gate-schema.json",
@@ -136,5 +141,5 @@
       "content_hash": "44debb09279b9da8ef7ed2c1697a9d966ce4d5d703b54008a0c0744b2978e4df"
     }
   ],
-  "manifest_hash": "8a33286ccd1e6834fe0ceabe63ff42873dc23bc51eeac4ce41b24b1015f1fd00"
+  "manifest_hash": "9b0cd55f514713de6df29fb3181f4ff39b0c6ec0f8544eaa9f535a3643a338df"
 }

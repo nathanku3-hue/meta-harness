@@ -731,3 +731,30 @@ Non-Goals:
 - No daemon.
 - No tracked `.meta-harness/context/` artifacts by default.
 - No release/publish automation or weakening of existing ready, security, release, or redaction gates.
+
+## D035: Phase 13C Context Gate Adoption Contract
+
+Decision:
+
+Authorize Phase 13C to convert the local context gate from an optional diagnostic into a governed workflow prerequisite for repositories that deliberately adopt `.meta-harness/contracts/context-adoption.md`.
+
+Rationale:
+
+Phase 13A and 13B made context scoring deterministic and read-only ready-safe, but readiness still accepted the latest artifact globally and did not prove that the artifact matched the current workflow transition. Adoption needs explicit transition policy, auditable bypass, and packet behavior that separates worker execution from human review/planning inspection.
+
+Scope:
+
+- Keep the existing seven-phase map and all six adjacent transitions.
+- Require gates for `intake->plan`, `plan->work`, `work->verify`, and `verify->synthesize`.
+- Treat `synthesize->handoff` and `handoff->lookback` as advisory.
+- Activate enforcement only when `.meta-harness/contracts/context-adoption.md` exists.
+- Determine the expected ready transition from `.meta-harness/status.md` `Phase:`.
+- Reject unrelated latest artifacts as proof for the expected transition.
+- Allow blocked required gates only with an artifact override and matching `context-gate-override` event bound to artifact path, round id, transition, code, and event freshness.
+- Keep review/planning packets available for inspection while blocking worker packets on required blocked gates.
+
+Non-Goals:
+
+- No new phase transition such as `verify->handoff`.
+- No Context7/MCP, dashboard, daemon, model/network scoring, or auto-worker routing.
+- No release/publish automation or weakening of existing ready, security, release, package, or redaction gates.
