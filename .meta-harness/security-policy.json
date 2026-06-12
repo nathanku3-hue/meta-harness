@@ -30,7 +30,8 @@
     ".meta-harness/events.jsonl",
     ".meta-harness/workers/",
     ".meta-harness/expert-packets/",
-    ".meta-harness/briefs/"
+    ".meta-harness/briefs/",
+    ".meta-harness/context/"
   ],
   "deferred_hardening": [
     "OpenSSF Scorecard adoption",

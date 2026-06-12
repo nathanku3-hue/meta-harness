@@ -1669,6 +1669,45 @@ These replace the earlier aspirational statements:
 
 ---
 
+## Phase 13A — Context Quality Gate (interim implementation subphase)
+
+Purpose: add a context sufficiency gate before multi-repo rollup, without renumbering Phase 13 or Phase 14.
+
+Current status: locally implemented under D033 after D032 planning. Source design lives in `docs/product/phase-13a-context-gate-plan.md`. The phase exists because the next bottleneck is not more worker fanout or larger context volume; it is deciding whether each phase transition has enough compact, fresh, evidence-backed context for a fresh worker to proceed without guessing.
+
+### Operating rule
+
+```text
+A round may proceed only when Meta-Harness can produce a compact,
+evidence-backed context packet for the next phase.
+```
+
+### Implemented surfaces
+
+- `templates/contracts/context-gate-schema.json`
+- `templates/skills/context-quality-gate.md`
+- `templates/skills/context-packet.md`
+- `meta-harness context check`
+- `meta-harness context packet`
+- `meta-harness context ask`
+- optional `MH_CONTEXT_GATE_001` ready validation when context artifacts exist
+
+### Non-renumbering boundary
+
+Phase 13 remains multi-repo rollup and Phase 14 remains controlled autonomy until a separate roadmap-renumber decision says otherwise. Phase 13A is an interim gate that protects those later phases from scaling vague or stale local context.
+
+### Exit criteria
+
+- [x] Context gate schema is packaged as a source template.
+- [x] Context quality gate and context packet skill templates are packaged.
+- [x] Gate output distinguishes structural hard blockers, evidence gaps, and unknown dimensions.
+- [x] Valid hints can satisfy evidence gaps but cannot clear structural blockers.
+- [x] Local context outputs stay under `.meta-harness/local/context/` by default.
+- [x] Tracked `.meta-harness/context/` artifacts require explicit archival and redaction.
+- [x] Ready validates present context artifacts by shape/freshness only and skips absent surfaces as not applicable.
+
+---
+
 ## Phase 13 — Multi-repo rollup
 
 Purpose: dashboard after truth. Only build cross-repo visibility after local truth, security, and release enforcement are stable. Parent reads child repos — parent never mutates child state.

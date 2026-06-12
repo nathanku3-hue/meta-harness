@@ -8,6 +8,32 @@ const test = require("node:test");
 const { run, runRaw, tempDir } = require("./helpers/cli");
 const { writePhase5SecurityFixture } = require("./helpers/security-fixture");
 
+const READY_JSON_CHECK_IDS = Object.freeze([
+  "MH_DOMAIN_GOVERNANCE_001",
+  "MH_TEST_001",
+  "MH_SYNC_001",
+  "MH_TRUST_001",
+  "MH_CONTRACT_001",
+  "MH_STATE_001",
+  "MH_BRIEF_001",
+  "MH_CONTEXT_GATE_001",
+  "MH_DECISION_001",
+  "MH_QUALITY_001",
+  "MH_SECURITY_001",
+  "MH_NPM_SCRIPTS_001",
+  "MH_REPRO_001",
+  "MH_STATE_ROOT_LEAK_001",
+  "MH_GITCHECK_001",
+  "MH_PACKAGE_001",
+  "MH_GITHUB_SETTINGS_001",
+  "MH_SHIPGATE_001",
+  "MH_READY_JSON_001",
+]);
+
+function readyJsonChecks(overrides = {}) {
+  return READY_JSON_CHECK_IDS.map((id) => ({ id, status: "pass", ...(overrides[id] || {}) }));
+}
+
 test("ready command all pass scenario (local read-only quick mode)", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Ready check target"]);
@@ -91,27 +117,11 @@ test("ready command pregenerated ready.json override", () => {
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 18, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 19, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
-    checks: [{ id: "MH_DOMAIN_GOVERNANCE_001", status: "pass" },
-      { id: "MH_TEST_001", status: "pass", reason: "overridden test", next_action: "" },
-      { id: "MH_SYNC_001", status: "pass" },
-      { id: "MH_TRUST_001", status: "pass" },
-      { id: "MH_CONTRACT_001", status: "pass" },
-      { id: "MH_STATE_001", status: "pass" },
-      { id: "MH_BRIEF_001", status: "pass" },
-      { id: "MH_DECISION_001", status: "pass" },
-      { id: "MH_QUALITY_001", status: "pass" },
-      { id: "MH_SECURITY_001", status: "pass" },
-      { id: "MH_NPM_SCRIPTS_001", status: "pass" },
-      { id: "MH_REPRO_001", status: "pass" },
-      { id: "MH_STATE_ROOT_LEAK_001", status: "pass" },
-      { id: "MH_GITCHECK_001", status: "pass" },
-      { id: "MH_PACKAGE_001", status: "pass" },
-      { id: "MH_GITHUB_SETTINGS_001", status: "pass" },
-      { id: "MH_SHIPGATE_001", status: "pass" },
-      { id: "MH_READY_JSON_001", status: "pass" }
-    ]
+    checks: readyJsonChecks({
+      MH_TEST_001: { reason: "overridden test", next_action: "" },
+    })
   }), "utf8");
   const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
   const data = JSON.parse(res.stdout);
@@ -158,27 +168,9 @@ test("stale ready.json is rejected due to git_commit mismatch (non-git target ex
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 18, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 19, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
-    checks: [{ id: "MH_DOMAIN_GOVERNANCE_001", status: "pass" },
-      { id: "MH_SYNC_001", status: "pass" },
-      { id: "MH_TRUST_001", status: "pass" },
-      { id: "MH_CONTRACT_001", status: "pass" },
-      { id: "MH_STATE_001", status: "pass" },
-      { id: "MH_BRIEF_001", status: "pass" },
-      { id: "MH_DECISION_001", status: "pass" },
-      { id: "MH_QUALITY_001", status: "pass" },
-      { id: "MH_SECURITY_001", status: "pass" },
-      { id: "MH_NPM_SCRIPTS_001", status: "pass" },
-      { id: "MH_REPRO_001", status: "pass" },
-      { id: "MH_STATE_ROOT_LEAK_001", status: "pass" },
-      { id: "MH_GITCHECK_001", status: "pass" },
-      { id: "MH_PACKAGE_001", status: "pass" },
-      { id: "MH_GITHUB_SETTINGS_001", status: "pass" },
-      { id: "MH_TEST_001", status: "pass" },
-      { id: "MH_SHIPGATE_001", status: "pass" },
-      { id: "MH_READY_JSON_001", status: "pass" }
-    ]
+    checks: readyJsonChecks()
   }), "utf8");
   const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
   const data = JSON.parse(res.stdout);
@@ -211,27 +203,9 @@ test("stale ready.json is rejected due to git_commit mismatch (git target compar
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 18, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 19, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
-    checks: [{ id: "MH_DOMAIN_GOVERNANCE_001", status: "pass" },
-      { id: "MH_SYNC_001", status: "pass" },
-      { id: "MH_TRUST_001", status: "pass" },
-      { id: "MH_CONTRACT_001", status: "pass" },
-      { id: "MH_STATE_001", status: "pass" },
-      { id: "MH_BRIEF_001", status: "pass" },
-      { id: "MH_DECISION_001", status: "pass" },
-      { id: "MH_QUALITY_001", status: "pass" },
-      { id: "MH_SECURITY_001", status: "pass" },
-      { id: "MH_NPM_SCRIPTS_001", status: "pass" },
-      { id: "MH_REPRO_001", status: "pass" },
-      { id: "MH_STATE_ROOT_LEAK_001", status: "pass" },
-      { id: "MH_GITCHECK_001", status: "pass" },
-      { id: "MH_PACKAGE_001", status: "pass" },
-      { id: "MH_GITHUB_SETTINGS_001", status: "pass" },
-      { id: "MH_TEST_001", status: "pass" },
-      { id: "MH_SHIPGATE_001", status: "pass" },
-      { id: "MH_READY_JSON_001", status: "pass" }
-    ]
+    checks: readyJsonChecks()
   }), "utf8");
 
   const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
@@ -260,25 +234,7 @@ test("ready.json count fields must match checks", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Count mismatch target"]);
   const { computeReadyStateHash } = require("../lib/ready-check");
-  const checks = [{ id: "MH_DOMAIN_GOVERNANCE_001", status: "pass" },
-    { id: "MH_SYNC_001", status: "pass" },
-    { id: "MH_TRUST_001", status: "pass" },
-    { id: "MH_CONTRACT_001", status: "pass" },
-    { id: "MH_STATE_001", status: "pass" },
-    { id: "MH_BRIEF_001", status: "pass" },
-    { id: "MH_DECISION_001", status: "pass" },
-    { id: "MH_QUALITY_001", status: "pass" },
-    { id: "MH_SECURITY_001", status: "pass" },
-    { id: "MH_NPM_SCRIPTS_001", status: "pass" },
-    { id: "MH_REPRO_001", status: "pass" },
-    { id: "MH_STATE_ROOT_LEAK_001", status: "pass" },
-    { id: "MH_GITCHECK_001", status: "pass" },
-    { id: "MH_PACKAGE_001", status: "pass" },
-    { id: "MH_GITHUB_SETTINGS_001", status: "pass" },
-    { id: "MH_TEST_001", status: "pass" },
-    { id: "MH_SHIPGATE_001", status: "pass" },
-    { id: "MH_READY_JSON_001", status: "pass" }
-  ];
+  const checks = readyJsonChecks();
   fs.mkdirSync(path.join(cwd, ".meta-harness"), { recursive: true });
   fs.writeFileSync(path.join(cwd, ".meta-harness", "ready.json"), JSON.stringify({
     schema_version: "1.0.0",

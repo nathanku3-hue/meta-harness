@@ -14,6 +14,7 @@ test("command registry tracks canonical commands separately from aliases", () =>
   assert.equal(names.includes("skill"), true);
   assert.equal(names.includes("merge"), true);
   assert.equal(names.includes("release"), true);
+  assert.equal(names.includes("context"), true);
   assert.equal(commandSpecs.some((spec) => Array.isArray(spec.aliases) && spec.aliases.length > 0), false);
 });
 
@@ -33,6 +34,8 @@ test("public command and check registries are deterministic metadata surfaces", 
 
   const checks = checkIdRegistry();
   assert.deepEqual(checks.map((item) => item.id), checks.map((item) => item.id).toSorted());
+  assert.equal(checks.length, 19);
+  assert.equal(checks.some((item) => item.id === "MH_CONTEXT_GATE_001"), true);
   assert.equal(new Set(checks.map((item) => item.id)).size, checks.length);
   assert.equal(checks.every((item) => /^MH_[A-Z0-9_]+_\d{3}$/.test(item.id)), true);
 });
@@ -49,5 +52,8 @@ test("help text is generated from registry usage lines", () => {
   assert.match(help, /meta-harness distill candidate <distillation-id> --target <repo>/);
   assert.match(help, /meta-harness release check \[--target <repo>\] \[--json\] \[--publish\]/);
   assert.match(help, /meta-harness decisions scan --target <repo>/);
+  assert.match(help, /meta-harness context check --from <phase> --to <phase>/);
+  assert.match(help, /meta-harness context packet <round-id> --for <worker\|review\|planning>/);
+  assert.match(help, /meta-harness context ask <round-id>/);
   assert.match(help, /Streams: coding, research, writing, review/);
 });

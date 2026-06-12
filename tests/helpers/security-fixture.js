@@ -139,6 +139,7 @@ function writePhase5SecurityFixture(root) {
     deferred_hardening: ["Dependency Review Action before release automation"]
   }, null, 2) + "\n");
   writeFile(root, "docs/architecture/owners.json", JSON.stringify({
+    schema_version: "1.0.0",
     version: 1,
     modules: [
       { path: "README.md", owner: "nathanku3-hue", risk: "docs" },

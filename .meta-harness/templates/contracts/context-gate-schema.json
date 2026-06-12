@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "round_id",
+    "generated_at",
+    "transition",
+    "overall_score",
+    "verdict",
+    "scores",
+    "correct_next_step"
+  ],
+  "properties": {
+    "round_id": {
+      "type": "string",
+      "pattern": "^ROUND-[0-9]{3,}$"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "transition": {
+      "type": "string",
+      "enum": [
+        "intake->plan",
+        "plan->work",
+        "work->verify",
+        "verify->synthesize",
+        "synthesize->handoff",
+        "handoff->lookback"
+      ]
+    },
+    "overall_score": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["blocked", "narrowed", "proceed", "excellent"]
+    },
+    "structural_hard_blockers": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Blockers that no hint or override can clear."
+    },
+    "evidence_gap_dimensions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Dimensions where a provenance-backed hint could satisfy the gap."
+    },
+    "unknown_dimensions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Dimensions where file evidence was insufficient. Scored as 1."
+    },
+    "scores": {
+      "type": "object",
+      "required": [
+        "product_outcome",
+        "scope_boundary",
+        "repo_and_stack",
+        "owned_surface",
+        "evidence_plan",
+        "risk_and_stop_rules",
+        "freshness",
+        "handoff_completeness"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "product_outcome": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "scope_boundary": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "repo_and_stack": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "owned_surface": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "evidence_plan": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "risk_and_stop_rules": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "freshness": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "handoff_completeness": { "type": "integer", "minimum": 1, "maximum": 10 }
+      }
+    },
+    "correct_next_step": { "type": "string" },
+    "questions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 3
+    },
+    "hints_applied": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "from", "to", "reason", "author", "expires_at"],
+        "properties": {
+          "dimension": { "type": "string" },
+          "from": { "type": "integer" },
+          "to": { "type": "integer" },
+          "reason": { "type": "string" },
+          "author": { "type": "string" },
+          "expires_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

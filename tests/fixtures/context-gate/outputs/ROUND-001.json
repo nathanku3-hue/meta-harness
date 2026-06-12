@@ -1,0 +1,23 @@
+{
+  "round_id": "ROUND-001",
+  "generated_at": "2026-06-12T08:30:00.000Z",
+  "transition": "plan->work",
+  "overall_score": 8,
+  "verdict": "proceed",
+  "structural_hard_blockers": [],
+  "evidence_gap_dimensions": [],
+  "unknown_dimensions": [],
+  "scores": {
+    "product_outcome": 8,
+    "scope_boundary": 8,
+    "repo_and_stack": 8,
+    "owned_surface": 8,
+    "evidence_plan": 8,
+    "risk_and_stop_rules": 8,
+    "freshness": 8,
+    "handoff_completeness": 8
+  },
+  "correct_next_step": "Proceed to Worker C implementation inside the owned template, test, and docs surface.",
+  "questions": [],
+  "hints_applied": []
+}

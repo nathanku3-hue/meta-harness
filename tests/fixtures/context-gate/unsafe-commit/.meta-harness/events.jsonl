@@ -1,0 +1,1 @@
+{"time":"2026-06-12T08:20:00Z","actor":"codex","stream":"coding","phase":"verify","action":"unsafe context fixture prepared","result":"tracked commit-artifact output must fail redaction","evidence":"Authorization bearer token in status.md","decision":"D032","next_action":"assert refusal"}

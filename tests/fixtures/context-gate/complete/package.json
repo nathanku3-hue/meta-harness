@@ -1,0 +1,11 @@
+{
+  "name": "context-gate-complete-fixture",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@11.16.0",
+  "scripts": {
+    "test": "node --test"
+  }
+}

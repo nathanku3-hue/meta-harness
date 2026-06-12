@@ -1,0 +1,11 @@
+{
+  "hints": [
+    {
+      "dimension": "freshness",
+      "value": 9,
+      "reason": "Confirmed Phase 13A design currency against implementation_plan.md at 2026-06-12T08:30:00Z",
+      "author": "worker-c",
+      "expires_at": "2026-06-19T00:00:00Z"
+    }
+  ]
+}

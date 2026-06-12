@@ -1,0 +1,11 @@
+{
+  "hints": [
+    {
+      "dimension": "freshness",
+      "value": 10,
+      "reason": "Human hint asks for excellent freshness, but hints must cap at 9",
+      "author": "worker-c",
+      "expires_at": "2026-06-19T00:00:00Z"
+    }
+  ]
+}

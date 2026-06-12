@@ -21,6 +21,13 @@ function writePackageLock(root) {
   }), "utf8");
 }
 
+function writeFile(root, relativePath, content) {
+  const filePath = path.join(root, ...relativePath.split("/"));
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content, "utf8");
+  return filePath;
+}
+
 function checkById(result, id) {
   return result.checks.find(check => check.id === id);
 }
@@ -106,4 +113,49 @@ test("security-policy drift is reported when implemented checks are not represen
 
   assert.equal(policyCheck.status, "fail");
   assert.match(policyCheck.reason, /workflow_run/);
+});
+
+test("security baseline scans committed context artifacts declared by policy redaction surfaces", async () => {
+  const cwd = tempDir();
+  writePackageLock(cwd);
+  writePhase5SecurityFixture(cwd);
+  const policyPath = path.join(cwd, ".meta-harness", "security-policy.json");
+  const policy = JSON.parse(fs.readFileSync(policyPath, "utf8"));
+  policy.redaction_surfaces = [
+    ".meta-harness/events.jsonl",
+    ".meta-harness/workers/",
+    ".meta-harness/expert-packets/",
+    ".meta-harness/briefs/",
+    ".meta-harness/context/"
+  ];
+  fs.writeFileSync(policyPath, JSON.stringify(policy, null, 2), "utf8");
+  writeFile(cwd, ".meta-harness/context/ROUND-001.json", JSON.stringify({
+    round_id: "ROUND-001",
+    note: "Authorization: Bearer abcdefghijklmnopqrstuvwxyz0123456789"
+  }, null, 2));
+
+  const result = await checkSecurityBaseline({ targetRoot: cwd, noExec: true });
+  const redaction = checkById(result, "SEC_REDACTION_001");
+
+  assert.equal(redaction.status, "fail");
+  assert.match(redaction.reason, /BEARER_TOKEN|secret-like output/);
+});
+
+test("security baseline falls back to hardcoded redaction surfaces when policy omits surface list", async () => {
+  const cwd = tempDir();
+  writePackageLock(cwd);
+  writePhase5SecurityFixture(cwd);
+  const policyPath = path.join(cwd, ".meta-harness", "security-policy.json");
+  const policy = JSON.parse(fs.readFileSync(policyPath, "utf8"));
+  delete policy.redaction_surfaces;
+  fs.writeFileSync(policyPath, JSON.stringify(policy, null, 2), "utf8");
+  writeFile(cwd, ".meta-harness/context/ROUND-001.json", JSON.stringify({
+    round_id: "ROUND-001",
+    note: "Authorization: Bearer abcdefghijklmnopqrstuvwxyz0123456789"
+  }, null, 2));
+
+  const result = await checkSecurityBaseline({ targetRoot: cwd, noExec: true });
+  const redaction = checkById(result, "SEC_REDACTION_001");
+
+  assert.equal(redaction.status, "pass");
 });

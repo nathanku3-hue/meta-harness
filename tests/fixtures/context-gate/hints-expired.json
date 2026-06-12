@@ -1,0 +1,11 @@
+{
+  "hints": [
+    {
+      "dimension": "freshness",
+      "value": 9,
+      "reason": "Old freshness confirmation should no longer satisfy the evidence gap",
+      "author": "worker-c",
+      "expires_at": "2026-06-01T00:00:00Z"
+    }
+  ]
+}

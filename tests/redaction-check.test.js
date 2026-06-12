@@ -1,8 +1,22 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
 const test = require("node:test");
-const { scanTextForSecrets } = require("../lib/redaction-check");
+const { scanRedactionSurfaces, scanTextForSecrets } = require("../lib/redaction-check");
+
+function tempDir() {
+  return fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-redaction-"));
+}
+
+function writeFile(root, relativePath, content) {
+  const filePath = path.join(root, ...relativePath.split("/"));
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content, "utf8");
+  return filePath;
+}
 
 test("redaction scanner detects common secret-like output", () => {
   const text = [
@@ -35,4 +49,29 @@ test("redaction scanner allows benign hashes, UUIDs, integrity strings, public k
 
   assert.equal(result.status, "PASS");
   assert.deepEqual(result.findings, []);
+});
+
+test("redaction scanner checks committed context artifacts when surface is registered", () => {
+  const cwd = tempDir();
+  writeFile(cwd, ".meta-harness/context/ROUND-001.md", [
+    "# Context Gate",
+    "",
+    "Leaked key: AKIAIOSFODNN7EXAMPLE",
+    ""
+  ].join("\n"));
+
+  const result = scanRedactionSurfaces({
+    targetRoot: cwd,
+    surfaces: [
+      ".meta-harness/events.jsonl",
+      ".meta-harness/workers/",
+      ".meta-harness/expert-packets/",
+      ".meta-harness/briefs/",
+      ".meta-harness/context/"
+    ],
+  });
+
+  assert.equal(result.status, "FAIL");
+  assert.equal(result.findings.some((item) => item.id === "AWS_ACCESS_KEY_ID"), true);
+  assert.equal(result.findings.some((item) => item.path === ".meta-harness/context/ROUND-001.md"), true);
 });

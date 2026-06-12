@@ -1,0 +1,11 @@
+{
+  "hints": [
+    {
+      "dimension": "repo_and_stack",
+      "value": 9,
+      "reason": "Attempting to clear a missing repo and stack identity with a hint",
+      "author": "worker-c",
+      "expires_at": "2026-06-19T00:00:00Z"
+    }
+  ]
+}

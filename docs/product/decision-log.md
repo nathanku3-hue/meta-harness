@@ -650,3 +650,52 @@ Validation commands:
 
 Auditor: Antigravity / Codex
 Reopen conditions: Any core check regression, unauthorized permission expansion, or release-enforcement gate failure.
+
+## D032: Phase 13A Context-Quality-Gate Planning Authorization
+
+Decision:
+
+Authorize Phase 13A planning docs and design artifacts for the context-quality-gate capability. This does NOT authorize implementation, CLI changes, test changes, or source code modifications.
+
+Rationale:
+
+Phase 1-12 closed under D031. The next system bottleneck is not more agents or context volume but deciding whether each round has enough compact, evidence-backed context to proceed without guessing. Context quality gating should precede multi-repo rollup (Phase 13) because silent orchestration needs "correct next step" and "planning sufficient?" gates before larger coordination features.
+
+Scope:
+
+- Phase 13A planning docs, design artifacts, and schema drafts only.
+- Governance/status updates required to record planning state: append one redacted `.meta-harness/events.jsonl` planning event and update `.meta-harness/status.md`.
+- Phase 13 (multi-repo rollup) and Phase 14 (controlled autonomy) numbering unchanged until a separate renumber decision.
+- Implementation requires a separate D033 authorization after planning review.
+
+Non-Goals:
+
+- No CLI changes, lib/ changes, test changes, or template additions.
+- No renumbering of existing Phase 13/14 roadmap entries.
+- No implementation authorization.
+
+## D033: Phase 13A Context-Quality-Gate Implementation Authorization
+
+Decision:
+
+Record and authorize the bounded Phase 13A local context-quality-gate implementation after the 2026-06-12 user authorization to patch the plan and implement via subagents.
+
+Rationale:
+
+D032 deliberately separated planning from implementation. The implementation has now landed, so governance docs/status must no longer describe the context CLI, ready integration, template manifest, or security wiring as pending. The gate remains an interim local safety layer before Phase 13 multi-repo rollup and Phase 14 controlled autonomy.
+
+Scope:
+
+- Local `meta-harness context check`, `meta-harness context packet`, and `meta-harness context ask` surfaces.
+- Core local context gate helpers, artifact validation, hints, questions, packet generation, and default ignored outputs under `.meta-harness/local/context/`.
+- Source and installed context gate schema/skill templates plus template manifest updates.
+- `MH_CONTEXT_GATE_001` ready integration that validates present artifacts and skips absent surfaces as not applicable.
+- Security-policy `redaction_surfaces` wiring into the redaction scanner, with focused tests.
+- Phase 13 and Phase 14 numbering remains unchanged.
+
+Non-Goals:
+
+- No multi-repo rollup.
+- No autonomy daemon or dashboard.
+- No model/network scoring.
+- No release/publish automation or weakening of existing gates.
