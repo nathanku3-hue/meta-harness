@@ -40,6 +40,14 @@ test("governance diff emits JSON and reports drift", () => {
   assert.equal(cleanResult.status, 0);
   assert.equal(clean.ok, true);
   assert.equal(clean.counts.changes, 0);
+  assert.deepEqual(clean.classification, {
+    change_level: "NONE",
+    breaking: false,
+    migration_required: false,
+    reasons: [],
+  });
+  assert.equal(Object.hasOwn(clean.classification, "changeLevel"), false);
+  assert.equal(Object.hasOwn(clean.classification, "migrationRequired"), false);
 
   const snapshot = JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
   snapshot.governance_engine_hash = "1".repeat(64);
@@ -52,6 +60,9 @@ test("governance diff emits JSON and reports drift", () => {
   assert.equal(driftResult.status, 1);
   assert.equal(drift.ok, false);
   assert.equal(drift.changes.some((item) => item.category === "governance_engine_hash"), true);
+  assert.equal(drift.classification.change_level, "MAJOR");
+  assert.equal(drift.classification.breaking, true);
+  assert.equal(drift.classification.migration_required, true);
 });
 
 test("governance replay emits a JSON match for an immediate context artifact", () => {
