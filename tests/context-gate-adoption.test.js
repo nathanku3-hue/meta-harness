@@ -1,103 +1,43 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 
-const { readJsonl, run, runRaw, tempDir, writeFile } = require("./helpers/cli");
+const { readJsonl, runRaw } = require("./helpers/cli");
+const { artifact, contextGateCheck, initAdoptedRepo, readyJson, writeContextArtifact, writeOverrideEvent } = require("./helpers/context-gate-adoption");
+const {
+  expectedTransitionFromStatus,
+  isGateOptional,
+  isGateRequired,
+  validateBypass,
+} = require("../lib/context-gate-adoption");
 
-const SCORE_DIMENSIONS = Object.freeze([
-  "product_outcome",
-  "scope_boundary",
-  "repo_and_stack",
-  "owned_surface",
-  "evidence_plan",
-  "risk_and_stop_rules",
-  "freshness",
-  "handoff_completeness",
-]);
-
-function scores(value = 8) {
-  return Object.fromEntries(SCORE_DIMENSIONS.map((dimension) => [dimension, value]));
-}
-
-function artifact(overrides = {}) {
+function snapshotGovernance() {
   return {
-    round_id: "ROUND-001",
-    generated_at: new Date().toISOString(),
-    transition: "plan->work",
-    overall_score: 1,
-    verdict: "blocked",
-    structural_hard_blockers: ["proof missing"],
-    evidence_gap_dimensions: [],
-    unknown_dimensions: [],
-    scores: scores(),
-    correct_next_step: "Answer the blocker-clearing questions before proceeding.",
-    questions: ["What proof command should run?"],
-    hints_applied: [],
-    context_summary: {
-      goal: "Adopt context gate enforcement.",
-      scope: "Phase 13C adoption surface only.",
-      stack: "Node.js",
-      owned_surface: "context gate readiness",
-      evidence_required: "node --test",
-      stop_rules: "Stop on blocked required gate.",
-      freshness: "current",
-      handoff: "Ready result explains next step.",
-      decisions: [],
+    allowed_transitions: ["plan->work", "verify->release"],
+    required_gate_transitions: ["verify->release"],
+    optional_gate_transitions: ["plan->work"],
+    phase_to_expected_transition: {
+      plan: "plan->work",
+      verify: "verify->release",
+      release: null,
     },
-    evidence: Object.fromEntries(SCORE_DIMENSIONS.map((dimension) => [dimension, [`evidence for ${dimension}`]])),
-    ...overrides,
+    dimensions: [
+      "product_outcome",
+      "scope_boundary",
+      "repo_and_stack",
+      "owned_surface",
+      "evidence_plan",
+      "risk_and_stop_rules",
+      "freshness",
+      "handoff_completeness",
+    ],
+    valid_verdicts: ["blocked", "narrowed", "proceed", "excellent"],
+    bypass_reason_codes: ["snapshot_override"],
+    execution_transitions: ["verify->release"],
+    default_max_artifact_age_days: 7,
   };
-}
-
-function initAdoptedRepo(phase = "plan") {
-  const cwd = tempDir("meta-harness-context-adoption-");
-  run(cwd, ["init", "Context gate adoption"]);
-  writeFile(cwd, ".meta-harness/contracts/context-adoption.md", "# Context Gate Adoption Contract\n");
-  writeStatusPhase(cwd, phase);
-  return cwd;
-}
-
-function writeStatusPhase(root, phase) {
-  writeFile(root, ".meta-harness/status.md", [
-    "# Status",
-    "",
-    "Goal:",
-    "Adopt context gate enforcement.",
-    "",
-    "Phase:",
-    phase,
-    "",
-    "Current truth:",
-    "Testing Phase 13C adoption.",
-    "",
-    "Next action:",
-    "Run context gate readiness.",
-    "",
-    "Stop criteria:",
-    "Stop on blocked required gates.",
-    "",
-  ].join("\n"));
-}
-
-function writeContextArtifact(root, roundId, content) {
-  writeFile(root, `.meta-harness/local/context/${roundId}.json`, `${JSON.stringify(content, null, 2)}\n`);
-}
-
-function writeOverrideEvent(root, event) {
-  const eventsPath = path.join(root, ".meta-harness", "events.jsonl");
-  fs.appendFileSync(eventsPath, `${JSON.stringify(event)}\n`, "utf8");
-}
-
-function readyJson(root) {
-  const res = runRaw(root, ["ready", "--target", root, "--quick", "--read-only", "--json"]);
-  return JSON.parse(res.stdout);
-}
-
-function contextGateCheck(data) {
-  return data.checks.find((check) => check.id === "MH_CONTEXT_GATE_001");
 }
 
 test("adopted ready fails when latest artifact is unrelated to the expected required transition", () => {
@@ -116,6 +56,34 @@ test("adopted ready fails when latest artifact is unrelated to the expected requ
   assert.equal(check.status, "fail");
   assert.match(check.reason, /required transition plan->work/);
   assert.doesNotMatch(check.reason, /verdict: proceed/);
+});
+
+test("adoption helpers use snapshot governance when supplied", () => {
+  const cwd = initAdoptedRepo("verify");
+  const governance = snapshotGovernance();
+
+  assert.deepEqual(expectedTransitionFromStatus(cwd, { governance }), {
+    phase: "verify",
+    transition: "verify->release",
+  });
+  assert.equal(isGateRequired("verify->release", { governance }), true);
+  assert.equal(isGateRequired("plan->work", { governance }), false);
+  assert.equal(isGateOptional("plan->work", { governance }), true);
+
+  const accepted = validateBypass({
+    reason: "Snapshot replay accepted this override.",
+    code: "snapshot_override",
+    actor: "human",
+  }, { governance });
+  assert.equal(accepted.ok, true, accepted.reason);
+
+  const rejected = validateBypass({
+    reason: "Live code is not in this snapshot.",
+    code: "human_override",
+    actor: "human",
+  }, { governance });
+  assert.equal(rejected.ok, false);
+  assert.match(rejected.reason, /snapshot_override/);
 });
 
 test("lookback phase has no expected context transition and is not applicable", () => {
@@ -266,4 +234,39 @@ test("context check override requires reason code and records an event", () => {
   assert.equal(overrideEvent.transition, "plan->work");
   assert.equal(overrideEvent.code, "human_override");
   assert.equal(overrideEvent.evidence, ".meta-harness/local/context/ROUND-001.json");
+});
+
+test("context check records satisfied provenance idempotently", () => {
+  const cwd = initAdoptedRepo("plan");
+  const args = [
+    "context",
+    "check",
+    "--from",
+    "plan",
+    "--to",
+    "work",
+    "--round",
+    "ROUND-001",
+    "--override-context-gate",
+    "Need to proceed.",
+    "--override-context-gate-code",
+    "human_override",
+    "--json",
+  ];
+
+  const first = runRaw(cwd, args);
+  const second = runRaw(cwd, args);
+  assert.equal(first.status, 0, first.stderr);
+  assert.equal(second.status, 0, second.stderr);
+
+  const events = readJsonl(path.join(cwd, ".meta-harness", "events.jsonl"));
+  const satisfied = events.filter((event) =>
+    event.action === "context-gate-satisfied" &&
+    event.round_id === "ROUND-001" &&
+    event.transition === "plan->work" &&
+    event.evidence === ".meta-harness/local/context/ROUND-001.json"
+  );
+
+  assert.equal(satisfied.length, 1);
+  assert.equal(satisfied[0].verdict, "blocked");
 });

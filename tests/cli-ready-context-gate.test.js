@@ -6,6 +6,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const { run, runRaw, tempDir } = require("./helpers/cli");
+const { buildContextGateEvaluation } = require("../lib/ready-context-gate-evaluation");
 
 const SCORE_DIMENSIONS = Object.freeze([
   "product_outcome",
@@ -34,6 +35,24 @@ function artifact(overrides = {}) {
     questions: ["What proof command should run?"],
     hints_applied: [],
     ...overrides,
+  };
+}
+
+function snapshotGovernance() {
+  return {
+    allowed_transitions: ["plan->work", "verify->release"],
+    required_gate_transitions: ["verify->release"],
+    optional_gate_transitions: ["plan->work"],
+    phase_to_expected_transition: {
+      plan: "plan->work",
+      verify: "verify->release",
+      release: null,
+    },
+    dimensions: SCORE_DIMENSIONS,
+    valid_verdicts: ["blocked", "narrowed", "proceed", "excellent"],
+    bypass_reason_codes: ["snapshot_override"],
+    execution_transitions: ["verify->release"],
+    default_max_artifact_age_days: 7,
   };
 }
 
@@ -124,6 +143,41 @@ test("ready validates context gate artifacts by shape without enforcing verdict"
   assert.match(check.reason, /verdict: blocked/);
 });
 
+test("ready evaluation validates snapshot-only transitions with snapshot governance", () => {
+  const cwd = tempDir();
+  const nowMs = Date.now();
+  run(cwd, ["init", "Snapshot context gate target"]);
+  writeContextArtifact(cwd, "ROUND-001", artifact({
+    generated_at: new Date(nowMs).toISOString(),
+    transition: "verify->release",
+    verdict: "proceed",
+    overall_score: 8,
+    structural_hard_blockers: [],
+    questions: [],
+    correct_next_step: "Proceed through the snapshot transition.",
+  }));
+
+  const live = buildContextGateEvaluation({
+    targetRoot: cwd,
+    nowMs,
+    expectedTransition: "verify->release",
+    phase: "verify",
+  });
+  assert.equal(live.result.status, "fail");
+  assert.match(live.result.reason, /transition must be a supported phase transition/);
+
+  const snapshot = buildContextGateEvaluation({
+    targetRoot: cwd,
+    nowMs,
+    expectedTransition: "verify->release",
+    phase: "verify",
+    governance: snapshotGovernance(),
+  });
+  assert.equal(snapshot.result.status, "pass", snapshot.result.reason);
+  assert.equal(snapshot.adoption.required, true);
+  assert.equal(snapshot.selectedArtifact.transition, "verify->release");
+});
+
 test("ready validates the latest context gate artifact freshness", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Stale context gate target"]);
@@ -193,4 +247,33 @@ test("ready --quick --read-only --json does not mutate existing context artifact
   const check = contextCheck(data);
   assert.equal(check.status, "pass");
   assert.match(check.reason, /ROUND-002/);
+});
+
+test("ready --explain --read-only --json preserves explanation without filesystem mutation", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Existing context gate explain read-only"]);
+  writeContextArtifact(cwd, "ROUND-001", artifact());
+
+  const before = snapshotFilesystem(cwd);
+  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--explain", "--json"]);
+  const data = JSON.parse(res.stdout);
+  const after = snapshotFilesystem(cwd);
+
+  assertFilesystemUnchanged(before, after);
+  const check = contextCheck(data);
+  assert.equal(check.status, "pass");
+  assert.equal(check.explanation.artifact_examined.path, ".meta-harness/local/context/ROUND-001.json");
+  assert.equal(check.explanation.freshness_determination.verdict, "fresh");
+  assert.match(check.diagnostic, /Context gate diagnostic/);
+});
+
+test("ready --explain renders human-readable context gate diagnostics", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Context gate human explain"]);
+  writeContextArtifact(cwd, "ROUND-001", artifact());
+
+  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--explain"]);
+
+  assert.match(res.stdout, /Context gate diagnostic/);
+  assert.match(res.stdout, /expected transition:/);
 });

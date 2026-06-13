@@ -121,6 +121,48 @@ test("context check --target reads target repo from outside its directory", () =
   assert.equal(fs.existsSync(path.join(caller, ".meta-harness", "local", "context", "ROUND-042.json")), false);
 });
 
+test("context check --explain --json emits diagnostics and remediation", () => {
+  const cwd = copyFixture("complete");
+
+  const stdout = run(cwd, [
+    "context",
+    "check",
+    "--from",
+    "plan",
+    "--to",
+    "work",
+    "--round",
+    "ROUND-042",
+    "--explain",
+    "--json",
+  ]);
+  const data = JSON.parse(stdout);
+
+  assert.equal(data.artifact.transition, "plan->work");
+  assert.equal(data.explanation.expected_transition.transition, "plan->work");
+  assert.equal(typeof data.remediation, "string");
+  assert.match(data.provenance.artifact_path, /\.meta-harness\/local\/context\/ROUND-042\.json/);
+});
+
+test("context check --explain renders a human-readable diagnostic block", () => {
+  const cwd = copyFixture("complete");
+
+  const stdout = run(cwd, [
+    "context",
+    "check",
+    "--from",
+    "plan",
+    "--to",
+    "work",
+    "--round",
+    "ROUND-043",
+    "--explain",
+  ]);
+
+  assert.match(stdout, /Context gate diagnostic/);
+  assert.match(stdout, /remediation:/);
+});
+
 test("context packet --target reads target repo artifacts from outside its directory", () => {
   const caller = copyFixture("complete");
   const target = copyFixture("complete");

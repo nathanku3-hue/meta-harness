@@ -28,6 +28,7 @@ const READY_JSON_CHECK_IDS = Object.freeze([
   "MH_GITHUB_SETTINGS_001",
   "MH_SHIPGATE_001",
   "MH_READY_JSON_001",
+  "MH_TRANSITION_GRAPH_001",
 ]);
 
 function readyJsonChecks(overrides = {}) {
@@ -117,7 +118,7 @@ test("ready command pregenerated ready.json override", () => {
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 19, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 20, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks({
       MH_TEST_001: { reason: "overridden test", next_action: "" },
@@ -168,7 +169,7 @@ test("stale ready.json is rejected due to git_commit mismatch (non-git target ex
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 19, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 20, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks()
   }), "utf8");
@@ -203,7 +204,7 @@ test("stale ready.json is rejected due to git_commit mismatch (git target compar
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 19, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 20, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks()
   }), "utf8");
