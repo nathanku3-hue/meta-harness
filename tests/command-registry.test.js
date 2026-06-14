@@ -71,6 +71,12 @@ test("help text is generated from registry usage lines", () => {
   assert.match(help, /meta-harness governance snapshot \[--target <repo>\] \[--out <path>\] \[--json\]/);
   assert.match(help, /meta-harness governance diff \[--snapshot <path>\] \[--target <repo>\] \[--json\]/);
   assert.match(help, /meta-harness governance replay --snapshot <path> --artifact <path> --target <repo> \[--json\]/);
+  assert.match(help, /meta-harness governance migration plan --spec <path> --snapshot <path> \[--json\]/);
+  assert.match(help, /meta-harness governance migration apply --spec <path> --snapshot <path> --out <path> \[--json\]/);
+  assert.match(help, /meta-harness governance migration verify --spec <path> --before <path> --after <path> \[--json\]/);
+  assert.match(help, /meta-harness governance migration impact --spec <path> --snapshot <path> --artifacts-dir <path> \[--json\]/);
+  assert.match(help, /meta-harness governance release check --release <path> --before <path> --snapshot <path> --migration <path> \[--artifacts-dir <path>\] \[--json\]/);
+  assert.match(help, /meta-harness governance release report --release <path> \[--diff <path>\] \[--impact <path>\] \[--migration-verification <path>\] \[--out <path>\]/);
   assert.match(help, /meta-harness decisions scan --target <repo>/);
   assert.match(help, /meta-harness context check --from <phase> --to <phase>/);
   assert.match(help, /meta-harness context packet <round-id> --for <worker\|review\|planning>/);
