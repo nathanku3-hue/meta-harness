@@ -2,7 +2,7 @@
 
 Status: active baseline
 Approval scope: Phase 1–12 aggregate completion under accepted roadmap scopes, closed by D031 at commit d031c
-Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phase 13 local context-governance capabilities now extend through governance snapshotting/replay and compatibility classification. Phase 14C governance migration/release framework is implemented locally, while dashboards, daemons, auto-worker routing, registry publishing, and self-approving controlled autonomy remain future/non-goals.
+Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phase 13 local context-governance capabilities now extend through governance snapshotting/replay and compatibility classification. Phase 6B / 13D adds docs/templates-only build-vs-borrow expert routing before any connector or automation work. Phase 14C governance migration/release framework is implemented locally, while dashboards, daemons, auto-worker routing, registry publishing, and self-approving controlled autonomy remain future/non-goals.
 Date: 2026-06-18
 Decision: D031 aggregate closure; D032-D038 context/governance records; D021–D030 remain source decisions; D017–D020 remain source decisions
 
@@ -35,6 +35,7 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 4 | CLI and test decomposition | concrete | accepted baseline |
 | 5 | Minimum security baseline | concrete | implemented locally (with scoped settings warning exception); closed under D031 |
 | 6 | Ship-fast enforcement loop | concrete | accepted baseline |
+| 6B / 13D | Build-vs-Borrow Expert Routing Contract | concrete | docs/templates/status slice: Question Zero, local-first/existing-solution-first routing, expert-only boundary escalation, and no command/MCP/daemon surface |
 | 7 | One-skill pilot | buildable | accepted baseline |
 | 8 | Read-only subagent scout pilot | buildable | implemented and merged; PR #15 |
 | 9 | Complexity governor expansion | buildable | explicitly closed under D031 |
@@ -901,6 +902,70 @@ The merge protocol gate should run after local verification and PR CI/review evi
 - [ ] Agent does ask PM about authority/boundary changes
 - [ ] Code-to-PR workflow contract is explicit in Phase 6
 - [ ] Local commit is not treated as done until PR, CI/review, merge, and cleanup expectations are satisfied or explicitly marked unavailable
+
+---
+
+## Phase 6B / 13D — Build-vs-Borrow Expert Routing Contract
+
+Purpose: teach routing to avoid building the wrong thing before choosing a worker, command, expert, or patch.
+
+### Problem
+
+The Silent Shipper layer can separate risk routes from terminal outcomes, but it still needs a top-level preflight: decide whether the work should exist, whether the repo already has the answer, whether the platform can solve it natively, and only then whether a patch or expert packet is warranted.
+
+### Operating model
+
+```text
+intent
+-> Question Zero: does this need to be built?
+-> repo/platform/dependency/template scan
+-> pre-route decision
+-> FAST/REVIEW/SLOW/BLOCK
+-> SHIP/REVIEW/DECISION_NEEDED/BLOCKED/FOLLOW_UP_QUEUED
+```
+
+Pre-route decisions:
+
+| Pre-route | Meaning | Then maps to |
+|---|---|---|
+| `NO_BUILD` | speculative, unnecessary, or already covered | `FOLLOW_UP_QUEUED` or compact explanation |
+| `USE_EXISTING_REPO_PATTERN` | repo skill/template/helper/docs pattern exists | `SHIP` or `REVIEW` |
+| `USE_PLATFORM_NATIVE` | runtime, stdlib, platform config, or local docs can solve it | `SHIP` or `REVIEW` |
+| `MINIMAL_PATCH` | real gap, owned path, bounded implementation | `REVIEW` |
+| `HUMAN_TASTE` | product judgment, UX tradeoff, naming, or priority | `DECISION_NEEDED` |
+| `EXPERT_PACKET` | architecture, domain, security, provider, or release judgment | `DECISION_NEEDED` or `BLOCKED` |
+| `AUTHORITY_BLOCK` | credentials, permissions, publishing, or protected boundary | `BLOCKED` |
+
+### Deliverables
+
+| File | Change |
+|---|---|
+| `docs/product/product-spec.md` | Define top-level-aware routing as both what-to-build and how-to-build. |
+| `docs/product/roadmap.md` | Add this Phase 6B / 13D slice and non-goals. |
+| `docs/sop/meta-harness-sop.md` | Add Question Zero and build-vs-borrow pre-route before FAST/REVIEW/SLOW/BLOCK. |
+| `templates/skills/build-vs-borrow-router.md` | Add reusable pre-route skill template. |
+| `templates/skills/scope-selector.md` | Require pre-route before bounded scope selection when build necessity is unclear. |
+| `templates/skills/expert-front-card.md` | Carry pre-route, route/outcome, boundary, and exactly one question. |
+| `templates/skills/expert-context-packer.md` | Build expert context only after the router says outside judgment is needed. |
+| `templates/contracts/expert-reconciliation-matrix.md` | Reconcile expert output against pre-route, route, outcome, and authority rules. |
+
+### Non-goals
+
+- No new public CLI command.
+- No MCP, connector, web, daemon, model/network scoring, or auto-search worker.
+- No imported remote/public skill artifact unless vendored, provenance-recorded, evaluated, and explicitly authorized.
+- No release, publish, protected-branch, credential, provider, or production-impacting action.
+
+### Exit criteria
+
+- [x] SOP adds Question Zero: "does this need to be built?"
+- [x] SOP requires local/repo/platform/existing-solution scan before new implementation.
+- [x] Product spec defines top-level-aware routing as both what-to-build and how-to-build.
+- [x] Non-FAST work distinguishes human taste, architecture boundary, expert-needed, review-only, and blocked authority.
+- [x] Expert packets are only created after the router says outside judgment is needed.
+- [x] Expert front card still asks exactly one question.
+- [x] Product/architecture/security/release/provider/domain changes cannot close with terminal outcome `SHIP`.
+- [x] Remote/public skills may inspire patterns but are not imported unless vendored, provenance-recorded, and evaluated.
 
 ---
 

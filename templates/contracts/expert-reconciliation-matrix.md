@@ -20,6 +20,9 @@ RoundID: <round-id>
 ScopeID: <scope-id>
 Date: <YYYY-MM-DD>
 Orchestrator: <name or role>
+PreRoute: <NO_BUILD|USE_EXISTING_REPO_PATTERN|USE_PLATFORM_NATIVE|MINIMAL_PATCH|HUMAN_TASTE|EXPERT_PACKET|AUTHORITY_BLOCK>
+Route: <FAST|REVIEW|SLOW|BLOCK>
+Outcome: <SHIP|REVIEW|DECISION_NEEDED|BLOCKED|FOLLOW_UP_QUEUED>
 DecisionState: <PENDING|APPROVED|BLOCKED|DEFERRED>
 ```
 
@@ -55,6 +58,8 @@ LowConfidenceRule: low_confidence requires next verification step before closure
 BoundaryRule: out_of_boundary items move to open risks or future scope.
 StreamOrderRule: stream_order defines execution sequence; hold means no execution.
 FindingRule: every material finding needs an owner, fix, status, and disposition before reconciliation can close.
+BuildVsBorrowRule: if the pre-route is not `EXPERT_PACKET` or `HUMAN_TASTE`, reconcile why expert judgment was still necessary or defer the packet.
+AuthorityRule: product, architecture, security, release, provider, and domain-authority changes cannot close with terminal outcome `SHIP`.
 ```
 
 ## Decision

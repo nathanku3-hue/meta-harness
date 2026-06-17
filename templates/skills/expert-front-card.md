@@ -5,7 +5,7 @@ description: Build a one-page expert or subagent packet front card with one ques
 
 # Expert Front Card
 
-Use this before expert review or subagent delegation.
+Use this before expert review or subagent delegation, after the build-vs-borrow router says outside judgment is needed.
 
 ## Required Shape
 
@@ -13,7 +13,10 @@ The front card must fit on one page and contain exactly one `Question:` field.
 
 Include:
 - current delta;
+- build-vs-borrow pre-route decision;
+- route and terminal outcome;
 - one question;
+- product or architecture boundary;
 - owned paths;
 - forbidden paths;
 - required evidence;

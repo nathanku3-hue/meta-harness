@@ -80,6 +80,37 @@ Next action:
 Stop criteria:
 ```
 
+## Build-vs-Borrow Routing
+
+Meta-Harness routing is top-level aware: before deciding who reviews or implements work, it decides whether the work should exist and what existing path should be reused.
+
+Question Zero:
+
+```text
+Does this need to be built?
+```
+
+Routing answers two questions:
+
+| Axis | Harness question |
+| --- | --- |
+| What is built? | Is this gap real, already solved, product-important, or speculative? |
+| How is it built? | Use repo docs/config, platform/native behavior, installed dependencies, existing templates, a minimal owned patch, or expert review, in that order. |
+
+The pre-route layer maps to existing outcomes; it does not add a new public command or terminal outcome.
+
+| Pre-route | Meaning |
+| --- | --- |
+| `NO_BUILD` | Speculative, unnecessary, already covered, or better answered with explanation. |
+| `USE_EXISTING_REPO_PATTERN` | A local skill, template, helper, command, docs pattern, or convention already solves the gap. |
+| `USE_PLATFORM_NATIVE` | Runtime, stdlib, platform config, or local docs can solve it without new owned code. |
+| `MINIMAL_PATCH` | The gap is real, owned, bounded, and locally verifiable. |
+| `HUMAN_TASTE` | Product taste, UX tradeoff, naming, priority, or acceptance judgment is needed. |
+| `EXPERT_PACKET` | Architecture, domain, security, provider, release, or specialist judgment is needed. |
+| `AUTHORITY_BLOCK` | Credentials, permissions, publishing, protected boundaries, or missing authority prevent progress. |
+
+Expert packets are created only after the router says outside judgment is needed. Product, architecture, security, release, provider, and domain-authority changes cannot close with terminal outcome `SHIP`. Remote/public skills, MCP servers, connectors, and external patterns may inspire local design, but they are not imported or executed unless vendored, provenance-recorded, evaluated, and explicitly authorized.
+
 ## Codex Worker Language
 
 Codex-facing worker instructions must answer:
@@ -313,6 +344,7 @@ Runtime code should be limited to:
 - no network requirement;
 - no model API requirement;
 - no arbitrary shell execution.
+- no MCP, connector, daemon, or agent execution surface for routing.
 
 ## Acceptance Criteria
 
@@ -327,6 +359,11 @@ The one-shot MVP is acceptable when:
 - `meta-harness worker-report` rejects missing or invalid `--outcome`, `--requested-work-type`, or `--actual-work-type`;
 - `meta-harness worker-report` rejects `DONE` when code, test, provider_probe, commit, validation, execution, or data_output work silently falls back to docs-only output;
 - `meta-harness templates install` copies reusable harness templates into local harness state;
+- SOP and packaged templates define Question Zero: "Does this need to be built?";
+- routing requires local repo, platform/native, existing dependency, and packaged-template scans before new implementation;
+- expert packets are created only after build-vs-borrow routing says outside judgment is needed;
+- product, architecture, security, release, provider, and domain-authority changes cannot close with terminal outcome `SHIP`;
+- remote/public skills, MCP servers, connectors, and external patterns are not imported or executed unless vendored, provenance-recorded, evaluated, and explicitly authorized;
 - `meta-harness expert-packet` writes one compact review `.zip` without copying caches, runtime folders, dependencies, or oversized files;
 - `meta-harness quality init` creates `.meta-harness/clean-code-contract.json` and `.meta-harness/baseline/quality-baseline.json`;
 - `meta-harness quality check` blocks new overbudget files and ratchets grandfathered debt;
