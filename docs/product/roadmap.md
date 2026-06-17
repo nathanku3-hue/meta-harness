@@ -2,9 +2,9 @@
 
 Status: active baseline
 Approval scope: Phase 1–12 aggregate completion under accepted roadmap scopes, closed by D031 at commit d031c
-Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phases 13–14 remain future prototypes.
-Date: 2026-06-10
-Decision: D031 aggregate closure; D021–D030 remain source decisions; D017–D020 remain source decisions
+Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phase 13 local context-governance capabilities now extend through governance snapshotting/replay and compatibility classification. Phase 14C governance migration/release framework is implemented locally, while dashboards, daemons, auto-worker routing, registry publishing, and self-approving controlled autonomy remain future/non-goals.
+Date: 2026-06-18
+Decision: D031 aggregate closure; D032-D038 context/governance records; D021–D030 remain source decisions; D017–D020 remain source decisions
 
 ## Endgame
 
@@ -41,8 +41,8 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 10 | Release/package enforcement | buildable | done-done for release/package enforcement artifacts under D030; publish guarded; publish-mode readiness is clean-tree/tag/full-check/evidence gated; no registry publish automation |
 | 11 | Domain governance pilot (adopter required) | prototype | D028 done-done validation closure: activation, source→fact→ontology→code→golden-case/review evidence, fact-ID code trace, expired-fact release block, signed review coverage, and `ready` integration implemented; non-goal boundaries unchanged |
 | 12 | Self-evolution prototype | prototype | D029 done-done closure for the local governed skill lifecycle: distillation candidate drafts, inactive candidate enforcement, preflight checks, promotion requiring decision ID, rollback/quarantine, and registry updates implemented; non-goal boundaries unchanged |
-| 13 | Multi-repo rollup | prototype | future prototype |
-| 14 | Controlled autonomy pilot | prototype | future prototype |
+| 13 | Multi-repo rollup / context governance precursor | prototype | Multi-repo rollup remains future. Local context governance precursor work is implemented through D037: context gate adoption, governance snapshot/diff/replay, artifact fingerprints, and conservative governance compatibility classification. |
+| 14 | Controlled autonomy pilot / governance release framework | prototype | Controlled autonomy remains future. Phase 14C governance migration/release framework is implemented locally under D038 for governed release checks and reports; it does not publish, create releases, or self-approve autonomy. |
 
 ---
 

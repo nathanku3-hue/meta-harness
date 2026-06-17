@@ -758,3 +758,76 @@ Non-Goals:
 - No new phase transition such as `verify->handoff`.
 - No Context7/MCP, dashboard, daemon, model/network scoring, or auto-worker routing.
 - No release/publish automation or weakening of existing ready, security, release, package, or redaction gates.
+
+## D036: Phase 13E Governance Snapshot/Replay Implementation Recorded
+
+Decision:
+
+Record the already-landed Phase 13E implementation as current repository truth on main. This is a progress alignment record for the implemented code path, not a new expansion beyond the landed scope.
+
+Rationale:
+
+The repository now contains governance snapshotting, drift detection, artifact fingerprinting, and snapshot-backed replay for context gate decisions. The status and roadmap must no longer imply that Phase 13C adoption is the latest implementation state.
+
+Scope:
+
+- Governance snapshot and hash generation through `meta-harness governance snapshot`.
+- Governance diffing through `meta-harness governance diff`.
+- Context gate artifact fingerprints that bind governance, evidence, and evaluation identity.
+- Snapshot-backed replay through `meta-harness governance replay --snapshot <path> --artifact <path> --target <repo>`.
+- Replay-relevant governance engine hashing and legacy artifact compatibility boundaries.
+
+Non-Goals:
+
+- No remote governance store.
+- No timestamped snapshot history requirement.
+- No cross-version replay promise beyond current snapshot/hash checks.
+- No release/publish automation or autonomy expansion.
+
+## D037: Phase 13F Governance Compatibility Classification Recorded
+
+Decision:
+
+Record the already-landed Phase 13F compatibility classifier as current repository truth on main. This is a progress alignment record for the implemented diff-classification slice.
+
+Rationale:
+
+Governance diffs now need conservative semantic labels so reviewers can distinguish clean, patch, additive, and breaking governance drift without changing snapshot hashes or replay behavior.
+
+Scope:
+
+- `lib/governance-compatibility.js` classifies existing governance diff categories.
+- `diffGovernanceSnapshots()` includes a snake_case `classification` object.
+- Per-change severity and breaking reason annotations are added where useful.
+- Unknown categories fail closed as major/breaking migration-required drift.
+
+Non-Goals:
+
+- No governance version field in snapshots.
+- No changes to governance hash, context fingerprints, or replay drift checks.
+- No migration packs or cross-version replay.
+- No dependency additions.
+
+## D038: Phase 14C Governance Migration/Release Framework Recorded
+
+Decision:
+
+Record the already-landed Phase 14C governance migration and release framework as current repository truth on main. This is a progress alignment record for local governed migration/release verification surfaces, not authorization to publish or self-release.
+
+Rationale:
+
+The codebase now includes governance migration planning, application, verification, impact checks, release checks, and release reports. The roadmap and status should describe these as implemented local verification tools while preserving the existing release and autonomy boundaries.
+
+Scope:
+
+- `meta-harness governance migration plan|apply|verify|impact`.
+- `meta-harness governance release check|report`.
+- Migration specification, impact, release core, validation, check, and report modules.
+- Focused CLI and module tests for governance migration and release behavior.
+
+Non-Goals:
+
+- No npm publish, GitHub release creation, remote tag push, or registry write.
+- No CI weakening or bypass of existing release/security/package gates.
+- No dashboards, daemons, auto-worker routing, or self-approving autonomy.
+- No provider credentials or network/model scoring.
