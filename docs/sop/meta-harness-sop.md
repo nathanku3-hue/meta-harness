@@ -1,7 +1,7 @@
 # Meta Harness SOP
 
-Status: draft
-Date: 2026-05-01
+Status: canonical
+Date: 2026-06-19
 
 ## Purpose
 
@@ -32,6 +32,7 @@ Every run keeps:
 | `background` | Research, monitoring, or validation continues while primary work proceeds. | New conclusions are introduced through conclusion updates, not silent edits. |
 | `review` | Work is being checked against acceptance criteria. | Findings, evidence, severity, and required fixes are explicit. |
 | `retrospective` | The run is being reconstructed after the fact. | Timeline and decision rationale are generated from the event ledger. |
+| `ship-fast` | An agent is optimizing for the nearest PM-visible result. | Classify first; `REVIEW` closure is at most 3 lines and `BLOCK` closure is at most 5 lines. |
 
 ## Universal Flywheel
 
@@ -88,13 +89,41 @@ Append an event with:
 
 Refresh `status.md` so a new reader can resume without reading the full chat.
 
+### PM Output Contract
+
+This section is the canonical contract for agent-level `ship-fast`. It governs prompts and artifacts only; it adds no command, daemon, Python behavior, Node behavior, or machine-enforced route.
+
+Classify the scenario before planning or editing: `IDEA`, `PLAN`, `AUDIT`, `IMPLEMENT`, `DIRTY_WORKTREE`, `STALE_MAIN`, `WORKER_PATCH`, `PR_REVIEW`, `MERGE`, or `INSTALL_SMOKE`. Apply the relevant hard gates and advance exactly one state.
+
+Ship-fast has only three routes:
+
+- `FAST`: complete, owned, reversible work with sufficient nearest evidence and no open approval boundary;
+- `REVIEW`: one bounded specimen or reusable decision can safely advance the work;
+- `BLOCK`: authority, access, audit, clean-worktree, fresh-base, dependency, or required evidence is missing.
+
+`SLOW` is never emitted in `ship-fast`. Compress a would-be slow case to `REVIEW` when one bounded question or specimen advances it; otherwise use `BLOCK` and name the next forward gate.
+
+Every ship-fast artifact has exactly one type:
+
+- `PM_CLOSURE`: route, outcome, reason or nearest evidence, and next action only;
+- `REVIEW_SPECIMEN`: bounded decision material, not an implementation claim;
+- `MATERIALIZED_IMPLEMENTATION`: files, configuration, code, or a full audit artifact produced only after every gate passes.
+
+A `PM_CLOSURE` never embeds a `REVIEW_SPECIMEN` or `MATERIALIZED_IMPLEMENTATION`. Dirty, inherited, or generated residue is counted or queued, not dumped into the PM loop.
+
+Use a one-line closure for `FAST` or a pure `HUMAN_TASTE` gate. A `REVIEW` `PM_CLOSURE` is at most 3 non-empty lines. A `BLOCK` `PM_CLOSURE` is at most 5 non-empty lines and names an actionable forward gate.
+
+An affirmative signal such as `ok`, `ship`, `approved`, or `好` closes only a pure `HUMAN_TASTE` gate: the active pre-route is exactly `HUMAN_TASTE`, and no authority, security, evidence, scope, safety, git, or implementation gate remains. It resolves taste only and never claims pending materialization occurred. Otherwise, re-evaluate the open gate.
+
+Authority-changing materialized work never self-approves. Product, architecture, security, release, provider, and domain-authority implementation cannot close with terminal outcome `SHIP` without required review.
+
 ## Status Truth Template
 
 ```md
 # Status
 
 Run: <run-id>
-Mode: solo | team | background | review | retrospective
+Mode: solo | team | background | review | retrospective | ship-fast
 Phase: <phase>
 Owner: <owner>
 Updated: <timestamp>

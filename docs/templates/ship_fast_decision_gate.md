@@ -1,22 +1,3 @@
-# Ship-Fast Decision Gate
+# Ship-Fast Decision Gate (Migrated)
 
-Status: Template
-Purpose: force every expert handoff or execution round to answer the one next decision before expanding into governance.
-
-What is done:
-
-What is blocked:
-
-User order interpreted as:
-
-Recommended next step:
-
-Why this is correct:
-
-Alternatives considered:
-
-Decision needed from user: approve / redirect / hold
-
-Scope limit:
-
-Stop rule:
+This legacy template is retired. Use the distributable [ship-fast decision gate](../../templates/contracts/ship-fast-decision-gate.md); canonical behavior lives in the [Meta Harness SOP](../sop/meta-harness-sop.md#pm-output-contract).
