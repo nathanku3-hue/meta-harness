@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "round": "ROUND-014",
+  "model": "gpt-5.5",
+  "base_ref": "HEAD",
+  "scope": {
+    "files": [
+      "lib/feature.js"
+    ],
+    "line_budget": 20
+  },
+  "old_symbols": [],
+  "smoke_checks": [
+    "cli_help",
+    "require_command_registry"
+  ],
+  "exceptions": []
+}

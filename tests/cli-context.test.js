@@ -30,8 +30,9 @@ function unwrapGateEnvelope(value) {
 }
 
 function writePrebuiltGate(root) {
-  const output = fs.readFileSync(path.join(FIXTURE_ROOT, "outputs", "ROUND-001.json"), "utf8");
-  writeFile(root, ".meta-harness/local/context/ROUND-001.json", output);
+  const output = JSON.parse(fs.readFileSync(path.join(FIXTURE_ROOT, "outputs", "ROUND-001.json"), "utf8"));
+  output.generated_at = new Date().toISOString();
+  writeFile(root, ".meta-harness/local/context/ROUND-001.json", `${JSON.stringify(output, null, 2)}\n`);
 }
 
 function writePackageName(root, name) {
