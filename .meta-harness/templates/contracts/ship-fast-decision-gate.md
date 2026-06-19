@@ -46,10 +46,10 @@ An affirmative signal (`ok`, `ship`, `approved`, `好`) closes only a pure `HUMA
 
 ## Output
 
-For `Mode: one-liner`, valid only for `FAST` or pure `HUMAN_TASTE`, emit one physical line and stop:
+For `Mode: one-liner`, valid only for `FAST` or a pure `HUMAN_TASTE` `REVIEW` gate, emit one physical `PM_CLOSURE` line and stop:
 
 ```text
-Verdict: <result and reason> | Next: <action or stop>
+Artifact: PM_CLOSURE | Route: <FAST|REVIEW> | Outcome: <SHIP|REVIEW|DECISION_NEEDED|FOLLOW_UP_QUEUED> | Verdict: <result and reason> | Next: <action or stop>
 ```
 
 For `Mode: full`, emit only one `PM_CLOSURE`. `REVIEW` is at most 3 non-empty lines:

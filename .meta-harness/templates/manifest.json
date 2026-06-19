@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-06-19T03:35:24.385Z",
+  "generated_at": "2026-06-19T04:01:44.898Z",
   "template_count": 28,
   "hash_algorithm": "sha256",
   "line_ending_normalization": "LF",
@@ -53,7 +53,7 @@
     {
       "source_path": "templates/contracts/ship-fast-decision-gate.md",
       "installed_path": ".meta-harness/templates/contracts/ship-fast-decision-gate.md",
-      "content_hash": "87f5c65f149606540c366ede133a4689aafab473c417c38844a07b6b2909d69b"
+      "content_hash": "3a9297c6180ccb36f964c12757e8121f5fe15c32e2deca924584448b58d957e8"
     },
     {
       "source_path": "templates/contracts/skill-distillation-contract.md",
@@ -138,7 +138,7 @@
     {
       "source_path": "templates/skills/ship-fast-decision-router.md",
       "installed_path": ".meta-harness/templates/skills/ship-fast-decision-router.md",
-      "content_hash": "cea7d5adebc5373ad35276615947f35aabb099247170b9b685f5f38fb6e9d3fe"
+      "content_hash": "32a9c8c2092a2908e3a3a616363099d21688687b7326ea71e826b0a00937abd2"
     },
     {
       "source_path": "templates/skills/subagent-workcell.md",
@@ -146,5 +146,5 @@
       "content_hash": "44debb09279b9da8ef7ed2c1697a9d966ce4d5d703b54008a0c0744b2978e4df"
     }
   ],
-  "manifest_hash": "d8f87cd8e7956a1c0487a2b0c2ae91d9821965411a1032319090522db3bcdf26"
+  "manifest_hash": "54324721a5fcc810393d4bf0b48c2ef5ebae4534aa6a588512e622068aebebb2"
 }

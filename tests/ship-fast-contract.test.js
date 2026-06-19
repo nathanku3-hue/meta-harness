@@ -19,6 +19,19 @@ function nonEmptyFenceLines(text, marker) {
   return fence[1].split("\n").filter((line) => line.trim());
 }
 
+function assertOneLinerSchema(text) {
+  const lines = nonEmptyFenceLines(text, /one physical `PM_CLOSURE` line/i);
+  assert.equal(lines.length, 1);
+  const [line] = lines;
+  assert.match(
+    line,
+    /^Artifact: PM_CLOSURE \| Route: <FAST\|REVIEW> \| Outcome: <SHIP\|REVIEW\|DECISION_NEEDED\|FOLLOW_UP_QUEUED> \| Verdict: <result and reason> \| Next: <action or stop>$/
+  );
+  assert.equal((line.match(/\bArtifact:/g) || []).length, 1);
+  assert.equal((line.match(/\bRoute:/g) || []).length, 1);
+  assert.equal((line.match(/\bOutcome:/g) || []).length, 1);
+}
+
 function assertCoreContract(relativePath) {
   const text = read(relativePath);
   assert.match(text, /agent contract|agent-level `ship-fast`/i);
@@ -33,7 +46,7 @@ function assertCoreContract(relativePath) {
   }
   assert.match(text, /affirmative signal[\s\S]+closes only a pure `HUMAN_TASTE` gate/i);
   assert.match(text, /no authority, security, evidence, scope, safety, git, or implementation gate/i);
-  assert.equal(nonEmptyFenceLines(text, /one physical line/i).length, 1);
+  assertOneLinerSchema(text);
   assert.ok(nonEmptyFenceLines(text, /at most 3 non-empty lines/i).length <= 3);
   assert.ok(nonEmptyFenceLines(text, /at most 5 non-empty lines/i).length <= 5);
 }
@@ -74,6 +87,7 @@ test("ops contracts are short, SOP-linked, and fail closed", () => {
     assert.match(text, /\.\.\/sop\/meta-harness-sop\.md#pm-output-contract/);
   }
   assert.match(read(ops[0]), /Any failed hard gate emits `BLOCK`/);
+  assert.doesNotMatch(read(ops[0]), /PREFLIGHT|VERIFY/);
   assert.match(read(ops[1]), /any pre-existing dirt fails the fresh implementation preflight/);
   assert.match(read(ops[1]), /Never use reset, clean, stash, checkout, or force operations/);
   assert.match(read(ops[2]), /Patch worker:[\s\S]+never owns branch selection[\s\S]+merge/i);
