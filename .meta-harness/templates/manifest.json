@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-06-12T15:33:17.948Z",
-  "template_count": 27,
+  "generated_at": "2026-06-19T04:01:44.898Z",
+  "template_count": 28,
   "hash_algorithm": "sha256",
   "line_ending_normalization": "LF",
   "templates": [
@@ -49,6 +49,11 @@
       "source_path": "templates/contracts/pm-brief-scan-contract.md",
       "installed_path": ".meta-harness/templates/contracts/pm-brief-scan-contract.md",
       "content_hash": "2878dd895bffee1f9d2afcaecc82d23114ad851c920ad6546ab57b53f34acd00"
+    },
+    {
+      "source_path": "templates/contracts/ship-fast-decision-gate.md",
+      "installed_path": ".meta-harness/templates/contracts/ship-fast-decision-gate.md",
+      "content_hash": "3a9297c6180ccb36f964c12757e8121f5fe15c32e2deca924584448b58d957e8"
     },
     {
       "source_path": "templates/contracts/skill-distillation-contract.md",
@@ -133,7 +138,7 @@
     {
       "source_path": "templates/skills/ship-fast-decision-router.md",
       "installed_path": ".meta-harness/templates/skills/ship-fast-decision-router.md",
-      "content_hash": "66f19e20bf00fef7c3dad594af43c1bab650376292a2e214472d49d73a2cd079"
+      "content_hash": "32a9c8c2092a2908e3a3a616363099d21688687b7326ea71e826b0a00937abd2"
     },
     {
       "source_path": "templates/skills/subagent-workcell.md",
@@ -141,5 +146,5 @@
       "content_hash": "44debb09279b9da8ef7ed2c1697a9d966ce4d5d703b54008a0c0744b2978e4df"
     }
   ],
-  "manifest_hash": "9b0cd55f514713de6df29fb3181f4ff39b0c6ec0f8544eaa9f535a3643a338df"
+  "manifest_hash": "54324721a5fcc810393d4bf0b48c2ef5ebae4534aa6a588512e622068aebebb2"
 }

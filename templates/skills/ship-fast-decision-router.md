@@ -1,34 +1,74 @@
 ---
 name: ship-fast-decision-router
-description: Route dirty-work classifications into reusable user decisions and a compact PM brief only when decision routing is relevant.
+description: Classify agent-level ship-fast work, route it without SLOW, and emit one bounded artifact or PM closure.
 ---
 
 # Ship-Fast Decision Router
 
-Use this only when dirty-work classification has produced current-scope decisions, blockers, or escalations.
+Use this self-contained agent contract in `ship-fast` mode. It governs prompts and artifacts only; it does not add or alter Python, Node, CLI, or machine ship-gate behavior.
 
-## Principle
+## Classify and Route
 
-Ask the user only for reusable decisions. Keep queued residue, generated artifacts, stale warnings, and raw dirty-file lists out of the user loop.
+Before planning or editing, choose one scenario: `IDEA`, `PLAN`, `AUDIT`, `IMPLEMENT`, `DIRTY_WORKTREE`, `STALE_MAIN`, `WORKER_PATCH`, `PR_REVIEW`, `MERGE`, or `INSTALL_SMOKE`.
 
-## Workflow
+Choose one pre-route:
 
-1. Run `meta-harness dirty classify` after the dirty snapshots are ready.
-2. Let `dirty classify` import only `DECISION` classifications into `.meta-harness/decision-inbox.json`.
-3. Render the PM brief with `meta-harness brief pm`.
-4. Present open decisions, blockers/escalations, evidence, and the next action.
-5. Do not present `QUEUE`, `PASS`, suppressed residue, or raw dirty classifications as user decisions.
+- `NO_BUILD`: implementation is unnecessary.
+- `USE_EXISTING_REPO_PATTERN`: an owned local pattern already solves it.
+- `USE_PLATFORM_NATIVE`: a standard platform capability solves it.
+- `MINIMAL_PATCH`: a real, bounded, owned gap remains.
+- `HUMAN_TASTE`: only naming, UX, priority, or acceptance taste remains.
+- `EXPERT_PACKET`: specialist judgment is required.
+- `AUTHORITY_BLOCK`: permission or protected-boundary authority is missing.
 
-## Commands
+Then choose exactly one ship-fast route:
+
+- `FAST`: complete, owned, reversible, evidenced work with no open approval boundary.
+- `REVIEW`: one bounded specimen or reusable decision can safely advance the work.
+- `BLOCK`: authority, access, audit, clean-worktree, fresh-base, dependency, or required evidence is missing.
+
+Never emit `SLOW` in ship-fast. Compress a would-be slow case to `REVIEW` when one bounded question or specimen advances it; otherwise use `BLOCK` and name the forward gate.
+
+Terminal outcomes are `SHIP`, `REVIEW`, `DECISION_NEEDED`, `BLOCKED`, and `FOLLOW_UP_QUEUED`. A route is handling posture; an outcome is the result.
+
+## Artifact and Approval Rules
+
+Declare exactly one artifact type:
+
+- `PM_CLOSURE`: route/outcome, reason or nearest evidence, and next action only.
+- `REVIEW_SPECIMEN`: bounded decision material, never an implementation claim.
+- `MATERIALIZED_IMPLEMENTATION`: files, configuration, code, or a full audit artifact produced only after every gate passes.
+
+Never embed a specimen or implementation in a PM closure. Keep queued residue, generated artifacts, stale warnings, and raw dirty-file lists out of the PM loop.
+
+An affirmative signal (`ok`, `ship`, `approved`, `好`) closes only a pure `HUMAN_TASTE` gate: the active pre-route is exactly `HUMAN_TASTE` and no authority, security, evidence, scope, safety, git, or implementation gate remains. It resolves taste only; otherwise re-evaluate the open gate.
+
+Authority-changing materialized work never self-approves. Ask users only for reusable decisions, and treat evidence paths as proof rather than decision identity.
+
+## Output Contract
+
+For `FAST` or a pure `HUMAN_TASTE` `REVIEW` gate, emit one physical `PM_CLOSURE` line and stop:
 
 ```text
-meta-harness decisions list --in .meta-harness/decision-inbox.json
-meta-harness decisions resolve --id <id> --resolution <approved|rejected|deferred>
-meta-harness brief pm --dirty .meta-harness/dirty-work.json --decisions .meta-harness/decision-inbox.json --out .meta-harness/pm-brief.md
+Artifact: PM_CLOSURE | Route: <FAST|REVIEW> | Outcome: <SHIP|REVIEW|DECISION_NEEDED|FOLLOW_UP_QUEUED> | Verdict: <result and reason> | Next: <action or stop>
 ```
 
-## PM Brief Rule
+A `REVIEW` `PM_CLOSURE` is at most 3 non-empty lines:
 
-The PM brief is bounded: show at most 10 open decisions and 10 blocker/escalation paths, then report remaining counts. Show queued and suppressed work as counts only.
+```text
+Artifact: PM_CLOSURE | Route: REVIEW | Outcome: <REVIEW|DECISION_NEEDED>
+Review: <one bounded question or nearest evidence>
+Next: <one action and owner>
+```
 
-Evidence paths are supporting proof, not decision identity. Do not reopen a decision just because an evidence path changed.
+A `BLOCK` `PM_CLOSURE` is at most 5 non-empty lines:
+
+```text
+Artifact: PM_CLOSURE | Pre-route: <decision>
+Route: BLOCK | Outcome: BLOCKED
+Blocker: <one current hard gate>
+Evidence: <nearest proof or none>
+Next: Gate <N> — <pass condition> → unlocks <action>
+```
+
+A blocked closure is status, not an audit packet or implementation plan. Its final line names the next actionable gate rather than a wait state.
