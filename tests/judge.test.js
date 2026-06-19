@@ -92,7 +92,7 @@ test("judge passes for scoped local changes and emits stable envelope", async ()
 
 test("judge reads untracked files and flags scope plus defensive helper residue", async () => {
   const root = initRepo();
-  writeFile(root, "lib/feature.js", "function kept() { return true; }\nfunction normalizeConfig(value) { return value || {}; }\nmodule.exports = { kept, normalizeConfig };\n");
+  writeFile(root, "lib/feature.js", "function kept() { return true; }\nfunction normalizeConfig(value) { return value || {}; }\n// oldFunctionName is stale code residue\nmodule.exports = { kept, normalizeConfig };\n");
   writeFile(root, "docs/Ship fast 诊断.md", "oldFunctionName still mentioned\n");
 
   const result = await judge.check({
@@ -104,9 +104,62 @@ test("judge reads untracked files and flags scope plus defensive helper residue"
   assert.equal(byId(result, "JUDGE_DEFENSIVE_001").status, "fail");
   assert.deepEqual(byId(result, "JUDGE_SCOPE_001").files, ["docs/Ship fast 诊断.md"]);
   assert.equal(byId(result, "JUDGE_RESIDUE_001").status, "fail");
+  assert.deepEqual(byId(result, "JUDGE_RESIDUE_001").files, ["lib/feature.js"]);
   assert.ok(result.target.untracked_files.includes("docs/Ship fast 诊断.md"));
   assert.ok(result.traits_triggered.includes("over-defensive-abstraction"));
   assert.ok(result.candidate_profile_events.some((event) => event.check_id === "JUDGE_DEFENSIVE_001"));
+});
+
+test("judge compares candidate changes against merge base instead of base branch tip", async () => {
+  const root = initRepo();
+  run(root, "git", ["branch", "candidate"]);
+  run(root, "git", ["checkout", "-b", "base-ref"]);
+  writeFile(root, "docs/upstream.md", "upstream-only base branch change\n");
+  run(root, "git", ["add", "."]);
+  run(root, "git", ["commit", "-m", "upstream base change"]);
+  run(root, "git", ["checkout", "candidate"]);
+  writeFile(root, "lib/feature.js", "function kept() { return true; }\nfunction localThing() { return kept(); }\nmodule.exports = { kept, localThing };\n");
+
+  const result = await judge.check({
+    target: root,
+    input: judgeInput({ base_ref: "base-ref" }),
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(byId(result, "JUDGE_SCOPE_001").status, "pass");
+  assert.deepEqual(result.target.changed_files, ["lib/feature.js"]);
+  assert.notEqual(result.target.base_sha, result.target.merge_base);
+});
+
+test("helper budget ignores tests and scripts while residue scan ignores docs and tests", async () => {
+  const root = initRepo();
+  writeFile(root, "tests/new-feature.test.js", [
+    "const helperOne = () => true;",
+    "const helperTwo = () => true;",
+    "const helperThree = () => true;",
+    "oldFunctionName regression fixture",
+  ].join("\n"));
+  writeFile(root, "scripts/migrate.js", [
+    "const helperFour = () => true;",
+    "const helperFive = () => true;",
+  ].join("\n"));
+  writeFile(root, "docs/residue.md", "oldFunctionName is documented as a removed symbol\n");
+
+  const result = await judge.check({
+    target: root,
+    input: judgeInput({
+      scope: {
+        files: ["tests/new-feature.test.js", "scripts/migrate.js", "docs/residue.md"],
+        line_budget: 20,
+      },
+      old_symbols: ["oldFunctionName"],
+    }),
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(byId(result, "JUDGE_DEFENSIVE_003").status, "pass");
+  assert.match(byId(result, "JUDGE_DEFENSIVE_003").evidence, /0$/);
+  assert.equal(byId(result, "JUDGE_RESIDUE_001").status, "pass");
 });
 
 test("machine-readable exceptions downgrade fully covered failures to warnings", async () => {
