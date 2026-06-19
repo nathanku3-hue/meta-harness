@@ -831,3 +831,50 @@ Non-Goals:
 - No CI weakening or bypass of existing release/security/package gates.
 - No dashboards, daemons, auto-worker routing, or self-approving autonomy.
 - No provider credentials or network/model scoring.
+
+## D039: Phase 15A Judge Library Slice Recorded
+
+Decision:
+
+Record Phase 15A as the internal Meta-Harness judge library slice.
+
+Rationale:
+
+The repository needs evidence about recurring agent failure traits before it can safely shape future prompting or delegation. Phase 15A adds a read-only library surface that evaluates a declared local scope against git evidence and emits stable machine-readable judge results. This keeps the first slice small enough to review and avoids promoting judge output into public commands or readiness policy before real judged rounds exist.
+
+Scope:
+
+- `lib/judge.js` emits stable judge envelopes from declared input, git merge-base evidence, scope files, exceptions, and smoke IDs.
+- `lib/judge-checks.js` implements the first deterministic internal checks for defensive abstractions, code-surface refactor residue, broad edits, line budget, and package/CLI smoke.
+- Focused tests cover untracked files, unsafe input rejection, base-ref errors, merge-base diffing, helper-budget exclusions, residue scan scope, exceptions, and smoke checks.
+
+Non-Goals:
+
+- No public CLI command.
+- No templates.
+- No global ready check IDs.
+- No `ready` hook.
+- No delegation routing or policy enforcement.
+
+## D040: Phase 15B Candidate Profile Guidance Slice Recorded
+
+Decision:
+
+Record Phase 15B as the JSON candidate-profile schema and read-only guidance slice generated from judge evidence.
+
+Rationale:
+
+Judge evidence should be usable as compact future-round guidance without becoming policy or routing authority. The 15B slice aggregates `candidate_profile_events` from judge envelopes into a stable profile shape and generates advisory guidance that remains explicitly non-authoritative.
+
+Scope:
+
+- `lib/judge-profile.js` defines the candidate profile JSON envelope/schema, validates profile shape, aggregates judge trait events, and renders compact guidance.
+- Guidance is derived only from judge evidence and is marked `read_only_guidance` / `advisory_only`.
+- Focused tests cover schema stability, trait aggregation, invalid evidence, unknown traits, and compact rendering.
+
+Non-Goals:
+
+- No public CLI command.
+- No templates or context-packet injection.
+- No `ready` integration or check-ID expansion.
+- No delegation policy, routing decision, worker ranking, or merge authority.
