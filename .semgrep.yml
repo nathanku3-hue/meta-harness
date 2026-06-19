@@ -1,0 +1,44 @@
+rules:
+  - id: meta-harness.workflow.no-security-events-write
+    languages:
+      - generic
+    paths:
+      include:
+        - ".github/workflows/*.yml"
+        - ".github/workflows/*.yaml"
+    severity: ERROR
+    message: "Semgrep is a CI gate only; security-events: write is out of scope."
+    pattern-regex: '(?im)^[ \t]*(?!#)["'']?security-events["'']?[ \t]*:[ \t]*["'']?write["'']?[ \t]*(?:#.*)?$'
+
+  - id: meta-harness.workflow.no-sarif-upload-or-output
+    languages:
+      - generic
+    paths:
+      include:
+        - ".github/workflows/*.yml"
+        - ".github/workflows/*.yaml"
+    severity: ERROR
+    message: "SARIF upload/output and GitHub Code Scanning integration are out of scope."
+    pattern-regex: '(?im)^[ \t]*(?!#)[^#\n]*(?:\bupload-sarif\b|\b--sarif\b|\b--output(?:=|[ \t\r\n]+)[^#\n]*\.sarif\b|\.sarif\b)'
+
+  - id: meta-harness.workflow.semgrep-local-config-only
+    languages:
+      - generic
+    paths:
+      include:
+        - ".github/workflows/*.yml"
+        - ".github/workflows/*.yaml"
+    severity: ERROR
+    message: "Use only the local audited Semgrep config: .semgrep.yml or ./.semgrep.yml."
+    pattern-regex: '(?im)^[ \t]*(?!#)[^\n]*--config(?:=|[ \t\r\n]+)(?!(?:["'']?(?:\./)?\.semgrep\.yml["'']?)(?:[ \t\r\n]|$))[^ \t\r\n#]+'
+
+  - id: meta-harness.workflow.semgrep-image-exact-allowlist
+    languages:
+      - generic
+    paths:
+      include:
+        - ".github/workflows/*.yml"
+        - ".github/workflows/*.yaml"
+    severity: ERROR
+    message: "Use exactly semgrep/semgrep:1.167.0 with the approved sha256 digest."
+    pattern-regex: '(?im)^[ \t]*image[ \t]*:[ \t]*["'']?semgrep/semgrep(?!(?::1\.167\.0@sha256:06938c1f365d3f67b8cedd8bc117607ae64253f88a0e768e9da9408548927dd6)["'']?[ \t]*(?:#.*)?$).*$'
