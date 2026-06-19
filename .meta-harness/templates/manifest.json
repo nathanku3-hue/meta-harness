@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-06-19T04:01:44.898Z",
-  "template_count": 28,
+  "generated_at": "2026-06-19T06:45:33.192Z",
+  "template_count": 29,
   "hash_algorithm": "sha256",
   "line_ending_normalization": "LF",
   "templates": [
@@ -43,7 +43,7 @@
     {
       "source_path": "templates/contracts/expert-reconciliation-matrix.md",
       "installed_path": ".meta-harness/templates/contracts/expert-reconciliation-matrix.md",
-      "content_hash": "711c6baa8f3567684f61899b83906c034e80b55f85f21635e006e7a90d7d16b7"
+      "content_hash": "d7f3b3b976c4f6d090495f98e2eb666b7b1f739659f8039dc0047e6096fb4426"
     },
     {
       "source_path": "templates/contracts/pm-brief-scan-contract.md",
@@ -53,7 +53,7 @@
     {
       "source_path": "templates/contracts/ship-fast-decision-gate.md",
       "installed_path": ".meta-harness/templates/contracts/ship-fast-decision-gate.md",
-      "content_hash": "3a9297c6180ccb36f964c12757e8121f5fe15c32e2deca924584448b58d957e8"
+      "content_hash": "2f8c68c2a0de8b244616a920aa2622f009a10f10848adee224a84f6f37fcba8f"
     },
     {
       "source_path": "templates/contracts/skill-distillation-contract.md",
@@ -91,6 +91,11 @@
       "content_hash": "178c63d2f4b0796ad72d766be3d7d6b711fc13b1b22403e0e400f79922b2f318"
     },
     {
+      "source_path": "templates/skills/build-vs-borrow-router.md",
+      "installed_path": ".meta-harness/templates/skills/build-vs-borrow-router.md",
+      "content_hash": "fe4516833c1bd15cd7fee523a4d3b215469682135069cc16f3422c6adf8ad3a8"
+    },
+    {
       "source_path": "templates/skills/context-packet.md",
       "installed_path": ".meta-harness/templates/skills/context-packet.md",
       "content_hash": "38e62c7198f7743098a59306825074246f724cc14445877d78228d701e9776cd"
@@ -103,7 +108,7 @@
     {
       "source_path": "templates/skills/dirty-work-autopilot.md",
       "installed_path": ".meta-harness/templates/skills/dirty-work-autopilot.md",
-      "content_hash": "0de5974e2fdea06efa0de91fd85234fece8c94a3d2a25a1fe23521ed0a273c6a"
+      "content_hash": "0747a7c3ffbe803919eb211e2934e37ef086477f10362c46decb6a64f4316896"
     },
     {
       "source_path": "templates/skills/distilled-taste-capsule.md",
@@ -113,12 +118,12 @@
     {
       "source_path": "templates/skills/expert-context-packer.md",
       "installed_path": ".meta-harness/templates/skills/expert-context-packer.md",
-      "content_hash": "5b54a083e9609e2d932e2c3479718bb9d53b0202fe79e0134d8ef4353c3cf8eb"
+      "content_hash": "696c96a13ccb853341acda13634a6f8b98afe25960262674051eb1d70659c340"
     },
     {
       "source_path": "templates/skills/expert-front-card.md",
       "installed_path": ".meta-harness/templates/skills/expert-front-card.md",
-      "content_hash": "1cbe70c3a0bcf94c5105d13cf2440654d8fdc11ede72ce241d3dc1bd3ad1ee96"
+      "content_hash": "c0b3b11609df8f942db44ca59f1894014dc3c17d685a461f64b8d0f8c3efbc57"
     },
     {
       "source_path": "templates/skills/harness-feedback.md",
@@ -133,12 +138,12 @@
     {
       "source_path": "templates/skills/scope-selector.md",
       "installed_path": ".meta-harness/templates/skills/scope-selector.md",
-      "content_hash": "6e1961d856568db7d1064e65ebd64e2ca940e689625f728c62e3c2b1c72116b9"
+      "content_hash": "f82a64abae3ac72765e29c478fd95d4f51d34c9f26e8a0599bb657253303898c"
     },
     {
       "source_path": "templates/skills/ship-fast-decision-router.md",
       "installed_path": ".meta-harness/templates/skills/ship-fast-decision-router.md",
-      "content_hash": "32a9c8c2092a2908e3a3a616363099d21688687b7326ea71e826b0a00937abd2"
+      "content_hash": "65665e96b015ed1bf659404c916963fa459e4bebc0c3965232783d44b0671a40"
     },
     {
       "source_path": "templates/skills/subagent-workcell.md",
@@ -146,5 +151,5 @@
       "content_hash": "44debb09279b9da8ef7ed2c1697a9d966ce4d5d703b54008a0c0744b2978e4df"
     }
   ],
-  "manifest_hash": "54324721a5fcc810393d4bf0b48c2ef5ebae4534aa6a588512e622068aebebb2"
+  "manifest_hash": "f9c37ed3902a3f57915f89b825bf305003869faebd8d43de8956d500848adf9c"
 }

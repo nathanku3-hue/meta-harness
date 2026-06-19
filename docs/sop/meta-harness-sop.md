@@ -89,33 +89,82 @@ Append an event with:
 
 Refresh `status.md` so a new reader can resume without reading the full chat.
 
+## Ship Routing Loop
+
+The Silent Shipper operating layer routes work to the nearest PM-visible result without adding a new CLI command. Existing commands and files are backing evidence only; the operating loop remains Markdown-first and minimal-runtime.
+
+```text
+intent -> Question Zero -> local/repo/platform scan -> pre-route decision -> owned scope -> classify risk -> nearest evidence check -> choose one route/outcome -> one PM-facing summary -> record status/event
+```
+
+Risk route describes the handling posture. Terminal outcome describes the result. Keep them separate; a risky route is not itself a terminal outcome.
+
+Question Zero: does this need to be built? Before classifying a route, scan local truth, existing repo patterns, platform/runtime/stdlib capabilities, installed dependencies, and packaged templates. Build only after the gap is real, product-important, owned, and bounded.
+
+### Build-vs-Borrow Pre-Route
+
+Pre-route decisions are not terminal outcomes. They choose what path should exist before the work maps to `FAST`, `REVIEW`, `SLOW`, or `BLOCK`.
+
+| Pre-route | Meaning | Then maps to |
+| --- | --- | --- |
+| `NO_BUILD` | Speculative, unnecessary, already covered, or better answered with explanation. | `FOLLOW_UP_QUEUED` or compact explanation |
+| `USE_EXISTING_REPO_PATTERN` | Repo already has a skill, template, helper, command, docs pattern, or local convention. | `SHIP` or `REVIEW` |
+| `USE_PLATFORM_NATIVE` | Runtime, stdlib, platform config, or local docs can solve it without new owned code. | `SHIP` or `REVIEW` |
+| `MINIMAL_PATCH` | Real gap, owned path, bounded implementation, and nearest evidence can verify it. | `REVIEW` |
+| `HUMAN_TASTE` | Product taste, UX tradeoff, naming, priority, or acceptance judgment is the real blocker. | `DECISION_NEEDED` |
+| `EXPERT_PACKET` | Architecture, domain, security, provider, release, or other specialist judgment is needed. | `DECISION_NEEDED` or `BLOCKED` |
+| `AUTHORITY_BLOCK` | Credentials, permissions, publishing, protected boundary, or missing authority prevents progress. | `BLOCKED` |
+
+Remote/public skills, connectors, MCP servers, or external patterns may inspire a local pattern, but they are not imported or executed unless vendored, provenance-recorded, evaluated, and explicitly authorized.
+
+### Baseline Risk Routes
+
+These routes describe the existing general and machine-facing vocabulary. The canonical agent-level `ship-fast` rules below narrow that vocabulary without changing any Python or Node runtime behavior.
+
+| Route | Use when |
+| --- | --- |
+| `FAST` | Scope is owned, reversible, locally verifiable, and does not change authority. |
+| `REVIEW` | The work touches a shared surface, user-facing claim, acceptance boundary, or reviewer-owned judgment. |
+| `SLOW` | Scope, evidence, residue, or sequencing needs deliberate sorting before PM-facing closure. |
+| `BLOCK` | Missing authority, access, dependency, or evidence prevents safe progress inside the owned scope. |
+
+### Terminal Outcomes
+
+| Outcome | Means |
+| --- | --- |
+| `SHIP` | Work is complete and nearest evidence supports it. |
+| `REVIEW` | Work is ready for review but is not self-approved as shipped. |
+| `DECISION_NEEDED` | A PM, owner, or authority holder must decide before progress or approval. |
+| `BLOCKED` | Work cannot proceed without external action, access, dependency, or scope change. |
+| `FOLLOW_UP_QUEUED` | Residue is counted, scoped, and queued outside the current PM loop. |
+
 ### PM Output Contract
 
-This section is the canonical contract for agent-level `ship-fast`. It governs prompts and artifacts only; it adds no command, daemon, Python behavior, Node behavior, or machine-enforced route.
+This section is the canonical contract for agent-level `ship-fast`. It is a prompt and artifact discipline only: it adds no command, daemon, Python behavior, Node behavior, or machine-enforced route.
 
-Classify the scenario before planning or editing: `IDEA`, `PLAN`, `AUDIT`, `IMPLEMENT`, `DIRTY_WORKTREE`, `STALE_MAIN`, `WORKER_PATCH`, `PR_REVIEW`, `MERGE`, or `INSTALL_SMOKE`. Apply the relevant hard gates and advance exactly one state.
+Classify the scenario before planning or editing: `IDEA`, `PLAN`, `AUDIT`, `IMPLEMENT`, `DIRTY_WORKTREE`, `STALE_MAIN`, `WORKER_PATCH`, `PR_REVIEW`, `MERGE`, or `INSTALL_SMOKE`. Read the applicable operations contract, enforce its hard gates, and move exactly one state forward.
 
 Ship-fast has only three routes:
 
 - `FAST`: complete, owned, reversible work with sufficient nearest evidence and no open approval boundary;
-- `REVIEW`: one bounded specimen or reusable decision can safely advance the work;
+- `REVIEW`: a bounded specimen or one reusable decision can safely advance the work;
 - `BLOCK`: authority, access, audit, clean-worktree, fresh-base, dependency, or required evidence is missing.
 
-`SLOW` is never emitted in `ship-fast`. Compress a would-be slow case to `REVIEW` when one bounded question or specimen advances it; otherwise use `BLOCK` and name the next forward gate.
+`SLOW` is never emitted in `ship-fast`. Compress a would-be slow case to `REVIEW` when one bounded question or specimen can advance it; otherwise use `BLOCK` and name the next forward gate.
 
 Every ship-fast artifact has exactly one type:
 
-- `PM_CLOSURE`: route, outcome, reason or nearest evidence, and next action only;
-- `REVIEW_SPECIMEN`: bounded decision material, not an implementation claim;
-- `MATERIALIZED_IMPLEMENTATION`: files, configuration, code, or a full audit artifact produced only after every gate passes.
+- `PM_CLOSURE`: the PM-visible route, outcome, reason/evidence, and next action only;
+- `REVIEW_SPECIMEN`: bounded material presented for a decision, not an implementation claim;
+- `MATERIALIZED_IMPLEMENTATION`: files, configuration, code, or a full audit artifact produced only after its gates pass.
 
-A `PM_CLOSURE` never embeds a `REVIEW_SPECIMEN` or `MATERIALIZED_IMPLEMENTATION`. Dirty, inherited, or generated residue is counted or queued, not dumped into the PM loop.
+A `PM_CLOSURE` never embeds a `REVIEW_SPECIMEN` or `MATERIALIZED_IMPLEMENTATION`. A blocked closure is a status artifact, not an audit packet or implementation plan. Dirty, inherited, or generated residue is counted or queued, not dumped into the PM loop.
 
-Use a one-line closure for `FAST` or a pure `HUMAN_TASTE` gate. A `REVIEW` `PM_CLOSURE` is at most 3 non-empty lines. A `BLOCK` `PM_CLOSURE` is at most 5 non-empty lines and names an actionable forward gate.
+Use `Mode: one-liner` for a `FAST` closure or a pure `HUMAN_TASTE` gate; emit only `Verdict: <result and reason> | Next: <action or stop>`. Use `Mode: full` otherwise. A `REVIEW` `PM_CLOSURE` is at most 3 non-empty lines. A `BLOCK` `PM_CLOSURE` is at most 5 non-empty lines.
 
-An affirmative signal such as `ok`, `ship`, `approved`, or `好` closes only a pure `HUMAN_TASTE` gate: the active pre-route is exactly `HUMAN_TASTE`, and no authority, security, evidence, scope, safety, git, or implementation gate remains. It resolves taste only and never claims pending materialization occurred. Otherwise, re-evaluate the open gate.
+An affirmative signal such as `ok`, `ship`, `approved`, or `好` closes only a pure `HUMAN_TASTE` gate: the active pre-route is exactly `HUMAN_TASTE`, and no authority, security, evidence, scope, safety, git, or implementation gate remains. It resolves the taste decision; it does not claim pending materialization occurred. For every other pre-route, treat the signal as context and re-evaluate the outstanding gate.
 
-Authority-changing materialized work never self-approves. Product, architecture, security, release, provider, and domain-authority implementation cannot close with terminal outcome `SHIP` without required review.
+Authority-changing materialized work never self-approves. Product, architecture, security, release, provider, and domain-authority implementation cannot close with terminal outcome `SHIP` without the required review. Blocked states name the next forward gate: `Gate N — <pass condition> → unlocks <action>`, never a waiting label. Audit and security work use a numbered, actionable gate sequence.
 
 ## Status Truth Template
 
@@ -235,10 +284,11 @@ A handoff must include:
 When a run needs specialist review or delegated work, keep the packet smaller than the repo:
 
 1. install reusable templates with `meta-harness templates install`;
-2. choose one bounded scope with the scope-selector template;
-3. classify ambiguous work with the boundary-gate template;
-4. build a packet with `meta-harness expert-packet <round-id> --include <focused-path>`;
-5. reconcile reviewer output through the expert reconciliation matrix.
+2. run the build-vs-borrow router and create expert context only when the pre-route says outside judgment is needed;
+3. choose one bounded scope with the scope-selector template;
+4. classify ambiguous work with the boundary-gate template;
+5. build a packet with `meta-harness expert-packet <round-id> --include <focused-path>`;
+6. reconcile reviewer output through the expert reconciliation matrix.
 
 Expert packets are advisory evidence bundles. They do not authorize execution, production-impacting actions, or scope expansion by themselves. The deliverable is a single `.zip` archive; do not publish sidecar `main.diff`, `main_next_scope.md`, or other loose packet files beside it. If those aids are needed, include them as entries inside the archive.
 

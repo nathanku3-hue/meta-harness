@@ -20,16 +20,13 @@ function nonEmptyFenceLines(text, marker) {
 }
 
 function assertOneLinerSchema(text) {
-  const lines = nonEmptyFenceLines(text, /one physical `PM_CLOSURE` line/i);
+  const lines = nonEmptyFenceLines(text, /one physical line/i);
   assert.equal(lines.length, 1);
   const [line] = lines;
   assert.match(
     line,
-    /^Artifact: PM_CLOSURE \| Route: <FAST\|REVIEW> \| Outcome: <SHIP\|REVIEW\|DECISION_NEEDED\|FOLLOW_UP_QUEUED> \| Verdict: <result and reason> \| Next: <action or stop>$/
+    /^Verdict: <result and reason> \| Next: <action or stop>$/
   );
-  assert.equal((line.match(/\bArtifact:/g) || []).length, 1);
-  assert.equal((line.match(/\bRoute:/g) || []).length, 1);
-  assert.equal((line.match(/\bOutcome:/g) || []).length, 1);
 }
 
 function assertCoreContract(relativePath) {

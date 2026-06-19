@@ -1,59 +1,73 @@
 ---
 name: ship-fast-decision-router
-description: Classify agent-level ship-fast work, route it without SLOW, and emit one bounded artifact or PM closure.
+description: Classify an agent-level ship-fast scenario, route it without SLOW, and emit a budgeted PM closure or bounded artifact.
 ---
 
 # Ship-Fast Decision Router
 
-Use this self-contained agent contract in `ship-fast` mode. It governs prompts and artifacts only; it does not add or alter Python, Node, CLI, or machine ship-gate behavior.
+Use this self-contained agent contract when the run mode is `ship-fast`. It governs prompts and artifacts only; it does not add or alter Python, Node, CLI, or machine ship-gate behavior.
 
-## Classify and Route
+## 1. Classify First
 
-Before planning or editing, choose one scenario: `IDEA`, `PLAN`, `AUDIT`, `IMPLEMENT`, `DIRTY_WORKTREE`, `STALE_MAIN`, `WORKER_PATCH`, `PR_REVIEW`, `MERGE`, or `INSTALL_SMOKE`.
+Choose exactly one scenario before planning or editing: `IDEA`, `PLAN`, `AUDIT`, `IMPLEMENT`, `DIRTY_WORKTREE`, `STALE_MAIN`, `WORKER_PATCH`, `PR_REVIEW`, `MERGE`, or `INSTALL_SMOKE`.
 
-Choose one pre-route:
+Then choose a pre-route, a ship-fast route, a terminal outcome, and one artifact type. Commands and evidence paths support the decision; they are not the PM-facing decision.
 
-- `NO_BUILD`: implementation is unnecessary.
-- `USE_EXISTING_REPO_PATTERN`: an owned local pattern already solves it.
-- `USE_PLATFORM_NATIVE`: a standard platform capability solves it.
-- `MINIMAL_PATCH`: a real, bounded, owned gap remains.
-- `HUMAN_TASTE`: only naming, UX, priority, or acceptance taste remains.
-- `EXPERT_PACKET`: specialist judgment is required.
-- `AUTHORITY_BLOCK`: permission or protected-boundary authority is missing.
+## 2. Pre-Route
 
-Then choose exactly one ship-fast route:
+- `NO_BUILD`: speculative, unnecessary, already covered, or better answered with explanation.
+- `USE_EXISTING_REPO_PATTERN`: local skill, template, helper, command, docs pattern, or convention already solves it.
+- `USE_PLATFORM_NATIVE`: runtime, stdlib, platform config, or local docs can solve it.
+- `MINIMAL_PATCH`: real owned gap with bounded implementation and local evidence.
+- `HUMAN_TASTE`: product taste, UX tradeoff, naming, priority, or acceptance judgment is needed.
+- `EXPERT_PACKET`: architecture, domain, security, provider, release, or specialist judgment is needed.
+- `AUTHORITY_BLOCK`: credentials, permissions, publishing, protected boundary, or missing authority blocks progress.
 
-- `FAST`: complete, owned, reversible, evidenced work with no open approval boundary.
-- `REVIEW`: one bounded specimen or reusable decision can safely advance the work.
+## 3. Ship-Fast Routes
+
+- `FAST`: complete, owned, reversible, locally evidenced, and crosses no approval boundary.
+- `REVIEW`: one bounded specimen or one reusable decision can safely advance the work.
 - `BLOCK`: authority, access, audit, clean-worktree, fresh-base, dependency, or required evidence is missing.
 
-Never emit `SLOW` in ship-fast. Compress a would-be slow case to `REVIEW` when one bounded question or specimen advances it; otherwise use `BLOCK` and name the forward gate.
+Never emit `SLOW` in ship-fast. Compress a would-be slow case to `REVIEW` when one question or bounded specimen advances it; otherwise use `BLOCK` and name the forward gate.
 
-Terminal outcomes are `SHIP`, `REVIEW`, `DECISION_NEEDED`, `BLOCKED`, and `FOLLOW_UP_QUEUED`. A route is handling posture; an outcome is the result.
+## 4. Terminal Outcomes
 
-## Artifact and Approval Rules
+- `SHIP`: work is complete, nearest evidence supports it, and no approval boundary is crossed.
+- `REVIEW`: work is ready for review and is not self-approved as shipped.
+- `DECISION_NEEDED`: a PM, owner, or authority holder must decide before progress or approval.
+- `BLOCKED`: work cannot proceed without external action, access, dependency, or scope change.
+- `FOLLOW_UP_QUEUED`: residue is counted, scoped, and queued outside the current PM loop.
 
-Declare exactly one artifact type:
+## 5. Artifact Taxonomy
 
-- `PM_CLOSURE`: route/outcome, reason or nearest evidence, and next action only.
-- `REVIEW_SPECIMEN`: bounded decision material, never an implementation claim.
-- `MATERIALIZED_IMPLEMENTATION`: files, configuration, code, or a full audit artifact produced only after every gate passes.
+- `PM_CLOSURE`: route, outcome, reason/evidence, and next action only.
+- `REVIEW_SPECIMEN`: bounded decision material; never an implementation claim.
+- `MATERIALIZED_IMPLEMENTATION`: files, configuration, code, or a full audit artifact produced only after all gates pass.
 
-Never embed a specimen or implementation in a PM closure. Keep queued residue, generated artifacts, stale warnings, and raw dirty-file lists out of the PM loop.
+Declare exactly one artifact type. Never embed a specimen or materialized implementation in a PM closure. A blocker is a status artifact, not an audit packet or implementation plan.
 
-An affirmative signal (`ok`, `ship`, `approved`, `好`) closes only a pure `HUMAN_TASTE` gate: the active pre-route is exactly `HUMAN_TASTE` and no authority, security, evidence, scope, safety, git, or implementation gate remains. It resolves taste only; otherwise re-evaluate the open gate.
+## 6. Routing Rules
 
-Authority-changing materialized work never self-approves. Ask users only for reusable decisions, and treat evidence paths as proof rather than decision identity.
+1. Never self-approve authority-changing work; use `REVIEW`, `DECISION_NEEDED`, or `BLOCKED` as the terminal outcome.
+2. Ask the user only for reusable decisions. Keep `QUEUE`, `PASS`, suppressed residue, and raw dirty classifications out of the decision loop.
+3. Show blockers and escalations only when they are current-scope, boundary-touching, or decision-relevant.
+4. Treat evidence paths as proof, not decision identity. Do not reopen a decision just because an evidence path changed.
+5. Use existing commands only as optional evidence tools; do not present command output as the closure.
+6. Product, architecture, security, release, provider, and domain-authority materialized changes cannot close with terminal outcome `SHIP` without their required review.
+7. Create expert packets only after the pre-route decision says outside judgment is needed.
+8. When outcome is `BLOCKED`, the Next field must name the next forward gate, not a wait state. Write "Gate N — <pass condition>" not "Status remains <WAIT_LABEL>". Audit and security packets use a named gate sequence (G0, G1, …); the current gate is always open and actionable.
+9. An affirmative signal such as `ok`, `ship`, `approved`, or `好` closes only a pure `HUMAN_TASTE` gate: the active pre-route is exactly `HUMAN_TASTE`, with no authority, security, evidence, scope, safety, git, or implementation gate left. It resolves taste only and never claims pending materialization occurred.
 
-## Output Contract
+## 7. Output Contract
 
-For `FAST` or a pure `HUMAN_TASTE` `REVIEW` gate, emit one physical `PM_CLOSURE` line and stop:
+`Mode: one-liner` is valid for `FAST` or a pure `HUMAN_TASTE` gate. Emit one physical line and stop:
 
 ```text
-Artifact: PM_CLOSURE | Route: <FAST|REVIEW> | Outcome: <SHIP|REVIEW|DECISION_NEEDED|FOLLOW_UP_QUEUED> | Verdict: <result and reason> | Next: <action or stop>
+Verdict: <result and reason> | Next: <action or stop>
 ```
 
-A `REVIEW` `PM_CLOSURE` is at most 3 non-empty lines:
+For `Mode: full`, emit only the applicable `PM_CLOSURE`. A `REVIEW` closure has at most 3 non-empty lines:
 
 ```text
 Artifact: PM_CLOSURE | Route: REVIEW | Outcome: <REVIEW|DECISION_NEEDED>
@@ -61,7 +75,7 @@ Review: <one bounded question or nearest evidence>
 Next: <one action and owner>
 ```
 
-A `BLOCK` `PM_CLOSURE` is at most 5 non-empty lines:
+A `BLOCK` closure has at most 5 non-empty lines:
 
 ```text
 Artifact: PM_CLOSURE | Pre-route: <decision>
@@ -70,5 +84,3 @@ Blocker: <one current hard gate>
 Evidence: <nearest proof or none>
 Next: Gate <N> — <pass condition> → unlocks <action>
 ```
-
-A blocked closure is status, not an audit packet or implementation plan. Its final line names the next actionable gate rather than a wait state.
