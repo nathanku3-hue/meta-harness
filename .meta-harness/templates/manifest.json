@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-06-19T06:45:33.192Z",
+  "generated_at": "2026-06-21T07:08:17.783Z",
   "template_count": 29,
   "hash_algorithm": "sha256",
   "line_ending_normalization": "LF",
@@ -53,7 +53,7 @@
     {
       "source_path": "templates/contracts/ship-fast-decision-gate.md",
       "installed_path": ".meta-harness/templates/contracts/ship-fast-decision-gate.md",
-      "content_hash": "2f8c68c2a0de8b244616a920aa2622f009a10f10848adee224a84f6f37fcba8f"
+      "content_hash": "286b4273ceb1df93c1af35c4738ae070c53a1aff974ed274575633abee615afb"
     },
     {
       "source_path": "templates/contracts/skill-distillation-contract.md",
@@ -83,7 +83,7 @@
     {
       "source_path": "templates/contracts/worker-done-contract.md",
       "installed_path": ".meta-harness/templates/contracts/worker-done-contract.md",
-      "content_hash": "7889c632e457adee44292a8a9d0295ebb7dcb8437e8496f5978e901f91177089"
+      "content_hash": "cd5596592b8092b7bac219fa8112b72f8976399af448931614dbaccd5bf4f37a"
     },
     {
       "source_path": "templates/skills/boundary-gate.md",
@@ -143,7 +143,7 @@
     {
       "source_path": "templates/skills/ship-fast-decision-router.md",
       "installed_path": ".meta-harness/templates/skills/ship-fast-decision-router.md",
-      "content_hash": "65665e96b015ed1bf659404c916963fa459e4bebc0c3965232783d44b0671a40"
+      "content_hash": "f1869ebde3bce0a32383a4453d405323e8c96b6aa11d3e658b884763177afe55"
     },
     {
       "source_path": "templates/skills/subagent-workcell.md",
@@ -151,5 +151,5 @@
       "content_hash": "44debb09279b9da8ef7ed2c1697a9d966ce4d5d703b54008a0c0744b2978e4df"
     }
   ],
-  "manifest_hash": "f9c37ed3902a3f57915f89b825bf305003869faebd8d43de8956d500848adf9c"
+  "manifest_hash": "29e066f886ce78bf5e66527f7723c6cb5ba4a5d21e70b114b917803a85eb37f3"
 }
