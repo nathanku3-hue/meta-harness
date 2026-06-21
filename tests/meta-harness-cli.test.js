@@ -355,6 +355,25 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(workerDoneText, /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/);
 });
 
+test("templates overwrite migrates the worker template without rewriting status", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Preserve status during template rollout"]);
+  const harness = path.join(cwd, ".meta-harness");
+  const statusPath = path.join(harness, "status.md");
+  const workerTemplatePath = path.join(harness, "workers", "worker-report-template.md");
+  const preservedStatus = "# Status\n\nCurrent truth:\nkeep this exact status\n";
+  fs.writeFileSync(statusPath, preservedStatus, "utf8");
+  fs.writeFileSync(workerTemplatePath, "# Worker PM Brief\n\nOutcome: DONE\n", "utf8");
+
+  run(cwd, ["templates", "install", "--overwrite", "--allow-dirty"]);
+
+  const workerTemplate = fs.readFileSync(workerTemplatePath, "utf8");
+  const firstLine = workerTemplate.split(/\r?\n/).find((line) => line.trim().length > 0);
+  assert.equal(firstLine, "Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>");
+  assert.doesNotMatch(workerTemplate, /^# Worker PM Brief/m);
+  assert.equal(fs.readFileSync(statusPath, "utf8"), preservedStatus);
+});
+
 test("post-worker workflow keeps reusable checks read-only and parameterized", () => {
   const workflow = fs.readFileSync(path.join(ROOT, ".github", "workflows", "post-worker-saw.yml"), "utf8");
   assert.match(workflow, /workflow_call:/);
