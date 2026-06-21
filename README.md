@@ -159,7 +159,7 @@ meta-harness brief scan --target <repo>
 meta-harness decisions scan --target <repo>
 ```
 
-These checks detect template drift, untrusted local skill references, old contract headings, state-layout drift, PM brief shape drift, and malformed, invalid, or duplicate decision-inbox records. They do not install templates, clean inherited dirty files, rewrite generators, or write `.meta-harness/status.md` or `.meta-harness/events.jsonl`.
+These checks detect template drift, untrusted local skill references, old contract headings, active guidance that forces worker artifacts into final chat, state-layout drift, PM brief shape drift, and malformed, invalid, or duplicate decision-inbox records. They do not install templates, clean inherited dirty files, rewrite generators, or write `.meta-harness/status.md` or `.meta-harness/events.jsonl`.
 
 ## Domain Governance Validation
 

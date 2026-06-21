@@ -359,6 +359,7 @@ The one-shot MVP is acceptable when:
 - `meta-harness worker-report` rejects missing or invalid `--outcome`, `--requested-work-type`, or `--actual-work-type`;
 - `meta-harness worker-report` rejects `DONE` when code, test, provider_probe, commit, validation, execution, or data_output work silently falls back to docs-only output;
 - `meta-harness templates install` copies reusable harness templates into local harness state, refreshes the generated worker-report template on `--overwrite`, and preserves existing status truth;
+- `meta-harness contract scan` rejects active repository guidance that requires worker-report metadata or the full PM brief as the final chat response;
 - SOP and packaged templates define Question Zero: "Does this need to be built?";
 - routing requires local repo, platform/native, existing dependency, and packaged-template scans before new implementation;
 - expert packets are created only after build-vs-borrow routing says outside judgment is needed;

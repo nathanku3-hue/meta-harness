@@ -436,6 +436,22 @@ test("contract scan CLI rejects old exact headings without writing", () => {
   assert.deepEqual(snapshotTree(cwd), before);
 });
 
+test("contract scan CLI rejects verbose active final-response guidance without writing", () => {
+  const cwd = tempDir();
+  writeFile(cwd, "AGENTS.md", [
+    "Final responses must use the Ship-Fast PM Brief.",
+    "The final answer must start with `Outcome`, `Round`, `Progress`, and `Confidence`.",
+  ].join("\n"));
+
+  const before = snapshotTree(cwd);
+  const result = runRaw(cwd, ["contract", "scan", "--target", cwd]);
+
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, /CONTRACT SCAN: FAIL checked=1 rejected=2/);
+  assert.match(result.stdout, /REJECTED\tAGENTS\.md\tactive guidance requires the worker-report artifact/);
+  assert.deepEqual(snapshotTree(cwd), before);
+});
+
 test("state check CLI reports old layout migration-needed without writing", () => {
   const cwd = tempDir();
   writeFile(cwd, ".meta-harness/runs/RUN-001/status.md", "# Old Status\n");
