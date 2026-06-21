@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "campaign_id": "effective-guidance-rollout-20260621",
+  "collected_at": "2026-06-21T12:11:08.4375644Z",
+  "status": "complete",
+  "source_commit": "3378f3916360d9f2a50d7aaa926fe065ea7367f0",
+  "inventory": {
+    "repository_root_installs": 10,
+    "rolled_out": 10,
+    "passed": 10,
+    "blocked": 0
+  },
+  "validation": {
+    "focused_tests": "37 passed, 0 failed",
+    "full_tests": "63 test files, 0 failed",
+    "sync": "10/10 pass",
+    "active_guidance_contract": "10/10 pass",
+    "scope_selector_chat_boundary": "10/10 pass",
+    "status_preserved": "10/10 pass",
+    "outside_allowlist_changes": 0
+  },
+  "activation_note": "Fresh agent contexts load the corrected AGENTS.md; existing conversations may retain previously loaded instructions.",
+  "decision": "COMPLETE"
+}

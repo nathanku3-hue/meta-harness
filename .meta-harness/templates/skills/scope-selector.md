@@ -19,6 +19,8 @@ Use this when a run has multiple plausible next steps, unclear ownership, handof
 
 ## Output Contract
 
+This schema is an internal planning artifact. Do not paste it into normal chat unless the user explicitly asks for a formal scope artifact or full plan. In normal chat, state only the recommended next action, one reason, the operative boundary, and any decision needed.
+
 ```text
 Pre-route Decision: <NO_BUILD|USE_EXISTING_REPO_PATTERN|USE_PLATFORM_NATIVE|MINIMAL_PATCH|HUMAN_TASTE|EXPERT_PACKET|AUTHORITY_BLOCK>
 Chosen Scope: <one bounded scope>

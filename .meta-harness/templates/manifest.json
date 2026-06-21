@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-06-21T07:08:17.783Z",
+  "generated_at": "2026-06-21T12:10:21.854Z",
   "template_count": 29,
   "hash_algorithm": "sha256",
   "line_ending_normalization": "LF",
@@ -138,7 +138,7 @@
     {
       "source_path": "templates/skills/scope-selector.md",
       "installed_path": ".meta-harness/templates/skills/scope-selector.md",
-      "content_hash": "f82a64abae3ac72765e29c478fd95d4f51d34c9f26e8a0599bb657253303898c"
+      "content_hash": "3a2e86c26488a1859d413707b0409ed5ccecc439c1f1efdb103e0fa31e17d9aa"
     },
     {
       "source_path": "templates/skills/ship-fast-decision-router.md",
@@ -151,5 +151,5 @@
       "content_hash": "44debb09279b9da8ef7ed2c1697a9d966ce4d5d703b54008a0c0744b2978e4df"
     }
   ],
-  "manifest_hash": "29e066f886ce78bf5e66527f7723c6cb5ba4a5d21e70b114b917803a85eb37f3"
+  "manifest_hash": "bc00c10367986e2f3e36f9b724eab23d482be9a3404c501be4e7c2c2fa3c89f1"
 }
