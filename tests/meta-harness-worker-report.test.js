@@ -41,6 +41,10 @@ function reportPath(cwd, worker = "codex-worker") {
   return path.join(cwd, ".meta-harness", "workers", `${worker}.md`);
 }
 
+function firstNonEmptyLine(text) {
+  return text.split(/\r?\n/).find((line) => line.trim().length > 0);
+}
+
 test("worker-report requires explicit valid outcome and work types", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Require explicit worker accountability"]);
@@ -154,7 +158,9 @@ test("worker-report writes PM briefs for valid done partial and rejected reports
     "--result", "documented outcome",
   ]);
   const docsReport = fs.readFileSync(reportPath(docsCwd, "docs-worker"), "utf8");
-  assert.match(docsReport, /^# Worker PM Brief\n\nOutcome: DONE\nRound: not recorded\nProgress: not recorded\nConfidence: not recorded/m);
+  assert.equal(firstNonEmptyLine(docsReport), "Outcome: DONE");
+  assert.match(docsReport, /^Outcome: DONE\nRound: not recorded\nProgress: not recorded\nConfidence: not recorded/m);
+  assert.doesNotMatch(docsReport, /^# Worker PM Brief/m);
   assert.match(docsReport, /Ship gate tier: FAST/);
   assert.match(docsReport, /Task resolution: follow-up-queued/);
   assert.match(docsReport, /Goal: not recorded/);
@@ -173,7 +179,8 @@ test("worker-report writes PM briefs for valid done partial and rejected reports
     "--result", "code edited",
   ]);
   const codeReport = fs.readFileSync(reportPath(codeCwd, "code-worker"), "utf8");
-  assert.match(codeReport, /# Worker PM Brief/);
+  assert.equal(firstNonEmptyLine(codeReport), "Outcome: DONE");
+  assert.doesNotMatch(codeReport, /^# Worker PM Brief/m);
   assert.match(codeReport, /Ship gate tier: REVIEW/);
   assert.match(codeReport, /Task resolution: follow-up-queued/);
   assert.match(codeReport, /requested_work_type: code/);
@@ -192,7 +199,8 @@ test("worker-report writes PM briefs for valid done partial and rejected reports
     "--result", "documented blocker only",
   ]);
   const partialReport = fs.readFileSync(reportPath(partialCwd, "partial-worker"), "utf8");
-  assert.match(partialReport, /# Worker PM Brief/);
+  assert.equal(firstNonEmptyLine(partialReport), "Outcome: PARTIAL_WITH_EXPLICIT_SCOPE");
+  assert.doesNotMatch(partialReport, /^# Worker PM Brief/m);
   assert.match(partialReport, /Outcome: PARTIAL_WITH_EXPLICIT_SCOPE/);
   assert.match(partialReport, /Ship gate tier: SLOW/);
   assert.match(partialReport, /Task resolution: decision-needed/);
@@ -211,7 +219,8 @@ test("worker-report writes PM briefs for valid done partial and rejected reports
     "--result", "rejected unsafe request",
   ]);
   const rejectedReport = fs.readFileSync(reportPath(rejectedCwd, "rejected-worker"), "utf8");
-  assert.match(rejectedReport, /# Worker PM Brief/);
+  assert.equal(firstNonEmptyLine(rejectedReport), "Outcome: REJECTED");
+  assert.doesNotMatch(rejectedReport, /^# Worker PM Brief/m);
   assert.match(rejectedReport, /Outcome: REJECTED/);
   assert.match(rejectedReport, /Ship gate tier: BLOCK/);
   assert.match(rejectedReport, /Task resolution: blocked/);

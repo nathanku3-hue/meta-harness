@@ -10,3 +10,7 @@ Canonical rules: [Meta Harness SOP](../sop/meta-harness-sop.md#pm-output-contrac
 - **PM:** an affirmative signal closes only a pure `HUMAN_TASTE` gate; it never silently clears authority, evidence, safety, git, or implementation gates.
 
 `REVIEW` PM closure is at most 3 lines. `BLOCK` PM closure is at most 5 lines. Workers may produce `REVIEW_SPECIMEN` or authorized `MATERIALIZED_IMPLEMENTATION`, never hide either inside `PM_CLOSURE`.
+
+Status-only artifacts, expert packets, and approval packets do not count as shipped progress unless the requested product is status or reporting.
+
+Final chat answers use the PM closure, not the worker-report artifact; hide internal fields, hashes, paths, allowlists, and command logs unless the user asks for evidence.

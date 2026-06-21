@@ -41,6 +41,11 @@ function assertCoreContract(relativePath) {
   for (const type of ["PM_CLOSURE", "REVIEW_SPECIMEN", "MATERIALIZED_IMPLEMENTATION"]) {
     assert.match(text, new RegExp(`\\b${type}\\b`));
   }
+  assert.match(text, /Status-only artifacts are not shipped progress/i);
+  assert.match(text, /must not create another status-only packet as progress/i);
+  assert.match(text, /PM closure is the chat answer, not the worker-report artifact/i);
+  assert.match(text, /hide `Outcome`, `Round`, `Progress`, `Confidence`/i);
+  assert.match(text, /approval text/i);
   assert.match(text, /affirmative signal[\s\S]+closes only a pure `HUMAN_TASTE` gate/i);
   assert.match(text, /no authority, security, evidence, scope, safety, git, or implementation gate/i);
   assertOneLinerSchema(text);
@@ -60,6 +65,10 @@ test("canonical SOP defines only the three agent ship-fast routes", () => {
   assert.match(contract, /`SLOW` is never emitted/);
   assert.match(contract, /`REVIEW` `PM_CLOSURE` is at most 3 non-empty lines/);
   assert.match(contract, /`BLOCK` `PM_CLOSURE` is at most 5 non-empty lines/);
+  assert.match(contract, /Status-only artifacts are not shipped progress/i);
+  assert.match(contract, /Expert packets, approval packets, PM status, and dashboards/i);
+  assert.match(contract, /PM closure is the chat answer, not the worker-report artifact/i);
+  assert.match(contract, /emit only the pasteable approval block/i);
   assert.match(contract, /affirmative signal[\s\S]+closes only a pure `HUMAN_TASTE` gate/i);
 });
 
@@ -89,4 +98,6 @@ test("ops contracts are short, SOP-linked, and fail closed", () => {
   assert.match(read(ops[1]), /Never use reset, clean, stash, checkout, or force operations/);
   assert.match(read(ops[2]), /Patch worker:[\s\S]+never owns branch selection[\s\S]+merge/i);
   assert.match(read(ops[2]), /affirmative signal closes only a pure `HUMAN_TASTE` gate/i);
+  assert.match(read(ops[2]), /Status-only artifacts, expert packets, and approval packets do not count as shipped progress/i);
+  assert.match(read(ops[2]), /Final chat answers use the PM closure, not the worker-report artifact/i);
 });

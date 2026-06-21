@@ -1,13 +1,11 @@
 # Worker Done / PM Brief Contract
 
 Status: Template
-Purpose: capture a MECE PM/CEO-facing worker report: what changed, why it matters, blockers, decision needed, next action, evidence, and accountability before handoff or reconciliation.
+Purpose: capture a worker report artifact while keeping the final user-facing closure concise: what changed, why it matters, blockers, decision needed, next action, evidence, and accountability before handoff or reconciliation.
 
 ## Worker Report Artifact
 
 ```text
-# Worker PM Brief
-
 Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
 Round: <round or not recorded>
 Progress: <before>/100 -> <after>/100, or not recorded
@@ -68,6 +66,21 @@ ship_gate_tier: <FAST|REVIEW|SLOW|BLOCK>
 task_resolution: <ship|blocked|decision-needed|follow-up-queued>
 ```
 
+## User-Facing Closure
+
+Do not paste the full worker report into chat unless the user asks for evidence, an audit packet, or the artifact itself. For normal final answers, translate the artifact into at most four plain-language lines:
+
+```text
+Status: <what passed or changed, and what is blocked>
+Why: <one plain reason>
+Next: <one safe next action>
+Decision needed: <approve, reject, redirect, or none>
+```
+
+Hide internal labels (`PARTIAL_WITH_EXPLICIT_SCOPE`, `Ship gate tier`, `SAW`, `ClosurePacket`, `manifest_hash`, `requested_work_type`), hashes, absolute paths, file allowlists, command logs, and accountability booleans unless they are the requested deliverable or the user asks for evidence.
+
+If the user asks for approval text, output only the pasteable approval block without an audit recap.
+
 ## Identity
 
 ```text
@@ -114,12 +127,16 @@ remaining_blocker: <blocker or none>
 ```
 
 Rules:
-- The first non-empty line of generated worker-report artifacts must be `# Worker PM Brief`.
-- The first visible fields after the title must remain `Outcome`, `Round`, `Progress`, and `Confidence`.
+- The first non-empty line of generated worker-report artifacts must be `Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>`.
+- The first visible fields must remain `Outcome`, `Round`, `Progress`, and `Confidence`, with no title before them.
 - Generated worker reports must include `Ship gate tier` and `Task resolution` immediately after `Updated`.
 - The first section after metadata must answer what actually changed.
 - The Ship-Fast Decision Gate concept is visible in top metadata and folded into `## What decision is needed`: one decision, options considered, scope limit, and stop rule.
-- Do not begin with `# Worker Report`, numbered logs, SAW Verdict, ClosurePacket, or command logs.
+- The worker report is an artifact. The final chat answer must use the shorter user-facing closure unless the user asks for the artifact or evidence.
+- Final chat answers must not lead with `Outcome`, `Round`, `Progress`, `Confidence`, `Ship gate tier`, or `Task resolution`.
+- Final chat answers hide hashes, absolute paths, allowlists, command logs, and accountability booleans unless requested.
+- Approval text requests return only pasteable approval text, not the worker report or audit recap.
+- Do not begin with `# Worker PM Brief`, `# Worker Report`, numbered logs, SAW Verdict, ClosurePacket, or command logs.
 - Do not lead with command logs, reviewer chatter, or numbered SAW/logsheet detail.
 - SAW Verdict, ClosurePacket, ClosureValidation, and SAWBlockValidation are evidence only and must appear under `## Validation / evidence` or evidence artifacts.
 - Evidence artifacts are files, reports, commits, hashes, or zips; they are not the same field as passed validations.

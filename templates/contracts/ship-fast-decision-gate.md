@@ -39,6 +39,10 @@ Terminal outcomes are `SHIP` (complete and evidenced), `REVIEW` (ready but not s
 - `REVIEW_SPECIMEN` is bounded decision material, not an implementation claim.
 - `MATERIALIZED_IMPLEMENTATION` is code, files, configuration, or a full audit artifact and is allowed only after every gate passes.
 - Declare one type. Never embed a specimen or implementation in a PM closure.
+- Status-only artifacts are not shipped progress unless the user explicitly requested status or reporting as the product. Expert packets, approval packets, PM status, and dashboards that only restate current truth may advance a `REVIEW` or `BLOCK` gate, but they do not move implementation progress or terminal outcome to `SHIP`.
+- After approval, the next ship-fast round must either materialize the smallest owned, reversible, locally verifiable slice or emit the bounded gate closure; it must not create another status-only packet as progress.
+- The PM closure is the chat answer, not the worker-report artifact. Translate internal state into plain language and hide `Outcome`, `Round`, `Progress`, `Confidence`, `Ship gate tier`, SAW/ClosurePacket internals, hashes, absolute paths, file allowlists, command logs, and accountability booleans unless the user asks for evidence.
+- Approval text requests return only the pasteable approval block.
 
 ## Approval Rule
 

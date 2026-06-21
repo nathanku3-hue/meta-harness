@@ -75,9 +75,11 @@ test("init creates per-repo markdown harness state", () => {
   const firstTemplateLine = workerReportTemplate
     .split(/\r?\n/)
     .find((line) => line.trim().length > 0);
-  assert.equal(firstTemplateLine, "# Worker PM Brief");
+  assert.equal(firstTemplateLine, "Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>");
   assert.match(workerReportTemplate, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
   assert.match(workerReportTemplate, /## Validation \/ evidence/);
+  assert.match(workerReportTemplate, /This template is an artifact, not the default final chat answer/);
+  assert.match(workerReportTemplate, /Final chat answers must compress this report into Status, Why, Next, and Decision needed/);
   assert.match(
     workerReportTemplate,
     /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/,
@@ -86,6 +88,24 @@ test("init creates per-repo markdown harness state", () => {
     workerReportTemplate,
     /Silent docs-only fallback from execution work is forbidden/,
   );
+});
+
+test("worker-report first-line contract is consistent across docs and templates", () => {
+  const read = (relativePath) => fs.readFileSync(path.join(ROOT, ...relativePath.split("/")), "utf8");
+  const readme = read("README.md");
+  const productSpec = read("docs/product/product-spec.md");
+  const workerDone = read("templates/contracts/worker-done-contract.md");
+  const harnessState = read("lib/harness-state.js");
+
+  assert.match(readme, /first non-empty line is `Outcome:`/);
+  assert.match(readme, /no title appears before those fields/);
+  assert.match(productSpec, /first non-empty line is `Outcome:`/);
+  assert.match(productSpec, /Reports must not begin with `# Worker PM Brief`/);
+  assert.match(workerDone, /first non-empty line of generated worker-report artifacts must be `Outcome:/);
+  assert.match(workerDone, /```text\nOutcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
+  assert.doesNotMatch(workerDone, /must be `# Worker PM Brief`/);
+  assert.match(harnessState, /The first non-empty line must be Outcome:/);
+  assert.doesNotMatch(harnessState, /The first non-empty line must be # Worker PM Brief/);
 });
 
 test("event and worker-report update status and lookback", () => {
@@ -135,15 +155,17 @@ test("event and worker-report update status and lookback", () => {
   const firstReportLine = report
     .split(/\r?\n/)
     .find((line) => line.trim().length > 0);
-  assert.equal(firstReportLine, "# Worker PM Brief");
-  assert.match(report, /^# Worker PM Brief\n\nOutcome: DONE\nRound: ROUND-001\nProgress: 10\/100 -> 20\/100\nConfidence: 9\/10/m);
+  assert.equal(firstReportLine, "Outcome: DONE");
+  assert.match(report, /^Outcome: DONE\nRound: ROUND-001\nProgress: 10\/100 -> 20\/100\nConfidence: 9\/10/m);
   assert.doesNotMatch(report, /^# Worker Report/m);
+  assert.doesNotMatch(report, /^# Worker PM Brief/m);
   assert.doesNotMatch(report, /## Result/);
   assert.doesNotMatch(report, /## Human Summary/);
   assert.doesNotMatch(report, /## Proposed Next Action/);
   assert.doesNotMatch(report, /## Codex continuation note/);
   assert.doesNotMatch(report, /## What I did/);
   assert.doesNotMatch(report, /## PM-facing status/);
+  assert.doesNotMatch(report, /## User-Facing Closure/);
   assert.doesNotMatch(report, /## Ship-Fast Decision Gate/);
   assert.doesNotMatch(report, /^SAW Verdict:/m);
   assert.doesNotMatch(report, /^ClosurePacket:/m);
@@ -199,6 +221,24 @@ test("event validation fails closed for bad JSONL and CLI input", () => {
   const missingResultCwd = tempDir();
   run(missingResultCwd, ["init", "Validate CLI"]);
   assertCliError(runRaw(missingResultCwd, ["event", "--action", "did it"]), "MH_USAGE", /event requires --result/);
+});
+
+test("status refresh accepts legacy time-only event records", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Legacy event compatibility"]);
+  const legacyEvent = {
+    time: "2026-06-03T15:59:48.136Z",
+    actor: "human",
+    stream: "coding",
+    phase: "intake",
+    action: "initialized harness",
+    result: "legacy harness state created",
+  };
+  fs.writeFileSync(path.join(cwd, ".meta-harness", "events.jsonl"), `${JSON.stringify(legacyEvent)}\n`, "utf8");
+
+  const status = run(cwd, ["status", "--refresh"]);
+
+  assert.match(status, /legacy harness state created/);
 });
 
 test("repos and poll read child repo status without launching workers", () => {
@@ -299,10 +339,13 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(postWorkerText, /Summarize SAW evidence as evidence only/);
   const workerDoneText = fs.readFileSync(workerDone, "utf8");
   assert.match(workerDoneText, /Worker Done \/ PM Brief Contract/);
-  assert.match(workerDoneText, /# Worker PM Brief/);
-  assert.match(workerDoneText, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
+  assert.match(workerDoneText, /```text\nOutcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
+  assert.doesNotMatch(workerDoneText, /^# Worker PM Brief$/m);
   assert.match(workerDoneText, /What decision is needed/);
   assert.match(workerDoneText, /Ship-Fast Decision Gate concept is visible/);
+  assert.match(workerDoneText, /## User-Facing Closure/);
+  assert.match(workerDoneText, /Do not paste the full worker report into chat/);
+  assert.match(workerDoneText, /Approval text requests return only pasteable approval text/);
   assert.match(workerDoneText, /## Worker Accountability/);
   assert.match(workerDoneText, /## Blockers And Next Action/);
   assert.match(workerDoneText, /## Accountability/);

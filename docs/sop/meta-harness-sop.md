@@ -160,6 +160,10 @@ Every ship-fast artifact has exactly one type:
 
 A `PM_CLOSURE` never embeds a `REVIEW_SPECIMEN` or `MATERIALIZED_IMPLEMENTATION`. A blocked closure is a status artifact, not an audit packet or implementation plan. Dirty, inherited, or generated residue is counted or queued, not dumped into the PM loop.
 
+Status-only artifacts are not shipped progress unless the user explicitly requested status or reporting as the product. Expert packets, approval packets, PM status, and dashboards that only restate current truth may advance a `REVIEW` or `BLOCK` gate, but they do not move implementation progress or terminal outcome to `SHIP`. After approval, the next ship-fast round must either materialize the smallest owned, reversible, locally verifiable slice or emit the bounded gate closure; it must not create another status-only packet as progress.
+
+The PM closure is the chat answer, not the worker-report artifact. Translate internal state into plain language and hide `Outcome`, `Round`, `Progress`, `Confidence`, `Ship gate tier`, SAW/ClosurePacket internals, hashes, absolute paths, file allowlists, command logs, and accountability booleans unless the user asks for evidence. If the user asks for approval text, emit only the pasteable approval block.
+
 Use `Mode: one-liner` for a `FAST` closure or a pure `HUMAN_TASTE` gate; emit only `Verdict: <result and reason> | Next: <action or stop>`. Use `Mode: full` otherwise. A `REVIEW` `PM_CLOSURE` is at most 3 non-empty lines. A `BLOCK` `PM_CLOSURE` is at most 5 non-empty lines.
 
 An affirmative signal such as `ok`, `ship`, `approved`, or `好` closes only a pure `HUMAN_TASTE` gate: the active pre-route is exactly `HUMAN_TASTE`, and no authority, security, evidence, scope, safety, git, or implementation gate remains. It resolves the taste decision; it does not claim pending materialization occurred. For every other pre-route, treat the signal as context and re-evaluate the outstanding gate.
