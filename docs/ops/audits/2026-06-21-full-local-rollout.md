@@ -5,6 +5,10 @@ Decision: COMPLETE
 
 The Outcome-first worker-report contract was rolled out from source commit `800a0bf7e7cffbd24c46d00ca51bf626c3e9d3f3` to all 10 discovered repository-root local installs.
 
+## Discovery Scope
+
+The source registry contained no registered child repositories. Filesystem discovery covered `E:\Code`, `C:\qma620`, and common local project/code roots under the user profile, `D:`, and `E:`. It found 10 independent Git repository roots with `.meta-harness`; nested demo sessions and test fixtures were excluded because their Git root is a containing Meta-Harness source clone.
+
 ## Evidence
 
 - Source prerequisite tests: 34 focused tests passed; full suite passed 63/63 test files.
