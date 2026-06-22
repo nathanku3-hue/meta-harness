@@ -26,4 +26,4 @@ WORKER_PATCH -> REVIEW
 - `DIRTY_WORKTREE` or `STALE_MAIN` emits `BLOCK` with one actionable next gate.
 - `WORKER_PATCH` emits `REVIEW` unless the owner authorizes branch or PR action.
 - Any failed hard gate emits `BLOCK` and one actionable next gate; no state is skipped.
-- `REVIEW` PM closure is at most 3 lines; `BLOCK` PM closure is at most 5 lines.
+- User-visible closure follows the adaptive SOP policy; internal route labels are not chat output.

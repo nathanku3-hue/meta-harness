@@ -32,7 +32,7 @@ Every run keeps:
 | `background` | Research, monitoring, or validation continues while primary work proceeds. | New conclusions are introduced through conclusion updates, not silent edits. |
 | `review` | Work is being checked against acceptance criteria. | Findings, evidence, severity, and required fixes are explicit. |
 | `retrospective` | The run is being reconstructed after the fact. | Timeline and decision rationale are generated from the event ledger. |
-| `ship-fast` | An agent is optimizing for the nearest PM-visible result. | Classify first; `REVIEW` closure is at most 3 lines and `BLOCK` closure is at most 5 lines. |
+| `ship-fast` | An agent is optimizing for the nearest PM-visible result. | Classify first; render user-visible closure with the adaptive policy. |
 
 ## Universal Flywheel
 
@@ -160,11 +160,29 @@ Every ship-fast artifact has exactly one type:
 
 A `PM_CLOSURE` never embeds a `REVIEW_SPECIMEN` or `MATERIALIZED_IMPLEMENTATION`. A blocked closure is a status artifact, not an audit packet or implementation plan. Dirty, inherited, or generated residue is counted or queued, not dumped into the PM loop.
 
+Three distinct information channels exist:
+
+- `PM_CLOSURE`: adaptive human-facing status and decision surface;
+- `ORCHESTRATOR_HANDOVER`: dense continuation state for the next orchestrator;
+- `WORKER_REPORT`: exhaustive execution, validation, accountability, and evidence record.
+
 Status-only artifacts are not shipped progress unless the user explicitly requested status or reporting as the product. Expert packets, approval packets, PM status, and dashboards that only restate current truth may advance a `REVIEW` or `BLOCK` gate, but they do not move implementation progress or terminal outcome to `SHIP`. After approval, the next ship-fast round must either materialize the smallest owned, reversible, locally verifiable slice or emit the bounded gate closure; it must not create another status-only packet as progress.
 
 The PM closure is the chat answer, not the worker-report artifact. Translate internal state into plain language and hide `Outcome`, `Round`, `Progress`, `Confidence`, `Ship gate tier`, SAW/ClosurePacket internals, hashes, absolute paths, file allowlists, command logs, and accountability booleans unless the user asks for evidence. If the user asks for approval text, emit only the pasteable approval block.
 
-Use `Mode: one-liner` for a `FAST` closure or a pure `HUMAN_TASTE` gate; emit only `Verdict: <result and reason> | Next: <action or stop>`. Use `Mode: full` otherwise. A `REVIEW` `PM_CLOSURE` is at most 3 non-empty lines. A `BLOCK` `PM_CLOSURE` is at most 5 non-empty lines.
+Use one canonical user-visible closure policy, separate from machine classifier tiers, worker evidence fields, and internal handover schemas. Include only applicable semantic items, in this order: result and practical effect; reason or nearest evidence when needed; next action when work remains; the highest-priority user decision when one is required. Omit empty or `none` items. Use one short paragraph for simple completion; otherwise use no more than four applicable semantic items. This budget applies only to normal human-facing closure. Requested audits, reviews, safety evidence, and orchestrator handover state are separate surfaces and may expand as needed without converting `PM_CLOSURE` into an audit packet.
+
+Decision-needed questions must use exactly one owner tag:
+
+- `Decision needed (human: taste/acceptance): <question>`;
+- `Decision needed (expert: domain knowledge): <question>`;
+- `Decision needed (expert: system methodology): <question>`.
+
+Use `Approval needed: <bounded authority, scope, and consequence, or none>` for authority, credentials, publishing, provider access, execution permission, protected-boundary access, and commit or rollout permission. These are approval boundaries or blockers, not expert-decision tags.
+
+`ORCHESTRATOR_HANDOVER` has no arbitrary line cap. It preserves dense continuation state using `CurrentTruth`, `MaterialDelta`, `Validation`, `OpenRisks`, `BlockedBy`, `DecisionQueue`, `NextExecutableAction`, `Boundaries`, `HumanAuditState`, `HumanAuditScope`, and `Provenance`. Each queued decision records its owner tag, question, required evidence, unlock, and owner.
+
+`machine_tier` remains internal code/test state. It maps into `closure_route` and `user_visible_result` before normal chat or `PM_CLOSURE` rendering. Tier fields may remain in `WORKER_REPORT` accountability and evidence surfaces where the worker contract explicitly requires them.
 
 An affirmative signal such as `ok`, `ship`, `approved`, or `好` closes only a pure `HUMAN_TASTE` gate: the active pre-route is exactly `HUMAN_TASTE`, and no authority, security, evidence, scope, safety, git, or implementation gate remains. It resolves the taste decision; it does not claim pending materialization occurred. For every other pre-route, treat the signal as context and re-evaluate the outstanding gate.
 

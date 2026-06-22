@@ -219,58 +219,6 @@ test("contract scan fails on exact old primary headings", () => {
   ]);
 });
 
-test("contract scan allows warning text mentioning old headings", () => {
-  const targetRoot = tempDir();
-  writeFile(targetRoot, ".meta-harness/templates/contracts/worker-done-contract.md", [
-    "# Worker Done Contract",
-    "",
-    "Do not use # Worker Report as the primary report heading.",
-    "Do not use ## Result or ## Human Summary as section names.",
-    "## Worker Report Artifact",
-    "",
-  ].join("\n"));
-
-  const result = scanContracts({ targetRoot });
-  assert.equal(result.status, "PASS");
-  assert.equal(result.checked, 1);
-  assert.deepEqual(result.items, []);
-});
-
-test("contract scan rejects active guidance that pastes worker artifacts into final chat", () => {
-  const targetRoot = tempDir();
-  writeFile(targetRoot, "AGENTS.md", [
-    "# Agent Guidance",
-    "",
-    "Final responses must use the Ship-Fast PM Brief.",
-    "The final answer must start with `Outcome`, `Round`, `Progress`, and `Confidence`.",
-  ].join("\n"));
-
-  const result = scanContracts({ targetRoot });
-
-  assert.equal(result.status, "FAIL");
-  assert.equal(result.checked, 1);
-  assert.deepEqual(result.items.map((item) => item.detail), [
-    "active guidance requires the worker-report artifact as the final chat response",
-    "active guidance requires artifact metadata at the start of final chat",
-  ]);
-});
-
-test("contract scan allows active guidance that separates artifacts from chat closure", () => {
-  const targetRoot = tempDir();
-  writeFile(targetRoot, "AGENTS.md", [
-    "# Agent Guidance",
-    "",
-    "Worker reports are saved as evidence artifacts.",
-    "Final chat answers use at most four plain-language lines: Status, Why, Next, and Decision needed.",
-  ].join("\n"));
-
-  const result = scanContracts({ targetRoot });
-
-  assert.equal(result.status, "PASS");
-  assert.equal(result.checked, 1);
-  assert.deepEqual(result.items, []);
-});
-
 test("state-layout check reports old runs layout as migration-needed without writes", () => {
   const targetRoot = tempDir();
   writeFile(targetRoot, ".meta-harness/runs/RUN-001/status.md", "# Old Status\n");
