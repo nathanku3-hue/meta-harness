@@ -14,8 +14,6 @@ test("toolDescriptors exposes read-only strategic tools", () => {
     "harness-status",
     "harness-research-prompt",
     "harness-insight-summary",
-    "harness-create-commit",
-    "harness-request-publish",
   ]);
 });
 
@@ -30,7 +28,7 @@ test("mcp server handles initialize, list, and tool calls", async () => {
   assert.equal(initialized.serverInfo.name, "meta-harness");
 
   const listed = await server.handleRequest({ method: "tools/list" });
-  assert.equal(listed.tools.length, 5);
+  assert.equal(listed.tools.length, 3);
 
   const status = await server.callTool("harness-status", {});
   assert.match(status.content[0].text, /fixture/);
@@ -50,7 +48,7 @@ test("mcp server handles initialize, list, and tool calls", async () => {
 });
 
 test("workspace path resolution blocks escapes", () => {
-  const root = tempDir("meta-harness-mext-path-");
+  const root = tempDir("meta-harness-mcp-path-");
   assert.throws(() => resolveWorkspacePath(root, "../outside.txt"), /outside workspace root/);
 });
 
@@ -78,5 +76,5 @@ test("runStdioServer responds to framed tool list requests", async () => {
   const parsed = extractFrames(captured);
   const response = JSON.parse(parsed.frames[0]);
   assert.equal(response.id, 7);
-  assert.equal(response.result.tools.length, 5);
+  assert.equal(response.result.tools.length, 3);
 });
