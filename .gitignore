@@ -74,3 +74,6 @@ data-output/
 .meta-harness/expert-packets/
 .meta-harness/workers/
 .meta-harness/runs/
+
+# Local backup / archive directories
+archive/

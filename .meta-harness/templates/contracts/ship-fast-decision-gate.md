@@ -6,11 +6,10 @@ Scope: Prompt and artifact behavior only; no Python, Node, CLI, or machine ship-
 ## Input
 
 ```text
-Mode: one-liner | full
 Scenario: IDEA | PLAN | AUDIT | IMPLEMENT | DIRTY_WORKTREE | STALE_MAIN | WORKER_PATCH | PR_REVIEW | MERGE | INSTALL_SMOKE
 Pre-route: NO_BUILD | USE_EXISTING_REPO_PATTERN | USE_PLATFORM_NATIVE | MINIMAL_PATCH | HUMAN_TASTE | EXPERT_PACKET | AUTHORITY_BLOCK
 Route: FAST | REVIEW | BLOCK
-Artifact: PM_CLOSURE | REVIEW_SPECIMEN | MATERIALIZED_IMPLEMENTATION
+Artifact type: PM_CLOSURE | REVIEW_SPECIMEN | MATERIALIZED_IMPLEMENTATION
 ```
 
 Classify before planning or editing. Ship-fast never emits `SLOW`: compress a would-be slow case to `REVIEW` if one bounded question or specimen advances the work; otherwise use `BLOCK`.
@@ -50,28 +49,33 @@ An affirmative signal (`ok`, `ship`, `approved`, `好`) closes only a pure `HUMA
 
 ## Output
 
-For `Mode: one-liner`, valid only for `FAST` or a pure `HUMAN_TASTE` `REVIEW` gate, emit one physical line and stop:
+Render one `PM_CLOSURE` using the canonical user-visible closure policy, separate from machine classifier tiers, worker evidence fields, and internal handover schemas. Internal classifier fields (`Pre-route`, `Route`, `Outcome`, `Artifact`, `machine_tier`, and raw ship-gate metadata) do not appear in normal chat or `PM_CLOSURE` output.
 
-```text
-Verdict: <result and reason> | Next: <action or stop>
-```
+Include only applicable semantic items, in this order:
 
-For `Mode: full`, emit only one `PM_CLOSURE`. `REVIEW` is at most 3 non-empty lines:
+1. result and practical effect;
+2. reason or nearest evidence when needed to interpret the result;
+3. next action when work remains;
+4. the highest-priority user decision when one is required.
 
-```text
-Artifact: PM_CLOSURE | Route: REVIEW | Outcome: <REVIEW|DECISION_NEEDED>
-Review: <one bounded question or nearest evidence>
-Next: <one action and owner>
-```
+Omit empty or `none` items. Use one short paragraph for simple completion; otherwise use no more than four applicable semantic items. Labels are optional. This budget applies only to normal human-facing closure. Requested audits, reviews, safety evidence, and `ORCHESTRATOR_HANDOVER` state are separate surfaces and may expand as needed without converting `PM_CLOSURE` into an audit packet.
 
-`BLOCK` is at most 5 non-empty lines:
+Decision-needed questions use exactly one owner tag:
 
-```text
-Artifact: PM_CLOSURE | Pre-route: <decision>
-Route: BLOCK | Outcome: BLOCKED
-Blocker: <one current hard gate>
-Evidence: <nearest proof or none>
-Next: Gate <N> — <pass condition> → unlocks <action>
-```
+- `Decision needed (human: taste/acceptance): <question>`
+- `Decision needed (expert: domain knowledge): <question>`
+- `Decision needed (expert: system methodology): <question>`
+
+Use `Approval needed: <bounded authority, scope, and consequence, or none>` for authority, credentials, publishing, provider access, execution permission, protected-boundary access, and commit or rollout permission. Those are approval boundaries or blockers, not expert-decision tags.
+
+`machine_tier` remains internal code/test state and maps into `closure_route` and `user_visible_result` before normal chat or `PM_CLOSURE` rendering. Tier fields may remain in `WORKER_REPORT` accountability and evidence surfaces where its contract requires them.
+
+Examples:
+
+- Complete: `Updated the guidance scanner and verified 37 focused tests. No user action remains.`
+- Blocked: `Blocked: release verification needs repository settings unavailable locally. Repository owner: provide the settings export; that unlocks verification only.`
+- Decision: `Decision needed (human: taste/acceptance): accept the compact labels or request one revision?`
+- Approval: `Approval needed: run the bounded dashboard marker repair. Scope is the label restoration only.`
+- Evidence: `Verdict: rollout complete. Sync and active-guidance scans pass on all 10 installs; fresh agent contexts are still required for behavioral proof.`
 
 Authority-changing materialized work never self-approves. A blocked closure names an actionable forward gate and never expands into an audit packet, design, or implementation plan.

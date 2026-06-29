@@ -1,19 +1,23 @@
 # Status
 
 Goal:
-Close Phase 15A/15B judge evidence slices and merge the completed branch to main.
+Ship Phase 16 minimal read-only MCP integration and Strategic Semantic Loop runtime inside meta-harness.
 
 Phase:
 verify
 
 Current truth:
-Phase 15A internal judge library plus hardening are committed. Phase 15B adds only the candidate-profile JSON schema/read-only guidance library and focused tests. Public command surface, template set, ready check IDs, context-packet injection, ready integration, and delegation policy are unchanged.
+Phase 16 adds a dependency-free CommonJS stdio MCP-compatible server, one public `meta-harness mcp` command surface, read-only tools (`harness-status`, `harness-research-prompt`, `harness-insight-summary`), and pure deterministic strategic-loop libraries for insight extraction and research prompt generation. No write-enabled MCP tools, shell execution tools, HTTP/SSE listener, OAuth, Cloudflare tunnel, proprietary LLM API call, or network call is included in this slice.
 
 Active streams:
-- coding: Phase 15A/15B judge evidence and read-only profile guidance closure.
-- research: idle
-- writing: idle
-- review: idle
+- coding: Phase 16 minimal MCP runtime, strategic-loop libraries, CLI integration, and focused tests.
+- research: copy-paste prompt generation only; no local network/API calls.
+- writing: governance alignment after runtime verification.
+- review: pending final Node >=20 full-suite verification.
+
+Scope boundary:
+- owned files: .gitignore, lib/command-registry.js, lib/commands/mcp.js, lib/mcp-server.js, lib/mcp-workspaces.js, lib/insight-extractor.js, lib/research-prompt-generator.js, tests/mcp-server.test.js, tests/mcp-cli.test.js, tests/insight-extractor.test.js, tests/research-prompt-generator.test.js, docs/product/decision-log.md, docs/product/roadmap.md, .meta-harness/status.md, .meta-harness/templates/**
+- forbidden files: package.json, package-lock.json, .github/**, SECURITY.md, README.md, bin/**, runtime credentials, provider config, committed MCP config, write-enabled MCP tools, HTTP/SSE tunnel scripts
 
 Pending human decisions:
 - D017 (2026-06-06T23:07:00+08:00)
@@ -28,18 +32,19 @@ Pending human decisions:
 - D034 (2026-06-12T22:52:00+08:00)
 - D035 (2026-06-12T15:40:11.397Z)
 - D036,D037,D038 (2026-06-18T00:05:38+08:00)
+- D041 (2026-06-29T11:30:00Z)
 
 Blockers:
-- none
+- Full-suite verification requires Node >=20; current WSL shell reports Node v18.19.1 and fails existing `toSorted`-based tests.
 
 Last verified:
-15B restored after 15A hardening and verified: node --test tests/judge-profile.test.js passed 6/6; node --test tests/judge.test.js passed 8/8; npm test passed 63/63 test files; sync checked=30; ready quick read-only ok true with 12 passed, 0 failed, 1 warning, 1 unknown, 6 skipped; quality check passed with MH_COMPLEXITY_CLI_COMMAND_COUNT_WARN; git diff --check passed.
+Phase 16 focused runtime verification passed under Node v18.19.1: `node --test tests/insight-extractor.test.js tests/research-prompt-generator.test.js tests/mcp-server.test.js tests/mcp-cli.test.js tests/command-module-contract.test.js` passed 17/17; CLI smoke passed for `meta-harness mcp serve --list-tools`, `meta-harness mcp research prompt --question "DuckDB concurrency" --files lib/insight-extractor.js`, and `meta-harness mcp insight extract --diff HEAD --json`; `node bin/meta-harness.js quality check` passed with public command count warning 27 > 25; `git diff --check` passed; `node bin/meta-harness.js sync check --target .` passed 30/30 after idempotent template install. Full `node scripts/run-tests.js` under Node v18.19.1 ran 68 files with 66 pass and 2 pre-existing Node-version failures (`command-registry.test.js`, `context-gate.test.js`) due `Array.prototype.toSorted` requiring Node >=20.
 
 Next action:
-verify and commit 15B, then merge to main locally
+Run the full test suite and readiness gate under Node >=20, then commit Phase 16 runtime and governance alignment.
 
 Stop criteria:
-Fresh human and Codex worker can resume from local harness state.
+Fresh human and Codex worker can resume Phase 16 from local harness state with clear owned/forbidden surface, deterministic MCP/runtime tests, and explicit Node-version verification blocker.
 
 Updated:
-2026-06-19T14:27:53.348Z
+2026-06-29T11:30:00.000Z

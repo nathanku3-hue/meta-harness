@@ -1,7 +1,7 @@
 # Meta-Harness PRD
 
-Status: starter
-Date: 2026-05-02
+Status: active
+Date: 2026-06-29
 Owner: product / harness
 
 ## Product Statement
@@ -60,7 +60,9 @@ Meta-Harness owns:
 - worker report normalization;
 - lookback generation;
 - per-repo state;
-- lightweight multi-repo status reading.
+- lightweight multi-repo status reading;
+- insight extraction from execution evidence (git diffs, task logs);
+- structured copy-paste prompt generation for external Deep Research workflows.
 
 ## Codex Worker Role
 
@@ -115,6 +117,10 @@ A human starts with a research goal. Codex researches and reports sources, claim
 
 Coding and research can run as separate streams. The harness keeps their current truth separate, then synthesizes them into one official status.
 
+### Strategic Semantic Loop (Phase 16)
+
+After a round of execution, the harness can extract structured insights from git diffs and task logs, surface architectural observations, and generate a structured Deep Research prompt scoped to the repo's known constraints and PRD goals. The human copies the prompt to an external web-based reasoning engine (e.g. OpenAI Deep Research, Gemini Advanced), pastes the resulting report back as a local file, and the harness reads it as evidence for the next round. No proprietary API calls, credentials, or network access are required from the local CLI.
+
 ## Non-Goals
 
 The MVP will not include:
@@ -168,7 +174,9 @@ The MVP succeeds when:
 - events provide a credible lookback without chat history;
 - coding and research streams can be tracked separately and synthesized;
 - parent harness can list child repo statuses;
-- installation and init feel lightweight.
+- installation and init feel lightweight;
+- `meta-harness mcp insight extract` produces a structured insight summary from a git diff;
+- `meta-harness mcp research prompt` produces a copy-paste-ready Deep Research prompt from local context and a user question.
 
 ## Product Boundary
 

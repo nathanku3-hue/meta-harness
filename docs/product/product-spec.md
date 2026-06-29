@@ -299,6 +299,7 @@ meta-harness quality
 meta-harness lookback
 meta-harness poll
 meta-harness repos
+meta-harness mcp
 ```
 
 Command responsibilities:
@@ -315,6 +316,7 @@ Command responsibilities:
 | `lookback` | Render retrospective from events. |
 | `poll` | Read local/child status files and summarize changes. |
 | `repos` | Manage child repo index. |
+| `mcp` | Run a local read-only stdio MCP server and Strategic Semantic Loop utilities. |
 
 Implemented command examples:
 
@@ -330,6 +332,10 @@ meta-harness status --refresh
 meta-harness lookback --write
 meta-harness repos add child ../child-repo
 meta-harness poll --write
+meta-harness mcp init
+meta-harness mcp serve --list-tools
+meta-harness mcp insight extract --diff HEAD --json
+meta-harness mcp research prompt --question "DuckDB concurrency" --files lib/insight-extractor.js
 ```
 
 ## Minimal Runtime Code
@@ -344,7 +350,9 @@ Runtime code should be limited to:
 - no network requirement;
 - no model API requirement;
 - no arbitrary shell execution.
-- no MCP, connector, daemon, or agent execution surface for routing.
+- no MCP connector, daemon, or agent execution surface for routing.
+
+Phase 16 exception (D041): a dependency-free read-only stdio JSON-RPC server is authorized as the `meta-harness mcp serve` surface. It exposes deterministic read-only tools (`harness-status`, `harness-research-prompt`, `harness-insight-summary`) and pure strategic-loop library utilities (`mcp insight extract`, `mcp research prompt`). No write-enabled file tools, shell execution tools, HTTP/SSE listener, OAuth, Cloudflare tunnel, LLM API calls, network calls, or committed MCP config are authorized in this slice.
 
 ## Acceptance Criteria
 
@@ -374,6 +382,10 @@ The one-shot MVP is acceptable when:
 - `meta-harness lookback` renders a timeline;
 - `meta-harness poll` reads local and child statuses without launching agents;
 - docs explain the human/Codex translation boundary;
-- no dashboard, daemon, agent spawning, or heavy policy layer exists.
+- no dashboard, daemon, agent spawning, or heavy policy layer exists;
+- `meta-harness mcp serve` starts a dependency-free read-only stdio JSON-RPC MCP server exposing `harness-status`, `harness-research-prompt`, and `harness-insight-summary` tools;
+- `meta-harness mcp insight extract` reads a git diff and task log and returns a structured JSON/Markdown insight summary;
+- `meta-harness mcp research prompt` reads local file context and a user question and returns a formatted Deep Research prompt for copy-paste to external web UIs;
+- `meta-harness mcp` tools do not make network calls, access provider credentials, write files, execute shell commands, or require package dependencies beyond the existing runtime.
 
 Current implementation status: complete for the listed acceptance criteria as a local npm package binary with dependency-free Node runtime.

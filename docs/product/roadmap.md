@@ -44,6 +44,8 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 12 | Self-evolution prototype | prototype | D029 done-done closure for the local governed skill lifecycle: distillation candidate drafts, inactive candidate enforcement, preflight checks, promotion requiring decision ID, rollback/quarantine, and registry updates implemented; non-goal boundaries unchanged |
 | 13 | Multi-repo rollup / context governance precursor | prototype | Multi-repo rollup remains future. Local context governance precursor work is implemented through D037: context gate adoption, governance snapshot/diff/replay, artifact fingerprints, and conservative governance compatibility classification. |
 | 14 | Controlled autonomy pilot / governance release framework | prototype | Controlled autonomy remains future. Phase 14C governance migration/release framework is implemented locally under D038 for governed release checks and reports; it does not publish, create releases, or self-approve autonomy. |
+| 15 | Judge Evidence & Candidate Profile Guidance | prototype | Implemented under D039/D040 as internal read-only judge evidence and advisory candidate-profile guidance; no public command, ready hook, or delegation authority. |
+| 16 | MCP Server Integration & Strategic Semantic Loop | prototype | Active implementation under D041: one `meta-harness mcp` command, dependency-free stdio read-only MCP tools, pure insight extraction, and copy-paste research prompt generation; no write tools, HTTP/SSE, tunnel, credentials, or network calls. |
 
 ---
 

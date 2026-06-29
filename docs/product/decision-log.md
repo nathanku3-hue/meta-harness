@@ -878,3 +878,29 @@ Non-Goals:
 - No templates or context-packet injection.
 - No `ready` integration or check-ID expansion.
 - No delegation policy, routing decision, worker ranking, or merge authority.
+
+## D041: Phase 16 Minimal MCP Strategic Loop Authorization
+
+Decision:
+
+Authorize Phase 16 as a minimal read-only MCP and Strategic Semantic Loop runtime slice inside `meta-harness`, implemented under one public `meta-harness mcp` command surface.
+
+Rationale:
+
+The repository needs a local bridge from execution evidence to strategic review prompts without turning Meta-Harness into a daemon-heavy agent platform. The selected design keeps the runtime CommonJS, dependency-free, deterministic, and read-only for day one while enabling copy-paste Deep Research workflows and local insight summaries from diffs/logs.
+
+Scope:
+
+- Add one public top-level command, `meta-harness mcp`, with `init`, `serve`, `insight extract`, and `research prompt` subcommands.
+- Add a stdio MCP-compatible JSON-RPC server exposing read-only tools: `harness-status`, `harness-research-prompt`, and `harness-insight-summary`.
+- Add pure deterministic libraries for insight extraction and research prompt generation.
+- Add focused server, CLI, and library tests.
+- Accept the existing public CLI command-count warning increasing from 26 to 27 for this authorized command surface.
+
+Non-Goals:
+
+- No write-enabled MCP file tools.
+- No shell-execution MCP tools.
+- No HTTP/SSE server, OAuth, Cloudflare tunnel, or setup script in this slice.
+- No proprietary LLM API calls, network calls, credentials, or committed local MCP config.
+- No package dependency additions.
