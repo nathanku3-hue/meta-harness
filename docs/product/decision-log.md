@@ -904,3 +904,51 @@ Non-Goals:
 - No HTTP/SSE server, OAuth, Cloudflare tunnel, or setup script in this slice.
 - No proprietary LLM API calls, network calls, credentials, or committed local MCP config.
 - No package dependency additions.
+
+## D042: Phase 16 Closure-Only Product/Governance Alignment
+
+Decision:
+
+Close Phase 16 as sufficient and done-done. Do not start Phase 17 or another runtime feature from this decision.
+
+Rationale:
+
+Phase 16 now proves the full Strategic Semantic Loop on `meta-harness` itself without broadening the runtime surface. The implemented loop covers insight extraction, research prompt generation, read-only research evidence ingest, deterministic research handoff, and worker-readable next-slice decision candidates. The intermediate publisher path has been removed and covered by a rollback guard. The correct remaining work is durable product/governance truth alignment, not another runtime slice.
+
+Scope:
+
+- Record Phase 16/16B/16C/16D/16E as complete.
+- Preserve MCP as read-only and bounded.
+- Record that the publisher path was removed and guarded.
+- Update status, roadmap, decision log, and tracked governance event truth only.
+- Add no runtime code, tests, commands, dependencies, package changes, README changes, or Phase 17 planning.
+
+Evidence:
+
+- Local checkout: `HEAD`, `origin/main`, and `origin/HEAD` at `5a796ce` (`test: guard MCP publisher rollback`).
+- Remote freshness caveat: `git fetch origin` failed locally with `Could not resolve host: github.com`.
+- Runtime environment: `node -v` -> v18.19.1; `npm --version` -> 9.2.0.
+- `node bin/meta-harness.js sync check --target .` -> PASS checked=30.
+- `node bin/meta-harness.js quality check` -> PASS with accepted D041 warning: public CLI command count 27 > 25.
+- `git diff --check` -> PASS.
+- `node bin/meta-harness.js ready --target . --quick --json` -> ok=true, passed=16, failed=0, warned=1, skipped=3.
+- Focused Phase 16/MCP/research tests passed 23/23 across MCP CLI, research handoff, report ingest, and ingest CLI suites.
+- `npm test` -> 73/73 test files passed, 0 failed.
+
+Non-Goals:
+
+- No mutable MCP tool surface.
+- No command execution through MCP.
+- No HTTP/SSE server, tunnel, credentials, provider config, network call, or external model API call.
+- No package dependency additions.
+- No new public command surface.
+- No publisher path.
+- No Phase 17 planning or implementation.
+
+Auditor:
+
+GPT-5.5 Thinking / DevSpace local.
+
+Reopen conditions:
+
+Reopen Phase 16 only for a concrete regression in the read-only MCP/research-loop surface, publisher guard, deterministic handoff behavior, ready/sync/quality gates, or full-suite tests. Otherwise, future runtime work requires a separate post-Phase-16 decision.

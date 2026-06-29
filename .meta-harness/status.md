@@ -1,50 +1,40 @@
 # Status
 
 Goal:
-Ship Phase 16 minimal read-only MCP integration and Strategic Semantic Loop runtime inside meta-harness.
+Close Phase 16 as sufficient with a closure-only product/governance alignment record.
 
 Phase:
-verify
+closed
 
 Current truth:
-Phase 16 adds a dependency-free CommonJS stdio MCP-compatible server, one public `meta-harness mcp` command surface, read-only tools (`harness-status`, `harness-research-prompt`, `harness-insight-summary`), and pure deterministic strategic-loop libraries for insight extraction and research prompt generation. No write-enabled MCP tools, shell execution tools, HTTP/SSE listener, OAuth, Cloudflare tunnel, proprietary LLM API call, or network call is included in this slice.
+Phase 16 is done-done under the accepted D041 boundary and D042 closure. Phase 16/16B/16C/16D/16E are complete: read-only MCP server/tools, strategic insight extraction, research prompt generation, read-only research evidence ingest, deterministic read-only research handoff, worker-readable next-slice decision candidates, dogfood evidence, and publisher/write-surface rollback guard. MCP remains read-only and bounded. No write-enabled MCP tools, shell execution tools, HTTP/SSE listener, OAuth, Cloudflare tunnel, proprietary LLM API call, network call, package dependency addition, new public command, or publisher/write surface is included.
 
 Active streams:
-- coding: Phase 16 minimal MCP runtime, strategic-loop libraries, CLI integration, and focused tests.
-- research: copy-paste prompt generation only; no local network/API calls.
-- writing: governance alignment after runtime verification.
-- review: pending final Node >=20 full-suite verification.
+- coding: closed for Phase 16; no Phase 17 or runtime feature is in progress.
+- research: closed for Phase 16 dogfood; copy-paste research workflows remain local and read-only.
+- writing: Phase 16F closure-only truth alignment only.
+- review: local verification complete; remote freshness remains blocked by local DNS/proxy resolution for github.com.
 
 Scope boundary:
-- owned files: .gitignore, lib/command-registry.js, lib/commands/mcp.js, lib/mcp-server.js, lib/mcp-workspaces.js, lib/insight-extractor.js, lib/research-prompt-generator.js, tests/mcp-server.test.js, tests/mcp-cli.test.js, tests/insight-extractor.test.js, tests/research-prompt-generator.test.js, docs/product/decision-log.md, docs/product/roadmap.md, .meta-harness/status.md, .meta-harness/templates/**
-- forbidden files: package.json, package-lock.json, .github/**, SECURITY.md, README.md, bin/**, runtime credentials, provider config, committed MCP config, write-enabled MCP tools, HTTP/SSE tunnel scripts
+- closure files: docs/product/decision-log.md, docs/product/roadmap.md, .meta-harness/status.md, .meta-harness/events.jsonl.
+- forbidden for this closure: runtime code, tests, package files, new commands, new dependencies, README.md, write-enabled MCP tools, shell-execution MCP tools, HTTP/SSE/tunnel scripts, credentials, provider config, committed MCP config, publisher/write surfaces, Phase 17 planning or implementation.
 
-Pending human decisions:
-- D017 (2026-06-06T23:07:00+08:00)
-- D017 (2026-06-07T12:12:11+08:00)
-- D018,D019 (2026-06-07T12:46:15+08:00)
-- D018,D019 (2026-06-07T14:21:18+08:00)
-- D017 (2026-06-08T04:26:02Z)
-- D028 (2026-06-09T16:48:18Z)
-- D032 (2026-06-12T16:20:35+08:00)
-- D033 (2026-06-12T17:19:05+08:00)
-- D034 (2026-06-12T18:05:00+08:00)
-- D034 (2026-06-12T22:52:00+08:00)
-- D035 (2026-06-12T15:40:11.397Z)
-- D036,D037,D038 (2026-06-18T00:05:38+08:00)
-- D041 (2026-06-29T11:30:00Z)
+Relevant decisions:
+- D041 (2026-06-29T11:30:00Z): Phase 16 minimal read-only MCP strategic loop authorization.
+- D042 (2026-06-30): Phase 16 closure-only product/governance alignment.
 
 Blockers:
-- Full-suite verification requires Node >=20; current WSL shell reports Node v18.19.1 and fails existing `toSorted`-based tests.
+- Remote freshness is not independently verified in this session because `git fetch origin` fails with `Could not resolve host: github.com`.
+- No local project test blocker remains for Phase 16 closure.
 
 Last verified:
-Phase 16 focused runtime verification passed under Node v18.19.1: `node --test tests/insight-extractor.test.js tests/research-prompt-generator.test.js tests/mcp-server.test.js tests/mcp-cli.test.js tests/command-module-contract.test.js` passed 17/17; CLI smoke passed for `meta-harness mcp serve --list-tools`, `meta-harness mcp research prompt --question "DuckDB concurrency" --files lib/insight-extractor.js`, and `meta-harness mcp insight extract --diff HEAD --json`; `node bin/meta-harness.js quality check` passed with public command count warning 27 > 25; `git diff --check` passed; `node bin/meta-harness.js sync check --target .` passed 30/30 after idempotent template install. Full `node scripts/run-tests.js` under Node v18.19.1 ran 68 files with 66 pass and 2 pre-existing Node-version failures (`command-registry.test.js`, `context-gate.test.js`) due `Array.prototype.toSorted` requiring Node >=20.
+Local checkout `main` is at `5a796ce` with local `origin/main` and `origin/HEAD` also at `5a796ce`. `node -v` reports v18.19.1 and `npm --version` reports 9.2.0. `node bin/meta-harness.js sync check --target .` passed with checked=30. `node bin/meta-harness.js quality check` passed with the accepted D041 public CLI command count warning 27 > 25. `git diff --check` passed. `node bin/meta-harness.js ready --target . --quick --json` passed with ok=true, passed=16, failed=0, warned=1, skipped=3. Focused MCP/research tests passed 23/23 across `tests/mcp-cli.test.js`, `tests/research-decision-handoff.test.js`, `tests/mcp-research-handoff-cli.test.js`, `tests/research-report-ingest.test.js`, and `tests/mcp-research-ingest-cli.test.js`. Full test runner verification passed 73/73 test files with 0 failures via `npm test` before the closure patch and `node scripts/run-tests.js` after the closure patch.
 
 Next action:
-Run the full test suite and readiness gate under Node >=20, then commit Phase 16 runtime and governance alignment.
+Review and commit the Phase 16 closure-only governance alignment. Do not start Phase 17 or another runtime feature until a separate decision authorizes it.
 
 Stop criteria:
-Fresh human and Codex worker can resume Phase 16 from local harness state with clear owned/forbidden surface, deterministic MCP/runtime tests, and explicit Node-version verification blocker.
+Fresh human and worker can treat Phase 16 as closed sufficient, see the read-only/bounded MCP and research-loop boundary, and understand that the next admissible action is commit/review of closure truth rather than runtime expansion.
 
 Updated:
-2026-06-29T11:30:00.000Z
+2026-06-30

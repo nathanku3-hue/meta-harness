@@ -45,7 +45,7 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 13 | Multi-repo rollup / context governance precursor | prototype | Multi-repo rollup remains future. Local context governance precursor work is implemented through D037: context gate adoption, governance snapshot/diff/replay, artifact fingerprints, and conservative governance compatibility classification. |
 | 14 | Controlled autonomy pilot / governance release framework | prototype | Controlled autonomy remains future. Phase 14C governance migration/release framework is implemented locally under D038 for governed release checks and reports; it does not publish, create releases, or self-approve autonomy. |
 | 15 | Judge Evidence & Candidate Profile Guidance | prototype | Implemented under D039/D040 as internal read-only judge evidence and advisory candidate-profile guidance; no public command, ready hook, or delegation authority. |
-| 16 | MCP Server Integration & Strategic Semantic Loop | prototype | Active implementation under D041: one `meta-harness mcp` command, dependency-free stdio read-only MCP tools, pure insight extraction, and copy-paste research prompt generation; no write tools, HTTP/SSE, tunnel, credentials, or network calls. |
+| 16 | MCP Server Integration & Strategic Semantic Loop | prototype | Done-done under D042: Phase 16/16B/16C/16D/16E are complete. The loop is bounded and read-only end to end: MCP stdio tools, insight extraction, research prompt generation, report ingest, research handoff, worker-readable decision candidates, and dogfood evidence. Publisher/write surface was removed and guarded; no write-enabled MCP tools, shell tools, HTTP/SSE, credentials, network calls, package dependencies, or new command surfaces remain in scope. |
 
 ---
 
