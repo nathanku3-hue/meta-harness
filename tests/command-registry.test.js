@@ -34,12 +34,12 @@ test("command registry resolves every canonical command to a function", () => {
 
 test("public command and check registries are deterministic metadata surfaces", () => {
   const commands = commandRegistry();
-  assert.deepEqual(commands.map((item) => item.name), commands.map((item) => item.name).toSorted());
+  assert.deepEqual(commands.map((item) => item.name), commands.map((item) => item.name).slice().sort());
   assert.equal(commands.every((item) => typeof item.owner === "string" && item.owner.length > 0), true);
   assert.equal(commands.every((item) => Object.hasOwn(item, "public")), true);
 
   const checks = checkIdRegistry();
-  assert.deepEqual(checks.map((item) => item.id), checks.map((item) => item.id).toSorted());
+  assert.deepEqual(checks.map((item) => item.id), checks.map((item) => item.id).slice().sort());
   assert.equal(checks.length, 20);
   assert.equal(checks.some((item) => item.id === "MH_CONTEXT_GATE_001"), true);
   assert.equal(checks.some((item) => item.id === "MH_TRANSITION_GRAPH_001"), true);

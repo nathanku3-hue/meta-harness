@@ -63,7 +63,7 @@ async function runGate(root, options = {}) {
 
 function assertScoreShape(output) {
   assert.equal(typeof output.scores, "object");
-  assert.deepEqual(Object.keys(output.scores).sort(), DIMENSIONS.toSorted());
+  assert.deepEqual(Object.keys(output.scores).sort(), DIMENSIONS.slice().sort());
   for (const dimension of DIMENSIONS) {
     assert.equal(Number.isInteger(output.scores[dimension]), true, dimension);
     assert.equal(output.scores[dimension] >= 1, true, dimension);

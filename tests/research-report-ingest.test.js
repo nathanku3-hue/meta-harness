@@ -1,6 +1,8 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 const {
   ingestResearchReport,
@@ -67,6 +69,34 @@ test("ingestResearchReport extracts deterministic evidence buckets", () => {
   assert.ok(result.repo_constraints_matched.includes("No local network calls."));
   assert.ok(result.repo_constraints_matched.includes("No write-enabled MCP tools."));
   assert.ok(result.repo_constraints_matched.includes("Preserve readiness and governance gates."));
+});
+
+test("Phase 16C dogfood fixture ingests stable next-slice evidence", () => {
+  const sourceReportPath = "tests/fixtures/research/phase16c-dogfood-report.md";
+  const reportText = fs.readFileSync(path.join(__dirname, "fixtures", "research", "phase16c-dogfood-report.md"), "utf8");
+  const result = ingestResearchReport({
+    question: "What is the highest-leverage next product slice after read-only MCP and research evidence ingest?",
+    sourceReportPath,
+    reportText,
+  });
+
+  assert.equal(result.source_report_path, sourceReportPath);
+  assert.ok(result.claims.includes("The remaining product gap is not more infrastructure; it is turning evidence into a bounded human decision that a fresh worker can continue from."));
+  assert.ok(result.recommendations.includes("Make the next implementation slice a read-only decision-candidate handoff under the existing mcp command surface."));
+  assert.ok(result.risks.includes("Do not let report ingestion write status or events automatically, because that would let pasted research silently change official project truth."));
+  assert.ok(result.open_questions.includes("Should the next handoff remain only a rendered evidence section, or should it become a named sub-action under the existing mcp research surface after approval?"));
+  assert.ok(result.decision_candidates.includes("Authorize Phase 16D as a read-only decision-candidate handoff slice under the existing mcp command surface, with no automatic status, events, roadmap, or decision-log writes."));
+  assert.deepEqual(result.repo_constraints_matched, [
+    "Keep work under the existing mcp command surface.",
+    "No credentials or provider access.",
+    "No HTTP/SSE, OAuth, or tunnel surface.",
+    "No local network calls.",
+    "No new package dependencies.",
+    "No proprietary LLM API calls.",
+    "No shell execution tools.",
+    "No write-enabled MCP tools.",
+    "Preserve readiness and governance gates.",
+  ]);
 });
 
 test("summarizeResearchReport permits reports without an ingest question", () => {
