@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
-const { run, tempDir, writeFile } = require("./helpers/cli");
+const { assertCliError, run, runRaw, tempDir, writeFile } = require("./helpers/cli");
 
 test("mcp serve --list-tools prints registered read-only tools", () => {
   const output = run(tempDir("meta-harness-mcp-tools-"), ["mcp", "serve", "--list-tools"]);
@@ -15,6 +15,10 @@ test("mcp serve --list-tools prints registered read-only tools", () => {
     "harness-research-prompt",
     "harness-insight-summary",
   ]);
+  assert.deepEqual(
+    parsed.tools.filter((tool) => /commit|publish|push|open/i.test(tool.name)).map((tool) => tool.name),
+    [],
+  );
 });
 
 test("mcp init writes local ignored config idempotently", () => {
@@ -54,4 +58,18 @@ test("mcp insight extract can emit JSON from a git diff", () => {
   const parsed = JSON.parse(output);
   assert.equal(parsed.schema_version, "1.0.0");
   assert.ok(Array.isArray(parsed.changed_files));
+});
+
+test("mcp rejects local publisher actions", () => {
+  const cwd = tempDir("meta-harness-mcp-publish-reject-");
+  assertCliError(
+    runRaw(cwd, ["mcp", "publish-process"]),
+    "MH_USAGE",
+    /unknown mcp action: publish-process/,
+  );
+  assertCliError(
+    runRaw(cwd, ["mcp", "publish", "--direct-main"]),
+    "MH_USAGE",
+    /unknown mcp action: publish/,
+  );
 });
