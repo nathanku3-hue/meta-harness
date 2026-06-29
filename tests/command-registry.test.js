@@ -78,6 +78,7 @@ test("help text is generated from registry usage lines", () => {
   assert.match(help, /meta-harness governance release check --release <path> --before <path> --snapshot <path> --migration <path> \[--artifacts-dir <path>\] \[--json\]/);
   assert.match(help, /meta-harness governance release report --release <path> \[--diff <path>\] \[--impact <path>\] \[--migration-verification <path>\] \[--out <path>\]/);
   assert.match(help, /meta-harness decisions scan --target <repo>/);
+  assert.match(help, /meta-harness poll --rollup \[--json\]/);
   assert.match(help, /meta-harness context check --from <phase> --to <phase>/);
   assert.match(help, /meta-harness context packet <round-id> --for <worker\|review\|planning>/);
   assert.match(help, /meta-harness context ask <round-id>/);
