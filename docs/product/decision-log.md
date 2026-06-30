@@ -1316,3 +1316,70 @@ Local `main` remains ahead of `origin/main` until pushed and confirmed.
 Reopen conditions:
 
 Reopen D048 only for a concrete regression where `next_action_candidates` disappear from JSON/Markdown, proposal output returns to Phase 19A, candidates mutate files, candidates change readiness classification, candidates make `ok=false` by themselves, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, proposal automation, or autonomy.
+
+## D049: Close Phase 19B Read-Only Candidate Brief Packet
+
+Decision:
+
+Accept Phase 19B as a small read-only rollup extension: convert existing `next_action_candidates` into one deterministic top-level `next_action_brief` for a worker/operator.
+
+Rationale:
+
+Phase 19A identifies candidate follow-up work. Phase 19B makes the highest-priority candidate immediately usable without creating a queue, writing files, generating proposals, applying patches, executing child commands, refreshing readiness, or mutating parent/child repo truth. The brief remains a read-only packet embedded in rollup output.
+
+Scope accepted:
+
+- Top-level JSON `next_action_brief` with `kind`, selected candidate metadata, `selection_reason`, `target_paths`, `body`, and `mutates=false`.
+- No-op brief when there are no next-action candidates.
+- Candidate selection is deterministic: high before medium before low, configured repo order as tie-breaker, per-repo candidate order as final tie-breaker.
+- Only one brief is generated.
+- Brief body includes repo name, candidate ID, priority, reason, source state, source warning IDs, source check IDs, target paths, read-only boundary, and explicit instruction not to mutate parent/child repos.
+- Markdown renders a compact `## Next Action Brief` section.
+- Brief generation preserves readiness state and top-level `ok` behavior.
+- Drift-only low-priority brief does not make top-level `ok=false`.
+- `poll --rollup --write` remains rejected and non-mutating.
+- No new commands.
+- No dependencies.
+
+Evidence:
+
+- Runtime commit: `5c7a57a` (`feat: add read-only rollup next-action brief`).
+- `node --test ./tests/repo-rollup.test.js` -> PASS 6/6.
+- `node --test ./tests/repo-rollup-drift.test.js` -> PASS 12/12.
+- `node --test ./tests/repo-rollup-handoff.test.js` -> PASS 4/4.
+- `node --test ./tests/repo-rollup-actions.test.js` -> PASS 7/7.
+- `node --test ./tests/repo-rollup-action-brief.test.js` -> PASS 11/11.
+- `node --test ./tests/poll-rollup-cli.test.js` -> PASS 6/6.
+- `node --test ./tests/command-registry.test.js` -> PASS 4/4.
+- `node bin/meta-harness.js sync check --target .` -> PASS checked=30.
+- `node bin/meta-harness.js quality check` -> PASS with known public CLI command count warning 27 > 25.
+- `node bin/meta-harness.js ready --target . --quick --json` -> ok=true, failed=0.
+- `npm test` -> PASS 79/79 test files, failed=0.
+- `git diff --check` -> PASS.
+
+Non-goals:
+
+- No dashboard.
+- No daemon.
+- No child command execution.
+- No child repo mutation.
+- No parent status mutation from rollup.
+- No readiness state mutation from candidates or briefs.
+- No queue files written.
+- No action files written.
+- No proposal files written.
+- No `patch_proposals` output.
+- No proposal application.
+- No auto-repair.
+- No readiness refresh.
+- No MCP expansion.
+- No provider/network integration.
+- No controlled autonomy.
+
+Remote status:
+
+Local `main` remains ahead of `origin/main` until pushed and confirmed.
+
+Reopen conditions:
+
+Reopen D049 only for a concrete regression where `next_action_brief` disappears from JSON/Markdown, brief selection becomes non-deterministic, brief generation mutates files, proposal output returns, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, readiness or `ok` behavior changes because of the brief, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, proposal automation, or autonomy.
