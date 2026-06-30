@@ -8,6 +8,9 @@ const path = require("node:path");
 const test = require("node:test");
 
 const BIN = path.join(__dirname, "..", "bin", "meta-harness.js");
+const GENERATED_AT = "2026-06-30T04:00:00.000Z";
+const FUTURE = "2099-01-01T00:00:00.000Z";
+const PAST = "2000-01-01T00:00:00.000Z";
 
 function tempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-poll-rollup-"));
@@ -26,6 +29,23 @@ function writeJson(filePath, value) {
   writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+function readyJson(overrides = {}) {
+  return {
+    schema_version: "1.0.0",
+    generated_at: GENERATED_AT,
+    target: "/tmp/child",
+    ok: true,
+    redacted: true,
+    expires_after: FUTURE,
+    checks: [],
+    passed: 3,
+    failed: 0,
+    warned: 0,
+    skipped: 0,
+    ...overrides,
+  };
+}
+
 function run(cwd, args) {
   return childProcess.spawnSync(process.execPath, [BIN, ...args], {
     cwd,
@@ -40,7 +60,7 @@ function readSnapshot(paths) {
   ]));
 }
 
-function setupParentChild() {
+function setupParentChild(readyOverrides = {}) {
   const parent = tempDir();
   const child = tempDir();
   ensureHarness(parent);
@@ -61,7 +81,7 @@ function setupParentChild() {
   writeFile(watched[2], "parent poll must not change\n");
   writeFile(watched[3], "# Status\n\nPhase: closed\n\nUpdated: 2026-06-30\n");
   writeFile(watched[4], "{\"event\":\"child\"}\n");
-  writeJson(watched[5], { ok: true, passed: 3, failed: 0, warned: 0, generated_at: "2026-06-30T00:00:00.000Z" });
+  writeJson(watched[5], readyJson(readyOverrides));
   writeJson(watched[6], { name: "child-app" });
   writeJson(path.join(parent, ".meta-harness", "repos.json"), {
     repos: [{ name: "child-app", path: child, role: "child" }],
@@ -88,6 +108,7 @@ test("poll --rollup --json emits read-only local file rollup without mutating fi
     ready: 1,
     warned: 0,
     failed: 0,
+    stale: 0,
     unknown: 0,
     missing: 0,
     invalid: 0,
@@ -105,8 +126,39 @@ test("poll --rollup --json emits read-only local file rollup without mutating fi
   assert.deepEqual(after, before);
 });
 
-test("poll --rollup emits deterministic Markdown without mutating files", () => {
-  const { parent, watched } = setupParentChild();
+test("poll --rollup --json includes stale count", () => {
+  const { parent } = setupParentChild({ expires_after: PAST });
+
+  const result = run(parent, ["poll", "--rollup", "--json"]);
+
+  assert.equal(result.status, 0, result.stderr);
+  const rollup = JSON.parse(result.stdout);
+  assert.equal(rollup.ok, false);
+  assert.equal(rollup.summary.stale, 1);
+  assert.equal(rollup.repos[0].state, "stale");
+});
+
+test("poll --rollup Markdown prints failed check IDs and reasons without mutating files", () => {
+  const { parent, watched } = setupParentChild({
+    ok: false,
+    failed: 2,
+    checks: [
+      {
+        id: "MH_SYNC_001",
+        name: "sync",
+        status: "fail",
+        reason: "5 templates missing",
+        next_action: "Run sync apply",
+      },
+      {
+        id: "MH_SECURITY_001",
+        name: "security",
+        status: "fail",
+        reason: "missing SECURITY.md",
+        next_action: "Restore SECURITY.md",
+      },
+    ],
+  });
   const before = readSnapshot(watched);
 
   const result = run(parent, ["poll", "--rollup"]);
@@ -116,8 +168,11 @@ test("poll --rollup emits deterministic Markdown without mutating files", () => 
   assert.match(result.stdout, /^# Repo Rollup\n/);
   assert.match(result.stdout, /Generated from: local_files/);
   assert.match(result.stdout, /Read-only: child_repos, child_status, child_events, parent_status, parent_events/);
-  assert.match(result.stdout, /ROLLUP: 1\/1 repos ready/);
-  assert.match(result.stdout, /child-app\tready\tchild/);
+  assert.match(result.stdout, /ROLLUP: 0\/1 repos ready/);
+  assert.match(result.stdout, /ready=0 warned=0 failed=1 stale=0 unknown=0 missing=0 invalid=0/);
+  assert.match(result.stdout, /child-app\tfailed\tchild/);
+  assert.match(result.stdout, /  - FAIL MH_SYNC_001 sync — 5 templates missing/);
+  assert.match(result.stdout, /  - FAIL MH_SECURITY_001 security — missing SECURITY\.md/);
   assert.deepEqual(after, before);
 });
 
