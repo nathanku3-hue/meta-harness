@@ -1460,6 +1460,69 @@ Reopen conditions:
 
 Reopen D050 only for a concrete regression where `proposal_draft` disappears from JSON/Markdown, draft generation parses human-readable brief body instead of structured fields, `diff` becomes non-null, `mutates` becomes true, patch proposals return, proposal/action/queue files are written, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, readiness or `ok` behavior changes because of the draft, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, export/write/apply behavior, validation beyond read-only draft generation, or autonomy.
 
+## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
+
+Decision:
+
+Accept Phase 20F as read-only `proposal_review_receipt_template` over `proposal_review_options`.
+
+Runtime commit: `fba8d3d`.
+
+Scope accepted:
+
+- JSON includes `proposal_review_receipt_template` after `proposal_review_options` and before `repos`.
+- Receipt template kind is `read_only_proposal_review_receipt_template`.
+- Receipt template source is `proposal_review_options`.
+- `packet_id` matches `proposal_review_options.packet_id`.
+- `allowed_decision_ids` is derived from `proposal_review_options.allowed_decisions`.
+- Required fields are `packet_id`, `decision_id`, `reviewer`, `reviewed_at`, and `reason`.
+- `template.decision_id`, `template.reviewer`, `template.reviewed_at`, and `template.reason` are null.
+- The template does not use `default_decision` as a recorded or selected decision.
+- Missing options emit `packet_id=null`, `verdict=unknown`, and `allowed_decision_ids=[]`.
+- `records_decision=false` and `mutates=false`.
+- Markdown renders `## Proposal Review Receipt Template` after `## Proposal Review Options`.
+- Receipt template generation preserves top-level rollup `ok` and child readiness state.
+
+Evidence:
+
+- Runtime commit: `fba8d3d` (`feat: add read-only proposal review receipt template`).
+- `node --test ./tests/repo-rollup.test.js` -> PASS 6/6.
+- `node --test ./tests/repo-rollup-drift.test.js` -> PASS 12/12.
+- `node --test ./tests/repo-rollup-handoff.test.js` -> PASS 4/4.
+- `node --test ./tests/repo-rollup-actions.test.js` -> PASS 7/7.
+- `node --test ./tests/repo-rollup-action-brief.test.js` -> PASS 11/11.
+- `node --test ./tests/repo-rollup-proposal-draft.test.js` -> PASS 10/10.
+- `node --test ./tests/repo-rollup-proposal-validation.test.js` -> PASS 16/16 after field-order update.
+- `node --test ./tests/repo-rollup-proposal-review-gate.test.js` -> PASS 11/11.
+- `node --test ./tests/repo-rollup-proposal-review-packet.test.js` -> PASS 12/12.
+- `node --test ./tests/repo-rollup-proposal-review-options.test.js` -> PASS 13/13.
+- `node --test ./tests/repo-rollup-proposal-review-receipt-template.test.js` -> PASS 12/12.
+- `node --test ./tests/poll-rollup-cli.test.js` -> PASS 6/6.
+- `node --test ./tests/command-registry.test.js` -> PASS 4/4.
+- `./bin/meta-harness.js sync check --target .` -> PASS checked=30.
+- `./bin/meta-harness.js quality check` -> PASS with known public CLI command count warning 27 > 25.
+- `./bin/meta-harness.js ready --target . --quick` -> READY yes, failed=0.
+- `npm test` -> PASS 85/85 test files, failed=0.
+- `git diff --check` -> PASS.
+
+Non-goals:
+
+- No new commands or dependencies.
+- No export, write, queue, apply, or task creation behavior.
+- No proposal/action/queue files.
+- No approval recording.
+- No review decision recording.
+- No diffs or patch application.
+- No child command execution.
+- No readiness refresh.
+- No parent or child repo mutation.
+- No rollup ok/readiness behavior change.
+- No dashboard, daemon, provider/network integration, MCP expansion, auto-repair, or autonomy.
+
+Future boundary:
+
+Phase 20G explicit copy/export rendering remains future if needed. Phase 21 autonomy remains deferred.
+
 ## D054: Close Phase 20E Read-Only Proposal Review Options
 
 Decision:
