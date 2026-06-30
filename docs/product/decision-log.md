@@ -1460,6 +1460,20 @@ Reopen conditions:
 
 Reopen D050 only for a concrete regression where `proposal_draft` disappears from JSON/Markdown, draft generation parses human-readable brief body instead of structured fields, `diff` becomes non-null, `mutates` becomes true, patch proposals return, proposal/action/queue files are written, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, readiness or `ok` behavior changes because of the draft, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, export/write/apply behavior, validation beyond read-only draft generation, or autonomy.
 
+## D053: Close Phase 20D Read-Only Proposal Review Packet Envelope
+
+Decision:
+
+Accept Phase 20D as read-only `proposal_review_packet` envelope.
+
+Runtime commit: `3293a09`.
+
+Scope accepted: packet envelope in rollup output, deterministic ID, `mutates=false`, readiness-neutral. It creates no files, queues, exports, or diffs.
+
+Future boundary:
+
+Phase 20E explicit copy/export rendering remains future if needed. Phase 21 autonomy remains deferred.
+
 ## D052: Close Phase 20C Read-Only Proposal Review Gate
 
 Decision:
@@ -1496,7 +1510,7 @@ Non-goals:
 
 Future boundary:
 
-Phase 20D export packet remains future if needed. Phase 21 autonomy remains deferred.
+Phase 20D review packet envelope is closed under D053. Phase 20E explicit copy/export rendering remains future if needed. Phase 21 autonomy remains deferred.
 
 ## D051: Close Phase 20B Read-Only Proposal Validation
 
@@ -1559,7 +1573,7 @@ Non-goals:
 
 Future boundary:
 
-Phase 20C is closed as the read-only proposal review gate under D052. Phase 20D export packet remains future if needed. Phase 21 autonomy remains deferred.
+Phase 20C is closed as the read-only proposal review gate under D052. Phase 20D review packet envelope is closed under D053. Phase 21 autonomy remains deferred.
 
 Remote status:
 

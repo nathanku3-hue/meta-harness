@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Close Phase 20C after adding a read-only proposal review gate over the validated proposal draft.
+Close Phase 20D after adding a read-only proposal review packet envelope.
 
 Phase:
 closed
 
 Current truth:
-Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closes under D052 once this closure commit lands.
+Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closes under D053 once this closure commit lands.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -60,7 +60,7 @@ Phase 20B truth:
 - Validation preserves child repo readiness state and top-level `ok` behavior.
 
 Phase 20C truth:
-- JSON output includes top-level `proposal_review_gate` after `proposal_validation` and before `repos`.
+- JSON output includes top-level `proposal_review_gate` after `proposal_validation` and before `proposal_review_packet`.
 - Gate kind is `read_only_proposal_review_gate`.
 - Gate verdict is review-only: `blocked`, `not_needed`, or `ready_for_review`.
 - If `proposal_validation.ok !== true`, gate verdict is `blocked`, `blocking_check_ids` lists non-pass validation checks, and `next_action` is `fix_proposal_validation`.
@@ -71,15 +71,28 @@ Phase 20C truth:
 - Gate does not change top-level rollup `ok` or child readiness state.
 - Markdown output includes `## Proposal Review Gate` after `## Proposal Validation`.
 
+Phase 20D truth:
+- JSON output includes top-level `proposal_review_packet` after `proposal_review_gate` and before `repos`.
+- Packet kind is `read_only_proposal_review_packet`.
+- Packet is an envelope only.
+- Packet ID is a stable hash of `proposal_draft`, `proposal_validation`, and `proposal_review_gate`.
+- Packet verdict is `blocked`, `not_needed`, or `ready_for_review`.
+- Packet includes sections for Proposal Draft, Proposal Validation, and Proposal Review Gate.
+- Packet output has `mutates=false`.
+- Packet creates no files, queues, exports, or diffs.
+- Packet does not change top-level rollup `ok` or child readiness state.
+- Markdown output includes `## Proposal Review Packet` after `## Proposal Review Gate`.
+
 Superseded/deferred truth:
 - D047's action/proposal closure is superseded by D048 as current truth.
 - No `patch_proposals` output is shipped.
 - No proposal files are written and no proposal application exists.
-- Phase 20D export packet remains future if needed.
+- Phase 20D review packet envelope is closed.
+- Phase 20E explicit copy/export rendering remains future, if needed.
 - Phase 21 autonomy remains deferred.
 
 Active streams:
-- coding: Phase 20C runtime proposal review gate is committed locally.
+- coding: Phase 20D runtime proposal review packet is committed locally.
 - research: no active research stream.
 - writing: closure-only alignment until committed.
 - review: local verification complete; remote push/confirmation remains pending until performed.
@@ -96,16 +109,17 @@ Relevant decisions:
 - D050 (2026-06-30): Phase 20A read-only proposal draft packet closure.
 - D051 (2026-06-30): Phase 20B read-only proposal validation closure.
 - D052 (2026-06-30): Phase 20C read-only proposal review gate closure.
+- D053 (2026-06-30): Phase 20D read-only proposal review packet envelope closure.
 
 Blockers:
-- Remote alignment remains pending until local `main` is pushed and `origin/main` confirmation succeeds.
+- Remote alignment remains pending until local `main` is pushed and `origin/main` confirmation succeeds after explicit authorization.
 - No local runtime/test blocker remains.
 
 Last verified:
-Runtime proposal review gate at `acf2c38`: rollup focused glob passed 77/77; proposal review gate tests passed 11/11; poll CLI tests passed 6/6; command registry glob passed 6/6; sync check PASS checked=30; quality check PASS with known public command count warning 27 > 25; ready quick ok=true failed=0; npm test PASS 82/82 files failed=0; git diff --check PASS before runtime commit.
+Runtime proposal review packet at `3293a09`: repo-rollup tests PASS 6/6; drift tests PASS 12/12; handoff tests PASS 4/4; actions tests PASS 7/7; action-brief tests PASS 11/11; proposal-draft tests PASS 10/10; proposal-validation tests PASS 16/16; proposal-review-gate tests PASS 11/11; proposal-review-packet tests PASS 12/12; poll CLI tests PASS 6/6; command registry tests PASS 4/4; sync check PASS checked=30; quality check PASS with known public command count warning 27 > 25; ready quick ok=true failed=0; npm run test PASS 83/83 files failed=0; git diff --check PASS.
 
 Next action:
-Push local `main` when authorized or connector is stable, then confirm local and remote branch alignment. Phase 20D export packet remains future if needed; Phase 21 autonomy remains deferred.
+Push local `main` only when explicitly authorized, then confirm local and remote branch alignment. Phase 20E explicit copy/export rendering remains future if needed; Phase 21 autonomy remains deferred.
 
 Updated:
 2026-06-30
