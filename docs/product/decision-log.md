@@ -1133,3 +1133,117 @@ Local `main` is ahead of `origin/main` by 6 commits before this closure commit. 
 Reopen conditions:
 
 Reopen Phase 17D only for a concrete regression where drift warnings alter readiness state, make `ok=false` by themselves, become non-deterministic, disappear from JSON or Markdown output, execute child commands, mutate parent/child files, allow `poll --rollup --write`, or broaden into dashboard, daemon, network/provider, MCP, auto-repair, readiness refresh, or autonomy scope.
+
+## D046: Close Phase 18 Read-Only Rollup Response Handoff
+
+Decision:
+
+Accept the Phase 18 runtime slice as sufficient and closed locally.
+
+Rationale:
+
+The rollup now provides a compact review handoff from child repo health and drift evidence without becoming a dashboard, daemon, worker router, or mutation surface. This completes the read-only response handoff brief while keeping parent observation separate from child repo authority.
+
+Scope accepted:
+
+- Top-level JSON `response_handoff` output.
+- Compact Markdown Response Handoff section.
+- Review-only handoff items with `mutates=false`.
+- Handoff items do not alter child readiness state.
+- Handoff/drift alone does not make top-level `ok=false`.
+- `poll --rollup --write` remains rejected and non-mutating.
+- No new commands.
+- No dependencies.
+
+Evidence:
+
+- Runtime commit: `d491e99` (`feat: add read-only rollup response handoff`).
+- Follow-on dirty runtime residue was completed and committed separately before this closure.
+- `node --test tests/repo-rollup-handoff.test.js` -> PASS 4/4 before closure.
+- `node --test tests/repo-rollup.test.js` -> PASS 6/6 before closure.
+- `node --test tests/poll-rollup-cli.test.js` -> PASS 6/6 before closure.
+- `node --test tests/command-registry.test.js` -> PASS 4/4 before closure.
+- `node scripts/run-tests.js` -> PASS 79/79 test files, 0 failed before closure.
+- `git diff --check` -> PASS before closure.
+
+Non-goals:
+
+- No dashboard.
+- No daemon.
+- No child command execution.
+- No child repo mutation.
+- No parent status mutation from rollup.
+- No CI dashboard publishing.
+- No auto-repair.
+- No readiness refresh.
+- No MCP expansion.
+- No provider/network integration.
+- No write-enabled handoff.
+- No handoff files written.
+
+Remote status:
+
+Local `main` remains ahead of `origin/main` until pushed and confirmed.
+
+Reopen conditions:
+
+Reopen Phase 18 only for a concrete regression where response handoff disappears from JSON/Markdown, mutates files, changes readiness classification, makes `ok=false` by itself, allows `poll --rollup --write`, executes child commands, or broadens into dashboard, daemon, network/provider, MCP, auto-repair, readiness refresh, or autonomy scope.
+
+## D047: Close Follow-On Read-Only Rollup Action/Proposal Surface
+
+Decision:
+
+Accept the follow-on read-only rollup action/proposal runtime slice as sufficient and closed locally.
+
+Rationale:
+
+The current uncommitted residue after Phase 18 represented a coherent next runtime slice. Completing and committing it is safer than leaving dirty files in place while closing Phase 18. The slice remains review-only: it derives action candidates and proposal objects from existing local evidence but writes nothing and applies nothing.
+
+Scope accepted:
+
+- Per-repo JSON `action_candidates` output.
+- Per-repo JSON `patch_proposals` output.
+- Summary counts for `action_candidates` and `patch_proposals`.
+- Deterministic Markdown action and proposal lines under child repos.
+- Read-only proposal objects with `mutates=false`.
+- Proposal diffs are `null` in this slice.
+- Readiness state and top-level `ok` behavior are preserved.
+- No new commands.
+- No dependencies.
+
+Evidence:
+
+- Runtime commit: `9e3514d` (`feat: add read-only rollup patch proposals`).
+- `node --test tests/repo-rollup-actions.test.js` -> PASS 5/5.
+- `node --test tests/repo-rollup-patches.test.js` -> PASS 4/4.
+- `node --test tests/repo-rollup.test.js` -> PASS 6/6.
+- `node --test tests/poll-rollup-cli.test.js` -> PASS 6/6.
+- `node --test tests/repo-rollup-drift.test.js` -> PASS 12/12.
+- `node --test tests/repo-rollup-handoff.test.js` -> PASS 4/4.
+- `node --test tests/command-registry.test.js` -> PASS 4/4.
+- `node scripts/run-tests.js` -> PASS 79/79 test files, 0 failed.
+- `git diff --check` -> PASS.
+
+Non-goals:
+
+- No dashboard.
+- No daemon.
+- No child command execution.
+- No child repo mutation.
+- No parent status mutation from rollup.
+- No CI dashboard publishing.
+- No auto-repair.
+- No readiness refresh.
+- No MCP expansion.
+- No provider/network integration.
+- No written proposal files.
+- No proposal application.
+- No controlled autonomy.
+
+Remote status:
+
+Local `main` remains ahead of `origin/main` until pushed and confirmed.
+
+Reopen conditions:
+
+Reopen D047 only for a concrete regression where action/proposal output mutates files, applies diffs, changes readiness classification, makes `ok=false` by itself, executes child commands, allows rollup write behavior, loses deterministic JSON/Markdown output, or broadens into dashboard, daemon, network/provider, MCP, auto-repair, readiness refresh, or autonomy scope.
