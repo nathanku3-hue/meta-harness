@@ -1066,3 +1066,70 @@ Local `main` is ahead of `origin/main` by 4 commits before this closure commit. 
 Reopen conditions:
 
 Reopen Phase 17B/17C only for a concrete regression where child `ready.json` is no longer authoritative when present, stale/invalid ready contracts fall back to weaker artifacts, required contract validation is bypassed, failed/warn drilldown disappears from JSON or Markdown output, parent rollup mutates parent/child files, or focused verification no longer passes.
+
+## D045: Close Phase 17D Read-Only Drift Warnings
+
+Decision:
+
+Accept the Phase 17D runtime slice as sufficient and closed locally.
+
+Rationale:
+
+The rollup now observes cross-repo drift from existing local child files without changing readiness classification, executing child commands, mutating child repos, or creating dashboard/orchestration scope. This completes the observe -> classify -> drill down -> warn on drift sequence while preserving the action boundary for later phases.
+
+Scope accepted:
+
+- Per-repo `drift_warnings` JSON array.
+- `summary.drift_warnings` JSON count.
+- Deterministic Markdown `DRIFT` lines.
+- Template manifest drift warnings.
+- Security policy surface drift warnings.
+- Skill registry drift warnings.
+- Minimal governance compatibility drift warnings.
+- Malformed optional drift JSON warns without invalidating readiness.
+- Drift warnings are warning-only.
+- Drift warnings do not alter repo readiness state.
+- Drift warnings alone do not make `ok=false`.
+- Parent remains read-only.
+- `poll --rollup --write` remains rejected.
+- Deterministic output.
+
+Non-goals:
+
+- No dashboard.
+- No daemon.
+- No child command execution.
+- No child repo mutation.
+- No parent status mutation from rollup.
+- No CI dashboard publishing.
+- No auto-repair.
+- No readiness refresh.
+- No MCP expansion.
+- No provider/network integration.
+- No next runtime slice in this closure.
+
+Evidence:
+
+- Runtime commit: `b02c9f3` (`feat: add read-only rollup drift warnings`).
+- `git fetch origin` -> PASS.
+- `git status --short --branch` before closure -> `## main...origin/main [ahead 6]`.
+- `git log --oneline --decorate -10` before closure -> HEAD `b02c9f3`; local history includes `ced6c36`, `8195011`, `34e4702`, and `b02c9f3`.
+- `node -v` -> v18.19.1.
+- `npm -v` -> 9.2.0.
+- `node --test ./tests/repo-rollup.test.js` -> PASS 6/6.
+- `node --test ./tests/repo-rollup-drift.test.js` -> PASS 12/12.
+- `node --test ./tests/poll-rollup-cli.test.js` -> PASS 6/6.
+- `node --test ./tests/command-registry.test.js` -> PASS 4/4.
+- `npm test` before closure -> PASS 76 test files, failed 0.
+- `node bin/meta-harness.js sync check --target .` -> `SYNC CHECK: PASS checked=30`.
+- `node bin/meta-harness.js quality check` -> `Quality gate: PASS` with accepted/unchanged warning `public CLI command count 27 exceeds 25`.
+- `node bin/meta-harness.js ready --target . --quick --json` -> ok=true, failed=0, passed=15, warned=1, skipped=4.
+- `git diff --check` before runtime commit -> PASS.
+
+Remote status:
+
+Local `main` is ahead of `origin/main` by 6 commits before this closure commit. The previous push attempt failed with DevSpace connector 502. Remote done-done remains pending until pushed and confirmed on `origin/main`.
+
+Reopen conditions:
+
+Reopen Phase 17D only for a concrete regression where drift warnings alter readiness state, make `ok=false` by themselves, become non-deterministic, disappear from JSON or Markdown output, execute child commands, mutate parent/child files, allow `poll --rollup --write`, or broaden into dashboard, daemon, network/provider, MCP, auto-repair, readiness refresh, or autonomy scope.
