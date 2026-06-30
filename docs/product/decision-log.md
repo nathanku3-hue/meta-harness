@@ -1460,6 +1460,68 @@ Reopen conditions:
 
 Reopen D050 only for a concrete regression where `proposal_draft` disappears from JSON/Markdown, draft generation parses human-readable brief body instead of structured fields, `diff` becomes non-null, `mutates` becomes true, patch proposals return, proposal/action/queue files are written, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, readiness or `ok` behavior changes because of the draft, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, export/write/apply behavior, validation beyond read-only draft generation, or autonomy.
 
+## D054: Close Phase 20E Read-Only Proposal Review Options
+
+Decision:
+
+Accept Phase 20E as read-only `proposal_review_options` over `proposal_review_packet`.
+
+Runtime commit: `453ca28`.
+
+Scope accepted:
+
+- JSON includes `proposal_review_options` after `proposal_review_packet` and before `repos`.
+- Options kind is `read_only_proposal_review_options`.
+- Options are advisory only and do not record review decisions.
+- `ready_for_review` allows `approve_for_manual_work`, `reject_packet`, and `defer_packet`; default is `defer_packet`.
+- `blocked` allows `fix_proposal_validation` and `defer_packet`; default is `defer_packet`.
+- `not_needed` allows `no_action`; default is `no_action`.
+- Missing packet state emits `packet_id=null`, `verdict=unknown`, and `defer_packet` only.
+- Unknown packet verdict preserves packet ID when present, normalizes verdict to `unknown`, and emits `defer_packet` only.
+- All decisions have `mutates=false`.
+- All decisions require explicit human action except `no_action`.
+- Markdown renders `## Proposal Review Options` after `## Proposal Review Packet`.
+- Options preserve top-level rollup `ok` and child readiness state.
+
+Evidence:
+
+- Runtime commit: `453ca28` (`feat: add read-only proposal review options`).
+- `node --test ./tests/repo-rollup.test.js` -> PASS 6/6.
+- `node --test ./tests/repo-rollup-drift.test.js` -> PASS 12/12.
+- `node --test ./tests/repo-rollup-handoff.test.js` -> PASS 4/4.
+- `node --test ./tests/repo-rollup-actions.test.js` -> PASS 7/7.
+- `node --test ./tests/repo-rollup-action-brief.test.js` -> PASS 11/11.
+- `node --test ./tests/repo-rollup-proposal-draft.test.js` -> PASS 10/10.
+- `node --test ./tests/repo-rollup-proposal-validation.test.js` first exposed expected field-order assertion and was then covered by full `npm test` after updating the expected order.
+- `node --test ./tests/repo-rollup-proposal-review-gate.test.js` -> PASS 11/11.
+- `node --test ./tests/repo-rollup-proposal-review-packet.test.js` -> PASS 12/12.
+- `node --test ./tests/repo-rollup-proposal-review-options.test.js` -> PASS 13/13.
+- `node --test ./tests/poll-rollup-cli.test.js` -> PASS 6/6.
+- `node --test ./tests/command-registry.test.js` -> PASS 4/4.
+- `node bin/meta-harness.js sync check --target .` -> PASS checked=30.
+- `node bin/meta-harness.js quality check` -> PASS with known public CLI command count warning 27 > 25.
+- `node bin/meta-harness.js ready --target . --quick --json` -> ok=true, failed=0.
+- `npm test` -> PASS 84/84 test files, failed=0.
+- `git diff --check` -> PASS.
+
+Non-goals:
+
+- No new commands or dependencies.
+- No write/export behavior.
+- No proposal/action/queue files.
+- No approval recording.
+- No task creation.
+- No diffs or patch application.
+- No child command execution.
+- No readiness refresh.
+- No parent or child repo mutation.
+- No rollup ok/readiness behavior change.
+- No dashboard, daemon, provider/network integration, MCP expansion, auto-repair, or autonomy.
+
+Future boundary:
+
+Phase 20F read-only review decision receipt template remains future. Phase 20G explicit copy/export rendering remains future if needed. Phase 21 autonomy remains deferred.
+
 ## D053: Close Phase 20D Read-Only Proposal Review Packet Envelope
 
 Decision:
@@ -1472,7 +1534,7 @@ Scope accepted: packet envelope in rollup output, deterministic ID, `mutates=fal
 
 Future boundary:
 
-Phase 20E explicit copy/export rendering remains future if needed. Phase 21 autonomy remains deferred.
+Phase 20F read-only review decision receipt template remains future. Phase 20G explicit copy/export rendering remains future if needed. Phase 21 autonomy remains deferred.
 
 ## D052: Close Phase 20C Read-Only Proposal Review Gate
 
@@ -1510,7 +1572,7 @@ Non-goals:
 
 Future boundary:
 
-Phase 20D review packet envelope is closed under D053. Phase 20E explicit copy/export rendering remains future if needed. Phase 21 autonomy remains deferred.
+Phase 20D review packet envelope is closed under D053. Phase 20F read-only review decision receipt template remains future. Phase 20G explicit copy/export rendering remains future if needed. Phase 21 autonomy remains deferred.
 
 ## D051: Close Phase 20B Read-Only Proposal Validation
 

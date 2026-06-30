@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Close Phase 20D after adding a read-only proposal review packet envelope.
+Close Phase 20E after adding read-only proposal review decision options.
 
 Phase:
 closed
 
 Current truth:
-Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closes under D053 once this closure commit lands.
+Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closed under D053. Phase 20E is implemented at `453ca28` and closes under D054 once this closure commit lands.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -72,7 +72,7 @@ Phase 20C truth:
 - Markdown output includes `## Proposal Review Gate` after `## Proposal Validation`.
 
 Phase 20D truth:
-- JSON output includes top-level `proposal_review_packet` after `proposal_review_gate` and before `repos`.
+- JSON output includes top-level `proposal_review_packet` after `proposal_review_gate` and before `proposal_review_options`.
 - Packet kind is `read_only_proposal_review_packet`.
 - Packet is an envelope only.
 - Packet ID is a stable hash of `proposal_draft`, `proposal_validation`, and `proposal_review_gate`.
@@ -83,23 +83,36 @@ Phase 20D truth:
 - Packet does not change top-level rollup `ok` or child readiness state.
 - Markdown output includes `## Proposal Review Packet` after `## Proposal Review Gate`.
 
+Phase 20E truth:
+- JSON output includes proposal_review_options after proposal_review_packet and before repos.
+- Options kind is read_only_proposal_review_options.
+- Options are advisory only and do not record any decision.
+- ready_for_review allows approve_for_manual_work, reject_packet, and defer_packet; default is defer_packet.
+- blocked allows fix_proposal_validation and defer_packet; default is defer_packet.
+- not_needed allows no_action; default is no_action.
+- Missing or unknown packet state allows defer_packet and defaults to defer_packet.
+- Options have mutates=false and do not change top-level rollup ok or child readiness state.
+- Markdown output includes Proposal Review Options after Proposal Review Packet.
+
 Superseded/deferred truth:
 - D047's action/proposal closure is superseded by D048 as current truth.
 - No `patch_proposals` output is shipped.
 - No proposal files are written and no proposal application exists.
 - Phase 20D review packet envelope is closed.
-- Phase 20E explicit copy/export rendering remains future, if needed.
+- Phase 20E review decision options are closed.
+- Phase 20F read-only review decision receipt template remains future.
+- Phase 20G explicit copy/export rendering remains future, if needed.
 - Phase 21 autonomy remains deferred.
 
 Active streams:
-- coding: Phase 20D runtime proposal review packet is committed locally.
+- coding: Phase 20E runtime proposal review options is committed locally.
 - research: no active research stream.
 - writing: closure-only alignment until committed.
 - review: local verification complete; remote push/confirmation remains pending until performed.
 
 Scope boundary:
 - Closure files only: `.meta-harness/status.md`, `.meta-harness/events.jsonl`, `docs/product/decision-log.md`, `docs/product/roadmap.md`.
-- Non-goals: README changes, package changes, new commands, new dependencies, dashboard, daemon, child command execution, child repo mutation, parent status mutation from rollup, readiness state mutation from candidates/briefs/drafts/validation/gate, readiness refresh, queue files, action files, proposal files, export files, patch proposals, patch application, auto-repair, MCP expansion, provider/network integration, CI publishing, write-enabled handoff, and controlled autonomy.
+- Non-goals: README changes, package changes, new commands, new dependencies, dashboard, daemon, child command execution, child repo mutation, parent status mutation from rollup, readiness state mutation from candidates/briefs/drafts/validation/gate/packet/options, readiness refresh, queue files, action files, proposal files, export files, patch proposals, patch application, approval recording, task creation, auto-repair, MCP expansion, provider/network integration, CI publishing, write-enabled handoff, and controlled autonomy.
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
@@ -110,16 +123,17 @@ Relevant decisions:
 - D051 (2026-06-30): Phase 20B read-only proposal validation closure.
 - D052 (2026-06-30): Phase 20C read-only proposal review gate closure.
 - D053 (2026-06-30): Phase 20D read-only proposal review packet envelope closure.
+- D054 (2026-06-30): Phase 20E read-only proposal review options closure.
 
 Blockers:
-- Remote alignment remains pending until local `main` is pushed and `origin/main` confirmation succeeds after explicit authorization.
+- Remote push remains pending until explicitly authorized.
 - No local runtime/test blocker remains.
 
 Last verified:
-Runtime proposal review packet at `3293a09`: repo-rollup tests PASS 6/6; drift tests PASS 12/12; handoff tests PASS 4/4; actions tests PASS 7/7; action-brief tests PASS 11/11; proposal-draft tests PASS 10/10; proposal-validation tests PASS 16/16; proposal-review-gate tests PASS 11/11; proposal-review-packet tests PASS 12/12; poll CLI tests PASS 6/6; command registry tests PASS 4/4; sync check PASS checked=30; quality check PASS with known public command count warning 27 > 25; ready quick ok=true failed=0; npm run test PASS 83/83 files failed=0; git diff --check PASS.
+Runtime proposal review options at 453ca28: repo-rollup tests PASS 6/6; drift tests PASS 12/12; handoff tests PASS 4/4; actions tests PASS 7/7; action-brief tests PASS 11/11; proposal-draft tests PASS 10/10; proposal-validation passed in full npm test after expected field-order update; proposal-review-gate tests PASS 11/11; proposal-review-packet tests PASS 12/12; proposal-review-options tests PASS 13/13; poll CLI tests PASS 6/6; command registry tests PASS 4/4; sync check PASS checked=30; quality check PASS with known public command count warning 27 > 25; ready quick ok=true failed=0; npm test PASS 84/84 files failed=0; git diff --check PASS.
 
 Next action:
-Push local `main` only when explicitly authorized, then confirm local and remote branch alignment. Phase 20E explicit copy/export rendering remains future if needed; Phase 21 autonomy remains deferred.
+Push local `main` only when explicitly authorized, then confirm local and remote branch alignment. Phase 20F read-only review decision receipt template remains future; Phase 20G explicit copy/export rendering remains future if needed; Phase 21 autonomy remains deferred.
 
 Updated:
 2026-06-30
