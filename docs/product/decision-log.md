@@ -1460,6 +1460,44 @@ Reopen conditions:
 
 Reopen D050 only for a concrete regression where `proposal_draft` disappears from JSON/Markdown, draft generation parses human-readable brief body instead of structured fields, `diff` becomes non-null, `mutates` becomes true, patch proposals return, proposal/action/queue files are written, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, readiness or `ok` behavior changes because of the draft, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, export/write/apply behavior, validation beyond read-only draft generation, or autonomy.
 
+## D052: Close Phase 20C Read-Only Proposal Review Gate
+
+Decision:
+
+Accept Phase 20C as a read-only `proposal_review_gate` over `proposal_draft` and `proposal_validation`.
+
+Runtime commit: `acf2c38`.
+
+Scope accepted:
+
+- JSON includes `proposal_review_gate` after `proposal_validation` and before `repos`.
+- Gate verdict is review-only: `blocked`, `not_needed`, or `ready_for_review`.
+- Gate output has `mutates=false`.
+- Gate does not change top-level rollup `ok` or child readiness.
+- Markdown renders `## Proposal Review Gate`.
+
+Evidence:
+
+- Rollup focused tests passed 77/77.
+- Proposal review gate tests passed 11/11.
+- Poll CLI tests passed 6/6.
+- Command registry glob passed 6/6.
+- Sync check passed checked=30.
+- Quality check passed with the known public command count warning 27 > 25.
+- Ready quick returned ok=true and failed=0.
+- Full `npm test` passed 82/82 files with failed=0.
+- `git diff --check` passed.
+
+Non-goals:
+
+- No new commands or dependencies.
+- No proposal, export, queue, or action files.
+- No diff generation, patch application, child command execution, readiness refresh, parent/child mutation, rollup readiness mutation, dashboard, daemon, provider/network, MCP expansion, auto-repair, export workflow, or autonomy.
+
+Future boundary:
+
+Phase 20D export packet remains future if needed. Phase 21 autonomy remains deferred.
+
 ## D051: Close Phase 20B Read-Only Proposal Validation
 
 Decision:
@@ -1521,7 +1559,7 @@ Non-goals:
 
 Future boundary:
 
-Phase 20C export packet remains future if needed. Phase 21 autonomy remains deferred.
+Phase 20C is closed as the read-only proposal review gate under D052. Phase 20D export packet remains future if needed. Phase 21 autonomy remains deferred.
 
 Remote status:
 
