@@ -1005,3 +1005,64 @@ Local `main` is ahead of `origin/main`. Remote freshness/push remains blocked in
 Reopen conditions:
 
 Reopen Phase 17 only for a concrete regression where `poll --rollup` executes child commands, mutates parent/child truth by default, omits the read-only JSON markers, adds a new top-level command, increases public command count, or fails the focused rollup/CLI/full-suite verification. Broader dashboard/drift/freshness work requires a separate future decision.
+
+## D044: Close Phase 17B/17C Ready Freshness and Drilldown
+
+Decision:
+
+Accept the combined Phase 17B/17C runtime slice as sufficient and closed locally.
+
+Rationale:
+
+The rollup now treats child `.meta-harness/ready.json` as an authoritative read-only readiness contract, making the parent observation layer trustworthy before any future drift warnings or autonomy pilot. This preserves the observe -> classify -> drill down sequence and avoids orchestration creep.
+
+Scope accepted:
+
+- Ready contract freshness is enforced through `expires_after`.
+- `expires_after <= now` is classified as `stale`.
+- Malformed or missing required ready contract fields are classified as `invalid`.
+- Required ready fields are `schema_version`, `generated_at`, `target`, `ok`, `redacted`, `expires_after`, and `checks`.
+- `redacted` must be true.
+- `checks` must be an array.
+- Child `ready.json` remains authoritative when present, so stale or invalid `ready.json` does not fall back to child `status.md` or `poll.md`.
+- JSON output includes `failing_checks` drilldown.
+- JSON output includes `warning_checks` drilldown.
+- Markdown output includes failed/warn check drilldown.
+- Output remains deterministic.
+- Parent behavior remains read-only and non-mutating.
+
+Evidence:
+
+- Runtime commit: `8195011` (`feat: enforce ready rollup freshness`).
+- `git fetch origin` -> PASS.
+- `git status --short --branch` before closure -> `## main...origin/main [ahead 4]`.
+- `git log --oneline --decorate -10` before closure -> HEAD `8195011`; local history includes `983fe1d` and `8195011`.
+- `node -v` -> v18.19.1.
+- `npm -v` -> 9.2.0.
+- `node --test tests/repo-rollup.test.js` -> PASS 6/6.
+- `node --test tests/poll-rollup-cli.test.js` -> PASS 4/4.
+- `node --test tests/command-registry.test.js` -> PASS 4/4.
+- `node bin/meta-harness.js sync check --target .` -> `SYNC CHECK: PASS checked=30`.
+- `node bin/meta-harness.js quality check` -> `Quality gate: PASS` with accepted/unchanged warning `public CLI command count 27 exceeds 25`.
+- `node bin/meta-harness.js ready --target . --quick --json` -> ok=true, passed=15, failed=0, warned=1, skipped=4.
+
+Non-goals:
+
+- No dashboard.
+- No daemon.
+- No child command execution.
+- No child repo mutation.
+- No parent status mutation from rollup.
+- No CI dashboard publishing.
+- No auto-repair.
+- No MCP expansion.
+- No provider/network integration.
+- No Phase 17D drift detection in this closure.
+
+Remote status:
+
+Local `main` is ahead of `origin/main` by 4 commits before this closure commit. Push is skipped unless explicitly instructed; remote done-done remains pending until pushed and confirmed.
+
+Reopen conditions:
+
+Reopen Phase 17B/17C only for a concrete regression where child `ready.json` is no longer authoritative when present, stale/invalid ready contracts fall back to weaker artifacts, required contract validation is bypassed, failed/warn drilldown disappears from JSON or Markdown output, parent rollup mutates parent/child files, or focused verification no longer passes.
