@@ -102,6 +102,10 @@ test("empty and clean rollups emit a no-op read-only next-action brief", () => {
     selected_candidate_id: null,
     selected_repo: null,
     priority: null,
+    reason: null,
+    source_state: null,
+    source_warning_ids: [],
+    source_check_ids: [],
     selection_reason: "no next-action candidates",
     target_paths: [],
     body: "No follow-up action is needed from the current rollup evidence.\n\nBoundary: read-only review only. Do not execute child commands, write files, apply patches, or mutate parent/child repo truth.",
@@ -128,6 +132,10 @@ test("highest priority candidate is selected", () => {
   assert.equal(brief.selected_repo, "failed-child");
   assert.equal(brief.selected_candidate_id, "ACTION_REVIEW_FAILED_READINESS");
   assert.equal(brief.priority, "high");
+  assert.equal(brief.reason, "review failed child readiness evidence");
+  assert.equal(brief.source_state, "failed");
+  assert.deepEqual(brief.source_warning_ids, []);
+  assert.deepEqual(brief.source_check_ids, ["FAIL_A"]);
 });
 
 test("configured repo order breaks priority ties", () => {
