@@ -1459,3 +1459,74 @@ Local `main` remains ahead of `origin/main` until pushed and confirmed.
 Reopen conditions:
 
 Reopen D050 only for a concrete regression where `proposal_draft` disappears from JSON/Markdown, draft generation parses human-readable brief body instead of structured fields, `diff` becomes non-null, `mutates` becomes true, patch proposals return, proposal/action/queue files are written, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, readiness or `ok` behavior changes because of the draft, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, export/write/apply behavior, validation beyond read-only draft generation, or autonomy.
+
+## D051: Close Phase 20B Read-Only Proposal Validation
+
+Decision:
+
+Accept Phase 20B as a read-only rollup validation layer for the embedded `proposal_draft` surface.
+
+Rationale:
+
+Phase 20A drafts a proposal-shaped review packet. Phase 20B validates that draft for structural safety before any future export packet or workflow. Validation is advisory to the proposal surface only and does not change child readiness, rollup readiness, or top-level `ok`.
+
+Scope accepted:
+
+- Top-level JSON `proposal_validation` with kind `read_only_proposal_validation`.
+- `proposal_validation` appears after `proposal_draft` and before `repos`.
+- Validation checks proposal kind, source, type, `diff=null`, `mutates=false`, relative target paths, selected candidate match, read-only body boundary, absence of legacy patch proposal fields, and absence of proposal/action/queue file-output fields.
+- `proposal_validation.ok` and `verdict` may fail independently from top-level rollup `ok`.
+- Markdown renders `## Proposal Validation` after `## Proposal Draft`.
+- Validation does not write files, create proposal files, create queue files, create action files, generate diffs, apply patches, execute child commands, refresh readiness, or mutate parent/child repos.
+- No new commands.
+- No dependencies.
+
+Evidence:
+
+- Runtime commit: `62ec976` (`feat: add read-only rollup proposal validation`).
+- `node --test ./tests/repo-rollup.test.js` -> PASS 6/6.
+- `node --test ./tests/repo-rollup-drift.test.js` -> PASS 12/12.
+- `node --test ./tests/repo-rollup-handoff.test.js` -> PASS 4/4.
+- `node --test ./tests/repo-rollup-actions.test.js` -> PASS 7/7.
+- `node --test ./tests/repo-rollup-action-brief.test.js` -> PASS 11/11.
+- `node --test ./tests/repo-rollup-proposal-draft.test.js` -> PASS 10/10.
+- `node --test ./tests/repo-rollup-proposal-validation.test.js` -> PASS 16/16.
+- `node --test ./tests/poll-rollup-cli.test.js` -> PASS 6/6.
+- `node --test ./tests/command-registry.test.js` -> PASS 4/4.
+- `node bin/meta-harness.js sync check --target .` -> PASS checked=30.
+- `node bin/meta-harness.js quality check` -> PASS with known public CLI command count warning 27 > 25.
+- `node bin/meta-harness.js ready --target . --quick --json` -> ok=true, failed=0.
+- `npm test` -> PASS.
+- `git diff --check` -> PASS.
+
+Non-goals:
+
+- No dashboard.
+- No daemon.
+- No child command execution.
+- No child repo mutation.
+- No parent status mutation from rollup.
+- No readiness state mutation from candidates, briefs, drafts, or validation.
+- No readiness refresh.
+- No queue files written.
+- No action files written.
+- No proposal files written.
+- No `patch_proposals` output.
+- No patch application.
+- No auto-repair.
+- No MCP expansion.
+- No provider/network integration.
+- No export workflow.
+- No controlled autonomy.
+
+Future boundary:
+
+Phase 20C export packet remains future if needed. Phase 21 autonomy remains deferred.
+
+Remote status:
+
+Local `main` remains ahead of `origin/main` until pushed and confirmed.
+
+Reopen conditions:
+
+Reopen D051 only for a concrete regression where `proposal_validation` disappears from JSON/Markdown, validation mutates readiness or top-level `ok`, validation writes proposal/action/queue files, generates diffs, applies patches, executes child commands, refreshes readiness, mutates parent/child repos, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, export/write/apply behavior, or autonomy.
