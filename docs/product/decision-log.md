@@ -952,3 +952,56 @@ GPT-5.5 Thinking / DevSpace local.
 Reopen conditions:
 
 Reopen Phase 16 only for a concrete regression in the read-only MCP/research-loop surface, publisher guard, deterministic handoff behavior, ready/sync/quality gates, or full-suite tests. Otherwise, future runtime work requires a separate post-Phase-16 decision.
+
+## D043: Phase 17 Read-Only Multi-Repo Rollup Pilot Closure
+
+Decision:
+
+Close Phase 17 locally as the smallest useful read-only multi-repo rollup pilot. The approved command surface is `meta-harness poll --rollup [--json]`; no new top-level `rollup` command is added.
+
+Rationale:
+
+Phase 17 should prove safe cross-repo visibility without broadening command count, running child commands, or mutating child truth. The existing `poll` and `repos` surfaces already provide the correct parent/child shape. Extending `poll` keeps the implementation small, avoids the public CLI command-count expansion, and preserves the dashboard-after-truth boundary.
+
+Scope:
+
+- Add pure local-files-only aggregation in `lib/repo-rollup.js`.
+- Wire `poll --rollup` and `poll --rollup --json` through `lib/commands/poll.js`.
+- Keep `poll --write` unchanged for non-rollup polling.
+- Reject `poll --rollup --write` to prevent accidental parent truth mutation in the first pilot slice.
+- Update help usage only; do not add a new public command.
+- Add focused library, CLI, no-write, and usage-registry tests.
+- Add no dependencies, package changes, README changes, child command execution, child mutation, daemon, dashboard, network call, or autonomy trigger.
+
+Evidence:
+
+- Phase 16 closure truth was committed first as `1cfbf75` (`docs: close Phase 16 governance truth`).
+- Phase 17 runtime was committed from a clean tree as `ced6c36` (`feat: add read-only repo rollup to poll`).
+- `git diff --check` -> PASS.
+- `node --test tests/repo-rollup.test.js` -> PASS 3/3.
+- `node --test tests/poll-rollup-cli.test.js` -> PASS 3/3.
+- `node --test tests/command-registry.test.js` -> PASS 4/4.
+- `node bin/meta-harness.js poll --rollup --json` -> emitted schema_version `1.0.0`, generated_from `local_files`, summary total=0 for this parent, and read-only `not_changed` markers.
+- `node bin/meta-harness.js sync check --target .` -> PASS checked=30.
+- `node bin/meta-harness.js quality check` -> PASS with existing accepted public CLI command count warning 27 > 25; Phase 17 did not add command count.
+- `node bin/meta-harness.js ready --target . --quick --json` -> ok=true, passed=15, failed=0, warned=1, skipped=4.
+- `node scripts/run-tests.js` -> 75/75 test files passed, 0 failed.
+
+Non-Goals:
+
+- No `meta-harness rollup` top-level command.
+- No child repo command execution.
+- No parent or child truth mutation by default.
+- No use of `--write` with rollup output.
+- No dependencies or package changes.
+- No dashboard, daemon, scheduled scan, external CI publishing, or autonomy trigger.
+- No cross-repo drift dashboard in this slice.
+- No child ready.json freshness enforcement in this slice.
+
+Remote status:
+
+Local `main` is ahead of `origin/main`. Remote freshness/push remains blocked in this environment while DNS/proxy resolution for `github.com` fails. The remaining external closure step is to push and confirm `origin/main` contains the Phase 16 closure, Phase 17 runtime, and Phase 17 closure commits once network access is restored.
+
+Reopen conditions:
+
+Reopen Phase 17 only for a concrete regression where `poll --rollup` executes child commands, mutates parent/child truth by default, omits the read-only JSON markers, adds a new top-level command, increases public command count, or fails the focused rollup/CLI/full-suite verification. Broader dashboard/drift/freshness work requires a separate future decision.

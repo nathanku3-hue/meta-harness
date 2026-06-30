@@ -2,9 +2,9 @@
 
 Status: active baseline
 Approval scope: Phase 1–12 aggregate completion under accepted roadmap scopes, closed by D031 at commit d031c
-Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phase 13 local context-governance capabilities now extend through governance snapshotting/replay and compatibility classification. Phase 6B / 13D adds docs/templates-only build-vs-borrow expert routing before any connector or automation work. Phase 14C governance migration/release framework is implemented locally, while dashboards, daemons, auto-worker routing, registry publishing, and self-approving controlled autonomy remain future/non-goals.
+Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phase 13 local context-governance capabilities now extend through governance snapshotting/replay and compatibility classification. Phase 6B / 13D adds docs/templates-only build-vs-borrow expert routing before any connector or automation work. Phase 14C governance migration/release framework is implemented locally. Phase 16 is closed under D042. Phase 17 read-only multi-repo rollup pilot is closed locally under D043 through `poll --rollup`; dashboards, daemons, auto-worker routing, registry publishing, child-repo mutation, and self-approving controlled autonomy remain future/non-goals.
 Date: 2026-06-18
-Decision: D031 aggregate closure; D032-D038 context/governance records; D021–D030 remain source decisions; D017–D020 remain source decisions
+Decision: D031 aggregate closure; D032-D038 context/governance records; D041-D043 MCP/strategic-loop and read-only rollup records; D021–D030 remain source decisions; D017–D020 remain source decisions
 
 ## Endgame
 
@@ -42,10 +42,11 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 10 | Release/package enforcement | buildable | done-done for release/package enforcement artifacts under D030; publish guarded; publish-mode readiness is clean-tree/tag/full-check/evidence gated; no registry publish automation |
 | 11 | Domain governance pilot (adopter required) | prototype | D028 done-done validation closure: activation, source→fact→ontology→code→golden-case/review evidence, fact-ID code trace, expired-fact release block, signed review coverage, and `ready` integration implemented; non-goal boundaries unchanged |
 | 12 | Self-evolution prototype | prototype | D029 done-done closure for the local governed skill lifecycle: distillation candidate drafts, inactive candidate enforcement, preflight checks, promotion requiring decision ID, rollback/quarantine, and registry updates implemented; non-goal boundaries unchanged |
-| 13 | Multi-repo rollup / context governance precursor | prototype | Multi-repo rollup remains future. Local context governance precursor work is implemented through D037: context gate adoption, governance snapshot/diff/replay, artifact fingerprints, and conservative governance compatibility classification. |
+| 13 | Multi-repo rollup / context governance precursor | prototype | Local context-governance precursor work is implemented through D037. The first safe multi-repo visibility pilot is now closed under Phase 17/D043 through `poll --rollup`; broader dashboard/drift/autonomy expansion remains future. |
 | 14 | Controlled autonomy pilot / governance release framework | prototype | Controlled autonomy remains future. Phase 14C governance migration/release framework is implemented locally under D038 for governed release checks and reports; it does not publish, create releases, or self-approve autonomy. |
 | 15 | Judge Evidence & Candidate Profile Guidance | prototype | Implemented under D039/D040 as internal read-only judge evidence and advisory candidate-profile guidance; no public command, ready hook, or delegation authority. |
 | 16 | MCP Server Integration & Strategic Semantic Loop | prototype | Done-done under D042: Phase 16/16B/16C/16D/16E are complete. The loop is bounded and read-only end to end: MCP stdio tools, insight extraction, research prompt generation, report ingest, research handoff, worker-readable decision candidates, and dogfood evidence. Publisher/write surface was removed and guarded; no write-enabled MCP tools, shell tools, HTTP/SSE, credentials, network calls, package dependencies, or new command surfaces remain in scope. |
+| 17 | Read-Only Multi-Repo Rollup Pilot | prototype | Done-done locally under D043: `meta-harness poll --rollup [--json]` reads parent `repos.json` and child local health artifacts without executing child commands or mutating parent/child files by default. `poll --rollup --write` is rejected. No new top-level public command, dependencies, package changes, or dashboard surface. Remote alignment remains pending until github.com DNS/proxy access is restored. |
 
 ---
 
@@ -1775,18 +1776,22 @@ Phase 13 remains multi-repo rollup and Phase 14 remains controlled autonomy unti
 
 ---
 
-## Phase 13 — Multi-repo rollup
+## Phase 13 / Phase 17 — Multi-repo rollup
 
 Purpose: dashboard after truth. Only build cross-repo visibility after local truth, security, and release enforcement are stable. Parent reads child repos — parent never mutates child state.
 
-### Problem
+### Current status
 
-The `poll` and `repos` commands already exist. `repos.json` defines child repos. `meta-harness poll --write` reads child statuses. But there is no:
+Phase 13's context-governance precursor work is implemented through D037. The first safe multi-repo visibility runtime slice is closed locally as Phase 17 under D043.
 
-1. Aggregated rollup view showing all child repo health at a glance
-2. Color-coded pass/warn/fail summary per child
-3. Cross-repo drift detection (template version drift, security policy drift)
-4. Machine-readable rollup for CI or external dashboards
+The approved Phase 17 surface is an extension of the existing poll command:
+
+```text
+meta-harness poll --rollup
+meta-harness poll --rollup --json
+```
+
+No new top-level `meta-harness rollup` command is approved or implemented. This avoids increasing the public CLI command count beyond the already accepted warning boundary.
 
 ### Operating rule
 
@@ -1795,106 +1800,57 @@ parent reads child truth
 parent does not overwrite child truth
 parent does not run child commands
 parent does not promote, rollback, or quarantine child skills
-broken child state appears as red/yellow/green with exact failed check
+parent does not mutate parent or child truth by default
 ```
 
-### Deliverables
+### Implemented Phase 17 pilot
 
-#### [MODIFY] meta-harness poll
+#### [DONE] `lib/repo-rollup.js`
 
-Extend poll to run `ready --target <child> --json` against each child repo and collect results.
+Pure read-only aggregation from local files:
 
-#### [NEW] .meta-harness/ready.json contract
-The ready.json artifact is generated by running meta-harness ready --json.
-- Location: .meta-harness/ready.json
-- Schema & Fields: Must contain schema_version (e.g. "1.0.0"), generated_at (ISO timestamp), target, meta_harness_version, mode, ok (posture result), redacted: true (proving redactions passed), expires_after (freshness window ISO timestamp), and checks array.
-- Freshness policy: Rollup commands must verify that child ready.json is not stale by checking expires_after against current time. Stale files trigger warnings/unknown state.
+- reads parent `.meta-harness/repos.json`
+- reads child `.meta-harness/ready.json` when present
+- falls back to child `.meta-harness/status.md`
+- reads child `.meta-harness/poll.md` only as secondary evidence
+- classifies child state as `ready`, `warned`, `failed`, `unknown`, `missing`, or `invalid`
+- emits schema_version `1.0.0`
+- emits generated_from `local_files`
+- emits explicit `not_changed` markers for child repos, child status, child events, parent status, and parent events
 
-#### [NEW] lib/rollup.js
+#### [DONE] `meta-harness poll --rollup [--json]`
 
-Aggregates child repo ready results into a single rollup:
+Rollup output is deterministic Markdown by default and deterministic JSON with `--json`. It does not execute child commands and does not write by default.
 
-```json
-{
-  "timestamp": "2026-08-XX",
-  "repos": [
-    {
-      "name": "child-a",
-      "path": "../child-a",
-      "ready": true,
-      "passed": 10,
-      "failed": 0,
-      "checks": []
-    },
-    {
-      "name": "child-b",
-      "path": "../child-b",
-      "ready": false,
-      "passed": 7,
-      "failed": 3,
-      "failing_checks": [
-        { "id": "MH_SYNC_001", "reason": "5 templates missing" },
-        { "id": "MH_STATE_001", "reason": "missing status.md" },
-        { "id": "MH_SECURITY_001", "reason": "no SECURITY.md" }
-      ]
-    }
-  ],
-  "summary": {
-    "total": 2,
-    "ready": 1,
-    "not_ready": 1
-  }
-}
-```
+`poll --rollup --write` is intentionally rejected because the first pilot slice is read-only output only. The existing `poll --write` behavior remains unchanged for non-rollup polling.
 
-#### [NEW] meta-harness rollup
+### Deferred from the broader dashboard phase
 
-```text
-meta-harness rollup
+The following remain future work, not Phase 17 closure claims:
 
-ROLLUP: 1/2 repos ready
-
-🟢 child-a    10/10 pass
-🔴 child-b     7/10 pass
-   FAIL  MH_SYNC_001      5 templates missing
-   FAIL  MH_STATE_001     missing status.md
-   FAIL  MH_SECURITY_001  no SECURITY.md
-```
-
-#### [MODIFY] .meta-harness/status.md (parent)
-
-When rollup runs, append child summary to parent status:
-
-```md
-## Child Repos
-
-| Repo | Ready | Pass | Fail | Top Issue |
-|---|---|---|---|---|
-| child-a | ✅ | 10/10 | 0 | — |
-| child-b | ❌ | 7/10 | 3 | 5 templates missing |
-```
-
-#### Cross-repo drift detection
-
-Compare across children:
-
-- Template version: are all children on the same installed template set?
-- Security policy: do all children have SECURITY.md, CODEOWNERS, dependabot.yml?
-- Skill registry: are active skills consistent or diverging?
-
-Report drift as warnings, not blocks. Child repos remain authoritative over their own state.
+- child `ready.json` freshness enforcement against `expires_after`
+- cross-repo template/security/skill drift dashboards
+- colorized dashboard UX
+- exact child failing-check drilldown beyond local artifact evidence
+- CI dashboard publishing or external dashboard integration
+- parent status mutation from rollup output
+- scheduled scans, daemons, or autonomy triggers
 
 ### Exit criteria
 
-- [ ] `meta-harness rollup` reads one or more child repo statuses
-- [ ] Rollup produces markdown summary with pass/fail per child
-- [ ] Rollup produces JSON output for CI consumption with schema_version
-- [ ] Parent rollup uses ready --read-only --no-exec or ready.json to read child health without executing tests/npm commands in the child repo
-- [ ] Parent checks child ready.json freshness against expires_after contract
-- [ ] Parent does not mutate child repo state
-- [ ] Broken child state shows as red/yellow/green with exact failing check IDs
-- [ ] Cross-repo template/security drift is reported as warnings
-- [ ] Engineer can drill from rollup summary to exact child check failure
+- [x] `meta-harness poll --rollup` reads configured child repo local health artifacts
+- [x] Rollup produces Markdown summary with per-child state
+- [x] Rollup produces JSON output with schema_version
+- [x] Parent rollup reads ready.json/status.md/poll.md without executing tests/npm commands in child repos
+- [x] Parent does not mutate child repo state
+- [x] Parent does not mutate parent status/events/poll by default
+- [x] `poll --rollup --write` is rejected to prevent accidental truth mutation
+- [x] Tests snapshot parent and child files before/after rollup execution
+- [x] No new top-level public command is added
+- [x] No dependency or package change is added
+- [ ] Child ready.json freshness against expires_after is enforced (future slice)
+- [ ] Cross-repo template/security drift is reported as warnings (future slice)
+- [ ] Engineer can drill from rollup summary to exact child check failure IDs where child ready.json exposes check details (future slice)
 
 ---
 

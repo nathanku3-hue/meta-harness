@@ -1,40 +1,42 @@
 # Status
 
 Goal:
-Close Phase 16 as sufficient with a closure-only product/governance alignment record.
+Close Phase 17 read-only multi-repo rollup pilot as a tested, local-files-only extension of the existing `poll` surface.
 
 Phase:
 closed
 
 Current truth:
-Phase 16 is done-done under the accepted D041 boundary and D042 closure. Phase 16/16B/16C/16D/16E are complete: read-only MCP server/tools, strategic insight extraction, research prompt generation, read-only research evidence ingest, deterministic read-only research handoff, worker-readable next-slice decision candidates, dogfood evidence, and publisher/write-surface rollback guard. MCP remains read-only and bounded. No write-enabled MCP tools, shell execution tools, HTTP/SSE listener, OAuth, Cloudflare tunnel, proprietary LLM API call, network call, package dependency addition, new public command, or publisher/write surface is included.
+Phase 16 is done-done under D041/D042. Phase 17 is now implemented and closed locally under D043 as the smallest useful read-only multi-repo rollup pilot. The shipped surface is `meta-harness poll --rollup [--json]`; no new top-level public command was added. Parent harness reads `.meta-harness/repos.json` and child local artifacts only: child `.meta-harness/ready.json` first, child `.meta-harness/status.md` as fallback, and child `.meta-harness/poll.md` only as secondary evidence. Parent does not execute child commands and does not mutate parent or child files by default. `poll --rollup --write` is explicitly rejected to avoid accidental truth mutation.
 
 Active streams:
-- coding: closed for Phase 16; no Phase 17 or runtime feature is in progress.
-- research: closed for Phase 16 dogfood; copy-paste research workflows remain local and read-only.
-- writing: Phase 16F closure-only truth alignment only.
-- review: local verification complete; remote freshness remains blocked by local DNS/proxy resolution for github.com.
+- coding: Phase 17 runtime and closure are complete locally; no additional runtime feature is in progress.
+- research: no active research stream.
+- writing: Phase 17 governance/status closure only.
+- review: local verification complete; remote freshness/push remains blocked by local DNS/proxy resolution for github.com unless network access is restored.
 
 Scope boundary:
-- closure files: docs/product/decision-log.md, docs/product/roadmap.md, .meta-harness/status.md, .meta-harness/events.jsonl.
-- forbidden for this closure: runtime code, tests, package files, new commands, new dependencies, README.md, write-enabled MCP tools, shell-execution MCP tools, HTTP/SSE/tunnel scripts, credentials, provider config, committed MCP config, publisher/write surfaces, Phase 17 planning or implementation.
+- Phase 17 runtime files: `lib/repo-rollup.js`, `lib/commands/poll.js`, `lib/command-registry.js`, `tests/repo-rollup.test.js`, `tests/poll-rollup-cli.test.js`, `tests/command-registry.test.js`.
+- Phase 17 closure files: `docs/product/decision-log.md`, `docs/product/roadmap.md`, `.meta-harness/status.md`, `.meta-harness/events.jsonl`.
+- forbidden/non-goals: new top-level `rollup` command, command count increase, child command execution, child repo mutation, default parent truth mutation, dependencies, package changes, README changes, MCP write tools, shell-execution MCP tools, HTTP/SSE/tunnel scripts, credentials, provider config, committed MCP config, publisher/write surfaces, drift dashboard expansion, daemon/autonomy expansion.
 
 Relevant decisions:
 - D041 (2026-06-29T11:30:00Z): Phase 16 minimal read-only MCP strategic loop authorization.
 - D042 (2026-06-30): Phase 16 closure-only product/governance alignment.
+- D043 (2026-06-30): Phase 17 read-only multi-repo rollup pilot closure on `poll --rollup`.
 
 Blockers:
-- Remote freshness is not independently verified in this session because `git fetch origin` fails with `Could not resolve host: github.com`.
-- No local project test blocker remains for Phase 16 closure.
+- Remote truth is not aligned from this local session because `main` is ahead of `origin/main` and previous `git fetch origin` failed with `Could not resolve host: github.com`.
+- No local runtime/test blocker remains for Phase 17 closure.
 
 Last verified:
-Local checkout `main` is at `5a796ce` with local `origin/main` and `origin/HEAD` also at `5a796ce`. `node -v` reports v18.19.1 and `npm --version` reports 9.2.0. `node bin/meta-harness.js sync check --target .` passed with checked=30. `node bin/meta-harness.js quality check` passed with the accepted D041 public CLI command count warning 27 > 25. `git diff --check` passed. `node bin/meta-harness.js ready --target . --quick --json` passed with ok=true, passed=16, failed=0, warned=1, skipped=3. Focused MCP/research tests passed 23/23 across `tests/mcp-cli.test.js`, `tests/research-decision-handoff.test.js`, `tests/mcp-research-handoff-cli.test.js`, `tests/research-report-ingest.test.js`, and `tests/mcp-research-ingest-cli.test.js`. Full test runner verification passed 73/73 test files with 0 failures via `npm test` before the closure patch and `node scripts/run-tests.js` after the closure patch.
+Local checkout `main` contains Phase 16 closure commit `1cfbf75` and Phase 17 runtime commit `ced6c36`. `node -v` reports v18.19.1 and `npm --version` reports 9.2.0. `git diff --check` passed. Focused tests passed: `node --test tests/repo-rollup.test.js`, `node --test tests/poll-rollup-cli.test.js`, and `node --test tests/command-registry.test.js`. `node bin/meta-harness.js poll --rollup --json` emitted schema_version `1.0.0`, generated_from `local_files`, zero child repos for this parent, and read-only `not_changed` markers. `node bin/meta-harness.js sync check --target .` passed with checked=30. `node bin/meta-harness.js quality check` passed with the accepted public CLI command count warning 27 > 25 and no command count increase. `node bin/meta-harness.js ready --target . --quick --json` passed with ok=true, passed=15, failed=0, warned=1, skipped=4. Full test runner passed 75/75 test files with 0 failures via `node scripts/run-tests.js`.
 
 Next action:
-Review and commit the Phase 16 closure-only governance alignment. Do not start Phase 17 or another runtime feature until a separate decision authorizes it.
+Push local `main` when DNS/proxy access to github.com is restored, then confirm remote `origin/main` contains the Phase 16 closure, Phase 17 runtime, and Phase 17 closure commits.
 
 Stop criteria:
-Fresh human and worker can treat Phase 16 as closed sufficient, see the read-only/bounded MCP and research-loop boundary, and understand that the next admissible action is commit/review of closure truth rather than runtime expansion.
+Fresh human and worker can treat Phase 17 as closed locally, understand that the approved surface is `poll --rollup` rather than a new `rollup` command, see that rollup is local-files-only and read-only by default, and identify remote alignment as the only remaining external blocker.
 
 Updated:
 2026-06-30
