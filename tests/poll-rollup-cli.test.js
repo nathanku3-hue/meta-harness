@@ -127,6 +127,12 @@ test("poll --rollup --json emits read-only local file rollup without mutating fi
     invalid: 0,
     drift_warnings: 0,
   });
+  assert.deepEqual(rollup.response_handoff, {
+    kind: "read_only_review_handoff",
+    severity: "info",
+    next_action: "none",
+    items: [],
+  });
   assert.deepEqual(rollup.not_changed, [
     "child_repos",
     "child_status",
@@ -152,6 +158,10 @@ test("poll --rollup --json includes stale count", () => {
   assert.equal(rollup.summary.stale, 1);
   assert.equal(rollup.summary.drift_warnings, 0);
   assert.equal(rollup.repos[0].state, "stale");
+  assert.equal(rollup.response_handoff.severity, "warn");
+  assert.equal(rollup.response_handoff.next_action, "review_child_repo_evidence");
+  assert.equal(rollup.response_handoff.items[0].reason, "child readiness evidence is stale");
+  assert.equal(rollup.response_handoff.items[0].mutates, false);
 });
 
 test("poll --rollup --json includes top-level and repo drift warnings", () => {
@@ -166,6 +176,10 @@ test("poll --rollup --json includes top-level and repo drift warnings", () => {
   assert.equal(rollup.summary.drift_warnings, 1);
   assert.equal(rollup.repos[0].drift_warnings[0].id, "DRIFT_TEMPLATE_MANIFEST_MISSING");
   assert.equal(rollup.repos[0].drift_warnings[0].severity, "warn");
+  assert.equal(rollup.response_handoff.severity, "warn");
+  assert.equal(rollup.response_handoff.items[0].reason, "child has template manifest drift");
+  assert.deepEqual(rollup.response_handoff.items[0].drift_warning_ids, ["DRIFT_TEMPLATE_MANIFEST_MISSING"]);
+  assert.equal(rollup.response_handoff.items[0].mutates, false);
 });
 
 test("poll --rollup Markdown prints failed check IDs and reasons without mutating files", () => {
@@ -203,6 +217,10 @@ test("poll --rollup Markdown prints failed check IDs and reasons without mutatin
   assert.match(result.stdout, /child-app\tfailed\tchild/);
   assert.match(result.stdout, /  - FAIL MH_SYNC_001 sync — 5 templates missing/);
   assert.match(result.stdout, /  - FAIL MH_SECURITY_001 security — missing SECURITY\.md/);
+  assert.match(result.stdout, /## Response Handoff/);
+  assert.match(result.stdout, /- child-app warn — child readiness failed/);
+  assert.match(result.stdout, /  - readiness: MH_SYNC_001, MH_SECURITY_001/);
+  assert.match(result.stdout, /  - mutates: false/);
   assert.deepEqual(after, before);
 });
 
@@ -217,6 +235,9 @@ test("poll --rollup Markdown prints deterministic drift warning lines", () => {
   assert.match(result.stdout, /ready=1 warned=0 failed=0 stale=0 unknown=0 missing=0 invalid=0 drift_warnings=2/);
   assert.match(result.stdout, /  - DRIFT DRIFT_TEMPLATE_VERSION template_manifest — child template manifest version differs from parent/);
   assert.match(result.stdout, /  - DRIFT DRIFT_TEMPLATE_HASH template_manifest — child template content hash differs from parent/);
+  assert.match(result.stdout, /## Response Handoff/);
+  assert.match(result.stdout, /- child-app warn — child has template manifest drift/);
+  assert.match(result.stdout, /  - drift: DRIFT_TEMPLATE_VERSION, DRIFT_TEMPLATE_HASH/);
 });
 
 test("poll --rollup --write is rejected and still does not mutate parent or child files", () => {

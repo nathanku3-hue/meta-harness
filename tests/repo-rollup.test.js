@@ -81,6 +81,12 @@ test("repo rollup returns an empty deterministic read-only schema", () => {
     invalid: 0,
     drift_warnings: 0,
   });
+  assert.deepEqual(rollup.response_handoff, {
+    kind: "read_only_review_handoff",
+    severity: "info",
+    next_action: "none",
+    items: [],
+  });
   assert.deepEqual(rollup.repos, []);
   assert.deepEqual(rollup.not_changed, [
     "child_repos",
