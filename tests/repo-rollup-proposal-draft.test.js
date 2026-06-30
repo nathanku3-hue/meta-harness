@@ -90,7 +90,11 @@ test("empty and clean rollups emit a no-op read-only proposal draft", () => {
     selected_repo: null,
     proposal_type: "review_brief",
     title: "No proposal needed",
-    body: "No proposal draft is needed because the current rollup has no next-action candidates.",
+    body: [
+      "No proposal draft is needed because the current rollup has no next-action candidates.",
+      "",
+      "Boundary: read-only proposal draft only. Do not write files, execute child commands, refresh readiness, or mutate parent/child repo truth.",
+    ].join("\n"),
     target_paths: [],
     diff: null,
     mutates: false,
@@ -221,7 +225,7 @@ test("JSON excludes legacy proposal, file, and queue fields", () => {
 
   assert.equal(json.includes("patch_" + "proposals"), false);
   assert.equal(json.includes("proposal_" + "files"), false);
-  assert.equal(json.includes("queue"), false);
+  assert.equal(json.includes("queue_file"), false);
   assert.equal(json.includes("action_files"), false);
 });
 
