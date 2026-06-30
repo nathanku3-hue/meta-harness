@@ -126,6 +126,8 @@ test("poll --rollup --json emits read-only local file rollup without mutating fi
     missing: 0,
     invalid: 0,
     drift_warnings: 0,
+    action_candidates: 0,
+    patch_proposals: 0,
   });
   assert.deepEqual(rollup.response_handoff, {
     kind: "read_only_review_handoff",
@@ -213,7 +215,7 @@ test("poll --rollup Markdown prints failed check IDs and reasons without mutatin
   assert.match(result.stdout, /Generated from: local_files/);
   assert.match(result.stdout, /Read-only: child_repos, child_status, child_events, parent_status, parent_events/);
   assert.match(result.stdout, /ROLLUP: 0\/1 repos ready/);
-  assert.match(result.stdout, /ready=0 warned=0 failed=1 stale=0 unknown=0 missing=0 invalid=0 drift_warnings=0/);
+  assert.match(result.stdout, /ready=0 warned=0 failed=1 stale=0 unknown=0 missing=0 invalid=0 drift_warnings=0 action_candidates=1 patch_proposals=1/);
   assert.match(result.stdout, /child-app\tfailed\tchild/);
   assert.match(result.stdout, /  - FAIL MH_SYNC_001 sync — 5 templates missing/);
   assert.match(result.stdout, /  - FAIL MH_SECURITY_001 security — missing SECURITY\.md/);
@@ -232,7 +234,7 @@ test("poll --rollup Markdown prints deterministic drift warning lines", () => {
   const result = run(parent, ["poll", "--rollup"]);
 
   assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /ready=1 warned=0 failed=0 stale=0 unknown=0 missing=0 invalid=0 drift_warnings=2/);
+  assert.match(result.stdout, /ready=1 warned=0 failed=0 stale=0 unknown=0 missing=0 invalid=0 drift_warnings=2 action_candidates=2 patch_proposals=2/);
   assert.match(result.stdout, /  - DRIFT DRIFT_TEMPLATE_VERSION template_manifest — child template manifest version differs from parent/);
   assert.match(result.stdout, /  - DRIFT DRIFT_TEMPLATE_HASH template_manifest — child template content hash differs from parent/);
   assert.match(result.stdout, /## Response Handoff/);

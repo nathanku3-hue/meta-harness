@@ -80,6 +80,8 @@ test("repo rollup returns an empty deterministic read-only schema", () => {
     missing: 0,
     invalid: 0,
     drift_warnings: 0,
+    action_candidates: 0,
+    patch_proposals: 0,
   });
   assert.deepEqual(rollup.response_handoff, {
     kind: "read_only_review_handoff",
@@ -174,13 +176,15 @@ test("repo rollup classifies ready, warned, failed, status fallback, missing, an
     missing: 1,
     invalid: 1,
     drift_warnings: 0,
+    action_candidates: 5,
+    patch_proposals: 5,
   });
 
   const markdown = renderRepoRollupMarkdown(rollup);
   assert.match(markdown, /Generated from: local_files/);
   assert.match(markdown, /Read-only: child_repos, child_status, child_events, parent_status, parent_events/);
   assert.match(markdown, /ROLLUP: 2\/7 repos ready/);
-  assert.match(markdown, /ready=2 warned=1 failed=1 stale=0 unknown=1 missing=1 invalid=1 drift_warnings=0/);
+  assert.match(markdown, /ready=2 warned=1 failed=1 stale=0 unknown=1 missing=1 invalid=1 drift_warnings=0 action_candidates=5 patch_proposals=5/);
   assert.match(markdown, /ready-child\tready\tchild/);
   assert.match(markdown, /missing-child\tmissing\tchild/);
 });
