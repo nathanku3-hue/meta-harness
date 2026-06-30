@@ -79,6 +79,7 @@ test("repo rollup returns an empty deterministic read-only schema", () => {
     unknown: 0,
     missing: 0,
     invalid: 0,
+    drift_warnings: 0,
   });
   assert.deepEqual(rollup.repos, []);
   assert.deepEqual(rollup.not_changed, [
@@ -166,13 +167,14 @@ test("repo rollup classifies ready, warned, failed, status fallback, missing, an
     unknown: 1,
     missing: 1,
     invalid: 1,
+    drift_warnings: 0,
   });
 
   const markdown = renderRepoRollupMarkdown(rollup);
   assert.match(markdown, /Generated from: local_files/);
   assert.match(markdown, /Read-only: child_repos, child_status, child_events, parent_status, parent_events/);
   assert.match(markdown, /ROLLUP: 2\/7 repos ready/);
-  assert.match(markdown, /ready=2 warned=1 failed=1 stale=0 unknown=1 missing=1 invalid=1/);
+  assert.match(markdown, /ready=2 warned=1 failed=1 stale=0 unknown=1 missing=1 invalid=1 drift_warnings=0/);
   assert.match(markdown, /ready-child\tready\tchild/);
   assert.match(markdown, /missing-child\tmissing\tchild/);
 });
