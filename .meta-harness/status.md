@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Close Phase 18 and the already-committed follow-on read-only proposal slice with local governance truth, then push and confirm remote alignment.
+Close Phase 19A corrective split after removing the premature proposal surface from rollup output and preserving read-only next-action routing only.
 
 Phase:
 closed
 
 Current truth:
-Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99`, locally verified, and closed under D046 once this closure commit lands. The previously dirty follow-on runtime residue was completed instead of reverted and is implemented at `9e3514d`, locally verified, and closed under D047 once this closure commit lands.
+Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048 once this closure commit lands.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -17,37 +17,47 @@ Phase 18 truth:
 - Handoff/drift alone does not make `ok=false`.
 - `poll --rollup --write` remains rejected and non-mutating.
 
-Follow-on proposal truth:
-- JSON output includes per-repo `action_candidates` and `patch_proposals`.
-- Summary output includes `summary.action_candidates` and `summary.patch_proposals`.
-- Markdown output includes deterministic action and proposal lines under child repos.
-- Every emitted item has `mutates=false`.
-- Proposal diffs remain `null` and review-only.
-- No files are written and no parent/child repo mutation behavior is added.
+Phase 19A truth:
+- JSON output includes per-repo `next_action_candidates`.
+- Summary output includes `summary.next_action_candidates`.
+- Candidate schema includes `id`, `priority`, `kind`, `reason`, `repo`, `source_state`, `source_warning_ids`, `source_warning_kinds`, `source_check_ids`, `target_paths`, and `mutates`.
+- Markdown output includes deterministic compact priority action lines under child repos.
+- Readiness candidates emit before drift candidates.
+- Drift candidates are always low priority.
+- Every candidate has `mutates=false`.
+- Candidate routing preserves existing readiness state.
+- Candidate routing and drift-only warnings do not make top-level `ok=false` by themselves.
+
+Superseded/deferred truth:
+- D047's action/proposal closure is superseded by D048 as current truth.
+- Proposal output is removed from the Phase 19A runtime surface.
+- Proposal-only automation is deferred to Phase 20.
+- No proposal files are written and no proposal application exists.
 
 Active streams:
-- coding: no runtime feature is in progress.
+- coding: Phase 19A runtime corrective split is committed locally.
 - research: no active research stream.
 - writing: closure-only alignment until committed.
 - review: local verification complete; remote push/confirmation remains pending until performed.
 
 Scope boundary:
 - Closure files only: `.meta-harness/status.md`, `.meta-harness/events.jsonl`, `docs/product/decision-log.md`, `docs/product/roadmap.md`.
-- Non-goals: README changes, package changes, new commands, new dependencies, dashboard, daemon, child command execution, child repo mutation, parent status mutation from rollup, auto-repair, readiness refresh, MCP expansion, provider/network integration, CI publishing, write-enabled handoff, written proposal files, proposal application, and controlled autonomy.
+- Non-goals: README changes, package changes, new commands, new dependencies, dashboard, daemon, child command execution, child repo mutation, parent status mutation from rollup, readiness state mutation from candidates, queue files, action files, proposal output, written proposal files, proposal application, auto-repair, readiness refresh, MCP expansion, provider/network integration, CI publishing, write-enabled handoff, and controlled autonomy.
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
-- D047 (2026-06-30): Follow-on read-only action/proposal closure.
+- D047 (2026-06-30): Superseded follow-on action/proposal closure.
+- D048 (2026-06-30): Phase 19A read-only next-action routing corrective split closure.
 
 Blockers:
 - Remote alignment remains pending until local `main` is pushed and `origin/main` confirmation succeeds.
 - No local runtime/test blocker remains.
 
 Last verified:
-Before closure edits, focused runtime tests passed for rollup actions, proposals, rollup core, rollup CLI, drift, handoff, and command registry. `git diff --check` passed. `node scripts/run-tests.js` passed 79/79 test files with 0 failed.
+Runtime corrective split at `f3b1b59`: focused rollup/action/CLI tests passed 19/19; drift/handoff/command-registry tests passed 20/20; sync check PASS checked=30; quality check PASS with known public command count warning 27 > 25; ready quick ok=true failed=0; npm test PASS 78/78 test files failed=0; modified runtime/test files passed diff whitespace check before runtime commit.
 
 Next action:
-Run closure verification, commit this closure-only alignment, push local `main`, then confirm local and remote branch alignment.
+Run closure verification, commit this closure-only alignment, push local `main` when authorized or connector is stable, then confirm local and remote branch alignment.
 
 Updated:
 2026-06-30

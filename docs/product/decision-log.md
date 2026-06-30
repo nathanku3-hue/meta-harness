@@ -1191,6 +1191,10 @@ Reopen Phase 18 only for a concrete regression where response handoff disappears
 
 ## D047: Close Follow-On Read-Only Rollup Action/Proposal Surface
 
+Supersession:
+
+D048 supersedes this current-truth claim. D047 was too broad because it combined next-action routing with premature proposal-only automation. The historical commit remains recorded, but current shipped rollup truth is Phase 19A next-action routing only; proposal-only automation is deferred to Phase 20.
+
 Decision:
 
 Accept the follow-on read-only rollup action/proposal runtime slice as sufficient and closed locally.
@@ -1247,3 +1251,68 @@ Local `main` remains ahead of `origin/main` until pushed and confirmed.
 Reopen conditions:
 
 Reopen D047 only for a concrete regression where action/proposal output mutates files, applies diffs, changes readiness classification, makes `ok=false` by itself, executes child commands, allows rollup write behavior, loses deterministic JSON/Markdown output, or broadens into dashboard, daemon, network/provider, MCP, auto-repair, readiness refresh, or autonomy scope.
+
+## D048: Supersede D047 Proposal Surface and Close Phase 19A Next-Action Routing
+
+Decision:
+
+Supersede D047 as current roadmap truth and close Phase 19A as a corrective split: remove premature proposal-only automation from the committed rollup surface and keep/harden read-only next-action routing only.
+
+Rationale:
+
+D047 incorrectly closed an action/proposal surface after Phase 18, combining two roadmap boundaries. Phase 19A should convert existing rollup/handoff attention into deterministic next-action candidates. It must not ship patch proposals, queue files, action files, proposal files, patch application, child command execution, or parent/child repo mutation. The corrective runtime commit removes proposal output and standardizes the new `next_action_candidates` schema.
+
+Scope accepted:
+
+- Per-repo JSON `next_action_candidates` output.
+- Summary count `summary.next_action_candidates`.
+- Candidate schema includes `id`, `priority`, `kind`, `reason`, `repo`, `source_state`, `source_warning_ids`, `source_warning_kinds`, `source_check_ids`, `target_paths`, and `mutates`.
+- Candidate priorities are deterministic: readiness states emit first, drift candidates emit after readiness candidates, and drift candidates are always low priority.
+- Markdown renders compact priority action lines under child repos.
+- Clean ready repos emit zero next-action candidates.
+- Readiness state and top-level `ok` behavior are preserved.
+- Drift-only candidates do not make top-level `ok=false`.
+- `poll --rollup --write` remains rejected and non-mutating.
+- Proposal output is removed from the Phase 19A runtime surface.
+- Phase 20 proposal-only automation remains deferred/future.
+- No new commands.
+- No dependencies.
+
+Evidence:
+
+- Runtime commit: `f3b1b59` (`feat: split rollup next-action routing from patch proposals`).
+- `node --test ./tests/repo-rollup-actions.test.js ./tests/repo-rollup.test.js ./tests/poll-rollup-cli.test.js` -> PASS 19/19.
+- `node --test ./tests/repo-rollup-drift.test.js ./tests/repo-rollup-handoff.test.js ./tests/command-registry.test.js` -> PASS 20/20.
+- `node bin/meta-harness.js sync check --target .` -> PASS checked=30.
+- `node bin/meta-harness.js quality check` -> PASS with known public CLI command count warning 27 > 25.
+- `node bin/meta-harness.js ready --target . --quick --json` -> ok=true, failed=0.
+- `npm test` -> PASS 78/78 test files, failed=0.
+- `git diff --check` on modified runtime/test files before runtime commit -> PASS.
+
+Non-goals:
+
+- No dashboard.
+- No daemon.
+- No child command execution.
+- No child repo mutation.
+- No parent status mutation from rollup.
+- No readiness state mutation from candidates.
+- No queue files written.
+- No action files written.
+- No patch proposals shipped.
+- No proposal files written.
+- No proposal application.
+- No CI dashboard publishing.
+- No auto-repair.
+- No readiness refresh.
+- No MCP expansion.
+- No provider/network integration.
+- No controlled autonomy.
+
+Remote status:
+
+Local `main` remains ahead of `origin/main` until pushed and confirmed.
+
+Reopen conditions:
+
+Reopen D048 only for a concrete regression where `next_action_candidates` disappear from JSON/Markdown, proposal output returns to Phase 19A, candidates mutate files, candidates change readiness classification, candidates make `ok=false` by themselves, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, proposal automation, or autonomy.
