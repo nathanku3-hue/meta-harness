@@ -1383,3 +1383,79 @@ Local `main` remains ahead of `origin/main` until pushed and confirmed.
 Reopen conditions:
 
 Reopen D049 only for a concrete regression where `next_action_brief` disappears from JSON/Markdown, brief selection becomes non-deterministic, brief generation mutates files, proposal output returns, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, readiness or `ok` behavior changes because of the brief, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, proposal automation, or autonomy.
+
+## D050: Close Phase 20A Read-Only Proposal Draft Packet
+
+Decision:
+
+Accept Phase 20A as a small read-only rollup extension: derive one deterministic top-level `proposal_draft` from the selected `next_action_brief`.
+
+Rationale:
+
+Phase 19B selects one worker-readable next action. Phase 20A turns that selected brief into a proposal-shaped review draft embedded only in rollup output. The runtime remains read-only and does not create proposal files, queues, patches, child commands, readiness refreshes, or parent/child repo mutation.
+
+Scope accepted:
+
+- Top-level JSON `proposal_draft` with `kind`, `source`, selected candidate metadata, `proposal_type`, `title`, `body`, `target_paths`, `diff`, and `mutates`.
+- `proposal_draft.kind` is `read_only_proposal_draft`.
+- `proposal_draft.source` is `next_action_brief`.
+- `proposal_draft.proposal_type` is `review_brief`.
+- `proposal_draft.diff` is always `null`.
+- `proposal_draft.mutates` is always `false`.
+- No-op draft when `next_action_brief.selected_candidate_id` is null.
+- Draft body uses structured brief fields, not parsed human-readable brief body text.
+- `next_action_brief` now exposes structured `reason`, `source_state`, `source_warning_ids`, and `source_check_ids` copied from the selected candidate.
+- Draft title is generic and deterministic: `Review rollup next action for <repo>`.
+- Markdown renders a compact `## Proposal Draft` section after `## Next Action Brief`.
+- Draft generation preserves readiness state and top-level `ok` behavior.
+- `poll --rollup --write` remains rejected and non-mutating.
+- No new commands.
+- No dependencies.
+
+Evidence:
+
+- Runtime commit: `998ecef` (`feat: add read-only rollup proposal draft`).
+- `node --test ./tests/repo-rollup.test.js` -> PASS 6/6.
+- `node --test ./tests/repo-rollup-drift.test.js` -> PASS 12/12.
+- `node --test ./tests/repo-rollup-handoff.test.js` -> PASS 4/4.
+- `node --test ./tests/repo-rollup-actions.test.js` -> PASS 7/7.
+- `node --test ./tests/repo-rollup-action-brief.test.js` -> PASS 11/11.
+- `node --test ./tests/repo-rollup-proposal-draft.test.js` -> PASS 10/10.
+- `node --test ./tests/poll-rollup-cli.test.js` -> PASS 6/6.
+- `node --test ./tests/command-registry.test.js` -> PASS 4/4.
+- `node bin/meta-harness.js sync check --target .` -> PASS checked=30.
+- `node bin/meta-harness.js quality check` -> PASS with known public CLI command count warning 27 > 25.
+- `node bin/meta-harness.js ready --target . --quick --json` -> ok=true, failed=0.
+- `npm test` -> PASS 80/80 test files, failed=0.
+- `git diff --check` -> PASS.
+
+Non-goals:
+
+- No dashboard.
+- No daemon.
+- No child command execution.
+- No child repo mutation.
+- No parent status mutation from rollup.
+- No readiness state mutation from candidates, briefs, or drafts.
+- No readiness refresh.
+- No queue files written.
+- No action files written.
+- No proposal files written.
+- No `patch_proposals` output.
+- No patch application.
+- No auto-repair.
+- No MCP expansion.
+- No provider/network integration.
+- No controlled autonomy.
+
+Future boundary:
+
+Phase 20B proposal draft validation remains future/deferred if more proposal rigor is needed. Export, write, apply, queue, autonomy, dashboard, daemon, provider/network, and child command behavior remain out of scope.
+
+Remote status:
+
+Local `main` remains ahead of `origin/main` until pushed and confirmed.
+
+Reopen conditions:
+
+Reopen D050 only for a concrete regression where `proposal_draft` disappears from JSON/Markdown, draft generation parses human-readable brief body instead of structured fields, `diff` becomes non-null, `mutates` becomes true, patch proposals return, proposal/action/queue files are written, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, readiness or `ok` behavior changes because of the draft, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, export/write/apply behavior, validation beyond read-only draft generation, or autonomy.
