@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Close Phase 20F after adding a read-only proposal review decision receipt template.
+Close Phase 20G after adding read-only proposal review receipt validation.
 
 Phase:
 closed
 
 Current truth:
-Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closed under D053. Phase 20E is implemented at `453ca28` and closed under D054. Phase 20F is implemented at `fba8d3d` and closes under D055 once this closure commit lands.
+Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closed under D053. Phase 20E is implemented at `453ca28` and closed under D054. Phase 20F is implemented at `fba8d3d` and closed under D055. Phase 20G is implemented at `a712c3b` and closed under D056.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -84,29 +84,43 @@ Phase 20D truth:
 - Markdown output includes `## Proposal Review Packet` after `## Proposal Review Gate`.
 
 Phase 20E truth:
-- JSON output includes proposal_review_options after proposal_review_packet and before proposal_review_receipt_template.
-- Options kind is read_only_proposal_review_options.
+- JSON output includes `proposal_review_options` after `proposal_review_packet` and before `proposal_review_receipt_template`.
+- Options kind is `read_only_proposal_review_options`.
 - Options are advisory only and do not record any decision.
-- ready_for_review allows approve_for_manual_work, reject_packet, and defer_packet; default is defer_packet.
-- blocked allows fix_proposal_validation and defer_packet; default is defer_packet.
-- not_needed allows no_action; default is no_action.
-- Missing or unknown packet state allows defer_packet and defaults to defer_packet.
-- Options have mutates=false and do not change top-level rollup ok or child readiness state.
+- `ready_for_review` allows `approve_for_manual_work`, `reject_packet`, and `defer_packet`; default is `defer_packet`.
+- `blocked` allows `fix_proposal_validation` and `defer_packet`; default is `defer_packet`.
+- `not_needed` allows `no_action`; default is `no_action`.
+- Missing or unknown packet state allows `defer_packet` and defaults to `defer_packet`.
+- Options have `mutates=false` and do not change top-level rollup `ok` or child readiness state.
 - Markdown output includes Proposal Review Options after Proposal Review Packet.
 
 Phase 20F truth:
-- JSON output includes proposal_review_receipt_template after proposal_review_options and before repos.
-- Receipt template kind is read_only_proposal_review_receipt_template.
-- Receipt template source is proposal_review_options.
-- Receipt template packet_id matches proposal_review_options.packet_id.
-- allowed_decision_ids are derived from proposal_review_options.allowed_decisions.
-- required_fields are packet_id, decision_id, reviewer, reviewed_at, and reason.
-- template.decision_id, template.reviewer, template.reviewed_at, and template.reason are null.
-- The receipt template does not use default_decision as a recorded or selected decision.
-- records_decision=false and mutates=false.
-- Missing options produce packet_id=null, verdict=unknown, allowed_decision_ids=[], records_decision=false, and mutates=false.
+- JSON output includes `proposal_review_receipt_template` after `proposal_review_options` and before `proposal_review_receipt_validation`.
+- Receipt template kind is `read_only_proposal_review_receipt_template`.
+- Receipt template source is `proposal_review_options`.
+- Receipt template `packet_id` matches `proposal_review_options.packet_id`.
+- `allowed_decision_ids` are derived from `proposal_review_options.allowed_decisions`.
+- Required fields are `packet_id`, `decision_id`, `reviewer`, `reviewed_at`, and `reason`.
+- `template.decision_id`, `template.reviewer`, `template.reviewed_at`, and `template.reason` are null.
+- The receipt template does not use `default_decision` as a recorded or selected decision.
+- `records_decision=false` and `mutates=false`.
+- Missing options produce `packet_id=null`, `verdict=unknown`, `allowed_decision_ids=[]`, `records_decision=false`, and `mutates=false`.
 - Markdown output includes Proposal Review Receipt Template after Proposal Review Options.
-- Receipt template generation preserves top-level rollup ok and child readiness state.
+- Receipt template generation preserves top-level rollup `ok` and child readiness state.
+
+Phase 20G truth:
+- JSON output includes `proposal_review_receipt_validation` after `proposal_review_receipt_template` and before `repos`.
+- Receipt validation kind is `read_only_proposal_review_receipt_validation`.
+- Receipt validation checks the receipt-template safety surface.
+- Checks cover receipt template kind, source, `packet_id`, verdict, `allowed_decision_ids`, required fields, decision-field nulls, `records_decision=false`, `mutates=false`, no forbidden file-output fields, and no `patch_proposals`.
+- The bounded forbidden-field scan covers rollup, summary, repos, proposal review options, and proposal review receipt template containers.
+- Receipt validation verdict is `pass` only when every check passes; otherwise it is `fail`.
+- Receipt validation output has `mutates=false`.
+- Receipt validation records no decision and no approval.
+- Receipt validation preserves top-level rollup `ok` and child readiness state.
+- Markdown output includes Proposal Review Receipt Validation after Proposal Review Receipt Template.
+- Receipt validation writes no proposal, export, queue, or action files.
+- Receipt validation creates no task, executes no child command, refreshes no readiness, and mutates no parent or child repo truth.
 
 Superseded/deferred truth:
 - D047's action/proposal closure is superseded by D048 as current truth.
@@ -115,18 +129,20 @@ Superseded/deferred truth:
 - Phase 20D review packet envelope is closed.
 - Phase 20E review decision options are closed.
 - Phase 20F read-only review decision receipt template is closed locally.
-- Phase 20G explicit copy/export rendering remains future, if needed.
+- Phase 20G read-only proposal review receipt validation is closed locally.
+- Phase 20H read-only copy block rendering remains future, if needed.
+- Phase 20I explicit export files remain future, if ever needed.
 - Phase 21 autonomy remains deferred.
 
 Active streams:
-- coding: Phase 20F runtime proposal review receipt template is committed locally.
+- coding: Phase 20G runtime proposal review receipt validation is committed locally.
 - research: no active research stream.
-- writing: Phase 20F closure-only alignment until committed.
+- writing: Phase 20G closure-only alignment is committed locally.
 - review: local verification complete; remote push/confirmation remains pending until explicitly authorized and performed.
 
 Scope boundary:
 - Closure files only: `.meta-harness/status.md`, `.meta-harness/events.jsonl`, `docs/product/decision-log.md`, `docs/product/roadmap.md`.
-- Non-goals: README changes, package changes, new commands, new dependencies, dashboard, daemon, child command execution, child repo mutation, parent status mutation from rollup, readiness state mutation from candidates/briefs/drafts/validation/gate/packet/options/receipt-template, readiness refresh, queue files, action files, proposal files, export files, patch proposals, patch application, approval recording, task creation, auto-repair, MCP expansion, provider/network integration, CI publishing, write-enabled handoff, and controlled autonomy.
+- Non-goals: README changes, package changes, new commands, new dependencies, dashboard, daemon, child command execution, child repo mutation, parent status mutation from rollup, readiness state mutation from candidates/briefs/drafts/validation/gate/packet/options/receipt-template/receipt-validation, readiness refresh, queue files, action files, proposal files, export files, patch proposals, patch application, approval recording, review decision recording, task creation, auto-repair, MCP expansion, provider/network integration, CI publishing, write-enabled handoff, and controlled autonomy.
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
@@ -139,16 +155,17 @@ Relevant decisions:
 - D053 (2026-06-30): Phase 20D read-only proposal review packet envelope closure.
 - D054 (2026-06-30): Phase 20E read-only proposal review options closure.
 - D055 (2026-07-01): Phase 20F read-only proposal review decision receipt template closure.
+- D056 (2026-07-01): Phase 20G read-only proposal review receipt validation closure.
 
 Blockers:
 - Remote push remains pending until explicitly authorized.
 - No local runtime/test blocker remains.
 
 Last verified:
-Runtime proposal review receipt template at fba8d3d: repo-rollup tests PASS 6/6; drift tests PASS 12/12; handoff tests PASS 4/4; actions tests PASS 7/7; action-brief tests PASS 11/11; proposal-draft tests PASS 10/10; proposal-validation tests PASS 16/16 after field-order update; proposal-review-gate tests PASS 11/11; proposal-review-packet tests PASS 12/12; proposal-review-options tests PASS 13/13; proposal-review-receipt-template tests PASS 12/12; poll CLI tests PASS 6/6; command registry tests PASS 4/4; sync check PASS checked=30; quality check PASS with known public command count warning 27 > 25; ready quick reports READY yes with failed=0; npm test PASS 85/85 files failed=0; git diff --check PASS.
+Runtime proposal review receipt validation at a712c3b: receipt-validation tests PASS 19/19; npm test PASS 86/86 files failed=0; sync PASS checked=30; quality PASS with known public command count warning 27 > 25; ready quick READY yes with failed=0; git diff --check PASS.
 
 Next action:
-Commit Phase 20F closure truth locally, then push local `main` only when explicitly authorized and confirm local/remote branch alignment. Phase 20G explicit copy/export rendering remains future if needed; Phase 21 autonomy remains deferred.
+Push local `main` only when explicitly authorized, then confirm local/remote branch alignment. Phase 20H read-only copy block rendering remains future if needed; Phase 20I explicit export files remain future if ever needed; Phase 21 autonomy remains deferred.
 
 Updated:
 2026-07-01

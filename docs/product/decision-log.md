@@ -1460,6 +1460,57 @@ Reopen conditions:
 
 Reopen D050 only for a concrete regression where `proposal_draft` disappears from JSON/Markdown, draft generation parses human-readable brief body instead of structured fields, `diff` becomes non-null, `mutates` becomes true, patch proposals return, proposal/action/queue files are written, `poll --rollup --write` succeeds, child commands execute, parent/child repos mutate, readiness or `ok` behavior changes because of the draft, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, readiness refresh, export/write/apply behavior, validation beyond read-only draft generation, or autonomy.
 
+## D056: Close Phase 20G Read-Only Proposal Review Receipt Validation
+
+Decision:
+
+Accept Phase 20G as read-only `proposal_review_receipt_validation` over `proposal_review_receipt_template`.
+
+Runtime commit: `a712c3b`.
+
+Scope accepted:
+
+- JSON includes `proposal_review_receipt_validation` after `proposal_review_receipt_template` and before `repos`.
+- Receipt validation kind is `read_only_proposal_review_receipt_validation`.
+- Receipt validation checks the receipt-template safety surface.
+- Checks cover receipt template kind, source, packet ID, verdict, allowed decisions, required fields, decision-field nulls, `records_decision=false`, and `mutates=false`.
+- Checks also cover absence of proposal, export, queue, and action file-output fields in the bounded scan surface.
+- The bounded scan surface covers rollup, summary, repos, proposal review options, and proposal review receipt template containers.
+- Receipt validation verdict is `pass` only when every check passes; otherwise it is `fail`.
+- Receipt validation records no decision and no approval.
+- Receipt validation preserves top-level rollup `ok` and child readiness state.
+- Markdown renders `## Proposal Review Receipt Validation` after `## Proposal Review Receipt Template`.
+
+Evidence:
+
+- Runtime commit: `a712c3b` (`feat: add read-only proposal review receipt validation`).
+- `node --test ./tests/repo-rollup-proposal-review-receipt-validation.test.js` -> PASS 19/19.
+- `npm test` -> PASS 86/86 test files, failed=0.
+- `./bin/meta-harness.js sync check --target .` -> PASS checked=30.
+- `./bin/meta-harness.js quality check` -> PASS with known public CLI command count warning 27 > 25.
+- `./bin/meta-harness.js ready --target . --quick` -> READY yes, failed=0.
+- `git diff --check` -> PASS.
+
+Non-goals:
+
+- No copy block rendering.
+- No export-file workflow.
+- No export files.
+- No proposal/action/queue files.
+- No approval recording.
+- No review decision recording.
+- No diffs or patch application.
+- No task creation.
+- No child command execution.
+- No readiness refresh.
+- No parent or child repo mutation.
+- No rollup ok/readiness behavior change.
+- No dashboard, daemon, provider/network integration, MCP expansion, auto-repair, or autonomy.
+
+Future boundary:
+
+Phase 20H read-only copy block rendering remains future if needed. Phase 20I explicit export-file workflow remains future if ever needed. Phase 21 autonomy remains deferred.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:
