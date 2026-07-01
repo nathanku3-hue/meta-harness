@@ -1509,7 +1509,58 @@ Non-goals:
 
 Future boundary:
 
-Phase 20H read-only copy block rendering remains future if needed. Phase 20I explicit export-file workflow remains future if ever needed. Phase 21 autonomy remains deferred.
+Phase 20H read-only copy block rendering is closed under D057. Phase 20I explicit export-file workflow remains future if ever needed. Phase 21 autonomy remains deferred.
+
+## D057: Close Phase 20H Read-Only Proposal Review Copy Block
+
+Decision:
+
+Accept Phase 20H as read-only `proposal_review_copy_block` rendering inside existing rollup JSON/Markdown.
+
+Runtime commit: `59c23d3`.
+
+Scope accepted:
+
+- JSON includes `proposal_review_copy_block` after `proposal_review_receipt_validation` and before `repos`.
+- Copy block kind is `read_only_proposal_review_copy_block`.
+- Copy block source is `proposal_review_receipt_validation`.
+- Copy text renders only after receipt validation passes.
+- Missing or failing receipt validation emits `copy_text=null` and a blocked reason.
+- Copy block includes proposal review packet, options, receipt template, and receipt validation context.
+- Copy block uses `export_target=null`, not `export_path`.
+- Copy block has `writes_files=false`, `records_decision=false`, `records_approval=false`, and `mutates=false`.
+- Copy text is deterministic and contains no generated diff.
+- Copy block preserves top-level rollup `ok` and child readiness state.
+- Markdown renders `## Proposal Review Copy Block` after receipt validation.
+
+Evidence:
+
+- Runtime commit: `59c23d3` (`feat-copy-block`).
+- Required direct rollup node --test batches -> PASS 156/156.
+- `node bin/meta-harness.js sync check --target .` -> PASS checked=30.
+- `node bin/meta-harness.js ready --target . --quick` -> READY yes, quality PASS, known security warning only.
+- Full npm wrapper attempted but DevSpace returned connector 502; direct node --test batches were used as executable verification signal.
+- Local shell remains below declared engine: node v18.19.1 and npm 9.2.0.
+
+Non-goals:
+
+- No clipboard integration.
+- No export-file workflow.
+- No export files.
+- No proposal/action/queue files.
+- No approval recording.
+- No review decision recording.
+- No diffs or patch application.
+- No task creation.
+- No child command execution.
+- No readiness refresh.
+- No parent or child repo mutation.
+- No rollup ok/readiness behavior change.
+- No dashboard, daemon, provider/network integration, MCP expansion, auto-repair, or autonomy.
+
+Future boundary:
+
+Phase 20I explicit export-file workflow remains future if ever needed. Phase 21 autonomy remains deferred.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
