@@ -1678,7 +1678,7 @@ Non-goals:
 
 Future boundary:
 
-Phase 21C operator-driven write surface materialization is closed under D061; Phase 21D artifact verification is closed under D062; Phase 21E operator execution planning remains future.
+Phase 21C operator-driven write surface materialization is closed under D061; Phase 21D artifact verification is closed under D062; Phase 21E operator execution planning is closed under D063.
 
 ## D061: Close Phase 21C Approved Packet Materialization
 
@@ -1714,7 +1714,7 @@ Non-goals:
 
 Future boundary:
 
-Phase 21D artifact verification is closed under D062; Phase 21E operator execution planning remains future.
+Phase 21D artifact verification is closed under D062; Phase 21E operator execution planning is closed under D063.
 
 ## D062: Close Phase 21D Approved Packet Artifact Verification
 
@@ -1751,7 +1751,34 @@ Non-goals:
 
 Future boundary:
 
-Phase 21E operator execution planning remains future; bounded child writes remain Phase 21F or later only after 21E proves useful.
+Phase 21E operator execution planning is closed under D063; bounded child writes remain Phase 21F or later only after 21E proves useful.
+
+## D063: Close Phase 21E Read-Only Operator Execution Plan
+
+Decision:
+
+Accept Phase 21E as the read-only operator execution plan builder derived from the verified manual work packet artifact rather than live rollup states.
+
+Runtime commit:
+
+- `c89ba6b` (`feat: derive operator execution plan`).
+
+Scope accepted:
+
+- `poll --rollup --json --verify-manual-work-packet <path>` reads the artifact once, verifies it, and outputs the `operator_execution_plan`.
+- The `operator_execution_plan` key is positioned between `manual_work_packet_artifact_validation` and `repos`.
+- Safety boundary is maintained: `mutates=false` and all execution-related fields are absent.
+- The plan copies the packet ID, target paths, source checks, and warning IDs from the verified artifact.
+- Verdict is `ready_for_operator` only when validation passes and the packet is present.
+
+Evidence:
+
+- Dedicated test suite: `tests/poll-rollup-operator-execution-plan.test.js` PASS 15/15.
+- All test suites (96 files): PASS.
+- Sync check: PASS.
+- Quality check: PASS.
+- Readiness check: READY yes.
+
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
