@@ -245,7 +245,7 @@ test("stdout rollup behavior is preserved", () => {
   assert.equal(rollup.ok, false);
   assert.equal(rollup.manual_work_packet.verdict, "missing_approval");
   assert.equal(rollup.manual_work_packet_artifact_validation.verdict, "pass");
-  assert.deepEqual(Object.keys(rollup).slice(-3), ["manual_work_packet_artifact_validation", "repos", "not_changed"]);
+  assert.deepEqual(Object.keys(rollup).slice(-4), ["manual_work_packet_artifact_validation", "operator_execution_plan", "repos", "not_changed"]);
 });
 
 test("invalid JSON artifact is invalid", () => {
