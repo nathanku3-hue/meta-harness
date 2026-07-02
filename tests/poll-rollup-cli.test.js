@@ -141,6 +141,22 @@ test("poll --rollup --json emits read-only local file rollup without mutating fi
     "parent_status",
     "parent_events",
   ]);
+  assert.equal(rollup.autonomy_plan.kind, "controlled_autonomy_dry_run_plan");
+  assert.equal(rollup.autonomy_plan.source, "proposal_review_export_safety_gate");
+  assert.equal(rollup.autonomy_plan.verdict, "not_needed");
+  assert.equal(rollup.autonomy_plan.selected_action_type, null);
+  assert.equal(rollup.autonomy_plan.dry_run, true);
+  assert.equal(rollup.autonomy_plan.mutates, false);
+  assert.equal(rollup.autonomy_plan.executes_child_commands, false);
+  assert.equal(rollup.autonomy_plan.writes_parent_files, false);
+  assert.equal(rollup.autonomy_plan.writes_child_files, false);
+  assert.equal(rollup.autonomy_plan.creates_tasks, false);
+  assert.equal(rollup.autonomy_plan.creates_queues, false);
+  assert.equal(rollup.autonomy_plan.applies_patches, false);
+  assert.equal(rollup.autonomy_plan.refreshes_readiness, false);
+  assert.equal(rollup.autonomy_plan.required_human_approval, true);
+  assert.deepEqual(rollup.autonomy_plan.blockers, []);
+  assert.deepEqual(rollup.autonomy_plan.planned_steps, []);
   assert.equal(rollup.repos[0].name, "child-app");
   assert.equal(rollup.repos[0].state, "ready");
   assert.equal(rollup.repos[0].source, ".meta-harness/ready.json");
@@ -225,6 +241,12 @@ test("poll --rollup Markdown prints failed check IDs and reasons without mutatin
   assert.match(result.stdout, /- child-app warn — child readiness failed/);
   assert.match(result.stdout, /  - readiness: MH_SYNC_001, MH_SECURITY_001/);
   assert.match(result.stdout, /  - mutates: false/);
+  assert.match(result.stdout, /## Controlled Autonomy Dry-Run Plan/);
+  assert.match(result.stdout, /- verdict: ready_for_human_approval/);
+  assert.match(result.stdout, /- selected_action_type: review_approved_manual_work_packet/);
+  assert.match(result.stdout, /- dry_run: true/);
+  assert.match(result.stdout, /- mutates: false/);
+  assert.match(result.stdout, /- blockers:\n  - none/);
   assert.deepEqual(after, before);
 });
 

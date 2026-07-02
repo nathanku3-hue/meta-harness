@@ -73,7 +73,7 @@ test("valid selected proposal draft validates pass", () => {
   const parent = tempDir();
   configure(parent, [addReadyChild("child-app", readyJson({ ok: false, failed: 1, checks: [{ id: "MH_SYNC_001", name: "sync", status: "fail", reason: "templates missing" }] }))]);
   const rollup = buildRepoRollup(parent, { now: NOW });
-  assert.deepEqual(Object.keys(rollup), ["schema_version", "generated_from", "ok", "summary", "response_handoff", "next_action_brief", "proposal_draft", "proposal_validation", "proposal_review_gate", "proposal_review_packet", "proposal_review_options", "proposal_review_receipt_template", "proposal_review_receipt_validation", "proposal_review_copy_block", "proposal_review_copy_block_validation", "proposal_review_export_intent", "proposal_review_export_safety_gate", "repos", "not_changed"]);
+  assert.deepEqual(Object.keys(rollup), ["schema_version", "generated_from", "ok", "summary", "response_handoff", "next_action_brief", "proposal_draft", "proposal_validation", "proposal_review_gate", "proposal_review_packet", "proposal_review_options", "proposal_review_receipt_template", "proposal_review_receipt_validation", "proposal_review_copy_block", "proposal_review_copy_block_validation", "proposal_review_export_intent", "proposal_review_export_safety_gate", "autonomy_plan", "repos", "not_changed"]);
   assert.equal(rollup.proposal_validation.ok, true);
   assert.equal(rollup.proposal_validation.verdict, "pass");
   assert.equal(checkById(rollup.proposal_validation, "PROPOSAL_KIND_001").reason, "proposal_draft kind is read_only_proposal_draft");
