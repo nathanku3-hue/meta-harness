@@ -1628,7 +1628,57 @@ Non-goals:
 
 Future boundary:
 
-Phase 20K explicit export-file workflow remains future, if ever needed. Phase 21 autonomy remains deferred.
+Phase 20K explicit export-file workflow is bypassed and remains future only if a real user need appears. Phase 21A/21B are closed under D060; write-enabled Phase 21C remains future.
+
+## D060: Close Phase 21A/21B Approved Manual-Work Packet and Bypass Phase 20K
+
+Decision:
+
+Accept Phase 21A as the controlled autonomy dry-run plan plus explicit approval receipt validation/input chain, and accept Phase 21B as the stdout-only approved manual-work packet.
+
+Runtime commits:
+
+- `0588063` controlled autonomy dry-run rollup plan.
+- `d604e07` autonomy approval receipt validation.
+- `128bd8e` CLI approval receipt input.
+- `9507955` approved manual-work packet.
+
+Scope accepted:
+
+- JSON includes `autonomy_plan` after `proposal_review_export_safety_gate`.
+- JSON includes `autonomy_approval_receipt_validation` after `autonomy_plan`.
+- `poll --rollup --json` accepts explicit approval receipt evidence inline or from file.
+- JSON always includes `manual_work_packet` after `autonomy_approval_receipt_validation` and before `repos`.
+- `manual_work_packet` shell states are explicit: `not_needed`, `missing_approval`, `blocked`, `invalid`, and `ready_for_manual_work`.
+- A valid approval receipt unlocks `ready_for_manual_work`.
+- Packet output is deterministic and built from structured fields only; it does not parse Markdown/body text.
+- Packet output includes selected repo, selected candidate, packet ID, target paths, source check IDs, source warning IDs, normalized receipt reviewer/reviewed_at/reason, and deterministic manual instructions.
+- Packet and receipt validation remain stdout-only and non-mutating: no file writes, queues, tasks, patches, child commands, readiness refresh, parent/child truth mutation, approval persistence, or decision recording.
+- Markdown renders `## Approved Manual Work Packet`.
+
+Roadmap correction:
+
+Phase 20K explicit export-file workflow is bypassed. Approval evidence now enters the public CLI directly, and Phase 21B emits stdout-only manual-work packets. Export files remain future only if a real user need appears.
+
+Evidence:
+
+- Runtime commit: `9507955` (`feat: add approved manual work packet`).
+- Targeted Phase 21B tests: PASS 15/15.
+- Full npm test suite: PASS 93 test files, failed=0.
+- Sync check: PASS checked=30.
+- Quality check: PASS with known public CLI command-count warning 27 > 25.
+- Ready quick JSON: ok=true, passed=15, failed=0, warned=1.
+- `git diff --check`: PASS.
+
+Non-goals:
+
+- No README/package/dependency/public-command changes.
+- No export files, queue files, task files, action files, proposal files, or patch proposals.
+- No patch application, child command execution, readiness refresh, approval persistence, decision recording, parent/child truth mutation, dashboard, daemon, provider/network integration, MCP write expansion, or write-enabled handoff.
+
+Future boundary:
+
+Phase 21C operator-driven write surface remains future and must start only after the stdout-only manual-work packet proves useful.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

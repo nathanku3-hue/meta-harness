@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Close Phase 20J after adding read-only proposal review export intent and safety gate.
+Align Phase 21A/21B runtime truth after adding the approved manual-work packet.
 
 Phase:
 closed
 
 Current truth:
-Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closed under D053. Phase 20E is implemented at `453ca28` and closed under D054. Phase 20F is implemented at `fba8d3d` and closed under D055. Phase 20G is implemented at `a712c3b` and closed under D056. Phase 20H is implemented at `59c23d3` and closed under D057. Phase 20I is implemented at `local` and closed under D058. Phase 20J is implemented at `local` and closed under D059.
+Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closed under D053. Phase 20E is implemented at `453ca28` and closed under D054. Phase 20F is implemented at `fba8d3d` and closed under D055. Phase 20G is implemented at `a712c3b` and closed under D056. Phase 20H is implemented at `59c23d3` and closed under D057. Phase 20I is implemented at `local` and closed under D058. Phase 20J is implemented at `local` and closed under D059. Phase 21A is implemented locally at `0588063`/`d604e07`/`128bd8e`. Phase 21B is implemented locally at `9507955` and closed under D060.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -150,6 +150,24 @@ Phase 20J truth:
 - Export intent and safety gate preserve top-level rollup `ok` and child readiness state.
 - Markdown output includes Proposal Review Export Intent and Proposal Review Export Safety Gate after Proposal Review Copy Block Validation.
 
+Phase 21A truth:
+- JSON output includes top-level `autonomy_plan` after `proposal_review_export_safety_gate`.
+- JSON output includes top-level `autonomy_approval_receipt_validation` after `autonomy_plan`.
+- `poll --rollup --json` accepts `--autonomy-approval-receipt` and `--autonomy-approval-receipt-file` as explicit stdout-only approval evidence inputs.
+- Approval receipt validation requires `autonomy_plan.verdict=ready_for_human_approval`, matching packet ID, `decision_id=approve_for_manual_work`, non-empty reviewer/reason, strict ISO `reviewed_at`, and no unsafe mutation/output fields.
+- Receipt validation records no decision and no approval: `records_decision=false` and `records_approval=false`.
+- Receipt validation does not write files, create tasks/queues, execute child commands, apply patches, refresh readiness, or mutate parent/child truth.
+
+Phase 21B truth:
+- JSON output always includes top-level `manual_work_packet` after `autonomy_approval_receipt_validation` and before `repos`.
+- Packet kind is `approved_manual_work_packet` and source is `autonomy_approval_receipt_validation`.
+- Packet shell verdicts are explicit: `not_needed`, `missing_approval`, `blocked`, `invalid`, and `ready_for_manual_work`.
+- A valid approval receipt unlocks `ready_for_manual_work`.
+- Packet fields are built from structured rollup fields only, not parsed Markdown/body text.
+- Packet includes selected repo, selected candidate, packet ID, priority, reason, target paths, source state, source check IDs, source warning IDs, normalized receipt reviewer/reviewed_at/reason, and deterministic manual instructions.
+- Packet is stdout-only and non-mutating: `mutates=false`, `writes_files=false`, `writes_parent_files=false`, `writes_child_files=false`, `executes_child_commands=false`, `creates_tasks=false`, `creates_queues=false`, `applies_patches=false`, `refreshes_readiness=false`, `records_decision=false`, and `records_approval=false`.
+- Markdown output includes `## Approved Manual Work Packet`.
+
 Superseded/deferred truth:
 - D047's action/proposal closure is superseded by D048 as current truth.
 - No `patch_proposals` output is shipped.
@@ -161,18 +179,18 @@ Superseded/deferred truth:
 - Phase 20H read-only copy block rendering is closed locally.
 - Phase 20I read-only copy block validation is closed locally.
 - Phase 20J read-only export intent/safety gate is closed locally.
-- Phase 20K explicit export-file workflow remains future/non-goal, if ever needed.
-- Phase 21 autonomy remains deferred.
+- Phase 20K explicit export-file workflow is bypassed and remains future/non-goal unless a real user need appears.
+- Phase 21A/21B are implemented locally; write-enabled Phase 21C remains future.
 
 Active streams:
-- coding: Phase 20J runtime export intent and safety gate is committed locally.
+- coding: Phase 21B approved manual-work packet is committed locally.
 - research: no active research stream.
-- writing: Phase 20J closure-only alignment is committed locally.
+- writing: Phase 21A/21B truth alignment is in progress.
 - review: local verification complete; remote push/confirmation remains pending until explicitly authorized and performed.
 
 Scope boundary:
 - Closure files only: `.meta-harness/status.md`, `.meta-harness/events.jsonl`, `docs/product/decision-log.md`, `docs/product/roadmap.md`.
-- Non-goals: README changes, package changes, new commands, new dependencies, dashboard, daemon, child command execution, child repo mutation, parent status mutation from rollup, readiness state mutation from candidates/briefs/drafts/validation/gate/packet/options/receipt-template/receipt-validation, readiness refresh, queue files, action files, proposal files, export files, patch proposals, patch application, approval recording, review decision recording, task creation, auto-repair, MCP expansion, provider/network integration, CI publishing, write-enabled handoff, and controlled autonomy.
+- Non-goals: README changes, package changes, new commands, new dependencies, dashboard, daemon, child command execution, child repo mutation, parent status mutation from rollup, readiness state mutation from candidates/briefs/drafts/validation/gate/packet/options/receipt-template/receipt-validation/manual-work-packet, readiness refresh, queue files, action files, proposal files, export files, patch proposals, patch application, approval persistence, review decision recording, task creation, auto-repair, MCP expansion, provider/network integration, CI publishing, and write-enabled handoff.
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
@@ -189,15 +207,16 @@ Relevant decisions:
 - D057 (2026-07-01): Phase 20H read-only proposal review copy block closure.
 - D058 (2026-07-02): Phase 20I read-only proposal review copy block validation closure.
 - D059 (2026-07-02): Phase 20J read-only proposal review export intent and safety gate closure.
+- D060 (2026-07-02): Phase 21A/21B approved manual-work packet closure and Phase 20K bypass.
 
 Blockers:
 - No local or remote blocker remains.
 
 Last verified:
-Runtime proposal review export intent and safety gate at Phase 20J: full npm test suite PASS (89 test files passing cleanly under Node v22.22.2 / npm v11.6.2). Local main branch is pushed and aligned with origin/main.
+Phase 21B runtime commit `9507955`: targeted Phase 21B tests PASS 15/15; full npm test suite PASS (93 test files, failed=0); sync check PASS checked=30; quality check PASS with existing public CLI command-count warning; ready --quick --json ok=true with 15 passed, 0 failed, 1 warning; git diff --check PASS.
 
 Next action:
-Phase 20 is now closed and fully aligned on origin/main; Phase 21 autonomy remains deferred.
+Commit Phase 21A/21B truth alignment locally. Push local main only when explicitly authorized.
 
 Updated:
 2026-07-02
