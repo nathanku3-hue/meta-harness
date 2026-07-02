@@ -155,6 +155,7 @@ test("rollup top-level field order includes proposal_review_options after propos
     "proposal_review_receipt_template",
     "proposal_review_receipt_validation",
     "proposal_review_copy_block",
+    "proposal_review_copy_block_validation",
     "repos",
     "not_changed",
   ]);

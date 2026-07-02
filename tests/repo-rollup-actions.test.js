@@ -214,7 +214,7 @@ test("drift warnings emit source-specific low read-only next-action candidates a
   for (const candidate of candidates(rollup)) assertCandidateSchema(candidate);
   assert.deepEqual(candidates(rollup)[1].source_warning_ids, ["DRIFT_TEMPLATE_VERSION"]);
   assert.deepEqual(candidates(rollup)[1].source_warning_kinds, ["template_manifest"]);
-  assert.deepEqual(candidates(rollup)[1].target_paths, [".meta-harness/templates/manifest.json"]);
+  assert.deepEqual(candidates(rollup)[1].target_paths.map(p => p.replace(/\\/g, "/")), [".meta-harness/templates/manifest.json"]);
 });
 
 test("drift-only next-action candidates do not make top-level ok false", () => {
