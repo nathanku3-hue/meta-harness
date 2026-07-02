@@ -197,6 +197,7 @@ test("rollup includes copy block after receipt validation without changing ok or
     "autonomy_plan",
     "autonomy_approval_receipt_validation",
     "manual_work_packet",
+    "manual_work_packet_artifact_validation",
     "repos",
     "not_changed",
   ]);
