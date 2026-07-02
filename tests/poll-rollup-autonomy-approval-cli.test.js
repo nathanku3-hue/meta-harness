@@ -86,6 +86,8 @@ function initialRollup(parent) {
   const rollup = JSON.parse(result.stdout);
   assert.equal(rollup.autonomy_plan.verdict, "ready_for_human_approval");
   assert.equal(rollup.autonomy_approval_receipt_validation.verdict, "missing");
+  assert.equal(rollup.manual_work_packet.verdict, "missing_approval");
+  assert.equal(rollup.manual_work_packet.selected_candidate_id, "ACTION_REVIEW_FAILED_READINESS");
   return rollup;
 }
 
@@ -95,9 +97,16 @@ function assertApproved(result, receipt, before, after) {
   assert.equal(rollup.autonomy_approval_receipt_validation.verdict, "approved_for_manual_work");
   assert.equal(rollup.autonomy_approval_receipt_validation.ok, true);
   assert.deepEqual(rollup.autonomy_approval_receipt_validation.receipt, receipt);
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
+  assert.equal(rollup.manual_work_packet.source, "autonomy_approval_receipt_validation");
+  assert.equal(rollup.manual_work_packet.packet_id, receipt.packet_id);
+  assert.equal(rollup.manual_work_packet.selected_repo, "child-app");
+  assert.equal(rollup.manual_work_packet.selected_candidate_id, "ACTION_REVIEW_FAILED_READINESS");
   for (const field of ["mutates", "records_decision", "records_approval", "executes_child_commands", "writes_parent_files", "writes_child_files", "creates_tasks", "creates_queues", "applies_patches", "refreshes_readiness"]) {
     assert.equal(rollup.autonomy_approval_receipt_validation[field], false);
+    assert.equal(rollup.manual_work_packet[field], false);
   }
+  assert.equal(rollup.manual_work_packet.writes_files, false);
   assert.deepEqual(after, before);
 }
 
