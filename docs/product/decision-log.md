@@ -1558,9 +1558,42 @@ Non-goals:
 - No rollup ok/readiness behavior change.
 - No dashboard, daemon, provider/network integration, MCP expansion, auto-repair, or autonomy.
 
+Phase 20I read-only copy block validation is closed under D058. Phase 20J read-only export intent/safety gate remains future. Phase 21 autonomy remains deferred.
+
+## D058: Close Phase 20I Read-Only Proposal Review Copy Block Validation
+
+Decision:
+
+Accept Phase 20I as read-only `proposal_review_copy_block_validation` checking the safety and consistency of the copy block.
+
+Runtime commit: `local`.
+
+Scope accepted:
+
+- JSON includes `proposal_review_copy_block_validation` after `proposal_review_copy_block` and before `repos`.
+- Copy block validation kind is `read_only_proposal_review_copy_block_validation`.
+- Enforces copy block kind, source, packet ID consistency, verdict match, includes list, read-only safety, correct blocked/passed text states, safety from forbidden words/diffs, no forbidden output fields, and no `patch_proposals`.
+- Validation verdict is `pass` only when every check passes, otherwise it is `fail`.
+- Validation preserves top-level rollup `ok` and child readiness state.
+- Markdown renders `## Proposal Review Copy Block Validation` after copy block markdown.
+
+Evidence:
+
+- Runtime commit: `local`.
+- Test suite: `tests/repo-rollup-proposal-review-copy-block-validation.test.js` passes (12/12).
+- Full npm test suite passes (88 test files passing cleanly).
+- Local verification complete.
+
+Non-goals:
+
+- No write operations or file exporting.
+- No clipboard integration.
+- No auto-repair or autonomy.
+- No changes to child repo readiness or rollup ok.
+
 Future boundary:
 
-Phase 20I explicit export-file workflow remains future if ever needed. Phase 21 autonomy remains deferred.
+Phase 20J read-only export intent/safety gate remains future. Phase 21 autonomy remains deferred.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
