@@ -1678,7 +1678,7 @@ Non-goals:
 
 Future boundary:
 
-Phase 21C operator-driven write surface materialization is closed under D061; Phase 21D remains future.
+Phase 21C operator-driven write surface materialization is closed under D061; Phase 21D artifact verification is closed under D062; Phase 21E operator execution planning remains future.
 
 ## D061: Close Phase 21C Approved Packet Materialization
 
@@ -1714,7 +1714,44 @@ Non-goals:
 
 Future boundary:
 
-Phase 21D operator execution planning remains future.
+Phase 21D artifact verification is closed under D062; Phase 21E operator execution planning remains future.
+
+## D062: Close Phase 21D Approved Packet Artifact Verification
+
+Decision:
+
+Accept Phase 21D as the read-only verifier for materialized approved manual-work packet artifacts.
+
+Runtime commit:
+
+- `ab67931` (`feat: verify approved manual work packet artifact`).
+
+Scope accepted:
+
+- `poll --rollup --json --verify-manual-work-packet <path>` reads an existing parent-local artifact and validates it independently.
+- Verification does not require approval receipt input, packet writing, `--force`, or any execution/apply surface.
+- JSON output always includes top-level `manual_work_packet_artifact_validation` after `manual_work_packet` and before `repos`.
+- Verdicts are `not_requested`, `missing`, `invalid`, `blocked`, and `pass`; only `pass` sets validation `ok=true`.
+- Missing files at syntactically valid `.meta-harness/` paths return validation verdict `missing`.
+- Invalid absolute/outside/child/empty/repeated paths are rejected at the command layer.
+- Content checks validate artifact schema/kind/source, packet ID consistency, embedded ready verdict, wrapper safety fields, embedded packet safety fields, forbidden fields, path boundaries, and no-mutation behavior.
+- Validation preserves top-level rollup `ok` and child readiness state.
+
+Evidence:
+
+- Focused verifier tests: PASS 15/15.
+- Full Node test sweep: PASS 647/647.
+- Sync check: PASS checked=30.
+- Quality check: PASS with known public CLI command-count warning.
+- Ready quick: PASS with 15 pass, 1 warn, 4 skip.
+
+Non-goals:
+
+- No new public command, generic write, README/package/dependency change, dashboard, daemon, approval persistence, decision recording, readiness refresh, child repo mutation, child command execution, patch application, queue file, task file, proposal file, export workflow, execution planning, or apply semantics.
+
+Future boundary:
+
+Phase 21E operator execution planning remains future; bounded child writes remain Phase 21F or later only after 21E proves useful.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

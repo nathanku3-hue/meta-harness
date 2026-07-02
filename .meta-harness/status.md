@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Align Phase 21C runtime truth after adding approved packet materialization.
+Align Phase 21D runtime truth after adding approved packet artifact verification.
 
 Phase:
 closed
 
 Current truth:
-Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closed under D053. Phase 20E is implemented at `453ca28` and closed under D054. Phase 20F is implemented at `fba8d3d` and closed under D055. Phase 20G is implemented at `a712c3b` and closed under D056. Phase 20H is implemented at `59c23d3` and closed under D057. Phase 20I is implemented at `local` and closed under D058. Phase 20J is implemented at `local` and closed under D059. Phase 21A is implemented at `0588063`/`d604e07`/`128bd8e`. Phase 21B is implemented at `9507955` and closed under D060. Phase 21C is implemented locally at `16c7502` and closed under D061.
+Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closed under D053. Phase 20E is implemented at `453ca28` and closed under D054. Phase 20F is implemented at `fba8d3d` and closed under D055. Phase 20G is implemented at `a712c3b` and closed under D056. Phase 20H is implemented at `59c23d3` and closed under D057. Phase 20I is implemented at `local` and closed under D058. Phase 20J is implemented at `local` and closed under D059. Phase 21A is implemented at `0588063`/`d604e07`/`128bd8e`. Phase 21B is implemented at `9507955` and closed under D060. Phase 21C is implemented locally at `16c7502` and closed under D061. Phase 21D is implemented locally at `ab67931` and closed under D062.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -178,6 +178,17 @@ Phase 21C truth:
 - `--json` still prints the full rollup JSON.
 - No child execution, patch application, child file write, queue/task creation, readiness refresh, approval recording, decision recording, or parent/child truth mutation is shipped.
 
+Phase 21D truth:
+- JSON output always includes top-level `manual_work_packet_artifact_validation` after `manual_work_packet` and before `repos`.
+- `poll --rollup --json` accepts `--verify-manual-work-packet <path>` as a read-only parent-local artifact verification input.
+- Verification reads an already materialized artifact independently; it does not require approval receipt input, packet writing, or `--force`.
+- Validation verdicts are deterministic: `not_requested`, `missing`, `invalid`, `blocked`, and `pass`; only `pass` sets `ok=true`.
+- Missing files at syntactically valid `.meta-harness/` paths return validation verdict `missing` rather than crashing the command.
+- Invalid paths are rejected at the command layer: absolute paths, paths outside `.meta-harness/`, child repo paths, empty paths, and repeated verify flags.
+- Content validation checks artifact schema/version/kind/source, packet ID consistency, embedded `manual_work_packet.verdict=ready_for_manual_work`, wrapper safety fields, embedded packet safety fields, forbidden fields, path boundary checks, and read-only no-mutation behavior.
+- Artifact verification does not change top-level rollup `ok`, child readiness state, approvals, decisions, readiness files, tasks, queues, patch state, parent truth, or child repos.
+- No execution semantics are shipped: `pass` means structurally valid and safe to consume as an operator artifact, not ready to execute/apply.
+
 Superseded/deferred truth:
 - D047's action/proposal closure is superseded by D048 as current truth.
 - No `patch_proposals` output is shipped.
@@ -190,17 +201,17 @@ Superseded/deferred truth:
 - Phase 20I read-only copy block validation is closed locally.
 - Phase 20J read-only export intent/safety gate is closed locally.
 - Phase 20K explicit export-file workflow is bypassed and remains future/non-goal unless a real user need appears.
-- Phase 21A/21B are closed; Phase 21C approved packet materialization is implemented locally; Phase 21D operator execution planning remains future.
+- Phase 21A/21B/21C/21D are closed; Phase 21E operator execution planning remains future.
 
 Active streams:
-- coding: Phase 21C approved packet materialization is committed locally.
+- coding: Phase 21D approved packet artifact verification is committed locally.
 - research: no active research stream.
-- writing: Phase 21C truth alignment is in progress.
+- writing: Phase 21D truth alignment is in progress.
 - review: local verification complete; runtime commit remains local until pushed.
 
 Scope boundary:
 - Runtime is closed; truth alignment files only: `.meta-harness/status.md`, `.meta-harness/events.jsonl`, `docs/product/decision-log.md`, `docs/product/roadmap.md`.
-- Non-goals: README changes, package changes, new commands, new dependencies, dashboard, daemon, child command execution, child repo mutation, parent status mutation from rollup, readiness state mutation from candidates/briefs/drafts/validation/gate/packet/options/receipt-template/receipt-validation/manual-work-packet/materialization, readiness refresh, queue files, action files, proposal files, export files, patch proposals, patch application, approval persistence, review decision recording, task creation, auto-repair, MCP expansion, provider/network integration, CI publishing, and operator execution.
+- Non-goals: README changes, package changes, new commands, new dependencies, dashboard, daemon, child command execution, child repo mutation, parent status mutation from rollup, readiness state mutation from candidates/briefs/drafts/validation/gate/packet/options/receipt-template/receipt-validation/manual-work-packet/materialization/artifact-verification, readiness refresh, queue files, action files, proposal files, export files, patch proposals, patch application, approval persistence, review decision recording, task creation, auto-repair, MCP expansion, provider/network integration, CI publishing, and operator execution.
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
@@ -219,15 +230,16 @@ Relevant decisions:
 - D059 (2026-07-02): Phase 20J read-only proposal review export intent and safety gate closure.
 - D060 (2026-07-02): Phase 21A/21B approved manual-work packet closure and Phase 20K bypass.
 - D061 (2026-07-02): Phase 21C approved packet materialization closure.
+- D062 (2026-07-03): Phase 21D approved packet artifact verification closure.
 
 Blockers:
 - No local or remote blocker remains.
 
 Last verified:
-Phase 21C runtime commit `16c7502`: focused Phase 21C/rollup tests PASS 25/25; full npm test suite PASS (94 test files, failed=0); sync check PASS checked=30; quality check PASS with existing public CLI command-count warning; ready --quick --json ok=true with 15 passed, 0 failed, 1 warning.
+Phase 21D runtime commit `ab67931`: focused verifier tests PASS 15/15; full Node test sweep PASS 647/647; sync check PASS checked=30; quality check PASS with existing public CLI command-count warning; ready quick PASS with 15 pass, 1 warn, 4 skip.
 
 Next action:
-Commit Phase 21C truth alignment locally, then push local main when explicitly authorized.
+Commit Phase 21D truth alignment locally, then push local main when explicitly authorized. Phase 21E operator execution planning remains future.
 
 Updated:
-2026-07-02
+2026-07-03
