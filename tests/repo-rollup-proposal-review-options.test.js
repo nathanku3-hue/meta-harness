@@ -159,6 +159,7 @@ test("rollup top-level field order includes proposal_review_options after propos
     "proposal_review_export_intent",
     "proposal_review_export_safety_gate",
     "autonomy_plan",
+    "autonomy_approval_receipt_validation",
     "repos",
     "not_changed",
   ]);

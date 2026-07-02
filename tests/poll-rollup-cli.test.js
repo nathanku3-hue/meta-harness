@@ -157,6 +157,13 @@ test("poll --rollup --json emits read-only local file rollup without mutating fi
   assert.equal(rollup.autonomy_plan.required_human_approval, true);
   assert.deepEqual(rollup.autonomy_plan.blockers, []);
   assert.deepEqual(rollup.autonomy_plan.planned_steps, []);
+  const approvalValidation = rollup.autonomy_approval_receipt_validation;
+  assert.equal(approvalValidation.kind, "controlled_autonomy_approval_receipt_validation");
+  assert.equal(approvalValidation.source, "autonomy_plan");
+  assert.equal(approvalValidation.verdict, "not_needed");
+  assert.equal(approvalValidation.ok, true);
+  for (const field of ["mutates", "records_decision", "records_approval", "executes_child_commands", "writes_parent_files", "writes_child_files", "creates_tasks", "creates_queues", "applies_patches", "refreshes_readiness"]) assert.equal(approvalValidation[field], false);
+  assert.equal(approvalValidation.receipt, null);
   assert.equal(rollup.repos[0].name, "child-app");
   assert.equal(rollup.repos[0].state, "ready");
   assert.equal(rollup.repos[0].source, ".meta-harness/ready.json");
@@ -247,6 +254,12 @@ test("poll --rollup Markdown prints failed check IDs and reasons without mutatin
   assert.match(result.stdout, /- dry_run: true/);
   assert.match(result.stdout, /- mutates: false/);
   assert.match(result.stdout, /- blockers:\n  - none/);
+  assert.match(result.stdout, /## Controlled Autonomy Approval Receipt Validation/);
+  assert.match(result.stdout, /- verdict: missing/);
+  assert.match(result.stdout, /- ok: false/);
+  assert.match(result.stdout, /- mutates: false/);
+  assert.match(result.stdout, /- records_decision: false/);
+  assert.match(result.stdout, /- receipt: none/);
   assert.deepEqual(after, before);
 });
 
