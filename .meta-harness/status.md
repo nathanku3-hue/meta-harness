@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Close Phase 20I after adding read-only proposal review copy block validation.
+Close Phase 20J after adding read-only proposal review export intent and safety gate.
 
 Phase:
 closed
 
 Current truth:
-Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closed under D053. Phase 20E is implemented at `453ca28` and closed under D054. Phase 20F is implemented at `fba8d3d` and closed under D055. Phase 20G is implemented at `a712c3b` and closed under D056. Phase 20H is implemented at `59c23d3` and closed under D057. Phase 20I is implemented at `local` and closed under D058.
+Phase 16 is closed under D041/D042. Phase 17 base rollup, ready freshness/drilldown, and drift warnings are closed under D043/D044/D045. Phase 18 read-only response handoff is implemented at `d491e99` and closed under D046. D047 is superseded by D048 because it was too broad: it combined next-action routing with premature proposal-only automation. Phase 19A is implemented at `f3b1b59` and closed under D048. Phase 19B is implemented at `5c7a57a` and closed under D049. Phase 20A is implemented at `998ecef` and closed under D050. Phase 20B is implemented at `62ec976` and closed under D051. Phase 20C is implemented at `acf2c38` and closed under D052. Phase 20D is implemented at `3293a09` and closed under D053. Phase 20E is implemented at `453ca28` and closed under D054. Phase 20F is implemented at `fba8d3d` and closed under D055. Phase 20G is implemented at `a712c3b` and closed under D056. Phase 20H is implemented at `59c23d3` and closed under D057. Phase 20I is implemented at `local` and closed under D058. Phase 20J is implemented at `local` and closed under D059.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -140,6 +140,16 @@ Phase 20I truth:
 - Validation preserves top-level rollup `ok` and child readiness state.
 - Markdown output includes Proposal Review Copy Block Validation after Proposal Review Copy Block.
 
+Phase 20J truth:
+- JSON output includes `proposal_review_export_intent` and `proposal_review_export_safety_gate` after `proposal_review_copy_block_validation` and before `repos`.
+- Export intent kind is `read_only_proposal_review_export_intent`.
+- Export safety gate kind is `read_only_proposal_review_export_safety_gate`.
+- Intent enforces read-only safety fields (`export_target=null`, `declared_intent=none/null`, `writes_files=false`, etc.).
+- Safety gate verifies export intent kind, packet ID consistency, copy block validation matching, intent constraints, absence of forbidden output fields, and absence of `patch_proposals`.
+- Safety gate verdict is `pass` only when every check passes, otherwise it is `fail`.
+- Export intent and safety gate preserve top-level rollup `ok` and child readiness state.
+- Markdown output includes Proposal Review Export Intent and Proposal Review Export Safety Gate after Proposal Review Copy Block Validation.
+
 Superseded/deferred truth:
 - D047's action/proposal closure is superseded by D048 as current truth.
 - No `patch_proposals` output is shipped.
@@ -150,14 +160,14 @@ Superseded/deferred truth:
 - Phase 20G read-only proposal review receipt validation is closed locally.
 - Phase 20H read-only copy block rendering is closed locally.
 - Phase 20I read-only copy block validation is closed locally.
-- Phase 20J read-only export intent/safety gate remains future.
-- Phase 20K explicit export-file workflow remains future, if ever needed.
+- Phase 20J read-only export intent/safety gate is closed locally.
+- Phase 20K explicit export-file workflow remains future/non-goal, if ever needed.
 - Phase 21 autonomy remains deferred.
 
 Active streams:
-- coding: Phase 20I runtime copy block validation is committed locally.
+- coding: Phase 20J runtime export intent and safety gate is committed locally.
 - research: no active research stream.
-- writing: Phase 20I closure-only alignment is committed locally.
+- writing: Phase 20J closure-only alignment is committed locally.
 - review: local verification complete; remote push/confirmation remains pending until explicitly authorized and performed.
 
 Scope boundary:
@@ -178,16 +188,17 @@ Relevant decisions:
 - D056 (2026-07-01): Phase 20G read-only proposal review receipt validation closure.
 - D057 (2026-07-01): Phase 20H read-only proposal review copy block closure.
 - D058 (2026-07-02): Phase 20I read-only proposal review copy block validation closure.
+- D059 (2026-07-02): Phase 20J read-only proposal review export intent and safety gate closure.
 
 Blockers:
 - Remote push remains pending until explicitly authorized.
 - No local runtime/test blocker remains.
 
 Last verified:
-Runtime proposal review copy block validation at Phase 20I: full npm test suite PASS (88 test files passing cleanly). Local shell remains below declared engine: node v18.19.1 and npm 9.2.0.
+Runtime proposal review export intent and safety gate at Phase 20J: full npm test suite PASS (89 test files passing cleanly under Node v22.22.2 / npm v11.6.2).
 
 Next action:
-Push local `main` only when explicitly authorized, then confirm local/remote branch alignment. Phase 20J read-only export intent/safety gate remains future; Phase 21 autonomy remains deferred.
+Push local `main` only when explicitly authorized, then confirm local/remote branch alignment. Phase 20 is now closed; Phase 21 autonomy remains deferred.
 
 Updated:
 2026-07-02

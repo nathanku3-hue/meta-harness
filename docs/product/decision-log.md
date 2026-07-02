@@ -1591,9 +1591,44 @@ Non-goals:
 - No auto-repair or autonomy.
 - No changes to child repo readiness or rollup ok.
 
+Phase 20J read-only export intent and safety gate is closed under D059. Phase 20K explicit export-file workflow remains future. Phase 21 autonomy remains deferred.
+
+## D059: Close Phase 20J Read-Only Proposal Review Export Intent and Safety Gate
+
+Decision:
+
+Accept Phase 20J as read-only `proposal_review_export_intent` and `proposal_review_export_safety_gate` verifying no file writes or mutations occur during review.
+
+Runtime commit: `local`.
+
+Scope accepted:
+
+- JSON includes `proposal_review_export_intent` and `proposal_review_export_safety_gate` after `proposal_review_copy_block_validation` and before `repos`.
+- Export intent kind is `read_only_proposal_review_export_intent`.
+- Export safety gate kind is `read_only_proposal_review_export_safety_gate`.
+- Intent enforces read-only safety fields (`export_target=null`, `declared_intent=none/null`, `writes_files=false`, etc.).
+- Safety gate verifies export intent kind, packet ID consistency, copy block validation matching, intent constraints, absence of forbidden output fields, and absence of `patch_proposals`.
+- Safety gate verdict is `pass` only when every check passes, otherwise it is `fail`.
+- Export intent and safety gate preserve top-level rollup `ok` and child readiness state.
+- Markdown renders `## Proposal Review Export Intent` and `## Proposal Review Export Safety Gate` after copy block validation rendering.
+
+Evidence:
+
+- Runtime commit: `local`.
+- Test suite: `tests/repo-rollup-proposal-review-export-safety-gate.test.js` passes (10/10).
+- Full npm test suite passes (89 test files passing cleanly under Node v22.22.2 / npm v11.6.2).
+- Local verification complete.
+
+Non-goals:
+
+- No write operations or file exporting.
+- No clipboard integration.
+- No auto-repair or autonomy.
+- No changes to child repo readiness or rollup ok.
+
 Future boundary:
 
-Phase 20J read-only export intent/safety gate remains future. Phase 21 autonomy remains deferred.
+Phase 20K explicit export-file workflow remains future, if ever needed. Phase 21 autonomy remains deferred.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
