@@ -1678,7 +1678,43 @@ Non-goals:
 
 Future boundary:
 
-Phase 21C operator-driven write surface remains future and must start only after the stdout-only manual-work packet proves useful.
+Phase 21C operator-driven write surface materialization is closed under D061; Phase 21D remains future.
+
+## D061: Close Phase 21C Approved Packet Materialization
+
+Decision:
+
+Accept Phase 21C as the narrow parent-local JSON artifact materializer for approved manual-work packets.
+
+Runtime commit:
+
+- `16c7502` (`feat: materialize approved manual work packet`).
+
+Scope accepted:
+
+- Generic `poll --rollup --write` remains rejected.
+- `poll --rollup --json --write-manual-work-packet <path>` is the only materialization surface.
+- Materialization requires `manual_work_packet.verdict=ready_for_manual_work`.
+- The artifact uses dedicated `schema_version="1.0.0"` plus `rollup_schema_version` for the source rollup.
+- Paths must be relative, inside `.meta-harness/`, file-targeted, outside child repo roots, and overwrite only with `--force`.
+- The wrapper records the intentional parent-local file creation while the embedded packet remains non-writing.
+- JSON stdout still emits the full rollup.
+
+Evidence:
+
+- Focused Phase 21C/rollup tests: PASS 25/25.
+- Full npm test suite: PASS 94 test files, failed=0.
+- Sync check: PASS checked=30.
+- Quality check: PASS with known public CLI command-count warning 27 > 25.
+- Ready quick JSON: ok=true, passed=15, failed=0, warned=1.
+
+Non-goals:
+
+- No new public command, dependency, README change, dashboard, daemon, approval persistence, decision recording, readiness refresh, child repo mutation, child command execution, patch application, queue file, task file, proposal file, or export workflow.
+
+Future boundary:
+
+Phase 21D operator execution planning remains future.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
