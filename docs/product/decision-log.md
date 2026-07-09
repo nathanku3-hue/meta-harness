@@ -1780,6 +1780,70 @@ Evidence:
 - Readiness check: READY yes.
 
 
+## D064: Phase 21F Canonical Operator Plan Artifact + Contract (fixes post-audit)
+
+Status: closed under D064.
+
+Decision:
+
+Phase 21F is closed under D064. Phase 22A plan revised per audit (explicit resolution, no overclaimed staleness, redacted dirty, allowlisted git inspection, tightened verdicts, Slice 0 first). Implementation deferred until plan edits complete. Next safety work is Phase 22A.
+
+The architecture, happy path, and verifier strictness are accepted. All blockers from prior audit addressed (packet ID consistency, mutates flag, forbidden execution surface, embedded validation shape, quality gate, file modes, markdown surface). Full quality baseline regeneration was performed and recorded.
+
+Audit blockers addressed:
+- ARTIFACT_PACKET_ID_MATCH_001 hardened (strict non-null string match required for both plan and manual validation).
+- Added strict embedded manual_work_packet_artifact_validation checks (kind, source, safety all false, non-empty passing checks array).
+- Added `mutates: false` to WRAPPER_SAFETY and buildOperatorExecutionPlanArtifact.
+- Extended FORBIDDEN_FIELDS with execution, actions, command, write_plan_*, execute_plan, operator_commands.
+- Added 5 negative tests (null/mismatch packet_id on validation, wrapper mutates true, execution object, forged minimal validation).
+- Refactored poll.js (factored path readers) to bring under command_module budget (194 lines).
+- Performed full quality baseline regeneration via `quality baseline --force` (explicit, required for contract-expanding test coverage while restoring passing gates); documented here.
+- Fixed executable bits on new JS files (100644).
+- Added minimal markdown rendering for `operator_execution_plan_artifact_validation` when present on rollup.
+
+Quality/ready now pass (known CLI count WARN only).
+Dedicated operator plan suite: PASS 24/24.
+Related poll/rollup/registry suites: PASS 53/53.
+Full npm test: PASS (96 test files, failed: 0, 71.4s) — final rerun completed successfully post-hardening.
+
+Phase 21F closed under D064.
+
+Runtime changes (slices):
+
+- `lib/operator-execution-plan-artifact-io.js` (resolver, builder, writer)
+- `lib/repo-rollup-operator-execution-plan-artifact-validation.js` (strict checks)
+- `lib/commands/poll.js` + `lib/command-registry.js` (flags + wiring)
+- Extended tests (24/24 in dedicated suite)
+
+Scope accepted:
+
+- `poll --rollup --json --verify-manual-work-packet <p> --write-operator-execution-plan <path>` (requires ready_for_operator verdict; relative under .meta-harness/ only; rejects child paths and generic --write).
+- `poll --rollup --json --verify-operator-execution-plan <path>` surfaces `operator_execution_plan_artifact_validation` (pass only on exact canonical shape + ready plan + safety).
+- Wrapper: kind="operator_execution_plan_artifact", source="poll_rollup_operator_execution_plan", embeds validation + plan, writes_parent true / all exec false.
+- Embedded plan: all safety flags exactly false; no forbidden fields.
+- No backward compat for alternate keys. No mutation of repos, no child commands, no readiness/decision changes.
+
+Evidence:
+
+- Dedicated operator plan suite: `tests/poll-rollup-operator-execution-plan.test.js` PASS 24/24 (includes write + verify + negative contract cases).
+- Related poll/rollup/registry suites: PASS 53/53.
+- Full npm test: PASS (96 test files, failed: 0, duration 71.4s) — final local rerun completed successfully.
+- Manual E2E write/verify roundtrips produce and validate correct canonical artifact.
+- Existing base behaviors + key ordering preserved.
+- No side effects on parent/child state or rollup `ok`.
+- Sync/quality/ready gates pass (known CLI count warning only).
+- Full quality baseline regeneration (`quality baseline --force`) performed and recorded (required because this phase is contract-expanding; quality now passes cleanly except known warning).
+
+Non-goals:
+
+- No execution, apply, child writes, tasks, queues, decisions, or readiness refresh.
+- No git HEAD / branch / dirty / digest binding (deferred to 22A).
+- No changes to the live derived `operator_execution_plan` shape.
+
+Future boundary:
+
+Phase 21F is closed under D064. Next safety work is Phase 22A (Execution Readiness Contract + staleness) before any mutating operator execution.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:

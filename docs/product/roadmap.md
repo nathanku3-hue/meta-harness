@@ -66,6 +66,8 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 21C | Approved Packet Materialization | prototype | Done-done locally under D061: `poll --rollup --json` accepts `--write-manual-work-packet <path>` as the only materialization surface, requires `manual_work_packet.verdict=ready_for_manual_work`, writes one parent-local JSON artifact under `.meta-harness/`, preserves full rollup stdout, keeps generic `--write` rejected, and does not persist approval, record a decision, refresh readiness, mutate child repos, or execute child commands. |
 | 21D | Approved Packet Artifact Verification | prototype | Done-done locally under D062: read-only parent-local artifact validation is shipped; execution/apply/write semantics remain future. |
 | 21E | Read-Only Operator Execution Plan | prototype | Done-done locally under D063: rollup emits a read-only `operator_execution_plan` derived from the verified manual work packet artifact; verdict is `ready_for_operator` only under valid pass status; safety boundary is maintained with zero mutative action. |
+| 21F | Canonical Operator Plan Artifact + Contract | prototype | Closed under D064. Writer + strict verifier for canonical parent-local artifact (exact safety, packet consistency, no execution surface). Audit feedback addressed (verifier hardening, quality, modes, markdown). Full baseline regeneration recorded. |
+| 22A | Execution Readiness Contract | prototype | Design revised per audit. Explicit selected-repo resolution from repos.json. Live read-only git inspection (allowlisted only). Redacted dirty metadata. Captures state + digests. Verdict set focused on live gate (ready/dirty/artifact_invalid/missing_repo/...). mismatch_head/stale/tamper are conditional/future. Still no execution. |
 
 ---
 
@@ -1918,6 +1920,7 @@ The following remain future work, not Phase 17 base, Phase 17B/17C, Phase 17D, P
 - [x] Phase 21C approved packet materialization is implemented locally
 - [x] Phase 21D approved packet artifact verification is implemented locally
 - [x] Phase 21E read-only operator execution plan is implemented locally
+- [x] Phase 21F canonical operator plan artifact + contract closed under D064.
 - [ ] Write-enabled controlled autonomy pilot is implemented (future slice)
 - [ ] Scheduled scans/readiness refresh/docs-only patch proposals are implemented (future slice)
 

@@ -285,3 +285,108 @@ test("14. generic poll --rollup --write remains rejected", () => {
   const { parent } = setupFailedChild();
   failure(run(parent, ["poll", "--rollup", "--json", "--write"]), /read-only/);
 });
+
+function writeValidOpPlan(parent) {
+  writeValidArtifact(parent);
+  const result = run(parent, [
+    "poll",
+    "--rollup",
+    "--json",
+    "--verify-manual-work-packet",
+    ".meta-harness/manual-work-packet.json",
+    "--write-operator-execution-plan",
+    ".meta-harness/operator-execution-plan.json",
+    "--force",
+  ]);
+  assert.equal(result.status, 0, result.stderr);
+  return path.join(parent, ".meta-harness", "operator-execution-plan.json");
+}
+
+test("15. write-operator-execution-plan requires verify-manual-work-packet", () => {
+  const { parent } = setupFailedChild();
+  const result = run(parent, [
+    "poll",
+    "--rollup",
+    "--json",
+    "--write-operator-execution-plan",
+    ".meta-harness/op.json",
+  ]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, /requires --verify-manual-work-packet/);
+});
+
+test("16. write-operator-execution-plan succeeds only on ready_for_operator and writes canonical artifact", () => {
+  const { parent } = setupFailedChild();
+  const outPath = writeValidOpPlan(parent);
+  const art = readJson(outPath);
+  assert.equal(art.kind, "operator_execution_plan_artifact");
+  assert.equal(art.source, "poll_rollup_operator_execution_plan");
+  assert.equal(art.schema_version, "1.0.0");
+  assert.equal(art.operator_execution_plan.verdict, "ready_for_operator");
+  assert.equal(art.writes_parent_files, true);
+  assert.equal(art.writes_child_files, false);
+  assert.equal(art.operator_execution_plan.writes_files, false);
+  assert.equal(art.operator_execution_plan.executes_child_commands, false);
+  assert.ok(Array.isArray(art.operator_execution_plan.steps) && art.operator_execution_plan.steps.length > 0);
+});
+
+test("17. verify-operator-execution-plan on good artifact yields pass validation", () => {
+  const { parent } = setupFailedChild();
+  writeValidOpPlan(parent);
+  const result = run(parent, ["poll", "--rollup", "--json", "--verify-operator-execution-plan", ".meta-harness/operator-execution-plan.json"]);
+  assert.equal(result.status, 0, result.stderr);
+  const roll = JSON.parse(result.stdout);
+  assert.ok(roll.operator_execution_plan_artifact_validation);
+  assert.equal(roll.operator_execution_plan_artifact_validation.verdict, "pass");
+  assert.equal(roll.operator_execution_plan_artifact_validation.ok, true);
+});
+
+test("18. verify-operator-execution-plan detects non-ready plan", () => {
+  const { parent } = setupFailedChild();
+  writeValidOpPlan(parent);
+  const p = path.join(parent, ".meta-harness", "operator-execution-plan.json");
+  const art = readJson(p);
+  art.operator_execution_plan.verdict = "blocked";
+  art.operator_execution_plan.ok = false;
+  writeJson(p, art);
+  const result = run(parent, ["poll", "--rollup", "--json", "--verify-operator-execution-plan", ".meta-harness/operator-execution-plan.json"]);
+  const roll = JSON.parse(result.stdout);
+  assert.equal(roll.operator_execution_plan_artifact_validation.verdict, "blocked");
+  assert.equal(roll.operator_execution_plan_artifact_validation.ok, false);
+});
+
+test("19. verify rejects manual validation null packet_id", () => {
+  const { parent } = setupFailedChild(); writeValidOpPlan(parent);
+  const p = path.join(parent, ".meta-harness/operator-execution-plan.json");
+  const art = readJson(p); art.manual_work_packet_artifact_validation.packet_id = null; writeJson(p, art);
+  const val = JSON.parse(run(parent, ["poll","--rollup","--json","--verify-operator-execution-plan",".meta-harness/operator-execution-plan.json"]).stdout).operator_execution_plan_artifact_validation;
+  assert.equal(val.verdict, "invalid");
+});
+test("20. verify rejects manual validation packet mismatch", () => {
+  const { parent } = setupFailedChild(); writeValidOpPlan(parent);
+  const p = path.join(parent, ".meta-harness/operator-execution-plan.json");
+  const art = readJson(p); art.manual_work_packet_artifact_validation.packet_id = "bad"; writeJson(p, art);
+  const val = JSON.parse(run(parent, ["poll","--rollup","--json","--verify-operator-execution-plan",".meta-harness/operator-execution-plan.json"]).stdout).operator_execution_plan_artifact_validation;
+  assert.equal(val.verdict, "invalid");
+});
+test("21. verify rejects wrapper mutates:true", () => {
+  const { parent } = setupFailedChild(); writeValidOpPlan(parent);
+  const p = path.join(parent, ".meta-harness/operator-execution-plan.json");
+  const art = readJson(p); art.mutates = true; writeJson(p, art);
+  const val = JSON.parse(run(parent, ["poll","--rollup","--json","--verify-operator-execution-plan",".meta-harness/operator-execution-plan.json"]).stdout).operator_execution_plan_artifact_validation;
+  assert.equal(val.verdict, "invalid");
+});
+test("22. verify rejects forbidden execution object", () => {
+  const { parent } = setupFailedChild(); writeValidOpPlan(parent);
+  const p = path.join(parent, ".meta-harness/operator-execution-plan.json");
+  const art = readJson(p); art.execution = {run:"now"}; writeJson(p, art);
+  const val = JSON.parse(run(parent, ["poll","--rollup","--json","--verify-operator-execution-plan",".meta-harness/operator-execution-plan.json"]).stdout).operator_execution_plan_artifact_validation;
+  assert.equal(val.verdict, "invalid");
+});
+test("23. verify rejects forged minimal manual validation", () => {
+  const { parent } = setupFailedChild(); writeValidOpPlan(parent);
+  const p = path.join(parent, ".meta-harness/operator-execution-plan.json");
+  const art = readJson(p); art.manual_work_packet_artifact_validation = {verdict:"pass",ok:true,packet_id:null}; writeJson(p, art);
+  const val = JSON.parse(run(parent, ["poll","--rollup","--json","--verify-operator-execution-plan",".meta-harness/operator-execution-plan.json"]).stdout).operator_execution_plan_artifact_validation;
+  assert.notEqual(val.verdict, "pass");
+});
