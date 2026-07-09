@@ -1844,6 +1844,51 @@ Future boundary:
 
 Phase 21F is closed under D064. Next safety work is Phase 22A (Execution Readiness Contract + staleness) before any mutating operator execution.
 
+## D065: Phase 22A-H Execution Readiness Gate Hardening (no 22B)
+
+Status: closed under D065.
+
+Decision:
+
+Phase 22A is closed as a hard, fail-closed, read-only execution readiness gate under D065 (22A-H hardening). Do **not** proceed to 22B execution authority until a future audit explicitly opens it.
+
+What was hardened:
+- `lib/repo-git-state.js` owns allowlisted read-only git inspection; redacted dirty metadata only (count/staged/untracked — never paths).
+- `buildExecutionReadiness` requires `operatorPlanArtifactValidation.ok === true` (callers cannot bypass 21F verification).
+- On every `--verify-operator-execution-plan`, rollup **always** emits `execution_readiness` with an explicit verdict (no fail-by-omission).
+- `selected_repo_resolution` when validation passes; readiness maps resolution failures to structured verdicts.
+- Focused suite `tests/execution-readiness.test.js`; operator-plan suite restored under grandfathered size.
+- Quality restored by extraction (dirty.js / poll.js budgets), not by baselining debt.
+
+Worker rule (guidance; not execution authority):
+
+```
+Before touching child repo, re-run poll with --verify-operator-execution-plan.
+Proceed only if ALL of:
+  operator_execution_plan_artifact_validation.ok === true
+  selected_repo_resolution.ok === true
+  execution_readiness.verdict === "ready"
+  execution_readiness.ok === true
+  runs_read_only_git_inspection === true
+  executes_child_commands === false
+Anything else is blocked.
+```
+
+Evidence:
+- `npm test` PASS (97 test files, failed: 0)
+- `quality check` PASS (known public CLI command count WARN only)
+- `ready --target . --quick --read-only --json` ok:true
+- `sync check --target .` PASS
+- `git diff --check` clean
+
+Non-goals (still deferred):
+- No 22B execution authority, child writes, patches, tasks, queues, decisions, or readiness mutation.
+- No `mismatch_head` / `stale_repo` / `artifact_tampered` without expected bindings.
+
+Future boundary:
+
+22A-H closed under D065. Any child-repo work remains operator-driven. Next safety work is **22B Worker Gate Consumption Contract** (read-only preflight / machine checklist) — not execution authority. Execution remains unauthorized.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:

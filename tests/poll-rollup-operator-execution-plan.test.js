@@ -111,7 +111,6 @@ test("unit test: verified validation pass but missing verifiedManualWorkPacket -
   assert.equal(result.ok, false);
   assert.equal(result.packet_id, "packet-1");
 });
-
 // Integration tests
 test("1. no verify flag -> operator_execution_plan.verdict === not_requested", () => {
   const { parent } = setupFailedChild();
@@ -339,6 +338,7 @@ test("17. verify-operator-execution-plan on good artifact yields pass validation
   assert.ok(roll.operator_execution_plan_artifact_validation);
   assert.equal(roll.operator_execution_plan_artifact_validation.verdict, "pass");
   assert.equal(roll.operator_execution_plan_artifact_validation.ok, true);
+  assert.ok(roll.execution_readiness);
 });
 
 test("18. verify-operator-execution-plan detects non-ready plan", () => {

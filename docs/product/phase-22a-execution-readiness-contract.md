@@ -1,9 +1,9 @@
 # Phase 22A — Execution Readiness Contract
 
-Status: design revised per audit (no implementation yet); follows D064 (21F closure)
+Status: **implemented + hardened under D065 (22A-H)**; follows D064 (21F closure)
 Date: 2026-07-09
-Audit notes: All required edits applied before any code changes (deferred overclaims, Slice 0 first, redaction, git inspection clarification, detached/empty handling, tightened verdicts/exit criteria).
-Reference: audit directive after 21F + internal patterns (dirty.js, state-hash, readRepoIndex, operator plan artifact)
+Audit notes: 22A-H closed quality blockers (dirty/poll budgets, always-emit readiness, validation-gated builder, focused tests). No 22B.
+Reference: audit directive after 21F + 22A-H hardening plan (`docs/product/phase-22a-h-execution-readiness-hardening-plan.md`)
 
 ## Purpose (Strategic)
 
@@ -105,9 +105,9 @@ Extracted patterns:
    - Pure read-only, no mutation, no non-git commands.
 
 2. **Execution readiness builder + contract**
-   - New file: `lib/execution-readiness.js`
-   - `buildExecutionReadiness({ operatorPlanArtifact, verifiedPlanValidation, resolvedChildPath, planArtifactOnDiskPath? })`
-   - Prerequisites: artifact validation must be pass, selected_repo resolved successfully.
+   - File: `lib/execution-readiness.js` (+ `lib/repo-git-state.js` for inspection)
+   - `buildExecutionReadiness({ operatorPlanArtifact, operatorPlanArtifactValidation, selectedRepoResolution, cwd })`
+   - Prerequisites **encoded in builder**: `operatorPlanArtifactValidation.ok === true`; then resolution; then git inspection.
    - Capture current git state (via Slice 1 helper).
    - Compute plan_artifact_digest = stateHash(artifact) for provenance.
    - Apply rules (no overclaim):
@@ -142,10 +142,9 @@ Extracted patterns:
      ```
 
 3. **Wire into poll --rollup**
-   - On `--verify-operator-execution-plan <path>` (after successful 21F validation + resolution), produce top-level `execution_readiness`.
-   - Or support `--verify-execution-readiness <path>`.
-   - Add to rollup output after `operator_execution_plan_artifact_validation`.
-   - Advisory only (does not force top-level ok:false in 22A).
+   - On `--verify-operator-execution-plan <path>`, **always** produce top-level `execution_readiness` (even when validation or resolution fails — explicit fail-closed verdict; never omit).
+   - When validation passes, also emit `selected_repo_resolution`.
+   - Advisory for top-level rollup `ok` (does not force top-level ok:false in 22A); the worker gate is `execution_readiness` itself.
    - Update usage strings.
 
 4. **Validation + safety for readiness**
@@ -171,11 +170,13 @@ Extracted patterns:
 
 ## Deliverables
 
-**New:**
-- `lib/execution-readiness.js` (or integrated in repo-rollup + helpers)
-- Possibly small helpers in `lib/dirty.js` or `lib/repo-state.js`
+**New / primary:**
+- `lib/execution-readiness.js` (`buildExecutionReadiness`, `attachExecutionReadinessToRollup`, markdown)
+- `lib/repo-git-state.js` (`getRepoGitState` — redacted dirty only)
+- `lib/selected-repo-resolver.js`
 - `docs/product/phase-22a-execution-readiness-contract.md`
-- Tests (new or extended)
+- `docs/product/phase-22a-h-execution-readiness-hardening-plan.md`
+- `tests/execution-readiness.test.js`
 
 **Modified:**
 - `lib/commands/poll.js`
@@ -229,6 +230,6 @@ Non-goals for 22A:
 - After each slice: run focused tests + manual poll --rollup --verify-operator... exercise.
 - Clean 21F state in git before 22A implementation commits.
 
-This is the revised audit plan for Phase 22A. Direction accepted after these edits.
+Phase 22A is implemented and hardened under **D065**. Worker gate is machine-consumable via always-emitted `execution_readiness`.
 
-Next after 22A (preview): conditional staleness features + any 22B bounded execution (only after readiness ready).
+Next (preview only — not authorized): conditional staleness features + any 22B bounded execution only after a future audit explicitly opens 22B.
