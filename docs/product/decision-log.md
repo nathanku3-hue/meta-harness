@@ -1943,6 +1943,47 @@ Future boundary:
 
 Time-box failure (binding): if a future re-open of 22B cannot ship, fold **minimal** `worker_entry_gate` into 23A PR2; never authorize from a missing gate.
 
+## D067: Phase 23A-PR1 Execution Contract Authority (fixtures only)
+
+Status: closed under D067.
+
+Decision:
+
+Close **23A-PR1** as the **contract authority root** for controlled execution. Ship pure, fixture-driven:
+
+- `RunManifest` (schema + validate + canonical `manifestDigest`)
+- `authorizeRun` (fail-closed authority seal)
+- `EvidenceBundle` (facts shape)
+- `verifyEvidence` (`READY` | `BLOCKED` | `FAILED`)
+
+**No** process spawn, **no** AO, **no** Codex, **no** network, **no** new public CLI execution command, **no** fake provider, **no** state machine lifecycle.
+
+Authority rules (binding):
+
+1. `authorizeRun` fails closed without `worker_entry_gate.verdict === "open"` and `ok === true`
+2. Authorize fails on expired manifest, dirty tree, HEAD ≠ `baseRevision`, missing digests, invalid scope, invalid split permissions
+3. `manifestDigest` is canonical (`sha256:` + stableJson body excluding the digest field) and immutable after authorize (re-authorize → `ALREADY_AUTHORIZED`; new attempt/run required)
+4. Worker vs delivery permissions are split and validated (worker network/host write/subagents denied; delivery draft-PR + allowlisted push only; merge denied)
+5. `verifyEvidence` returns `READY` only from facts: head, changed files, patch hash, command cwd/exit/output hash, draft PR ref
+6. Scope violation → `BLOCKED`; missing required provider facts → `FAILED`; present-but-policy-failing facts → `BLOCKED`
+
+Evidence:
+
+- `lib/contracts/*` (digest, scope, run-manifest, authorize, evidence-bundle, verify-evidence)
+- `tests/contracts-authorize-verify.test.js`
+- roadmap: 23A split into PR1–PR4; 23A-PR1 closed under D067
+
+Non-goals (deferred to later 23A PRs):
+
+- 23A-PR2 fake provider + state machine
+- 23A-PR3 AO provider adapter
+- 23A-PR4 Codex draft-PR dogfood path
+- Router, DevSpace, Grok, subagents, multi-repo, auto-merge
+
+Future boundary:
+
+Contract layer is the root of authority. Do not let provider shapes or lifecycle code bias authorize/verify. Next: **23A-PR2 fake provider + state machine** only after this surface stays closed.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:

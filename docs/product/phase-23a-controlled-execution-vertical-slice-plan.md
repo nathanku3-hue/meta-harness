@@ -1,10 +1,10 @@
 # Immediate Next Plan — Narrow 22B + Phase 23A Controlled Execution Vertical Slice
 
-**Status:** **APPROVED with amendments** (2026-07-11) — amend docs then implement PR1 22B only  
-**Date:** 2026-07-11  
-**Input:** Sequencing correction + audit approval with required amendments  
-**Prerequisite tip:** `02d9c59` (22A-H closed under D065)  
-**Decision IDs (proposed):** D066 closes 22B; D067 opens/closes 23A contracts+fake path as needed; D068 records first real AO+Codex slice (audit may renumber)
+**Status:** **APPROVED with amendments** (2026-07-11); **23A-PR1 closed under D067** (contract authority only)
+**Date:** 2026-07-11
+**Input:** Sequencing correction + audit approval with required amendments; post-D066 audit: contract authority first
+**Prerequisite tip:** 22B / D066 at `f926868`; 22A-H at `02d9c59`
+**Decision IDs:** D066 closes 22B; **D067 closes 23A-PR1 contracts only**; later IDs for PR2–PR4 / AO+Codex dogfood
 
 ---
 
@@ -87,8 +87,8 @@ Until that path is proven, further orchestration abstractions are speculative.
 
 ## 3. PR 1 — Finish 22B (narrow; one PR only)
 
-**Decision (proposed):** D066  
-**Plan of record for shape:** `docs/product/phase-22b-worker-gate-consumption-contract.md`  
+**Decision (proposed):** D066
+**Plan of record for shape:** `docs/product/phase-22b-worker-gate-consumption-contract.md`
 **Time-box:** **one implementation PR**.
 
 ### Time-box failure rule (binding — no “freeze without replacement”)
@@ -162,8 +162,8 @@ User-facing mental model from sequencing note:
 
 ## 4. Phase 23A — Controlled Execution Vertical Slice
 
-**Name:** Phase 23A — Controlled Execution Vertical Slice  
-**Class:** first execution authority under hard constraints  
+**Name:** Phase 23A — Controlled Execution Vertical Slice
+**Class:** first execution authority under hard constraints
 **Depends on:** 22B closed **or** minimal `worker_entry_gate` folded into 23A PR2 (see time-box failure rule). Never authorize without an equivalent gate.
 
 ### Target path (only path in scope)
@@ -421,14 +421,16 @@ Restarting Meta-Harness must **not** duplicate an in-flight AO session, includin
 
 ## 7. Implementation backlog (ordered PRs)
 
-| PR | Name | Deliver | Depends |
-|---:|---|---|---|
-| **1** | Finish 22B | `worker_entry_gate` only (no aliases); open/blocked; tests; D066 | 22A-H |
-| **2** | Execution contracts | Schemas + validation for RunManifest (binding digests + split permissions), ExecutionProvider, SessionSnapshot, EvidenceBundle (facts); **if 22B incomplete, include minimal `worker_entry_gate` here**; **no processes** | PR 1 or fold-from-PR1 |
-| **3** | Fake provider + state machine | In-memory provider; full lifecycle; restart/reconciliation tests; **no AO** | PR 2 |
-| **4** | Agent Orchestrator provider | prepare/start/inspect/collect/stop; AO state map; **no auto-retry** | PR 3 |
-| **5** | Codex smoke path | One golden task: packet → AO worktree → Codex → tests → draft PR → evidence → MH READY; scope-violation → BLOCKED | PR 4 |
-| **6** | Grok read-only review | **Only after PR 5 is repeatable** | PR 5 |
+**Roadmap tightening (binding, post-D066 audit):** split 23A into **contract authority first**, not “full functional vertical first.” Do **not** combine contracts + fake in one PR.
+
+| PR | Name | Deliver | Depends | Status |
+|---:|---|---|---|---|
+| **22B** | Worker entry gate | `worker_entry_gate` only; D066 | 22A-H | **closed** |
+| **23A-PR1** | Execution contract authority | RunManifest + authorize + EvidenceBundle + verify fixtures only; **no** ExecutionProvider/state machine/process | 22B | **closed under D067** |
+| **23A-PR2** | Fake provider + state machine | In-memory provider; full lifecycle; restart/reconciliation; **no AO** | 23A-PR1 | planned |
+| **23A-PR3** | Agent Orchestrator provider | prepare/start/inspect/collect/stop; AO state map; **no auto-retry** | 23A-PR2 | planned |
+| **23A-PR4** | Codex draft-PR dogfood | One golden task → draft PR → MH READY\|BLOCKED | 23A-PR3 | planned |
+| later | Grok read-only review | Only after PR4 is repeatable | 23A-PR4 | deferred |
 
 ### Suggested layout (PR 2+)
 
@@ -461,10 +463,10 @@ Prefer **one** `run` command module with subcommands over many top-level command
 
 ### Codex progression (binding)
 
-1. **AO’s existing Codex adapter** for vertical slice  
-2. Codex SDK / structured output when evidence gaps require it  
-3. App-server only for deep interactive approval streaming  
-4. Codex native subagents only after single-parent writes are stable  
+1. **AO’s existing Codex adapter** for vertical slice
+2. Codex SDK / structured output when evidence gaps require it
+3. App-server only for deep interactive approval streaming
+4. Codex native subagents only after single-parent writes are stable
 
 ### Grok second slice (PR 6 only)
 
@@ -540,16 +542,16 @@ Existing 22B contract doc remains the **implementation blueprint for PR 1** (ope
 
 ## 10. Non-goals (global for this plan)
 
-1. New coding-agent implementation  
-2. LLM-controlled master scheduler  
-3. Unlimited fan-out / swarm mode  
-4. Second worktree manager inside Meta-Harness  
-5. Prompt-only completion validation  
-6. Host-filesystem execution as default (AO worktree is the write root)  
-7. Automatic merge as default  
-8. Tracker comments / terminal idle as completion truth  
-9. Importing Claude Squad source (AGPL)  
-10. Expanding 22B into another multi-phase readiness epic  
+1. New coding-agent implementation
+2. LLM-controlled master scheduler
+3. Unlimited fan-out / swarm mode
+4. Second worktree manager inside Meta-Harness
+5. Prompt-only completion validation
+6. Host-filesystem execution as default (AO worktree is the write root)
+7. Automatic merge as default
+8. Tracker comments / terminal idle as completion truth
+9. Importing Claude Squad source (AGPL)
+10. Expanding 22B into another multi-phase readiness epic
 
 ---
 
@@ -559,9 +561,9 @@ Existing 22B contract doc remains the **implementation blueprint for PR 1** (ope
 
 Close 22B under the existing consumption contract. `worker_entry_gate` is advisory machine preflight for manual work and a prerequisite input for future authorize; it does **not** grant automated execution.
 
-### D067 — Open Phase 23A Controlled Execution Vertical Slice
+### D067 — Close Phase 23A-PR1 Execution Contract Authority
 
-Approve first execution authority limited to: hard-coded Codex via Agent Orchestrator, single worker, single worktree, draft PR, Meta-Harness semantic READY/BLOCKED. Explicitly defer router, DevSpace, Grok, subagents, multi-repo, and repair loops.
+Close pure contract authority root: RunManifest + authorize + EvidenceBundle + verify fixtures. No process/AO/Codex/network/CLI run command. Fake provider and real execution are later PRs only.
 
 ---
 
@@ -581,23 +583,23 @@ Approve first execution authority limited to: hard-coded Codex via Agent Orchest
 
 ### Required amendments (incorporated above)
 
-1. Roadmap runtime key: **`worker_entry_gate` only** — no `operator_work_gate` alias  
-2. No freeze-without-replacement for 22B  
-3. Stronger RunManifest binding fields + digests  
-4. Split worker vs delivery permissions  
-5. Stronger start idempotency (lookup before second start)  
-6. EvidenceBundle verifiable facts (patch hash, command cwd/hashes, head, files, PR)  
-7. Do not commit raw status/rating chat export unless curated  
+1. Roadmap runtime key: **`worker_entry_gate` only** — no `operator_work_gate` alias
+2. No freeze-without-replacement for 22B
+3. Stronger RunManifest binding fields + digests
+4. Split worker vs delivery permissions
+5. Stronger start idempotency (lookup before second start)
+6. EvidenceBundle verifiable facts (patch hash, command cwd/hashes, head, files, PR)
+7. Do not commit raw status/rating chat export unless curated
 
 ---
 
 ## 13. Immediate operator actions (after audit approve)
 
-1. Optionally push `main` (3 commits through `02d9c59`) — **operator-only**, not part of 22B code.  
-2. **Amend plans + roadmap** (this revision).  
-3. Implement **PR 1 (22B) `worker_entry_gate` only**.  
-4. Do **not** start router, DevSpace, Grok, subagents, AO process, Codex run, push, or execution authority.  
-5. Do **not** stage raw `Project status and rating_*.md` conversation dumps.  
+1. Optionally push `main` (3 commits through `02d9c59`) — **operator-only**, not part of 22B code.
+2. **Amend plans + roadmap** (this revision).
+3. Implement **PR 1 (22B) `worker_entry_gate` only**.
+4. Do **not** start router, DevSpace, Grok, subagents, AO process, Codex run, push, or execution authority.
+5. Do **not** stage raw `Project status and rating_*.md` conversation dumps.
 6. After D066: open PR 2 contracts (include folded gate if 22B incomplete).
 
 ---

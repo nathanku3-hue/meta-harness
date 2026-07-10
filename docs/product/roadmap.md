@@ -69,7 +69,11 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 21F | Canonical Operator Plan Artifact + Contract | prototype | Closed under D064. Writer + strict verifier for canonical parent-local artifact (exact safety, packet consistency, no execution surface). Audit feedback addressed (verifier hardening, quality, modes, markdown). Full baseline regeneration recorded. |
 | 22A | Execution Readiness Contract | prototype | Closed under D065 (22A-H). Hard fail-closed live gate: always emits `execution_readiness` on `--verify-operator-execution-plan`; builder requires 21F validation.ok; `lib/repo-git-state.js` redacted inspection; focused tests. **No** execution authority. |
 | 22B | Worker Gate Consumption Contract | closed under D066 | Read-only consumption gate. On verify-op always emits **`worker_entry_gate` only** (`open` \| `blocked`) from 21F validation + resolution + 22A readiness. **No** `operator_work_gate` alias. **No** execution, child writes, apply, tasks, queues. |
-| 23A | Controlled Execution Vertical Slice | planned (post-22B / D066) | First execution authority under hard constraints: contracts → fake provider → AO provider → one Codex draft-PR path. Meta-Harness authorizes/verifies; AO owns worktrees; no router/DevSpace/Grok/subagents in first slice. CI uses fake/unit only; real AO+Codex is operator dogfood. See `phase-23a-controlled-execution-vertical-slice-plan.md` (approved with amendments). |
+| 23A | Controlled Execution Vertical Slice | in progress (PR1 closed) | First execution authority under hard constraints. **Contract authority first** (not full vertical yet). CI = fake/unit only; real AO+Codex = operator dogfood. See `phase-23a-controlled-execution-vertical-slice-plan.md`. |
+| 23A-PR1 | Execution Contract Authority | closed under D067 | Pure fixtures: `RunManifest` + `authorizeRun` + `EvidenceBundle` + `verifyEvidence`. Fail closed without `worker_entry_gate.open`; seal immutable `manifestDigest`; split permissions; READY only from facts. **No** process/AO/Codex/network/CLI run command. |
+| 23A-PR2 | Fake provider + state machine | planned | In-process fake executor + run lifecycle; no AO. Depends on D067 contract root. |
+| 23A-PR3 | AO provider adapter | planned | Thin prepare/start/inspect/collect/stop; AO owns worktrees. |
+| 23A-PR4 | Codex draft-PR dogfood path | planned | One packet → draft PR → MH READY\|BLOCKED; human merge authority. |
 
 ---
 

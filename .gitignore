@@ -77,3 +77,6 @@ data-output/
 
 # Local backup / archive directories
 archive/
+
+# local chat/rating exports (do not commit)
+Project status and rating_*.md
