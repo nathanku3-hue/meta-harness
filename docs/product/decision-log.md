@@ -1889,6 +1889,60 @@ Future boundary:
 
 22A-H closed under D065. Any child-repo work remains operator-driven. Next safety work is **22B Worker Gate Consumption Contract** (read-only preflight / machine checklist) — not execution authority. Execution remains unauthorized.
 
+## D066: Phase 22B Worker Gate Consumption Contract (read-only; no execution)
+
+Status: closed under D066.
+
+Decision:
+
+Phase 22B is closed as a pure **consumption** gate. On every `poll --rollup --verify-operator-execution-plan`, rollup **always** emits `worker_entry_gate` with verdict `open` or `blocked`. The gate consumes 21F plan-artifact validation, `selected_repo_resolution`, and 22A `execution_readiness` only — **no additional git inspection**, no child mutation, no execution authority.
+
+Canonical runtime key:
+
+- **`worker_entry_gate` only**
+- **No** `operator_work_gate` alias, dual key, or compatibility surface
+
+Open rule (strict conjunction):
+
+1. `operator_execution_plan_artifact_validation.ok === true`
+2. `selected_repo_resolution.ok === true`
+3. `execution_readiness.verdict === "ready"`
+4. `execution_readiness.ok === true`
+5. `execution_readiness.runs_read_only_git_inspection === true`
+6. `execution_readiness.executes_child_commands === false`
+
+`ok === true` only when `verdict === "open"`. Gate-level safety flags are always false (`executes_child_commands: false`, no writes/tasks/queues).
+
+Worker rule (guidance; still manual/operator-driven work only):
+
+```
+Before touching child repo, re-run poll with --verify-operator-execution-plan.
+Proceed only if:
+  worker_entry_gate.verdict === "open"
+  worker_entry_gate.ok === true
+Anything else is blocked.
+open ≠ automated execution authority.
+```
+
+Evidence:
+
+- `lib/worker-entry-gate.js` (build + attach + markdown)
+- `tests/worker-entry-gate.test.js`
+- poll attach after readiness; markdown after readiness
+- roadmap 22B closed; 23A planned post-22B
+
+Non-goals (still deferred):
+
+- No execution authority, AO process, Codex run, child writes, patches, tasks, queues
+- No router, DevSpace, Grok, subagents
+- No 22C–22F as separate pre-execution phases (minimum controls absorbed later in 23A authorize/verify per approved sequencing plan)
+
+Future boundary:
+
+22B closed under D066. Next product work is **Phase 23A Controlled Execution Vertical Slice** (`docs/product/phase-23a-controlled-execution-vertical-slice-plan.md`) — contracts first; CI fake/unit only; real AO+Codex is operator dogfood. Do not start execution without following that plan.
+
+Time-box failure (binding): if a future re-open of 22B cannot ship, fold **minimal** `worker_entry_gate` into 23A PR2; never authorize from a missing gate.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:
