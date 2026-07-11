@@ -1939,9 +1939,52 @@ Non-goals (still deferred):
 
 Future boundary:
 
-22B closed under D066. Next product work is **Phase 23A Controlled Execution Vertical Slice** (`docs/product/phase-23a-controlled-execution-vertical-slice-plan.md`) — contracts first; CI fake/unit only; real AO+Codex is operator dogfood. Do not start execution without following that plan.
+22B closed under D066. Next product work is **Phase 23A** authority contracts (D068 under review in PR #23). See `docs/product/phase-23a-execution-plan.md` and `docs/product/runtime-authority-architecture.md`.
 
-Time-box failure (binding): if a future re-open of 22B cannot ship, fold **minimal** `worker_entry_gate` into 23A PR2; never authorize from a missing gate.
+Time-box failure (binding): if a future re-open of 22B cannot ship, fold **minimal** `worker_entry_gate` into 23A authorize; never authorize from a missing gate.
+
+## D067: Phase 23A-PR1 Execution Contract Authority (SUPERSEDED by D068)
+
+Status: **superseded by D068**. Local-only design at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. Never merge as load-bearing.
+
+Historical decision: draft/authorized `RunManifest` + provider-shaped `EvidenceBundle` + single READY including PR. Superseded because request was fused with permission, digests confused integrity with truth, impl verification was coupled to delivery, and a generic fake provider was sequenced before probing AO.
+
+## D068: Phase 23A-PR1R Execution Authority Contracts (breaking)
+
+Status: **under review in PR #23** (not closed until merge). D068-final candidate `ed9aecd` is independently verified and approved for squash merge; D068 remains open until PR #23 merges.
+
+Decision:
+
+**Supersede D067.** Small pure authority kernel (not a governance platform):
+
+| Object | Role |
+|---|---|
+| `RunSpec` | Immutable requested work (`run-spec/v1`); attempt-agnostic; no approval binding |
+| `RunSpecApproval` | Exact approval envelope around a RunSpec (`run-spec-approval/v1`) |
+| `ExecutionReadinessFacts` | Sealed readiness facts + freshness + workspace policy digest |
+| `AttemptAuthorization` | One attempt’s prepare-workspace permission; policy-bound provider |
+| `WorkspaceStartCheck` | Pre-start assessment (`START_ALLOWED` …); full semantic validity |
+| `ImplementationAssessment` | Delivery-independent evaluation of **trusted** facts + `factsDigest` |
+
+Bindings:
+
+- Authorization accepts the complete `RunSpecApproval` object only (not plan hash, not digest-beside-spec).
+- `authorizeAttempt(runSpecApproval, readinessFacts, request, { now, policy, priorReceipt })`.
+- Request is exactly `{ authorizationId, attemptId }`; provider lives on trusted `policy`.
+- Policy digests (`authorizationPolicyDigest`, `workspacePolicyDigest`) bind into receipt and idempotency.
+- `authorizationRequestDigest` is a **receipt invariant**: recomputed from full explicit identity (`authorizationId`, `attemptId`, digests, `provider`, `capability`) on every sealed receipt validation — not only idempotency.
+- Supplied `priorReceipt` with a mismatched `authorizationId` is `PRIOR_AUTHORIZATION_ID_MISMATCH` (never silent fresh issue).
+- Workspace policy/attestation roots are host-native absolute normalized paths; cross-host path portability is not provided by v1.
+- Public transitions strict-validate outer envelopes before property access and fail closed (no exception leak).
+- Duplicate RunSpec command IDs are rejected at `validateRunSpec` (assessment keeps defense-in-depth).
+- D064–D066 operator-plan / readiness / worker-entry gate are **not** authority inputs.
+- Content digests are integrity only — not provenance.
+- Valid-at-start expiry; later expiry does not erase completed work.
+- No delivery assessor / MERGE_READY / user-facing state mapper in PR1R.
+
+Roadmap after merge (functional-first): D069 local controller walking slice → R1A deletion from real imports → D070 AO substitution in the same slice → child-repo dogfood → delivery/recovery only from observed failures. **Not** R1A planning + standalone AO research first.
+
+Evidence: `ed9aecd` (D068-final implementation); `lib/contracts/*`; `tests/contracts-authority-*.test.js`; `tests/contracts-d068-truth.test.js`; `docs/product/runtime-authority-architecture.md`. Independent verification: focused authority/truth 65 passed; full suite 106 files 0 failed; quality PASS; ready ok:true; sync PASS; `git diff --check` PASS.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

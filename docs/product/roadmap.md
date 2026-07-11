@@ -69,7 +69,15 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 21F | Canonical Operator Plan Artifact + Contract | prototype | Closed under D064. Writer + strict verifier for canonical parent-local artifact (exact safety, packet consistency, no execution surface). Audit feedback addressed (verifier hardening, quality, modes, markdown). Full baseline regeneration recorded. |
 | 22A | Execution Readiness Contract | prototype | Closed under D065 (22A-H). Hard fail-closed live gate: always emits `execution_readiness` on `--verify-operator-execution-plan`; builder requires 21F validation.ok; `lib/repo-git-state.js` redacted inspection; focused tests. **No** execution authority. |
 | 22B | Worker Gate Consumption Contract | closed under D066 | Read-only consumption gate. On verify-op always emits **`worker_entry_gate` only** (`open` \| `blocked`) from 21F validation + resolution + 22A readiness. **No** `operator_work_gate` alias. **No** execution, child writes, apply, tasks, queues. |
-| 23A | Controlled Execution Vertical Slice | planned (post-22B / D066) | First execution authority under hard constraints: contracts → fake provider → AO provider → one Codex draft-PR path. Meta-Harness authorizes/verifies; AO owns worktrees; no router/DevSpace/Grok/subagents in first slice. CI uses fake/unit only; real AO+Codex is operator dogfood. See `phase-23a-controlled-execution-vertical-slice-plan.md` (approved with amendments). |
+| 23A | Controlled Execution Vertical Slice | in progress | Authority kernel first, then local walking slice. See `phase-23a-execution-plan.md` + `runtime-authority-architecture.md`. |
+| 23A-PR1 | Execution Contract Authority (D067) | **superseded** | Historical only (`archive/23a-pr1-d067-fb40d18`). Do not merge as load-bearing. |
+| 23A-PR1R / D068 | Execution Authority Contracts | **merge-approved, under review until PR #23 merges** | Verified candidate `ed9aecd`: `RunSpec` + `RunSpecApproval` + readiness facts + `AttemptAuthorization` + start + implementation. No delivery assessor. Squash-merge via PR only. |
+| 23A-PR2 / D069 | Local Controller Walking Slice | **next** | Private local controller: real Git readiness → authorize → worktree → attestation → START_ALLOWED → atomic journal claim → fixture worker → controller commit → ImplementationFacts → `IMPLEMENTATION_VERIFIED`. |
+| R1A | Evidence-Based Core Reduction | after D069 | Delete unused modules from real D069 imports, test traces, and CLI invocation traces — not a pre-runtime planning phase. |
+| 23A-PR3 / D070 | AO Substitution | after R1A | Substitute AO into the same walking slice; observed GO / CONDITIONAL / NO-GO. Not a standalone AO research track. |
+| 23A-PR4 | Child-Repo Dogfood | later | One real verified execution path after D070. |
+| 23A-PR5 | Delivery actor | later | Only after dogfood; separately credentialed; bound delivery assessment. |
+| 23A-PR6 | Recovery | later | From observed failures — not anticipatory frameworks. |
 
 ---
 
@@ -79,7 +87,7 @@ Purpose: make the roadmap honest. Reconcile the product story with the endgame d
 
 ### Problem
 
-README says "Markdown-first workflow harness." Product spec says "no dashboard, daemon, agent spawning, or heavy policy layer." Both are true today, but they conflict with the endgame direction of an operationally self-aware coding control plane.
+README says "Markdown-first workflow harness." The product remains dependency-free and script-based, but a large local governance surface has accumulated (R1 reduction is planned after D068). That tension is acknowledged rather than denied.
 
 ### Deliverables
 
