@@ -59,12 +59,14 @@
     "tests/fixtures",
     "tests/tmp",
     "fixtures",
-    "generated"
+    "generated",
+    "internal/d069"
   ],
   "notes": [
     "Existing debt may be grandfathered.",
     "New debt is blocked.",
     "Touched grandfathered debt must not get worse.",
-    "Compatibility-breaking CLI or report behavior requires explicit approval and a migration note."
+    "Compatibility-breaking CLI or report behavior requires explicit approval and a migration note.",
+    "internal/d069 is a disposable, non-packaged D069 proof harness; D070 may replace or delete it."
   ]
 }
