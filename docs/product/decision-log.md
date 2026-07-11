@@ -1939,7 +1939,7 @@ Non-goals (still deferred):
 
 Future boundary:
 
-22B closed under D066. Next product work is **Phase 23A** authority contracts (D068 under review in PR #23). See `docs/product/phase-23a-execution-plan.md` and `docs/product/runtime-authority-architecture.md`.
+22B closed under D066. Phase 23A authority contracts closed under D068 (`be82763`). See `docs/product/phase-23a-execution-plan.md` and `docs/product/runtime-authority-architecture.md`.
 
 Time-box failure (binding): if a future re-open of 22B cannot ship, fold **minimal** `worker_entry_gate` into 23A authorize; never authorize from a missing gate.
 
@@ -1951,7 +1951,7 @@ Historical decision: draft/authorized `RunManifest` + provider-shaped `EvidenceB
 
 ## D068: Phase 23A-PR1R Execution Authority Contracts (breaking)
 
-Status: **under review in PR #23** (not closed until merge). D068-final candidate `ed9aecd` is independently verified and approved for squash merge; D068 remains open until PR #23 merges.
+Status: **closed under D068** (`be82763264503427a12af400e8413b10cdbf7363`).
 
 Decision:
 
@@ -1982,9 +1982,9 @@ Bindings:
 - Valid-at-start expiry; later expiry does not erase completed work.
 - No delivery assessor / MERGE_READY / user-facing state mapper in PR1R.
 
-Roadmap after merge (functional-first): D069 local controller walking slice → R1A deletion from real imports → D070 AO substitution in the same slice → child-repo dogfood → delivery/recovery only from observed failures. **Not** R1A planning + standalone AO research first.
+Roadmap after D068 (functional-first): D069 local controller walking slice → D070 AO substitution in the same slice → child-repo dogfood → full R1A from fixture + AO + dogfood imports/traces → delivery/recovery only from observed failures. **Not** R1A planning + standalone AO research first; **not** broad R1A before AO/dogfood.
 
-Evidence: `ed9aecd` (D068-final implementation); `lib/contracts/*`; `tests/contracts-authority-*.test.js`; `tests/contracts-d068-truth.test.js`; `docs/product/runtime-authority-architecture.md`. Independent verification: focused authority/truth 65 passed; full suite 106 files 0 failed; quality PASS; ready ok:true; sync PASS; `git diff --check` PASS.
+Evidence: squash `be82763264503427a12af400e8413b10cdbf7363` (PR #23; reviewed head `4b259c9`; pre-merge base `f926868`; tree-object equality PASS; ancestry PASS); `lib/contracts/*`; `tests/contracts-authority-*.test.js`; `tests/contracts-d068-truth.test.js`; `docs/product/runtime-authority-architecture.md`. Pre-merge independent verification at `ed9aecd` / `4b259c9`; required PR checks PASS on reviewed head.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

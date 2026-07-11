@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D068-final candidate `ed9aecd` independently verified and approved for squash merge. D068 remains open until PR #23 merges.
+**Status:** D068 closed under squash merge `be82763`. Next: D069 local controller walking slice.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -8,26 +8,26 @@
 
 | Step | Work |
 | --- | --- |
-| PR #23 / D068 | Squash-merge verified candidate `ed9aecd` (authority kernel approved; pre-merge truth reconciled) |
-| After merge | Slice 0B: record D068 closure on main with actual squash hash, then open D069 |
+| D068 | **Closed** under `be82763` (PR #23 squash; reviewed head `4b259c9`; base `f926868`) |
+| Next | D069 local controller walking slice → `IMPLEMENTATION_VERIFIED` |
 
-## After merge (functional-first — not R1A + AO research first)
+## Functional-first roadmap
 
 ```text
-merge D068
+D068 closed (be82763)
         ↓
 D069 local controller walking slice → IMPLEMENTATION_VERIFIED
-        ↓
-R1A delete unused from real imports/traces
         ↓
 D070 AO substitution in the same slice (observed GO/CONDITIONAL/NO-GO)
         ↓
 real child-repo dogfood
         ↓
+full R1A delete unused from fixture + AO + dogfood imports/traces
+        ↓
 delivery/recovery only from observed need
 ```
 
-## Explicit non-goals for D068
+## Explicit non-goals for D068 (historical)
 
 - Delivery assessor / MERGE_READY
 - User-facing state mapper

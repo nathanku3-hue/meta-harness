@@ -71,11 +71,11 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 22B | Worker Gate Consumption Contract | closed under D066 | Read-only consumption gate. On verify-op always emits **`worker_entry_gate` only** (`open` \| `blocked`) from 21F validation + resolution + 22A readiness. **No** `operator_work_gate` alias. **No** execution, child writes, apply, tasks, queues. |
 | 23A | Controlled Execution Vertical Slice | in progress | Authority kernel first, then local walking slice. See `phase-23a-execution-plan.md` + `runtime-authority-architecture.md`. |
 | 23A-PR1 | Execution Contract Authority (D067) | **superseded** | Historical only (`archive/23a-pr1-d067-fb40d18`). Do not merge as load-bearing. |
-| 23A-PR1R / D068 | Execution Authority Contracts | **merge-approved, under review until PR #23 merges** | Verified candidate `ed9aecd`: `RunSpec` + `RunSpecApproval` + readiness facts + `AttemptAuthorization` + start + implementation. No delivery assessor. Squash-merge via PR only. |
+| 23A-PR1R / D068 | Execution Authority Contracts | **closed under be82763** | Squash merge of PR #23 (reviewed head `4b259c9`, base `f926868`): `RunSpec` + `RunSpecApproval` + readiness facts + `AttemptAuthorization` + start + implementation. No delivery assessor. Kernel frozen. |
 | 23A-PR2 / D069 | Local Controller Walking Slice | **next** | Private local controller: real Git readiness → authorize → worktree → attestation → START_ALLOWED → atomic journal claim → fixture worker → controller commit → ImplementationFacts → `IMPLEMENTATION_VERIFIED`. |
-| R1A | Evidence-Based Core Reduction | after D069 | Delete unused modules from real D069 imports, test traces, and CLI invocation traces — not a pre-runtime planning phase. |
-| 23A-PR3 / D070 | AO Substitution | after R1A | Substitute AO into the same walking slice; observed GO / CONDITIONAL / NO-GO. Not a standalone AO research track. |
-| 23A-PR4 | Child-Repo Dogfood | later | One real verified execution path after D070. |
+| 23A-PR3 / D070 | AO Substitution | after D069 | Substitute AO into the same walking slice; observed GO / CONDITIONAL / NO-GO. Not a standalone AO research track. |
+| 23A-PR4 | Child-Repo Dogfood | after D070 | One real verified execution path after D070. |
+| R1A | Evidence-Based Core Reduction | after dogfood | Delete unused modules from fixture + AO + dogfood imports, test traces, and CLI invocation traces — not a pre-runtime planning phase. |
 | 23A-PR5 | Delivery actor | later | Only after dogfood; separately credentialed; bound delivery assessment. |
 | 23A-PR6 | Recovery | later | From observed failures — not anticipatory frameworks. |
 

@@ -1,6 +1,6 @@
 # Runtime Authority Architecture (concise)
 
-**Status:** D068 / 23A-PR1R — **under review in PR #23** (D068-final amendment: request-digest invariant, absolute paths, strict outer envelopes)
+**Status:** D068 / 23A-PR1R — **closed under `be82763`** (PR #23 squash; request-digest invariant, absolute paths, strict outer envelopes)
 
 **Rule:** Behavioral authority lives in schemas + tests. This doc stays short.
 
@@ -61,12 +61,12 @@ facts.collectedAt ≥ git.collectedAt
 
 Readiness also requires `now - inspectedAt ≤ policy.maxReadinessAgeSeconds`.
 
-## Next (after PR #23 merges) — functional-first
+## Next — functional-first
 
-1. **D069** local controller walking slice: real git readiness → authorize → worktree → realpath attestation → START_ALLOWED → atomic journal consume → fixture worker → controller commit → validation → `IMPLEMENTATION_VERIFIED`.
-2. **R1A** delete unused Phase 20–22 shells / CLI from real imports and traces (not planning-first).
-3. **D070** substitute AO into the same walking slice (GO / CONDITIONAL / NO-GO from observation).
-4. Real child-repo dogfood.
+1. **D069** local controller walking slice: real git readiness → authorize → worktree → realpath attestation → START_ALLOWED → atomic journal claim → fixture worker → controller commit → validation → `IMPLEMENTATION_VERIFIED`.
+2. **D070** substitute AO into the same walking slice (GO / CONDITIONAL / NO-GO from observation).
+3. Real child-repo dogfood.
+4. **Full R1A** delete unused from fixture + AO + dogfood imports and traces (not planning-first; not before AO/dogfood).
 5. Delivery/recovery only from observed failures.
 
 No public `meta-harness run` until a concrete runtime path exists. No generic `ExecutionProvider` before two real backends.

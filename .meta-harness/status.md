@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Squash-merge PR #23 (D068 authority contracts), then record D068 closure on main before opening D069.
+Open D069 local controller walking slice (functional-first custody runtime). Kernel frozen.
 
 Phase:
 in_progress
 
 Current truth:
-Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068-final candidate `ed9aecd` is independently verified and approved for squash merge. D068 remains open until PR #23 merges.** Pure authority kernel; no AO, no delivery actor, no public run CLI. After merge: Slice 0B closure truth on main, then D069 local controller walking slice (functional-first) — not R1A planning + standalone AO research first.
+Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** Pure authority kernel frozen; no AO, no delivery actor, no public run CLI. Next: D069 → D070 AO substitution → child-repo dogfood → full R1A — not R1A before AO/dogfood.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -244,13 +244,16 @@ Blockers:
 - Push pre-merge truth reconciliation, verify origin, then authorized squash-merge of PR #23. After merge, record D068 closure on main before opening D069.
 
 Last verified:
-D068-final candidate ed9aecd independently verified:
-65 focused tests passed; full suite 106 files, 0 failed;
-quality PASS; ready ok:true; sync PASS; git diff --check PASS.
+D068 closed under be82763 (PR #23 squash).
+Tree-object equality PASS (4b259c9 tree == be82763 tree);
+ancestry PASS (f926868 ancestor of be82763).
+Slice 0B local gates: focused authority/truth 67 passed;
+full suite 106 files 0 failed; quality PASS; ready ok:true;
+sync PASS checked=30; git diff --check PASS.
 
 Next action:
-Push the truth-only reconciliation commit and squash-merge PR #23.
-After merge, record D068 closure on main before opening D069.
+Open D069 local controller walking slice on a feature branch.
+Do not reopen lib/contracts/* without a real runtime failure.
 
 Updated:
 2026-07-11
