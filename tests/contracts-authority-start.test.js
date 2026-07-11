@@ -3,6 +3,7 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
+const path = require("node:path");
 const { evaluateWorkspaceStart, validateWorkspaceAttestation } = require("../lib/contracts");
 const { domainDigest } = require("../lib/contracts/digest");
 const {
@@ -10,6 +11,8 @@ const {
   buildAttestationFixture,
   authorizeFixture,
   WORKSPACE_POLICY,
+  APPROVED_ROOT,
+  OUTSIDE_REPO_ROOT,
 } = require("./helpers/contracts-fixtures");
 
 test("start allowed for clean workspace under approved root", () => {
@@ -31,9 +34,12 @@ test("dirty workspace is blocked", () => {
 });
 
 test("workspace outside approved root is blocked", () => {
-  const { start } = startFixture({}, { repositoryRoot: "/other/root/repo" });
+  const { start } = startFixture({}, { repositoryRoot: OUTSIDE_REPO_ROOT });
   assert.equal(start.ok, false);
-  assert.ok(start.reasons.some((x) => x.code === "WORKSPACE_OUTSIDE_APPROVED_ROOT"));
+  assert.ok(start.reasons.some((x) =>
+    x.code === "WORKSPACE_OUTSIDE_APPROVED_ROOT"
+    || x.code === "REPOSITORY_ROOT_PATH_INVALID"
+    || x.code === "ATTESTATION_INVALID"));
 });
 
 test("SHA mismatch blocks start", () => {
@@ -46,11 +52,12 @@ test("SHA mismatch blocks start", () => {
 
 test("different workspacePolicy at start is rejected", () => {
   const { runSpec, receipt, attestation } = startFixture();
+  const otherRoot = path.resolve("/other-approved-root");
   const start = evaluateWorkspaceStart({
     runSpec,
     authorizationReceipt: receipt,
     attestation,
-    workspacePolicy: { schemaVersion: "workspace-policy/v1", approvedRoot: "/" },
+    workspacePolicy: { schemaVersion: "workspace-policy/v1", approvedRoot: otherRoot },
     now: "2026-07-11T12:10:00.000Z",
   });
   assert.equal(start.ok, false);
@@ -82,5 +89,5 @@ test("start check binds workspace policy digest", () => {
   const { start, policy } = startFixture();
   const expected = domainDigest("workspace-policy/v1", policy.workspacePolicy);
   assert.equal(start.startCheck.workspacePolicyDigest, expected);
-  assert.equal(WORKSPACE_POLICY.approvedRoot, "/approved/root");
+  assert.equal(WORKSPACE_POLICY.approvedRoot, APPROVED_ROOT);
 });

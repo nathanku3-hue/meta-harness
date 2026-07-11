@@ -1,10 +1,7 @@
 "use strict";
 
-/**
- * Test-only fixture builders for D068 authority contracts.
- * Not production exports. Prefer importing internals for seal helpers.
- */
-
+/** Test-only D068 fixture builders (not production exports). */
+const path = require("node:path");
 const { domainDigest } = require("../../lib/contracts/digest");
 const { freezeDeep, cloneStrict } = require("../../lib/contracts/canonical-json");
 const {
@@ -30,9 +27,13 @@ const NOW = "2026-07-11T12:00:00.000Z";
 const APPROVED_AT = "2026-07-11T11:00:00.000Z";
 const INSPECTED_AT = "2026-07-11T11:30:00.000Z";
 
+const APPROVED_ROOT = path.resolve("/approved/root");
+const FIXTURE_REPO_ROOT = path.join(APPROVED_ROOT, ".worktrees", "mh-run-0001");
+const OUTSIDE_REPO_ROOT = path.resolve("/other/root/repo");
+
 const WORKSPACE_POLICY = Object.freeze({
   schemaVersion: "workspace-policy/v1",
-  approvedRoot: "/approved/root",
+  approvedRoot: APPROVED_ROOT,
 });
 
 const POLICY = Object.freeze({
@@ -122,11 +123,15 @@ function authorizeFixture(specOver = {}, requestOver = {}, optionOver = {}) {
   const readiness = optionOver.readiness
     || buildReadinessFacts(approval, optionOver.readinessOver);
   const policy = optionOver.policy || POLICY;
-  const result = authorizeAttempt(approval, readiness, authRequest(requestOver), {
+  const options = {
     now: optionOver.now || NOW,
     policy,
-    priorReceipt: optionOver.priorReceipt,
-  });
+  };
+  if (Object.prototype.hasOwnProperty.call(optionOver, "priorReceipt")
+    && optionOver.priorReceipt !== undefined) {
+    options.priorReceipt = optionOver.priorReceipt;
+  }
+  const result = authorizeAttempt(approval, readiness, authRequest(requestOver), options);
   return {
     approval,
     runSpec: approval.runSpec,
@@ -146,7 +151,7 @@ function buildAttestationFixture(runSpec, receipt, over = {}) {
     repositoryId: runSpec.repository.repositoryId,
     objectFormat: runSpec.repository.objectFormat,
     workspaceRef: over.workspaceRef || "ws-fixture-1",
-    repositoryRoot: over.repositoryRoot || "/approved/root/.worktrees/mh-run-0001",
+    repositoryRoot: over.repositoryRoot || FIXTURE_REPO_ROOT,
     branch: over.branch || "mh/run-0001",
     baseRevision: runSpec.repository.expectedBaseRevision,
     currentHead: runSpec.repository.expectedBaseRevision,
@@ -256,12 +261,9 @@ function deepMerge(base, over) {
   if (!over || typeof over !== "object" || Array.isArray(over)) return { ...base };
   const out = { ...base };
   for (const [k, v] of Object.entries(over)) {
-    if (v && typeof v === "object" && !Array.isArray(v)
-      && base[k] && typeof base[k] === "object" && !Array.isArray(base[k])) {
-      out[k] = deepMerge(base[k], v);
-    } else {
-      out[k] = v;
-    }
+    const nest = v && typeof v === "object" && !Array.isArray(v)
+      && base[k] && typeof base[k] === "object" && !Array.isArray(base[k]);
+    out[k] = nest ? deepMerge(base[k], v) : v;
   }
   return out;
 }
@@ -277,9 +279,7 @@ function realOperatorPlanArtifact() {
 
 function realExecutionReadiness() {
   return {
-    ok: true,
-    verdict: "ready",
-    selected_repo: "other-repo",
+    ok: true, verdict: "ready", selected_repo: "other-repo",
     captured: { head_commit: "f".repeat(40), is_clean: true },
     plan_artifact_digest: `sha256:${"a".repeat(64)}`,
   };
@@ -287,6 +287,7 @@ function realExecutionReadiness() {
 
 module.exports = {
   BASE_SHA, HEAD_SHA, NOW, APPROVED_AT, INSPECTED_AT, POLICY, WORKSPACE_POLICY,
+  APPROVED_ROOT, FIXTURE_REPO_ROOT, OUTSIDE_REPO_ROOT,
   workspacePolicyDigest, buildRunSpecFixture, buildApprovalFixture, buildReadinessFacts,
   authRequest, authorizeFixture, buildAttestationFixture, startFixture, buildTrustedFacts,
   verifyFixture, realOperatorPlanArtifact, realExecutionReadiness, deepMerge, cloneStrict,

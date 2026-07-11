@@ -7,7 +7,7 @@ Phase:
 in_progress
 
 Current truth:
-Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **PR #23 contains one D068 candidate commit atop D066. Audit found remaining merge blockers; D068 remains under review** — pure authority kernel (`RunSpec`, `RunSpecApproval`, `ExecutionReadinessFacts`, `AttemptAuthorization`, `WorkspaceStartCheck`, `ImplementationAssessment`); not closed until merge.
+Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **PR #23 D068 under review — D068-final amendment:** request-digest receipt invariant, full prior identity match, reject mismatched prior auth IDs, host-native absolute workspace paths, outer strict envelopes on public transitions, duplicate command IDs at RunSpec validation. Pure authority kernel remains; not closed until merge. Post-merge priority is D069 local walking slice (functional-first), not R1A planning + standalone AO research.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.

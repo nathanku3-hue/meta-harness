@@ -1,6 +1,6 @@
 # Runtime Authority Architecture (concise)
 
-**Status:** D068 / 23A-PR1R — **under review in PR #23**
+**Status:** D068 / 23A-PR1R — **under review in PR #23** (D068-final amendment: request-digest invariant, absolute paths, strict outer envelopes)
 
 **Rule:** Behavioral authority lives in schemas + tests. This doc stays short.
 
@@ -29,11 +29,14 @@ They may remain as diagnostic guidance. Delivery assessment is **not** part of P
 5. `attemptId` lives on authorization and downstream binds — never on `RunSpec`.
 6. Provider, TTL, readiness age, command timeout ceiling, and workspace root policy come from trusted `policy` only.
 7. Policy identity (`authorizationPolicyDigest`, `workspacePolicyDigest`) binds into the receipt and idempotency key.
-8. Pre-start capability is fixed: prepare-workspace. Start is allowed only after `WorkspaceStartCheck`.
-9. Authorization validity is enforced at start (`checkedAt` in window). Later expiry does not erase completed work.
-10. Implementation assessment requires complete fact bindings, semantic start revalidation, and `factsDigest`.
-11. Worker never receives push/PR credentials.
-12. Deny overrides allow; ambiguous paths fail closed.
+8. `authorizationRequestDigest` is recomputed from the receipt’s full explicit identity on every sealed validation (receipt invariant).
+9. Pre-start capability is fixed: prepare-workspace. Start is allowed only after `WorkspaceStartCheck`.
+10. Authorization validity is enforced at start (`checkedAt` in window). Later expiry does not erase completed work.
+11. Implementation assessment requires complete fact bindings, semantic start revalidation, and `factsDigest`.
+12. Worker never receives push/PR credentials.
+13. Deny overrides allow; ambiguous paths fail closed.
+14. `workspacePolicy.approvedRoot` and `attestation.repositoryRoot` are host-native absolute normalized paths (same-host semantics only; no cross-host portability in v1).
+15. Public transitions strict-validate outer input envelopes before property access and return structured failures.
 
 ## Provenance honesty
 
@@ -58,13 +61,12 @@ facts.collectedAt ≥ git.collectedAt
 
 Readiness also requires `now - inspectedAt ≤ policy.maxReadinessAgeSeconds`.
 
-## Next (after PR #23 merges)
+## Next (after PR #23 merges) — functional-first
 
-1. R1A: demote Phase 20–22 load-bearing shells; reduce CLI surface.
-2. AO capability and provenance probe → D069 GO / CONDITIONAL / NO-GO.
-3. Join gate: R1A complete **and** D069 permits execution.
-4. One concrete backend + minimum private journal.
-5. Real child-repo `IMPLEMENTATION_VERIFIED` dogfood.
-6. R1B delete unused; delivery only from observed need.
+1. **D069** local controller walking slice: real git readiness → authorize → worktree → realpath attestation → START_ALLOWED → atomic journal consume → fixture worker → controller commit → validation → `IMPLEMENTATION_VERIFIED`.
+2. **R1A** delete unused Phase 20–22 shells / CLI from real imports and traces (not planning-first).
+3. **D070** substitute AO into the same walking slice (GO / CONDITIONAL / NO-GO from observation).
+4. Real child-repo dogfood.
+5. Delivery/recovery only from observed failures.
 
 No public `meta-harness run` until a concrete runtime path exists. No generic `ExecutionProvider` before two real backends.

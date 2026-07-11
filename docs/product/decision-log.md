@@ -1951,7 +1951,7 @@ Historical decision: draft/authorized `RunManifest` + provider-shaped `EvidenceB
 
 ## D068: Phase 23A-PR1R Execution Authority Contracts (breaking)
 
-Status: **under review in PR #23** (not closed until merge).
+Status: **under review in PR #23** (not closed until merge). D068-final amendment in progress: request-digest receipt invariant, full prior identity, host-native absolute paths, outer strict envelopes, duplicate command IDs at validation.
 
 Decision:
 
@@ -1972,12 +1972,17 @@ Bindings:
 - `authorizeAttempt(runSpecApproval, readinessFacts, request, { now, policy, priorReceipt })`.
 - Request is exactly `{ authorizationId, attemptId }`; provider lives on trusted `policy`.
 - Policy digests (`authorizationPolicyDigest`, `workspacePolicyDigest`) bind into receipt and idempotency.
+- `authorizationRequestDigest` is a **receipt invariant**: recomputed from full explicit identity (`authorizationId`, `attemptId`, digests, `provider`, `capability`) on every sealed receipt validation — not only idempotency.
+- Supplied `priorReceipt` with a mismatched `authorizationId` is `PRIOR_AUTHORIZATION_ID_MISMATCH` (never silent fresh issue).
+- Workspace policy/attestation roots are host-native absolute normalized paths; cross-host path portability is not provided by v1.
+- Public transitions strict-validate outer envelopes before property access and fail closed (no exception leak).
+- Duplicate RunSpec command IDs are rejected at `validateRunSpec` (assessment keeps defense-in-depth).
 - D064–D066 operator-plan / readiness / worker-entry gate are **not** authority inputs.
 - Content digests are integrity only — not provenance.
 - Valid-at-start expiry; later expiry does not erase completed work.
 - No delivery assessor / MERGE_READY / user-facing state mapper in PR1R.
 
-Roadmap after merge: R1A demotion + AO probe in parallel → hard join before runtime → D069 → one backend.
+Roadmap after merge (functional-first): D069 local controller walking slice → R1A deletion from real imports → D070 AO substitution in the same slice → child-repo dogfood → delivery/recovery only from observed failures. **Not** R1A planning + standalone AO research first.
 
 Evidence: `lib/contracts/*`, `tests/contracts-authority-*.test.js`, `docs/product/runtime-authority-architecture.md`.
 

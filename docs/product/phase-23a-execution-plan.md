@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D068 under review in PR #23
+**Status:** D068 under review in PR #23 (D068-final amendment)
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -8,21 +8,23 @@
 
 | Step | Work |
 | --- | --- |
-| PR #23 / D068 | Pure authority kernel: RunSpec, AttemptAuthorization, WorkspaceStartCheck, ImplementationAssessment |
-| Ship gate | Adversarial + full tests; one D068 commit on `f926868` |
+| PR #23 / D068-final | Bounded amendment: request-digest invariant, prior identity, absolute paths, strict envelopes, dup commands |
+| Ship gate | Adversarial file + full tests; amend on `b824352`; force-with-lease |
 
-## After merge (parallel tracks)
+## After merge (functional-first — not R1A + AO research first)
 
 ```text
 merge D068
-├─ R1 core reduction (compress governance / CLI surface)
-└─ AO capability/provenance probe → D069
         ↓
-concrete runtime against the reduced core
+D069 local controller walking slice → IMPLEMENTATION_VERIFIED
         ↓
-real child-repo IMPLEMENTATION_VERIFIED dogfood
+R1A delete unused from real imports/traces
         ↓
-delivery actor / recovery only from observed need
+D070 AO substitution in the same slice (observed GO/CONDITIONAL/NO-GO)
+        ↓
+real child-repo dogfood
+        ↓
+delivery/recovery only from observed need
 ```
 
 ## Explicit non-goals for D068
