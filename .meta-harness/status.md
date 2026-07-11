@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Close Phase 23A-PR1R execution authority contracts under D068 (under review in PR #23).
+Squash-merge PR #23 (D068 authority contracts), then record D068 closure on main before opening D069.
 
 Phase:
 in_progress
 
 Current truth:
-Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **PR #23 D068 under review — D068-final amendment:** request-digest receipt invariant, full prior identity match, reject mismatched prior auth IDs, host-native absolute workspace paths, outer strict envelopes on public transitions, duplicate command IDs at RunSpec validation. Pure authority kernel remains; not closed until merge. Post-merge priority is D069 local walking slice (functional-first), not R1A planning + standalone AO research.
+Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068-final candidate `ed9aecd` is independently verified and approved for squash merge. D068 remains open until PR #23 merges.** Pure authority kernel; no AO, no delivery actor, no public run CLI. After merge: Slice 0B closure truth on main, then D069 local controller walking slice (functional-first) — not R1A planning + standalone AO research first.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -201,18 +201,19 @@ Superseded/deferred truth:
 - Phase 20I read-only copy block validation is closed locally.
 - Phase 20J read-only export intent/safety gate is closed locally.
 - Phase 20K explicit export-file workflow is bypassed and remains future/non-goal unless a real user need appears.
-- Phase 21A–21F, 22A, and 22B are closed. D067 superseded. **D068 under review in PR #23**.
+- Phase 21A–21F, 22A, and 22B are closed. D067 superseded. **D068 under review in PR #23** (merge-approved candidate `ed9aecd`; not closed until merge).
 
 Active streams:
-- coding: D068 authority-kernel hardening on `feat/23a-pr1r-execution-authority-contracts`.
+- coding: pre-merge D068 truth reconciliation on `feat/23a-pr1r-execution-authority-contracts`.
 - research: no active research stream.
-- writing: status/docs truth reconciled for D064–D068.
-- review: PR #23 under review; D068 remains under review after authority-model amend.
+- writing: Slice 0A pre-merge truth surfaces (plan, roadmap, status, events, decision log, truth tests).
+- review: PR #23 merge-approved; D068 remains open until squash-merge.
 
 Scope boundary:
 - PR #23 is a pure contract kernel (no AO, no delivery actor, no public run CLI).
 - D064–D066 objects are historical/read-only guidance only — not load-bearing authority inputs.
 - Non-goals for D068: delivery assessment, user-facing state mapper, generic ExecutionProvider, durable journal implementation, R1 mass deletion inside the same PR.
+- D069 opens only after squash-merge and post-merge D068 closure truth (Slice 0B).
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
@@ -237,16 +238,19 @@ Relevant decisions:
 - D065: Phase 22A-H closed (`02d9c59`).
 - D066: Phase 22B closed (`f926868`).
 - D067: superseded; archive `fb40d18`.
-- D068: **under review** in PR #23 (not closed).
+- D068: **under review** in PR #23 (merge-approved at `ed9aecd`; not closed until merge).
 
 Blockers:
-- PR #23 must pass authority contract tests, quality, ready --quick --read-only, and remaining ship gates before merge.
+- Push pre-merge truth reconciliation, verify origin, then authorized squash-merge of PR #23. After merge, record D068 closure on main before opening D069.
 
 Last verified:
-Authority-kernel amend in progress on feature branch (exact RunSpecApproval model); ship gates re-run before amend push.
+D068-final candidate ed9aecd independently verified:
+65 focused tests passed; full suite 106 files, 0 failed;
+quality PASS; ready ok:true; sync PASS; git diff --check PASS.
 
 Next action:
-Complete D068 ship gates on the amended candidate, force-with-lease PR #23 when green, then parallel R1A + AO probe (no runtime until both join).
+Push the truth-only reconciliation commit and squash-merge PR #23.
+After merge, record D068 closure on main before opening D069.
 
 Updated:
 2026-07-11

@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D068 under review in PR #23 (D068-final amendment)
+**Status:** D068-final candidate `ed9aecd` independently verified and approved for squash merge. D068 remains open until PR #23 merges.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -8,8 +8,8 @@
 
 | Step | Work |
 | --- | --- |
-| PR #23 / D068-final | Bounded amendment: request-digest invariant, prior identity, absolute paths, strict envelopes, dup commands |
-| Ship gate | Adversarial file + full tests; amend on `b824352`; force-with-lease |
+| PR #23 / D068 | Squash-merge verified candidate `ed9aecd` (authority kernel approved; pre-merge truth reconciled) |
+| After merge | Slice 0B: record D068 closure on main with actual squash hash, then open D069 |
 
 ## After merge (functional-first — not R1A + AO research first)
 
@@ -39,10 +39,12 @@ delivery/recovery only from observed need
 ## Authority chain
 
 ```text
-approved operator-plan artifact
-→ RunSpec (immutable work)
-→ readiness + worker-entry gate + trusted now/policy
-→ AttemptAuthorization (attempt-scoped, prepare-workspace)
+RunSpec
+→ RunSpecApproval
+→ ExecutionReadinessFacts
+→ AttemptAuthorization
+→ WorkspaceAttestation
 → WorkspaceStartCheck
-→ trusted facts → ImplementationAssessment
+→ trusted ImplementationFacts
+→ ImplementationAssessment (IMPLEMENTATION_VERIFIED)
 ```

@@ -1951,7 +1951,7 @@ Historical decision: draft/authorized `RunManifest` + provider-shaped `EvidenceB
 
 ## D068: Phase 23A-PR1R Execution Authority Contracts (breaking)
 
-Status: **under review in PR #23** (not closed until merge). D068-final amendment in progress: request-digest receipt invariant, full prior identity, host-native absolute paths, outer strict envelopes, duplicate command IDs at validation.
+Status: **under review in PR #23** (not closed until merge). D068-final candidate `ed9aecd` is independently verified and approved for squash merge; D068 remains open until PR #23 merges.
 
 Decision:
 
@@ -1984,7 +1984,7 @@ Bindings:
 
 Roadmap after merge (functional-first): D069 local controller walking slice → R1A deletion from real imports → D070 AO substitution in the same slice → child-repo dogfood → delivery/recovery only from observed failures. **Not** R1A planning + standalone AO research first.
 
-Evidence: `lib/contracts/*`, `tests/contracts-authority-*.test.js`, `docs/product/runtime-authority-architecture.md`.
+Evidence: `ed9aecd` (D068-final implementation); `lib/contracts/*`; `tests/contracts-authority-*.test.js`; `tests/contracts-d068-truth.test.js`; `docs/product/runtime-authority-architecture.md`. Independent verification: focused authority/truth 65 passed; full suite 106 files 0 failed; quality PASS; ready ok:true; sync PASS; `git diff --check` PASS.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
