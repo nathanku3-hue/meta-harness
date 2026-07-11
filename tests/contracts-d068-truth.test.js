@@ -128,6 +128,18 @@ test("status Last verified and Next action describe closed D068 and open D069", 
   assert.doesNotMatch(nextAction, /force(?:-|\s)?with(?:-|\s)?lease|force-push|force push/i);
   assert.doesNotMatch(nextAction, /parallel\s+R1A/i);
   assert.doesNotMatch(nextAction, /AO probe/i);
+
+  // Whole-status global lifecycle consistency (active document only).
+  // events.jsonl is intentionally excluded: pre-merge historical lines remain.
+  assert.doesNotMatch(status, /D068 under review/i);
+  assert.doesNotMatch(status, /D068 remains open/i);
+  assert.doesNotMatch(status, /PR #23 merge-approved/i);
+  assert.doesNotMatch(status, /pre-merge D068 truth reconciliation/i);
+  assert.doesNotMatch(status, /authorized squash-merge of PR #23/i);
+
+  const contractIndexSource = read("lib/contracts/index.js");
+  assert.doesNotMatch(contractIndexSource, /under review/i);
+  assert.match(contractIndexSource, /frozen|closed/i);
 });
 
 test("events retain pre-merge reconciliation and append D068 closure", () => {

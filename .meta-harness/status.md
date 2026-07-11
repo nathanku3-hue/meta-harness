@@ -201,19 +201,19 @@ Superseded/deferred truth:
 - Phase 20I read-only copy block validation is closed locally.
 - Phase 20J read-only export intent/safety gate is closed locally.
 - Phase 20K explicit export-file workflow is bypassed and remains future/non-goal unless a real user need appears.
-- Phase 21A–21F, 22A, and 22B are closed. D067 superseded. **D068 under review in PR #23** (merge-approved candidate `ed9aecd`; not closed until merge).
+- Phase 21A–21F, 22A, and 22B are closed. D067 superseded. **D068 closed under `be82763`** (PR #23 squash; reviewed head `4b259c9`). Slice 0B.1 repaired stale active pre-merge wording; historical events unchanged.
 
 Active streams:
-- coding: pre-merge D068 truth reconciliation on `feat/23a-pr1r-execution-authority-contracts`.
+- coding: D069 local controller walking slice next (branch from post-0B.1 commit).
 - research: no active research stream.
-- writing: Slice 0A pre-merge truth surfaces (plan, roadmap, status, events, decision log, truth tests).
-- review: PR #23 merge-approved; D068 remains open until squash-merge.
+- writing: no active pre-merge D068 truth work; 0B.1 lifecycle repair complete.
+- review: no active PR #23 review stream.
 
 Scope boundary:
-- PR #23 is a pure contract kernel (no AO, no delivery actor, no public run CLI).
+- D068 public contract kernel is frozen on main under `be82763` (no AO, no delivery actor, no public run CLI).
 - D064–D066 objects are historical/read-only guidance only — not load-bearing authority inputs.
-- Non-goals for D068: delivery assessment, user-facing state mapper, generic ExecutionProvider, durable journal implementation, R1 mass deletion inside the same PR.
-- D069 opens only after squash-merge and post-merge D068 closure truth (Slice 0B).
+- Non-goals for D068 (closed): delivery assessment, user-facing state mapper, generic ExecutionProvider, durable journal implementation, R1 mass deletion inside the same PR.
+- D069 is open/next after D068 closure and Slice 0B.1 truth repair.
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
@@ -238,10 +238,10 @@ Relevant decisions:
 - D065: Phase 22A-H closed (`02d9c59`).
 - D066: Phase 22B closed (`f926868`).
 - D067: superseded; archive `fb40d18`.
-- D068: **under review** in PR #23 (merge-approved at `ed9aecd`; not closed until merge).
+- D068: **closed** under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`).
 
 Blockers:
-- Push pre-merge truth reconciliation, verify origin, then authorized squash-merge of PR #23. After merge, record D068 closure on main before opening D069.
+- None for D068. No merge blocker. Next functional work is D069 (after 0B.1 lands).
 
 Last verified:
 D068 closed under be82763 (PR #23 squash).
@@ -250,10 +250,12 @@ ancestry PASS (f926868 ancestor of be82763).
 Slice 0B local gates: focused authority/truth 67 passed;
 full suite 106 files 0 failed; quality PASS; ready ok:true;
 sync PASS checked=30; git diff --check PASS.
+Slice 0B.1: active-status lifecycle repair; D068 closed under be82763; D069 open/next;
+no active PR #23 review stream; no merge blocker; events append-only repair record.
 
 Next action:
-Open D069 local controller walking slice on a feature branch.
+Open D069 local controller walking slice on a feature branch from the 0B.1 commit.
 Do not reopen lib/contracts/* without a real runtime failure.
 
 Updated:
-2026-07-11
+2026-07-12
