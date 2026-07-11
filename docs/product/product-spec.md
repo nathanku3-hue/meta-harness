@@ -382,7 +382,7 @@ The one-shot MVP is acceptable when:
 - `meta-harness lookback` renders a timeline;
 - `meta-harness poll` reads local and child statuses without launching agents;
 - docs explain the human/Codex translation boundary;
-- no dashboard, daemon, agent spawning, or heavy policy layer exists;
+- no dashboard, daemon, or agent spawning exists; a substantial local governance/control-plane surface has accumulated and is scheduled for R1 reduction;
 - `meta-harness mcp serve` starts a dependency-free read-only stdio JSON-RPC MCP server exposing `harness-status`, `harness-research-prompt`, and `harness-insight-summary` tools;
 - `meta-harness mcp insight extract` reads a git diff and task log and returns a structured JSON/Markdown insight summary;
 - `meta-harness mcp research prompt` reads local file context and a user question and returns a formatted Deep Research prompt for copy-paste to external web UIs;
