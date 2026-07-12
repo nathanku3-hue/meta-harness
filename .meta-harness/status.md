@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Deliver D071 as one meaningful single-file child-repository execution: sealed RunSpec objective → Codex read-only artifact → controller commit → real repository validation. No marker compatibility path. Kernel frozen.
+Execute R1A evidence-based core reduction immediately after closed D071: delete leftover unused AO/marker surfaces and `internal/d069` lineage debt from actual imports/tests/traces. Kernel frozen. No concurrency framework unless a real observed need appears.
 
 Phase:
 in_progress
 
 Current truth:
-Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 NO-GO / A0.2 GO remain binding. **D070-A1 transport/custody slice closed** under audit-hardening commit `8ebe690` with clean-tree live rebind. **D071 implementation is present and pending live proof:** fixed marker prompt/validator deleted; AO prompt is objective-derived; private validation is one exact Windows PowerShell 5.1 host + hashed `validate-toollauncher-shortcut.ps1` covering missing/valid/corrupt branches; hermetic offline fixtures vendor ToolLauncher baseline blob `aa1d3b7c…`; no marker compatibility mode; `lib/contracts/*` frozen. Live ToolLauncher dogfood against isolated clean clone at `7fab419f20ba` (only `scripts/utils/CheckShortcut.ps1`) is not yet proven. Concurrency remains deferred; R1A follows D071 live evidence.
+Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 NO-GO / A0.2 GO remain binding. **D070-A1 transport/custody slice closed** under audit-hardening commit `8ebe690`. **D071 closed under `74f8ac1`:** sealed objective → authenticated Codex `:read-only` → controller commit → Windows PowerShell 5.1 hashed validator (missing+valid+corrupt) → live `IMPLEMENTATION_VERIFIED` + replay against isolated ToolLauncher `7fab419f20ba` / `scripts/utils/CheckShortcut.ps1`. Marker path deleted. Tracked evidence: `docs/ops/audits/d071-toollauncher-dogfood-evidence.json`. Quant excluded. `lib/contracts/*` frozen. Concurrency not required by D071 evidence.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -269,15 +269,15 @@ Blockers:
 - Quant was evaluated and rejected for D071 because its active truth freezes unrelated runtime/governance changes. The selected low-risk target is an isolated clean copy of ToolLauncher commit `7fab419f20ba`.
 
 Last verified:
-- Offline D071 chain: artifact + sequential + duplicate/integrity + process-tree + truth tests PASS on Node `v25.2.1` (exact command: `node --test tests/runtime-d070-artifact.test.js tests/runtime-d070-sequential.test.js tests/runtime-d070-duplicate.test.js tests/runtime-d070-process-tree.test.js tests/contracts-d070-truth.test.js` → **19/19**).
-- Fixed marker path deleted from active runtime; no `d070-ao-verified-marker` production expectations remain.
-- Validation host pin: `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe` with executable SHA-256 revalidated pre-spawn; validator script hashed parent-local.
+- D071 implementation commit: `74f8ac17e66aafb86546227ec8ec93f1f48f6f17` (clean tree live-bound).
+- Live dogfood command: `D071_LIVE_TOOLLAUNCHER=1 node --test tests/runtime-d071-toollauncher-live.test.js` → **PASS** (Codex `0.144.1`, `aoSpawnCount=1`, replay disposition `REPLAY`).
+- Verified child head: `9f41bbbb28d89301223292bc5aea11039fba47bb` on ToolLauncher base `7fab419f20ba…` / tree `6bd348cd…`.
+- Tracked evidence: `docs/ops/audits/d071-toollauncher-dogfood-evidence.json`.
+- Offline focused set PASS on Node `v25.2.1`; quality ratchet PASS; sync PASS. Public CLI count 27 > 25 remains a warning, not a blocker.
 - networkPolicy denied remains trust-based (exact hashed validator has no network ops), not OS firewall isolation.
-- Live ToolLauncher dogfood (S5) and tracked evidence envelope (S6) are **pending** after this implementation commit.
-- Public CLI count 27 > 25 remains a warning, not a blocker.
 
 Next action:
-From this clean implementation commit, run authenticated D071 live dogfood against an isolated detached local clone of ToolLauncher `7fab419f20ba` (not a worktree of the dirty live checkout). Scope exactly `scripts/utils/CheckShortcut.ps1`. Sealed `RunSpec.objective` drives the AO prompt. Exact Windows PowerShell validation must pass missing/valid/corrupt branches. Reach live `IMPLEMENTATION_VERIFIED` plus replay, then commit the tracked evidence envelope and closure truth without amending this implementation commit. No provider interface, public CLI, concurrency framework, or `lib/contracts/*` reopen. No push until D071 closes.
+Begin R1A immediately: evidence-based deletion of leftover unused AO/marker surfaces and rename/remove `internal/d069` lineage debt from actual imports/tests/traces. Do not add concurrency/cancellation frameworks unless a new observed need appears. Push of the closed D071 stack is authorized after this closure commit if desired.
 
 Updated:
 2026-07-12

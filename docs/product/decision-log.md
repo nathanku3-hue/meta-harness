@@ -2082,19 +2082,22 @@ Evidence: offline artifact + full-chain sequential/replay + process-tree + AO-ev
 
 ## D071: Re-charter and Meaningful Single-File Child Dogfood
 
-Status: **next binding gate**.
+Status: **closed** under implementation commit `74f8ac17e66aafb86546227ec8ec93f1f48f6f17`.
 
 Decision:
 
 Re-charter Meta-Harness now as a local authority-bound agent execution-custody harness. The original Markdown-first, no-agent-launch, no-network MVP remains historical shipped scope, but it is no longer the governing product direction. This is an intentional major deviation, recorded before further execution work.
 
-D071 must combine functionalization with dogfood rather than create another synthetic framework. Target selection is binding:
+D071 combined functionalization with dogfood. Target selection was binding and executed:
 
-- Reject Quant for this gate: its active truth freezes unrelated runtime/governance changes and requires separate owner authorization.
-- Use an isolated clean copy of ToolLauncher commit `7fab419f20ba` so inherited working-tree changes are untouched.
+- Quant rejected (active truth freezes unrelated runtime/governance work).
+- Isolated detached local clone of ToolLauncher `7fab419f20ba5c7a4008d6a6071d5aad10ba534c` (tree `6bd348cd…`); not a worktree of the dirty live checkout.
 - Scope exactly `scripts/utils/CheckShortcut.ps1`.
-- Objective: replace the console-only checker with a deterministic command-line probe accepting optional `-StartupPath` and emitting one compact JSON object with `found`, `startup_path`, `target_path`, `arguments`, and `working_directory`. Missing shortcut is a valid `found=false` result; unreadable/corrupt shortcuts fail nonzero.
-- Validation: one exact trusted PowerShell command invokes the missing-path case, parses JSON, and asserts `found=false` plus the requested path.
+- Sealed `RunSpec.objective` → objective-derived AO prompt (JSON-encoded objective; no marker path).
+- Authenticated Codex `:read-only` artifact → controller materialize/commit.
+- Exact Windows PowerShell 5.1 host (`C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe`) + hashed parent-local `internal/d069/programs/validate-toollauncher-shortcut.ps1` proving **missing + valid + corrupt** branches.
+- Validation env allowlist matches supplied vars exactly: `APPDATA`, `ComSpec`, `SystemRoot`, `TEMP`, `TMP`, `WINDIR`. `networkPolicy: denied` is trust-based (no network ops in the hashed validator), not OS firewall isolation.
+- Live `IMPLEMENTATION_VERIFIED` + replay (`aoSpawnCount=1`); marker prompt/validator deleted; no compatibility mode.
 
 ```text
 clean ToolLauncher child snapshot
@@ -2102,19 +2105,14 @@ clean ToolLauncher child snapshot
 → one literal scope.allow path
 → authenticated Codex :read-only artifact
 → controller materialization/commit
-→ exact PowerShell JSON validation
+→ exact PowerShell JSON validation (missing+valid+corrupt)
 → IMPLEMENTATION_VERIFIED
 → durable ref + replay
 ```
 
-Binding constraints:
+Evidence: `docs/ops/audits/d071-toollauncher-dogfood-evidence.json` (verified child head `9f41bbbb…`, durable ref under `refs/meta-harness/attempts/…`, Codex `0.144.1`). Offline command recorded in that envelope (20/20 focused set at closure). `lib/contracts/*` remained frozen.
 
-- Delete the fixed `d070-ao-verified-marker` prompt, validator, and active fixture expectations once D071 is green. No marker compatibility mode.
-- Do not create a generic provider interface, public execution CLI, multi-file planner, queue, or concurrency framework.
-- Keep `lib/contracts/*` frozen unless the real child task produces a concrete bind failure.
-- The child target and task must remain the selected ToolLauncher utility change, not a renamed fixture, marker-only edit, Quant scope expansion, or alternate child chosen for convenience.
-- After D071, perform R1A immediately from actual imports/tests/traces and remove `internal/d069` lineage naming.
-- Add concurrency/cancellation only when D071 evidence demonstrates a need.
+Next: immediate R1A from actual imports/tests/traces. Concurrency/cancellation only if D071 evidence later demonstrates a need (none observed).
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

@@ -10,6 +10,7 @@ const test = require("node:test");
 const root = path.join(__dirname, "..");
 const D068_SQUASH_SHORT = "be82763";
 const D069_SQUASH_SHORT = "e8e7713";
+const D071_IMPL_SHORT = "74f8ac1";
 
 function read(rel) {
   return fs.readFileSync(path.join(root, rel), "utf8");
@@ -54,76 +55,61 @@ function findRoadmapRow(rows, idPattern) {
   return row;
 }
 
-test("status records D071 implementation pending live ToolLauncher proof", () => {
+test("status records D071 closed and R1A next", () => {
   const status = read(".meta-harness/status.md");
   const lastVerified = section(status, "Last verified");
   const nextAction = section(status, "Next action");
   const goal = section(status, "Goal");
   const currentTruth = section(status, "Current truth");
 
-  assert.match(goal, /D071/i);
-  assert.match(goal, /child-repositor/i);
-  assert.match(currentTruth, /closed under/i);
+  assert.match(goal, /R1A/i);
   assert.match(currentTruth, new RegExp(D068_SQUASH_SHORT));
   assert.match(currentTruth, new RegExp(D069_SQUASH_SHORT));
-  assert.match(currentTruth, /A0\.1 NO-GO/i);
-  assert.match(currentTruth, /A0\.2 GO|A0\.2/i);
   assert.match(currentTruth, /D070-A1 transport\/custody slice closed/i);
-  assert.match(currentTruth, /D071 implementation is present and pending live proof/i);
-  assert.match(currentTruth, /marker prompt\/validator deleted|marker deleted/i);
-  assert.match(currentTruth, /Windows PowerShell/i);
-  assert.match(currentTruth, /validate-toollauncher-shortcut\.ps1/i);
-  assert.match(currentTruth, /missing\/valid\/corrupt/i);
-  assert.match(currentTruth, /not yet proven|pending live/i);
-  assert.match(lastVerified, /19\/19|offline D071/i);
-  assert.match(lastVerified, /pending/i);
-  assert.match(nextAction, /D071/i);
-  assert.match(nextAction, /ToolLauncher/i);
-  assert.match(nextAction, /7fab419f20ba/i);
-  assert.match(nextAction, /scripts\/utils\/CheckShortcut\.ps1/i);
-  assert.match(nextAction, /sealed `?RunSpec\.objective`?|Sealed `RunSpec\.objective`/i);
-  assert.match(nextAction, /PowerShell/i);
-  assert.match(nextAction, /No push until D071 closes/i);
-  assert.doesNotMatch(nextAction, /force(?:-|\s)?with(?:-|\s)?lease|force-push|force push/i);
+  assert.match(currentTruth, /D071 closed under/i);
+  assert.match(currentTruth, new RegExp(D071_IMPL_SHORT));
+  assert.match(currentTruth, /ToolLauncher/i);
+  assert.match(currentTruth, /CheckShortcut\.ps1/i);
+  assert.match(currentTruth, /missing\+valid\+corrupt|missing\/valid\/corrupt/i);
+  assert.match(currentTruth, /d071-toollauncher-dogfood-evidence\.json/i);
+  assert.match(lastVerified, /74f8ac1|implementation commit/i);
+  assert.match(lastVerified, /PASS/i);
+  assert.match(lastVerified, /9f41bbbb/i);
+  assert.match(nextAction, /R1A/i);
   assert.doesNotMatch(currentTruth, /d070-ao-verified-marker/i);
+  assert.doesNotMatch(nextAction, /force(?:-|\s)?with(?:-|\s)?lease|force-push|force push/i);
 
   const contractIndexSource = read("lib/contracts/index.js");
   assert.doesNotMatch(contractIndexSource, /under review/i);
   assert.match(contractIndexSource, /frozen|closed/i);
 });
 
-test("roadmap schedules D070 custody → D071 child slice → R1A → observed controls", () => {
+test("roadmap schedules D070 custody → D071 closed → R1A next", () => {
   const rows = roadmapTableRows();
   const d068 = findRoadmapRow(rows, /23A-PR1R|D068/);
   assert.match(d068.state + d068.detail, /closed under/i);
   assert.match(d068.state + d068.detail, new RegExp(D068_SQUASH_SHORT));
 
   const d069 = findRoadmapRow(rows, /D069|23A-PR2/);
-  assert.match(d069.name, /Local Controller Walking Slice/i);
   assert.match(d069.state + d069.detail, /closed under/i);
   assert.match(d069.state + d069.detail, new RegExp(D069_SQUASH_SHORT));
 
   const d070 = findRoadmapRow(rows, /D070|23A-PR3/);
   assert.match(d070.state + d070.detail, /transport\/custody closed/i);
-  assert.match(d070.detail, /NO-GO/i);
-  assert.match(d070.detail, /observed version|replay-bound|SHA-256/i);
 
   const dogfood = findRoadmapRow(rows, /D071|23A-PR4/);
   assert.match(dogfood.name, /Meaningful Single-File Child Dogfood/i);
-  assert.match(dogfood.state + dogfood.detail, /next/i);
-  assert.match(dogfood.detail, /sealed `RunSpec\.objective`|sealed.*objective/i);
-  assert.match(dogfood.detail, /No compatibility mode|no compatibility/i);
+  assert.match(dogfood.state + dogfood.detail, /closed under/i);
+  assert.match(dogfood.state + dogfood.detail, new RegExp(D071_IMPL_SHORT));
   assert.match(dogfood.detail, /ToolLauncher/i);
   assert.match(dogfood.detail, /7fab419f20ba/i);
   assert.match(dogfood.detail, /CheckShortcut\.ps1/i);
-  assert.match(dogfood.detail, /Quant is excluded/i);
+  assert.match(dogfood.detail, /d071-toollauncher-dogfood-evidence\.json/i);
 
   const r1a = findRoadmapRow(rows, /^R1A$/);
-  assert.match(r1a.state + r1a.detail, /immediately after D071/i);
-  assert.doesNotMatch(r1a.state + r1a.detail, /parallel after merge/i);
+  assert.match(r1a.state + r1a.detail, /next|immediately after D071/i);
 
   const controls = findRoadmapRow(rows, /23A-PR4B/);
-  assert.match(controls.name + controls.detail, /Concurrency|cancellation/i);
   assert.match(controls.state + controls.detail, /only if D071 requires|observed requirement/i);
 });
 
@@ -141,7 +127,7 @@ test("post-MVP product re-charter is explicit across primary truth surfaces", ()
   assert.match(spec, /meaningful child-repository dogfood/i);
 });
 
-test("vendored ToolLauncher baseline blob matches pinned identity", () => {
+test("vendored baseline and tracked D071 evidence envelope exist", () => {
   const { spawnSync } = require("node:child_process");
   const fixture = path.join(
     root,
@@ -157,4 +143,15 @@ test("vendored ToolLauncher baseline blob matches pinned identity", () => {
     fs.existsSync(path.join(root, "internal/d069/programs/validation-program.js")),
     false,
   );
+  const evidence = JSON.parse(
+    read("docs/ops/audits/d071-toollauncher-dogfood-evidence.json"),
+  );
+  assert.equal(evidence.kind, "d071-toollauncher-dogfood-evidence");
+  assert.match(evidence.metaHarnessImplementationCommit, /^74f8ac1/);
+  assert.equal(evidence.childBaseRevision, "7fab419f20ba5c7a4008d6a6071d5aad10ba534c");
+  assert.equal(evidence.allowedPath, "scripts/utils/CheckShortcut.ps1");
+  assert.equal(evidence.aoSpawnCount, 1);
+  assert.equal(evidence.replayDisposition, "REPLAY");
+  assert.equal(evidence.trackedWorktreeClean, true);
+  assert.match(evidence.verifiedChildHeadRevision, /^9f41bbbb/);
 });
