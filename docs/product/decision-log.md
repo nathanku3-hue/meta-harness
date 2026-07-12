@@ -2020,6 +2020,53 @@ Roadmap after D069 (functional-first): D070-A0 AO capability probe → D070-A1 o
 
 Evidence: squash `e8e7713cc99b58faad1a2aaa0ecaf836e4e25958` (PR #24; reviewed head `245fa3ddf2f860af5b512ba457221820375a03af`; pre-merge base `5afe075f065e74122149af1913de128f9c2ad17d`; feature tree `5c16edf0223d563a9e84b4099d0fe57ad73d55ce` == landed tree; ancestry PASS); required checks on exact reviewed head PASS (Node tests, D069 Windows integration, Semgrep); `internal/d069/*`; `tests/runtime-d069-*.test.js`.
 
+## D070: AO Seam Decision — Reject Worker Write, Adopt Controller Materialization
+
+Status: **A0 decided; A1 authorized on one seam only**.
+
+Decision:
+
+Reject the direct Codex filesystem-write seam on the current Windows host and adopt a controller-materialized artifact seam for D070-A1.
+
+Observed results:
+
+- A0.1 sanitized authentication and invocation succeeded: ChatGPT login status was valid, Codex CLI `0.144.1` returned parseable JSONL, exited cleanly when stdin was closed, and did not move HEAD, refs, staging, or local Git config.
+- `--sandbox workspace-write` remained effectively read-only. Adding `--ask-for-approval never`, required Windows profile variables, and moving the detached worktree outside Temp did not change that result.
+- The safe managed `:workspace` sandbox profile provisioned scratch ACLs but did not execute the bounded write within 120 seconds. No sandbox bypass or danger-full-access fallback is authorized.
+- A0.2 succeeded under the explicit `:read-only` permission profile: Codex returned a schema-bound artifact exactly equal to `{ path: "src/fixture.txt", content: "d070-ao-verified-marker\n" }`.
+- After exact artifact validation, controller-owned materialization produced only unstaged `M src/fixture.txt`; detached HEAD, refs, local Git config, staging, and the Meta-Harness checkout remained unchanged.
+
+A1 binding seam:
+
+```text
+sealed authorization
+→ detached worktree + START_ALLOWED + claim
+→ async authenticated Codex :read-only process
+→ schema-bound change artifact
+→ controller validates path/content against RunSpec
+→ controller materializes and commits
+→ exact validation
+→ IMPLEMENTATION_VERIFIED
+→ create-only durable ref
+→ terminal journal + integrity-checked replay
+```
+
+Constraints:
+
+- One request, one Codex process, one timeout, one terminal result.
+- Close child stdin explicitly; capture and parse JSONL; fail closed on malformed, missing, extra, or out-of-scope artifact fields.
+- Use operator-owned authenticated `CODEX_HOME` as an input boundary; do not copy credentials into probe or repository state.
+- Expected Codex caches/databases under `CODEX_HOME` are runtime state, not repository mutations; acceptance remains strict on worktree/Git scope and secret leakage.
+- No direct AO filesystem write, dangerous sandbox bypass, provider abstraction, D069 compatibility adapter, public run CLI, concurrency, cancellation framework, delivery, or recovery in A1.
+- Child-repository dogfood moves immediately after A1. Concurrency/cancellation follows only if dogfood produces an observed requirement.
+- Private D069 implementation may be replaced without backward compatibility once the A1 path is green.
+
+Product-intent deviation:
+
+The original implemented MVP says the harness does not launch agents and requires no network/model API. Phase 23A therefore represents a deliberate post-MVP execution-custody expansion. After A1 and one dogfood path, explicitly re-charter Meta-Harness around that identity or remove the execution track; do not maintain a silent hybrid.
+
+Evidence: local ignored probe artifacts under `.meta-harness/local/`; exact D069 authority/runtime suite 12/12 PASS on Node `v25.2.1`; A0.1 safe-write attempts; A0.2 exact schema artifact and Git custody checks; decision-owner audit dated 2026-07-12.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:

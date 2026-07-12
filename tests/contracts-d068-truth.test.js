@@ -113,25 +113,29 @@ function findRoadmapRow(rows, idPattern) {
   return row;
 }
 
-test("status Last verified and Next action describe closed D069 and open D070", () => {
+test("status records D070 A0 seam decision and authorizes artifact-based A1", () => {
   const status = read(".meta-harness/status.md");
   const lastVerified = section(status, "Last verified");
   const nextAction = section(status, "Next action");
   const goal = section(status, "Goal");
   const currentTruth = section(status, "Current truth");
 
-  assert.match(lastVerified, new RegExp(D069_SQUASH_SHORT));
-  assert.match(lastVerified, /tree-object equality PASS/i);
-  assert.match(lastVerified, /ancestry PASS/i);
-  assert.match(lastVerified, /PASS/);
-  assert.match(lastVerified, new RegExp(D069_REVIEWED_HEAD));
-  assert.match(lastVerified, new RegExp(D069_TREE));
+  assert.match(lastVerified, /D069[\s\S]*12\/12 PASS/i);
+  assert.match(lastVerified, /A0\.1[\s\S]*read-only/i);
+  assert.match(lastVerified, /A0\.2[\s\S]*GO/i);
+  assert.match(lastVerified, /M src\/fixture\.txt/i);
 
-  assert.match(goal, /D070/i);
-  assert.match(nextAction, /D070/i);
+  assert.match(goal, /D070-A1/i);
+  assert.match(goal, /dogfood/i);
+  assert.match(nextAction, /D070-A1/i);
+  assert.match(nextAction, /schema-bound change artifact/i);
+  assert.match(nextAction, /controller materialize/i);
   assert.match(currentTruth, /closed under/i);
   assert.match(currentTruth, new RegExp(D068_SQUASH_SHORT));
   assert.match(currentTruth, new RegExp(D069_SQUASH_SHORT));
+  assert.match(currentTruth, /A0\.1 NO-GO/i);
+  assert.match(currentTruth, /A0\.2 GO/i);
+  assert.match(currentTruth, /controller-materialized artifacts/i);
 
   assert.doesNotMatch(lastVerified, /under review/i);
   assert.doesNotMatch(nextAction, /open D069/i);
@@ -283,7 +287,7 @@ test("active Phase 23A authority chain is RunSpecApproval-rooted", () => {
   assert.doesNotMatch(plan, /R1A delete unused[\s\S]*D070 AO/i);
 });
 
-test("roadmap active rows schedule D069 closed → D070 next → dogfood → R1A", () => {
+test("roadmap schedules artifact-based D070 A1 → dogfood → observed controls → R1A", () => {
   const rows = roadmapTableRows();
 
   const d068 = findRoadmapRow(rows, /23A-PR1R|D068/);
@@ -301,16 +305,22 @@ test("roadmap active rows schedule D069 closed → D070 next → dogfood → R1A
 
   const d070 = findRoadmapRow(rows, /D070|23A-PR3/);
   assert.match(d070.name + " " + d070.detail, /AO Substitution|substitute AO|walking slice|AO path/i);
-  assert.match(d070.state + " " + d070.detail, /next|after D069/i);
+  assert.match(d070.state + " " + d070.detail, /A0 decided|A1 next/i);
+  assert.match(d070.detail, /workspace-write[\s\S]*NO-GO/i);
+  assert.match(d070.detail, /schema-bound[\s\S]*A1/i);
   assert.doesNotMatch(d070.state + " " + d070.detail, /after R1A/i);
 
-  const dogfood = findRoadmapRow(rows, /23A-PR4/);
+  const dogfood = findRoadmapRow(rows, /^23A-PR4$/);
   assert.match(dogfood.name, /Dogfood/i);
-  assert.match(dogfood.state + " " + dogfood.detail, /after D070|later/i);
+  assert.match(dogfood.state + " " + dogfood.detail, /immediately after A1|after D070/i);
+
+  const observedControls = findRoadmapRow(rows, /23A-PR4B/);
+  assert.match(observedControls.name + " " + observedControls.detail, /Concurrency|cancellation/i);
+  assert.match(observedControls.state + " " + observedControls.detail, /only if dogfood requires|observed requirement/i);
 
   const r1a = findRoadmapRow(rows, /^R1A$/);
   assert.match(r1a.name + " " + r1a.detail, /deletion|imports|traces|Evidence-Based Core Reduction/i);
-  assert.match(r1a.state + " " + r1a.detail, /after dogfood|after D070/i);
+  assert.match(r1a.state + " " + r1a.detail, /after AO-backed dogfood|after dogfood/i);
   assert.doesNotMatch(r1a.state + " " + r1a.detail, /after D069(?!\s)/i);
   assert.doesNotMatch(r1a.state + " " + r1a.detail, /parallel after merge/i);
 

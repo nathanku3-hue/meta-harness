@@ -73,9 +73,10 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 23A-PR1 | Execution Contract Authority (D067) | **superseded** | Historical only (`archive/23a-pr1-d067-fb40d18`). Do not merge as load-bearing. |
 | 23A-PR1R / D068 | Execution Authority Contracts | **closed under be82763** | Squash merge of PR #23 (reviewed head `4b259c9`, base `f926868`): `RunSpec` + `RunSpecApproval` + readiness facts + `AttemptAuthorization` + start + implementation. No delivery assessor. Kernel frozen. |
 | 23A-PR2 / D069 | Local Controller Walking Slice | **closed under e8e7713** | Squash merge of PR #24 (reviewed head `245fa3d`, base `5afe075`): private fixed-fixture sequential path to `IMPLEMENTATION_VERIFIED` with durable ref, integrity-checked terminal replay, Windows host-path identity. No AO; real concurrency deferred to D070. |
-| 23A-PR3 / D070 | AO Substitution | **next** | After D069: A0 capability probe then one verified AO-backed path in the same evidence chain; observed GO / CONDITIONAL / NO-GO. Not a standalone AO research track; no concurrency before one AO path works. |
-| 23A-PR4 | Child-Repo Dogfood | after D070 | One real verified execution path after D070. |
-| R1A | Evidence-Based Core Reduction | after dogfood | Delete unused modules from fixture + AO + dogfood imports, test traces, and CLI invocation traces — not a pre-runtime planning phase. |
+| 23A-PR3 / D070 | AO Substitution | **A0 decided; A1 next** | A0.1 direct Codex workspace-write is NO-GO on the current Windows host: the effective sandbox stayed read-only and safe `:workspace` setup never executed the bounded write. A0.2 is GO: authenticated Codex `:read-only` emits a schema-bound change artifact; the controller validates/materializes it without staging or Git identity movement. A1 must use this seam only. |
+| 23A-PR4 | Child-Repo Dogfood | immediately after A1 | Run one real child-repository path before overlap/cancellation. Dogfood now precedes concurrency so the next control is driven by observed product need. |
+| 23A-PR4B | Concurrency / cancellation | only if dogfood requires it | Same-request overlap, distinct-request serialization, timeout-tree ownership, and cancellation are no longer automatic milestones. Implement the smallest observed requirement only. |
+| R1A | Evidence-Based Core Reduction | after AO-backed dogfood | Delete unused fixture/AO/governance modules from actual imports, tests, and invocation traces. No backward-compatibility layer for private D069 internals. |
 | 23A-PR5 | Delivery actor | later | Only after dogfood; separately credentialed; bound delivery assessment. |
 | 23A-PR6 | Recovery | later | From observed failures — not anticipatory frameworks. |
 
@@ -87,7 +88,7 @@ Purpose: make the roadmap honest. Reconcile the product story with the endgame d
 
 ### Problem
 
-README says "Markdown-first workflow harness." The product remains dependency-free and script-based, but a large local governance surface has accumulated (R1 reduction is planned after D068). That tension is acknowledged rather than denied.
+README says "Markdown-first workflow harness," while the implemented MVP specification says the harness does not launch agents and requires no network/model API. Phase 23A is now deliberately testing authenticated AO execution custody. This is a material post-MVP product expansion, not a silent continuation of the original MVP. The product must be re-chartered after A1/dogfood or the execution track must be removed. A large local governance surface has also accumulated; R1 reduction remains evidence-driven after AO-backed dogfood.
 
 ### Deliverables
 

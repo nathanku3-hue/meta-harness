@@ -64,9 +64,10 @@ Readiness also requires `now - inspectedAt ≤ policy.maxReadinessAgeSeconds`.
 ## Next — functional-first
 
 1. **D069** local controller walking slice — **closed under `e8e7713`** (PR #24; reviewed head `245fa3d`; base `5afe075`): real git readiness → authorize → worktree → realpath attestation → START_ALLOWED → atomic journal claim → fixture worker → controller commit → validation → `IMPLEMENTATION_VERIFIED`. Integrity-checked terminal replay; Windows host-path identity. No AO; no real concurrent single-use evidence.
-2. **D070** substitute AO into the same evidence chain: A0 capability probe → A1 one verified AO path (GO / CONDITIONAL / NO-GO from observation). Preserve sealed authorization → START_ALLOWED → observable execution → exact validation → durable result; do not pre-decide the AO seam.
-3. Real child-repo dogfood.
-4. **Full R1A** delete unused from fixture + AO + dogfood imports and traces (not planning-first; not before AO/dogfood).
-5. Delivery/recovery only from observed failures.
+2. **D070-A0 decision:** direct Codex workspace-write is NO-GO on the current Windows host; authenticated `:read-only` schema output followed by controller validation/materialization is GO. The seam is now decided from observation.
+3. **D070-A1 next:** sealed authorization → START_ALLOWED → claim → one async authenticated Codex `:read-only` process → schema-bound change artifact → controller materialization/commit → exact validation → durable result → terminal replay.
+4. Real child-repo dogfood immediately after A1. Concurrency, timeout-tree ownership, and cancellation follow only from an observed dogfood requirement.
+5. **Full R1A** delete unused from fixture + AO + dogfood imports and traces (not planning-first; not before AO/dogfood). No backward-compatible private D069 adapter.
+6. Delivery/recovery only from observed failures.
 
 No public `meta-harness run` until a concrete runtime path exists. No generic `ExecutionProvider` before two real backends.
