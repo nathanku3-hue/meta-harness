@@ -31,7 +31,7 @@ const {
   codedError,
   isPlainObject,
   isNonEmptyString,
-  absNorm,
+  hostRealPath,
   sha256Utf8,
   digestHex,
   writeJsonNoReplace,
@@ -366,7 +366,7 @@ async function executeAttempt(ctx, request) {
       gitHome,
     );
 
-    const worktreeCanon = absNorm(fs.realpathSync(worktreePath));
+    const worktreeCanon = hostRealPath(worktreePath);
     worktreePath = worktreeCanon;
     if (!isPathUnderRoot(worktreeCanon, workspaceRoot)) {
       throw codedError(

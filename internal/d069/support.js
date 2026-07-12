@@ -47,16 +47,51 @@ function absNorm(p) {
 }
 
 /**
+ * Strip Win32 device namespace prefixes returned by realpath.native.
+ * \\?\C:\foo -> C:\foo ; \\?\UNC\server\share -> \\server\share
+ */
+function stripWindowsNamespacePrefix(p) {
+  const s = String(p);
+  if (process.platform !== "win32") return s;
+  if (s.startsWith("\\\\?\\UNC\\")) {
+    return `\\\\${s.slice("\\\\?\\UNC\\".length)}`;
+  }
+  if (s.startsWith("\\\\?\\")) {
+    return s.slice("\\\\?\\".length);
+  }
+  return s;
+}
+
+/**
+ * Host realpath suitable for identity checks against Git path output.
+ * Prefers realpath.native (expands 8.3 short names on Windows) then absNorm.
+ */
+function hostRealPath(p) {
+  const input = String(p);
+  let real;
+  try {
+    if (typeof fs.realpathSync.native === "function") {
+      real = fs.realpathSync.native(input);
+    } else {
+      real = fs.realpathSync(input);
+    }
+  } catch {
+    real = fs.realpathSync(input);
+  }
+  return absNorm(stripWindowsNamespacePrefix(real));
+}
+
+/**
  * True when both paths resolve to the same existing host filesystem location.
- * Uses realpath + absNorm so Git --show-toplevel (often forward-slash / mixed
- * drive-letter case on Windows) matches Node realpath worktree roots.
+ * Handles Git forward-slash paths, drive-letter case, and Windows 8.3 short
+ * names (e.g. C:\\Users\\RUNNER~1 vs C:/Users/runneradmin on GHA).
  */
 function sameCanonicalExistingPath(left, right) {
   let leftReal;
   let rightReal;
   try {
-    leftReal = absNorm(fs.realpathSync(String(left)));
-    rightReal = absNorm(fs.realpathSync(String(right)));
+    leftReal = hostRealPath(left);
+    rightReal = hostRealPath(right);
   } catch (err) {
     throw codedError(
       "D069_PATH_REALPATH",
@@ -64,9 +99,22 @@ function sameCanonicalExistingPath(left, right) {
     );
   }
   if (leftReal === rightReal) return true;
-  // NTFS is case-insensitive; Git and Node frequently disagree on drive-letter case.
-  if (process.platform === "win32" && leftReal.toLowerCase() === rightReal.toLowerCase()) {
-    return true;
+  if (process.platform === "win32") {
+    if (leftReal.toLowerCase() === rightReal.toLowerCase()) return true;
+    // Same directory object under short-name vs long-name residual mismatch.
+    try {
+      const leftStat = fs.statSync(leftReal);
+      const rightStat = fs.statSync(rightReal);
+      if (
+        Number(leftStat.dev) === Number(rightStat.dev)
+        && String(leftStat.ino) === String(rightStat.ino)
+        && String(leftStat.ino) !== "0"
+      ) {
+        return true;
+      }
+    } catch {
+      // fall through
+    }
   }
   return false;
 }
@@ -190,13 +238,12 @@ function canonicalExistingRoot(absPath, label) {
     throw codedError("D069_ROOT_PATH", `${label} must be absolute normalized path`);
   }
   rejectSymlinkPath(absPath, label);
-  let real;
+  let canon;
   try {
-    real = fs.realpathSync(absPath);
+    canon = hostRealPath(absPath);
   } catch (err) {
     throw codedError("D069_ROOT_REALPATH", `${label} realpath failed: ${err.message}`);
   }
-  const canon = absNorm(real);
   if (!isAbsoluteNormalizedFsPath(canon)) {
     throw codedError("D069_ROOT_PATH", `${label} canonical path is not absolute normalized`);
   }
@@ -480,6 +527,7 @@ module.exports = {
   isNonEmptyString,
   isAbsoluteNormalizedFsPath,
   absNorm,
+  hostRealPath,
   sameCanonicalExistingPath,
   sha256File,
   sha256Utf8,
