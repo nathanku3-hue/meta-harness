@@ -46,6 +46,31 @@ function absNorm(p) {
   return normalized;
 }
 
+/**
+ * True when both paths resolve to the same existing host filesystem location.
+ * Uses realpath + absNorm so Git --show-toplevel (often forward-slash / mixed
+ * drive-letter case on Windows) matches Node realpath worktree roots.
+ */
+function sameCanonicalExistingPath(left, right) {
+  let leftReal;
+  let rightReal;
+  try {
+    leftReal = absNorm(fs.realpathSync(String(left)));
+    rightReal = absNorm(fs.realpathSync(String(right)));
+  } catch (err) {
+    throw codedError(
+      "D069_PATH_REALPATH",
+      `canonical path compare realpath failed: ${err.message}`,
+    );
+  }
+  if (leftReal === rightReal) return true;
+  // NTFS is case-insensitive; Git and Node frequently disagree on drive-letter case.
+  if (process.platform === "win32" && leftReal.toLowerCase() === rightReal.toLowerCase()) {
+    return true;
+  }
+  return false;
+}
+
 function sha256File(filePath) {
   const hash = crypto.createHash("sha256");
   hash.update(fs.readFileSync(filePath));
@@ -455,6 +480,7 @@ module.exports = {
   isNonEmptyString,
   isAbsoluteNormalizedFsPath,
   absNorm,
+  sameCanonicalExistingPath,
   sha256File,
   sha256Utf8,
   digestHex,

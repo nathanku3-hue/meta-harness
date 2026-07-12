@@ -7,7 +7,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
-const { codedError } = require("./support");
+const { codedError, sameCanonicalExistingPath } = require("./support");
 
 const CONTROLLER_AUTHOR_NAME = "meta-harness-d069";
 const CONTROLLER_AUTHOR_EMAIL = "d069@meta-harness.local";
@@ -217,11 +217,20 @@ function removeWorktreeVerified(gitExecutablePath, repositoryPath, worktreePath,
   const listed = String(
     runGit(gitExecutablePath, repositoryPath, ["worktree", "list", "--porcelain"], gitHome).stdout,
   );
-  const abs = path.resolve(worktreePath);
   for (const line of listed.split(/\r?\n/)) {
     if (!line.startsWith("worktree ")) continue;
-    const registered = path.resolve(line.slice("worktree ".length).trim());
-    if (registered === abs) {
+    const registered = line.slice("worktree ".length).trim();
+    // Same-location compare: Git porcelain may differ in separators / drive case.
+    let stillRegistered = false;
+    try {
+      stillRegistered = sameCanonicalExistingPath(registered, worktreePath);
+    } catch {
+      // Registered path may already be gone; fall back to string compare after resolve.
+      stillRegistered = path.resolve(registered) === path.resolve(worktreePath)
+        || (process.platform === "win32"
+          && path.resolve(registered).toLowerCase() === path.resolve(worktreePath).toLowerCase());
+    }
+    if (stillRegistered) {
       throw codedError(
         "D069_WORKTREE_CLEANUP",
         `worktree still registered after cleanup: ${worktreePath}`,

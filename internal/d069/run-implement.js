@@ -23,6 +23,7 @@ const {
   spawnProgram,
   artifactDigest,
   sealJournal,
+  sameCanonicalExistingPath,
 } = require("./support");
 const {
   CONTROLLER_AUTHOR_NAME,
@@ -118,8 +119,13 @@ function reattestAfterValidation(gitExecutablePath, worktreePath, repositoryPath
   const topLevel = String(
     runGit(gitExecutablePath, worktreePath, ["rev-parse", "--show-toplevel"], gitHome).stdout,
   ).trim();
-  if (path.resolve(topLevel) !== path.resolve(worktreePath)) {
-    throw codedError("D069_TOPLEVEL", "worktree top-level identity mismatch after validation");
+  // Git may report forward-slash / different drive-letter case than Node realpath.
+  // Identity is same host location, not byte-identical path strings.
+  if (!sameCanonicalExistingPath(topLevel, worktreePath)) {
+    throw codedError(
+      "D069_TOPLEVEL",
+      `worktree top-level identity mismatch after validation: git=${topLevel} worktree=${worktreePath}`,
+    );
   }
 
   const mergeBase = String(
