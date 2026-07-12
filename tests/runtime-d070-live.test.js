@@ -157,6 +157,18 @@ test("D070-A1 live: authenticated Codex :read-only full chain + replay", async (
     assert.equal(controller.getAoSpawnCount(), 1);
 
     // Evidence marker for closure (local ignored if under stateRoot which is temp)
+    let implementationCommit = null;
+    try {
+      const { spawnSync } = require("node:child_process");
+      const g = spawnSync("git", ["rev-parse", "HEAD"], {
+        cwd: path.resolve(__dirname, ".."),
+        encoding: "utf8",
+        windowsHide: true,
+      });
+      if (g.status === 0) implementationCommit = String(g.stdout || "").trim();
+    } catch {
+      implementationCommit = null;
+    }
     const evidence = {
       kind: "d070-a1-live-pass",
       provider: PROVIDER_ID,
@@ -167,6 +179,7 @@ test("D070-A1 live: authenticated Codex :read-only full chain + replay", async (
       verifiedHeadRevision: first.verifiedHeadRevision,
       durableRef: first.durableRef,
       aoSpawnCount: controller.getAoSpawnCount(),
+      implementationCommit,
       at: new Date().toISOString(),
     };
     const evidenceDir = path.resolve(__dirname, "../.meta-harness/local");
