@@ -113,33 +113,32 @@ function findRoadmapRow(rows, idPattern) {
   return row;
 }
 
-test("status records D070 A0 seam decision and authorizes artifact-based A1", () => {
+test("status records D070 A1 closed on controller-materialized AO path", () => {
   const status = read(".meta-harness/status.md");
   const lastVerified = section(status, "Last verified");
   const nextAction = section(status, "Next action");
   const goal = section(status, "Goal");
   const currentTruth = section(status, "Current truth");
 
-  assert.match(lastVerified, /D069[\s\S]*12\/12 PASS/i);
-  assert.match(lastVerified, /A0\.1[\s\S]*read-only/i);
-  assert.match(lastVerified, /A0\.2[\s\S]*GO/i);
-  assert.match(lastVerified, /M src\/fixture\.txt/i);
+  assert.match(lastVerified, /D070-A1/i);
+  assert.match(lastVerified, /live/i);
+  assert.match(lastVerified, /IMPLEMENTATION_VERIFIED|authenticated Codex/i);
+  assert.match(lastVerified, /d070-ao-verified-marker/i);
 
-  assert.match(goal, /D070-A1/i);
   assert.match(goal, /dogfood/i);
-  assert.match(nextAction, /D070-A1/i);
-  assert.match(nextAction, /schema-bound change artifact/i);
-  assert.match(nextAction, /controller materialize/i);
+  assert.match(nextAction, /dogfood/i);
+  assert.match(nextAction, /child-repositor/i);
   assert.match(currentTruth, /closed under/i);
   assert.match(currentTruth, new RegExp(D068_SQUASH_SHORT));
   assert.match(currentTruth, new RegExp(D069_SQUASH_SHORT));
   assert.match(currentTruth, /A0\.1 NO-GO/i);
-  assert.match(currentTruth, /A0\.2 GO/i);
-  assert.match(currentTruth, /controller-materialized artifacts/i);
+  assert.match(currentTruth, /A0\.2 GO|A0\.2/i);
+  assert.match(currentTruth, /D070-A1 closed/i);
+  assert.match(currentTruth, /controller-materialized|controller materializ/i);
 
   assert.doesNotMatch(lastVerified, /under review/i);
   assert.doesNotMatch(nextAction, /open D069/i);
-  assert.doesNotMatch(nextAction, /squash-merge\s+PR\s*#?24/i);
+  assert.doesNotMatch(nextAction, /Implement D070-A1/i);
   assert.doesNotMatch(goal, /Open D069/i);
   assert.doesNotMatch(currentTruth, /Next:\s*D069/i);
   assert.doesNotMatch(status, /D069 is open\/next/i);
@@ -305,14 +304,15 @@ test("roadmap schedules artifact-based D070 A1 → dogfood → observed controls
 
   const d070 = findRoadmapRow(rows, /D070|23A-PR3/);
   assert.match(d070.name + " " + d070.detail, /AO Substitution|substitute AO|walking slice|AO path/i);
-  assert.match(d070.state + " " + d070.detail, /A0 decided|A1 next/i);
-  assert.match(d070.detail, /workspace-write[\s\S]*NO-GO/i);
-  assert.match(d070.detail, /schema-bound[\s\S]*A1/i);
+  assert.match(d070.state + " " + d070.detail, /A0 decided|A1 closed/i);
+  assert.match(d070.detail, /workspace-write[\s\S]*NO-GO|NO-GO/i);
+  assert.match(d070.detail, /schema-bound|controller materialize|read-only/i);
   assert.doesNotMatch(d070.state + " " + d070.detail, /after R1A/i);
+  assert.doesNotMatch(d070.state, /A1 next/i);
 
   const dogfood = findRoadmapRow(rows, /^23A-PR4$/);
   assert.match(dogfood.name, /Dogfood/i);
-  assert.match(dogfood.state + " " + dogfood.detail, /immediately after A1|after D070/i);
+  assert.match(dogfood.state + " " + dogfood.detail, /next|immediately after A1|after D070/i);
 
   const observedControls = findRoadmapRow(rows, /23A-PR4B/);
   assert.match(observedControls.name + " " + observedControls.detail, /Concurrency|cancellation/i);

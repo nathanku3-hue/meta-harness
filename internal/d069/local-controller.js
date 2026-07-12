@@ -1,14 +1,18 @@
 "use strict";
 
 /**
- * D069 private local walking-slice controller.
+ * D070-A1 private local walking-slice controller (lineage: internal/d069).
  *
- * Not packaged (internal/). No public API. No kernel expansion.
- * Disposable after D070 decides worktree ownership.
+ * Temporary directory name retained until post-dogfood R1A.
+ * Not packaged. No public API. No kernel expansion.
  *
  * Locked provider:
- *   id: meta-harness-local-fixture
- *   workerProfile: d069-fixed-fixture-v1
+ *   id: meta-harness-ao-codex
+ *   workerProfile: d070-ao-artifact-v1
+ *
+ * Seam: sealed authorization → claim → async Codex :read-only →
+ * schema-bound artifact → controller materialize/commit → validation →
+ * IMPLEMENTATION_VERIFIED → create-only durable ref → terminal replay.
  */
 
 const fs = require("node:fs");
@@ -37,12 +41,16 @@ const {
   runGit,
 } = require("./git-ops");
 const { executeAttempt } = require("./run-attempt");
+const {
+  PROVIDER_ID,
+  WORKER_PROFILE,
+  FIXED_TIMEOUT_SECONDS,
+  AO_TIMEOUT_SECONDS,
+} = require("./ao-constants");
+const { bindCodexProgram } = require("./ao-process");
 
-const PROVIDER_ID = "meta-harness-local-fixture";
-const WORKER_PROFILE = "d069-fixed-fixture-v1";
 const OWNER_FILE_NAME = "controller-owner.json";
 const OWNER_SCHEMA = "d069-controller-owner/v1";
-const FIXED_TIMEOUT_SECONDS = 60;
 
 function validateAuthorizationPolicyShape(policy) {
   if (!isPlainObject(policy)) {
@@ -76,6 +84,12 @@ function validateAuthorizationPolicyShape(policy) {
       "authorizationPolicy.workspacePolicy must be { schemaVersion: workspace-policy/v1, approvedRoot: absolute normalized path }",
     );
   }
+  if (policy.maxCommandTimeoutSeconds !== FIXED_TIMEOUT_SECONDS) {
+    throw codedError(
+      "D070_MAX_COMMAND_TIMEOUT",
+      `authorizationPolicy.maxCommandTimeoutSeconds must remain ${FIXED_TIMEOUT_SECONDS} (AO uses separate ${AO_TIMEOUT_SECONDS}s)`,
+    );
+  }
 }
 
 /**
@@ -95,7 +109,7 @@ function createLocalWalkingSliceController(config) {
     workspaceRoot: workspaceRootInput,
     authorizationPolicy,
     clock,
-    fixtureWorker,
+    codexProgram,
     validationProgram,
   } = config;
 
@@ -119,17 +133,11 @@ function createLocalWalkingSliceController(config) {
 
   validateAuthorizationPolicyShape(authorizationPolicy);
 
-  if (!isPlainObject(fixtureWorker)
-    || fixtureWorker.workerProfile !== authorizationPolicy.provider.workerProfile) {
+  if (!isPlainObject(codexProgram)
+    || codexProgram.workerProfile !== authorizationPolicy.provider.workerProfile) {
     throw codedError(
-      "D069_WORKER_PROFILE_MISMATCH",
-      "fixtureWorker.workerProfile must equal authorizationPolicy.provider.workerProfile",
-    );
-  }
-  if (fixtureWorker.workerProfile !== WORKER_PROFILE) {
-    throw codedError(
-      "D069_WORKER_PROFILE",
-      `fixtureWorker.workerProfile must be "${WORKER_PROFILE}"`,
+      "D070_CODEX_PROFILE_MISMATCH",
+      "codexProgram.workerProfile must equal authorizationPolicy.provider.workerProfile",
     );
   }
 
@@ -174,12 +182,18 @@ function createLocalWalkingSliceController(config) {
     },
   };
 
-  const boundWorker = validateProgramIdentity("fixtureWorker", fixtureWorker, {
-    requireExpectedCommand: false,
+  const boundCodex = bindCodexProgram(codexProgram, {
+    sourceEnv: codexProgram.hostEnv || {},
   });
   const boundValidation = validateProgramIdentity("validationProgram", validationProgram, {
     requireExpectedCommand: true,
   });
+  if (boundValidation.expectedCommand.timeoutSeconds !== FIXED_TIMEOUT_SECONDS) {
+    throw codedError(
+      "D070_VALIDATION_TIMEOUT",
+      `validation timeout must remain ${FIXED_TIMEOUT_SECONDS}s`,
+    );
+  }
 
   const gitHome = ensureIsolatedGitHome(stateRoot);
   const { gitExecutablePath } = resolveGitExecutable(gitHome);
@@ -219,6 +233,8 @@ function createLocalWalkingSliceController(config) {
 
   let closed = false;
   let activeCalls = 0;
+  /** Controller-scoped AO spawn counter (offline replay proofs). */
+  let aoSpawnCount = 0;
 
   const attemptCtx = {
     repositoryId,
@@ -226,12 +242,20 @@ function createLocalWalkingSliceController(config) {
     stateRoot,
     workspaceRoot,
     boundPolicy,
-    boundWorker,
+    boundCodex,
     boundValidation,
     gitHome,
     gitExecutablePath,
     clock,
     fixedTimeoutSeconds: FIXED_TIMEOUT_SECONDS,
+    aoTimeoutSeconds: AO_TIMEOUT_SECONDS,
+    recordAoSpawn() {
+      aoSpawnCount += 1;
+      return aoSpawnCount;
+    },
+    getAoSpawnCount() {
+      return aoSpawnCount;
+    },
   };
 
   async function run(request) {
@@ -240,7 +264,11 @@ function createLocalWalkingSliceController(config) {
     }
     activeCalls += 1;
     try {
-      return await executeAttempt(attemptCtx, request);
+      const result = await executeAttempt(attemptCtx, request);
+      return {
+        ...result,
+        aoSpawnCount: aoSpawnCount,
+      };
     } finally {
       activeCalls -= 1;
     }
@@ -281,7 +309,7 @@ function createLocalWalkingSliceController(config) {
     return { ok: true, idempotent: false };
   }
 
-  return { run, close };
+  return { run, close, getAoSpawnCount: () => aoSpawnCount };
 }
 
 module.exports = {
@@ -289,6 +317,7 @@ module.exports = {
   PROVIDER_ID,
   WORKER_PROFILE,
   FIXED_TIMEOUT_SECONDS,
+  AO_TIMEOUT_SECONDS,
   OWNER_FILE_NAME,
   publishNoReplace,
   sha256File,

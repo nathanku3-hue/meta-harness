@@ -63,11 +63,11 @@ Readiness also requires `now - inspectedAt ≤ policy.maxReadinessAgeSeconds`.
 
 ## Next — functional-first
 
-1. **D069** local controller walking slice — **closed under `e8e7713`** (PR #24; reviewed head `245fa3d`; base `5afe075`): real git readiness → authorize → worktree → realpath attestation → START_ALLOWED → atomic journal claim → fixture worker → controller commit → validation → `IMPLEMENTATION_VERIFIED`. Integrity-checked terminal replay; Windows host-path identity. No AO; no real concurrent single-use evidence.
-2. **D070-A0 decision:** direct Codex workspace-write is NO-GO on the current Windows host; authenticated `:read-only` schema output followed by controller validation/materialization is GO. The seam is now decided from observation.
-3. **D070-A1 next:** sealed authorization → START_ALLOWED → claim → one async authenticated Codex `:read-only` process → schema-bound change artifact → controller materialization/commit → exact validation → durable result → terminal replay.
-4. Real child-repo dogfood immediately after A1. Concurrency, timeout-tree ownership, and cancellation follow only from an observed dogfood requirement.
-5. **Full R1A** delete unused from fixture + AO + dogfood imports and traces (not planning-first; not before AO/dogfood). No backward-compatible private D069 adapter.
-6. Delivery/recovery only from observed failures.
+1. **D069** local controller walking slice — **closed under `e8e7713`** (PR #24; reviewed head `245fa3d`; base `5afe075`): historical fixed-fixture path. Superseded in private runtime by D070-A1 (directory name `internal/d069` is temporary lineage debt until post-dogfood R1A).
+2. **D070-A0 decision:** direct Codex workspace-write is NO-GO on the current Windows host; authenticated `:read-only` schema output followed by controller validation/materialization is GO.
+3. **D070-A1 closed:** sealed authorization → START_ALLOWED → claim → one async authenticated Codex `:read-only` process (bound node + launcher + native identity; allowlisted env; 120s process-tree timeout) → schema-bound `{path,content}` artifact (path = single-literal `scope.allow`; content bounded, not RunSpec-sealed) → post-AO clean custody gate → controller materialization/commit → exact-byte validation program → durable create-only ref → terminal journal + integrity-checked replay. No raw AO stream persistence. No fixture-worker path.
+4. Real child-repo dogfood next. Broader concurrency/cancellation only from observed dogfood need (process-tree timeout already in A1).
+5. **Full R1A** delete unused from AO + dogfood imports/traces; rename `internal/d069` lineage debt. No backward-compatible private adapter.
+6. Delivery/recovery only from observed failures. Product re-charter after dogfood (execution-custody harness vs return to lightweight MVP).
 
-No public `meta-harness run` until a concrete runtime path exists. No generic `ExecutionProvider` before two real backends.
+No public `meta-harness run` until a concrete product decision. No generic `ExecutionProvider` before two real backends.

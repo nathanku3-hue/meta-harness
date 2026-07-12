@@ -2,20 +2,22 @@
 "use strict";
 
 /**
- * D069 fixed validation program (private).
+ * D070-A1 fixed validation program (private).
  * Integrity-bound via construction expectedScriptSha256 + expectedCommand.
  *
  * Always inspects cwd-relative src/fixture.txt (script owns the path).
- * Success: exit 0 when the marker line is present.
+ * Success: exit 0 only when file bytes are exactly the A1 marker.
  * Failure: non-zero otherwise.
  * No no-arg success path.
+ *
+ * Content is NOT sealed by RunSpec; exact-byte check lives here.
  */
 
 const fs = require("node:fs");
 const path = require("node:path");
 
 const RELATIVE_TARGET = "src/fixture.txt";
-const MARKER = "D069_FIXTURE_WORKER_APPLIED=1";
+const EXACT_CONTENT = "d070-ao-verified-marker\n";
 
 function main() {
   const target = path.resolve(process.cwd(), RELATIVE_TARGET);
@@ -23,17 +25,17 @@ function main() {
   try {
     st = fs.lstatSync(target);
   } catch (err) {
-    process.stderr.write(`D069_VALIDATION_TARGET_MISSING: ${err.message}\n`);
+    process.stderr.write(`D070_VALIDATION_TARGET_MISSING: ${err.message}\n`);
     return 1;
   }
   if (!st.isFile() || st.isSymbolicLink()) {
-    process.stderr.write("D069_VALIDATION_TARGET_NOT_REGULAR\n");
+    process.stderr.write("D070_VALIDATION_TARGET_NOT_REGULAR\n");
     return 1;
   }
 
   const text = fs.readFileSync(target, "utf8");
-  if (!text.includes(MARKER)) {
-    process.stderr.write("D069_VALIDATION_MARKER_MISSING\n");
+  if (text !== EXACT_CONTENT) {
+    process.stderr.write("D070_VALIDATION_EXACT_MISMATCH\n");
     return 1;
   }
 

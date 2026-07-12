@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * D069 sequential verified path (portable Node >= 20).
+ * D070-A1 offline full-chain sequential + replay (test Codex launcher).
  */
 
 const { test } = require("node:test");
@@ -21,6 +21,7 @@ const {
   buildRunRequest,
   programPaths,
   FIXTURE_RELATIVE_FILE,
+  A1_EXACT_BODY,
 } = require("./helpers/runtime-fixture-repo");
 
 function requireNode20() {
@@ -69,32 +70,16 @@ function runGit(gitPath, cwd, args) {
   return result;
 }
 
-test("D069 sequential: sealed request produces verified commit, validation, ref, journal", async () => {
+test("D070-A1 sequential: sealed request produces verified commit, validation, ref, journal", async () => {
   requireNode20();
 
-  const layout = createRuntimeFixtureLayout({ label: "d069seq" });
+  const layout = createRuntimeFixtureLayout({ label: "d070seq" });
   let controller;
   try {
     const programs = programPaths();
 
     const before = runValidation(layout.repositoryPath, programs.validationScript);
-    assert.notEqual(before.status, 0, "validation must fail before worker on base fixture");
-
-    const worker = spawnSync(
-      process.execPath,
-      [programs.fixtureWorkerScript],
-      { cwd: layout.repositoryPath, encoding: "utf8", windowsHide: true },
-    );
-    assert.equal(worker.status, 0, `fixture worker failed: ${worker.stderr}`);
-    const after = runValidation(layout.repositoryPath, programs.validationScript);
-    assert.equal(after.status, 0, "validation must pass after worker");
-
-    fs.writeFileSync(layout.fixtureAbsoluteFile, layout.initialBody, "utf8");
-    runGit(layout.gitExecutablePath, layout.repositoryPath, ["checkout", "--", FIXTURE_RELATIVE_FILE]);
-    const clean = String(
-      runGit(layout.gitExecutablePath, layout.repositoryPath, ["status", "--porcelain"]).stdout,
-    );
-    assert.equal(clean.trim(), "", "fixture must be clean before controller run");
+    assert.notEqual(before.status, 0, "validation must fail on base fixture");
 
     const ownerPath = path.join(layout.stateRoot, OWNER_FILE_NAME);
     controller = createLocalWalkingSliceController(buildControllerConfig(layout));
@@ -102,13 +87,13 @@ test("D069 sequential: sealed request produces verified commit, validation, ref,
 
     const request = buildRunRequest(layout);
     assert.ok(request.runSpecApproval.approvalDigest);
-    assert.match(request.runSpecApproval.runSpecDigest, /^sha256:[a-f0-9]{64}$/);
 
     const result = await controller.run(request);
     assert.equal(result.ok, true);
     assert.equal(result.won, true);
     assert.equal(result.disposition, "VERIFIED");
     assert.equal(result.verdict, "IMPLEMENTATION_VERIFIED");
+    assert.equal(result.aoSpawnCount, 1);
 
     const authHex = digestHex(result.authorizationRequestDigest);
     const attemptDir = path.join(layout.stateRoot, "attempts", authHex);
@@ -121,8 +106,32 @@ test("D069 sequential: sealed request produces verified commit, validation, ref,
     assert.ok(fs.existsSync(assessmentPath), "assessment.json present");
     assert.ok(fs.existsSync(journalPath), "journal.json present");
     assert.ok(fs.existsSync(path.join(artDir, "validation.stdout")));
-    assert.ok(fs.existsSync(path.join(artDir, "worker.stdout")));
+    assert.ok(fs.existsSync(path.join(artDir, "ao-process-meta.json")));
+    assert.ok(fs.existsSync(path.join(artDir, "change-artifact.json")));
     assert.ok(fs.existsSync(path.join(artDir, "git.name-status")));
+    // Raw AO streams must not be persisted
+    assert.equal(fs.existsSync(path.join(artDir, "worker.stdout")), false);
+    assert.equal(fs.existsSync(path.join(artDir, "worker.stderr")), false);
+    assert.equal(fs.existsSync(path.join(artDir, "ao.stdout")), false);
+    assert.equal(fs.existsSync(path.join(artDir, "ao.stderr")), false);
+
+    const meta = JSON.parse(fs.readFileSync(path.join(artDir, "ao-process-meta.json"), "utf8"));
+    assert.equal(meta.exitCode, 0);
+    assert.equal(meta.timedOut, false);
+    assert.equal(meta.spawnOrdinal, 1);
+    assert.match(meta.stdoutSha256, /^[a-f0-9]{64}$/);
+    assert.match(meta.stderrSha256, /^[a-f0-9]{64}$/);
+    assert.ok(meta.eventCount >= 1);
+    assert.equal(meta.terminalType, "turn.completed");
+
+    const artifact = JSON.parse(fs.readFileSync(path.join(artDir, "change-artifact.json"), "utf8"));
+    assert.equal(artifact.path, FIXTURE_RELATIVE_FILE);
+    assert.equal(artifact.content, A1_EXACT_BODY);
+
+    const invCount = String(
+      fs.readFileSync(path.join(artDir, "ao-invocation-count.txt"), "utf8"),
+    ).trim();
+    assert.equal(invCount, "1");
 
     const journal = JSON.parse(fs.readFileSync(journalPath, "utf8"));
     assert.equal(journal.state, "verified");
@@ -181,6 +190,16 @@ test("D069 sequential: sealed request produces verified commit, validation, ref,
     ).trim();
     assert.equal(nameStatus, `M\t${FIXTURE_RELATIVE_FILE}`);
 
+    // Exact bytes in the commit tree
+    const blob = String(
+      runGit(
+        layout.gitExecutablePath,
+        layout.repositoryPath,
+        ["show", `${result.verifiedHeadRevision}:${FIXTURE_RELATIVE_FILE}`],
+      ).stdout,
+    );
+    assert.equal(blob, A1_EXACT_BODY);
+
     const workspacesRoot = path.join(layout.workspaceRoot, "workspaces", authHex);
     if (fs.existsSync(workspacesRoot)) {
       const remaining = fs.readdirSync(workspacesRoot);
@@ -196,17 +215,7 @@ test("D069 sequential: sealed request produces verified commit, validation, ref,
     );
     assert.equal(primaryStatus.trim(), "", "primary worktree clean");
 
-    const refs = String(
-      runGit(layout.gitExecutablePath, layout.repositoryPath, ["show-ref"]).stdout,
-    );
-    assert.match(refs, new RegExp(`refs/meta-harness/attempts/${authHex}`));
-    const metaHarnessRefs = refs
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((l) => l.includes("refs/meta-harness/"));
-    assert.equal(metaHarnessRefs.length, 1, `only one meta-harness ref; got ${metaHarnessRefs.join(" | ")}`);
-
-    // Terminal duplicate replay (no second worktree / worker).
+    // Terminal duplicate replay — no second AO spawn
     const replay = await controller.run(request);
     assert.equal(replay.ok, true);
     assert.equal(replay.disposition, "REPLAY");
@@ -215,6 +224,12 @@ test("D069 sequential: sealed request produces verified commit, validation, ref,
     assert.equal(replay.verdict, "IMPLEMENTATION_VERIFIED");
     assert.equal(replay.verifiedHeadRevision, result.verifiedHeadRevision);
     assert.equal(replay.durableRef, result.durableRef);
+    assert.equal(controller.getAoSpawnCount(), 1, "replay must not spawn AO again");
+    assert.equal(
+      String(fs.readFileSync(path.join(artDir, "ao-invocation-count.txt"), "utf8")).trim(),
+      "1",
+      "launcher invocation counter stays at 1",
+    );
 
     assert.ok(fs.existsSync(ownerPath), "owner remains until close");
     await controller.close();

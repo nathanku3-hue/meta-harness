@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Land D070-A1 on the proven controller-materialized AO artifact seam, then dogfood one child repository before concurrency work. Kernel frozen.
+Dogfood one child repository on the D070-A1 controller-materialized AO path before any concurrency expansion. Kernel frozen.
 
 Phase:
 in_progress
 
 Current truth:
-Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 rejected the direct Codex workspace-write seam on this Windows host: authenticated sanitized invocations returned valid JSONL but the effective sandbox remained read-only, and the safe `:workspace` profile never produced a bounded write. D070-A0.2 then proved the replacement seam: authenticated Codex under `:read-only` emitted an exact schema-bound one-file change artifact; the controller validated and materialized exactly `M src/fixture.txt` with no staging, HEAD/ref/config movement, or Meta-Harness mutation. **Decision: A0.1 NO-GO, A0.2 GO, A1 authorized only on controller-materialized artifacts.** Next: one A1 verified path → immediate child-repo dogfood → concurrency/cancellation only from observed need → full R1A.
+Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 NO-GO / A0.2 GO remain binding. **D070-A1 closed:** private walking slice now runs authenticated Codex `:read-only` → schema-bound `{path,content}` artifact → post-AO clean custody gate → controller materialization/commit → exact-byte validation → `IMPLEMENTATION_VERIFIED` → create-only durable ref → integrity-checked replay. Content is **not** sealed by RunSpec; path is single-literal `scope.allow`; validation program requires exact `d070-ao-verified-marker\n`. Process-tree timeout custody is included (120s AO timeout; validation remains 60s). Raw AO streams are not persisted. Provider `meta-harness-ao-codex` / `d070-ao-artifact-v1`. Fixture worker deleted. `internal/d069` name retained only as temporary lineage debt until post-dogfood R1A. Next: **immediate child-repo dogfood** → concurrency/cancellation only from observed need → full R1A → product re-charter decision.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -204,18 +204,19 @@ Superseded/deferred truth:
 - Phase 21A–21F, 22A, and 22B are closed. D067 superseded. **D068 closed under `be82763`** (PR #23 squash; reviewed head `4b259c9`). Slice 0B.1 repaired stale active pre-merge wording; historical events unchanged.
 
 Active streams:
-- coding: D070-A1 controller-materialized AO artifact path is authorized; implementation has not landed.
-- research: closed for this gate; the write-seam failure and artifact-seam success are observed, not speculative.
-- writing: truth repair only; no separate documentation phase.
-- review: audit complete for A0.1/A0.2; A1 requires fresh implementation review.
+- coding: D070-A1 closed; next is child-repo dogfood on the same seam.
+- research: closed for this gate; write-seam NO-GO and artifact-seam GO are observed.
+- writing: A1 truth flip + lineage note for temporary `internal/d069` directory name.
+- review: A1 offline full-chain + live authenticated sequential/replay passed.
 
 Scope boundary:
 - D068 public contract kernel is frozen on main under `be82763` (no delivery actor, no public run CLI).
-- D069 private local walking slice is closed under `e8e7713`; its authorization, claim, controller-commit, validation, ref, cleanup, and replay chain remains the A1 base.
-- D070 must use authenticated Codex read-only structured output followed by controller validation/materialization. Direct AO filesystem write, sandbox bypass, generic `ExecutionProvider`, and a D069 compatibility adapter are rejected.
+- D070-A1 private path replaces the fixture worker inside the D069 walking-slice lineage (`internal/d069` name is temporary debt until R1A).
+- D070 uses authenticated Codex read-only structured output followed by controller validation/materialization. Direct AO filesystem write, sandbox bypass, generic `ExecutionProvider`, and a D069 compatibility adapter are rejected.
+- Content is not sealed by RunSpec; exact bytes are enforced by the validation program. Path is single-literal `scope.allow`.
 - D064–D066 objects are historical/read-only guidance only — not load-bearing authority inputs.
-- Original-intent deviation is explicit: the implemented MVP specification says the harness does not launch agents and requires no network/model API; Phase 23A is therefore a deliberate post-MVP execution-custody expansion, not a continuation of the original lightweight MVP. Product identity must be re-chartered after A1/dogfood or the execution track must be removed.
-- Concurrency/cancellation moves behind child-repo dogfood; R1A remains after AO-backed dogfood evidence.
+- Original-intent deviation is explicit: the implemented MVP specification says the harness does not launch agents and requires no network/model API; Phase 23A is a deliberate post-MVP execution-custody expansion. Product identity must be re-chartered after dogfood or the execution track must be removed.
+- Process-tree timeout custody shipped in A1; broader concurrency/cancellation still behind dogfood.
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
@@ -242,37 +243,36 @@ Relevant decisions:
 - D067: superseded; archive `fb40d18`.
 - D068: **closed** under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`).
 - D069: **closed** under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`).
-- D070-A0 decision: direct worker-write seam **NO-GO**; controller-materialized artifact seam **GO**; A1 authorized on the latter only.
+- D070-A0 decision: direct worker-write seam **NO-GO**; controller-materialized artifact seam **GO**.
+- D070-A1: **closed** on controller-materialized Codex `:read-only` artifacts (provider `meta-harness-ao-codex` / `d070-ao-artifact-v1`).
 
-Current score (2026-07-12 decision-owner audit):
-- overall product flow: **7.1/10**
-- Phase 23A execution path: **7.8/10**
-- functional execution: **6.8/10**
-- trusted runtime custody: **8.4/10**
+Current score (2026-07-12 A1 close):
+- overall product flow: **7.3/10**
+- Phase 23A execution path: **8.4/10**
+- functional execution: **7.6/10**
+- trusted runtime custody: **8.7/10**
 - D069 completion: **9.4/10**
 - AO capability discovery: **8.2/10**
-- AO verified integration: **2.5/10** (probe seam only; not yet inside the full authority chain)
+- AO verified integration: **8.0/10** (full authority chain offline + live)
 - real concurrent single-use: **0.8/10**
 - child-repository dogfood: **0.0/10**
-- roadmap honesty: **9.1/10** after correcting the false-clean assertion and recording the seam/product-intent pivots
-- engineering health: **8.5/10**
-- product-intent alignment: **5.5/10** until the post-MVP execution-custody identity is explicitly accepted or removed
+- roadmap honesty: **9.2/10**
+- engineering health: **8.6/10**
+- product-intent alignment: **5.5/10** until post-dogfood re-charter
 
 Blockers:
-- A1 is blocked from using direct Codex workspace writes on this host.
-- A1 is not blocked on the controller-materialized artifact seam.
+- Direct Codex workspace writes remain NO-GO on this host.
+- Child-repo dogfood not yet run.
 
 Last verified:
-- HEAD and origin/main were `c602e5938c6338f0bb57fc8446d79c044b20ed7b` before truth repair.
-- D069 authority-truth, sequential, duplicate, and integrity suite: **12/12 PASS** on Node `v25.2.1`.
-- Sanitized Codex login status: ChatGPT authenticated; Codex CLI `0.144.1`.
-- A0.1: authenticated JSONL/exit path works, but direct `workspace-write` is effectively read-only; safe `:workspace` direct sandbox timed out without executing the bounded write.
-- A0.2: **GO** — exact artifact `{path: src/fixture.txt, content: d070-ao-verified-marker\n}`; controller materialization produced only unstaged `M src/fixture.txt`; HEAD remained detached/unchanged; refs and local Git config unchanged.
-- The prior untracked `NUL` login-status artifact was moved into ignored `.meta-harness/local/` evidence; it was not treated as a clean checkout.
+- D070-A1 offline: artifact unit + process-tree timeout + full-chain sequential/replay + integrity suite PASS on Node `v25.2.1`.
+- D070-A1 live: authenticated Codex `0.144.1` sequential `IMPLEMENTATION_VERIFIED` + replay with one AO spawn; evidence `.meta-harness/local/d070-a1-live-pass.json`.
+- A0.1 NO-GO / A0.2 GO remain binding background for the seam choice.
+- Raw AO stdout/stderr not persisted; post-AO clean custody gate required before materialization.
+- Validation exact bytes: `d070-ao-verified-marker\n` (not RunSpec-sealed content).
 
 Next action:
-Implement D070-A1 as one async Codex `:read-only` process producing a schema-bound change artifact; validate path/content against the sealed RunSpec; let the controller materialize, commit, validate, publish the create-only durable ref, terminalize, and replay. Then dogfood one child repository before any overlap, cancellation, provider generality, public CLI, or delivery work.
-Do not reopen `lib/contracts/*` without a concrete A1 contract failure.
+Run one real child-repository dogfood on the D070-A1 controller-materialized path. Do not build concurrency/cancellation frameworks unless dogfood produces an observed requirement. Do not reopen `lib/contracts/*` without a concrete bind failure. After dogfood, re-charter product identity or remove the execution track.
 
 Updated:
 2026-07-12

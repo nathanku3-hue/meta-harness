@@ -1,9 +1,14 @@
 "use strict";
 
 /**
- * D069 private post-claim implementation path (not packaged).
+ * D070-A1 private post-claim implementation path (lineage: internal/d069).
+ * Not packaged.
+ *
+ * AO :read-only → post-AO custody gate → validate artifact → controller materialize
+ * → commit → validation → IMPLEMENTATION_VERIFIED → create-only durable ref.
  */
 
+const fs = require("node:fs");
 const path = require("node:path");
 
 const {
@@ -35,9 +40,22 @@ const {
   removeWorktreeVerified,
   removeWorktreeBestEffort,
 } = require("./git-ops");
+const {
+  requireSingleLiteralScopePath,
+  buildChangeArtifactSchema,
+  parseCodexJsonl,
+  extractChangeArtifact,
+  validateChangeArtifact,
+  materializeChangeArtifact,
+  summarizeEvents,
+} = require("./ao-artifact");
+const { spawnAoProcess } = require("./ao-process");
+const {
+  captureWorktreeCustody,
+  assertPostAoCleanCustody,
+} = require("./ao-custody");
 
 const JOURNAL_SCHEMA = "d069-journal/v1";
-const FIXTURE_RELATIVE = "src/fixture.txt";
 
 function journalBase(receipt, claim, startCheck, workspaceRef, invocationNonce, clock, state, extra = {}) {
   return sealJournal({
@@ -119,8 +137,6 @@ function reattestAfterValidation(gitExecutablePath, worktreePath, repositoryPath
   const topLevel = String(
     runGit(gitExecutablePath, worktreePath, ["rev-parse", "--show-toplevel"], gitHome).stdout,
   ).trim();
-  // Git may report forward-slash / different drive-letter case than Node realpath.
-  // Identity is same host location, not byte-identical path strings.
   if (!sameCanonicalExistingPath(topLevel, worktreePath)) {
     throw codedError(
       "D069_TOPLEVEL",
@@ -150,6 +166,30 @@ function reattestAfterValidation(gitExecutablePath, worktreePath, repositoryPath
   return { headAfter: head, objectFormat };
 }
 
+function persistAoMeta(artDir, processResult, eventSummary, spawnOrdinal) {
+  const meta = {
+    schemaVersion: "d070-ao-process-meta/v1",
+    spawnOrdinal,
+    exitCode: processResult.meta.exitCode,
+    timedOut: processResult.meta.timedOut,
+    capBreached: processResult.meta.capBreached,
+    stdoutSha256: processResult.meta.stdoutSha256,
+    stderrSha256: processResult.meta.stderrSha256,
+    stdoutBytes: processResult.meta.stdoutBytes,
+    stderrBytes: processResult.meta.stderrBytes,
+    eventCount: eventSummary ? eventSummary.eventCount : null,
+    eventTypeCounts: eventSummary ? eventSummary.eventTypeCounts : null,
+    terminalType: eventSummary ? eventSummary.terminalType : null,
+    promptSha256: processResult.meta.promptSha256,
+    argv: processResult.meta.argv,
+    killInfo: processResult.meta.killInfo,
+    // Bounded redacted failure diagnostic only (no raw model streams).
+    failureCode: processResult.ok ? null : processResult.code,
+  };
+  writeJsonReplace(path.join(artDir, "ao-process-meta.json"), meta);
+  return meta;
+}
+
 /**
  * Winner path after immutable claim publication.
  */
@@ -158,12 +198,14 @@ async function implementAfterClaim(ctx, args) {
     repositoryPath,
     stateRoot,
     boundPolicy,
-    boundWorker,
+    boundCodex,
     boundValidation,
     gitHome,
     gitExecutablePath,
     clock,
     fixedTimeoutSeconds,
+    aoTimeoutSeconds,
+    recordAoSpawn,
   } = ctx;
 
   const {
@@ -189,32 +231,88 @@ async function implementAfterClaim(ctx, args) {
     );
     writeJsonReplace(journalPath, journal);
 
-    revalidateProgram(boundWorker);
+    const allowedPath = requireSingleLiteralScopePath(runSpec.scope);
+
     journal = journalBase(
       receipt, claim, startCheck, workspaceRef, invocationNonce, clock, "worker_started",
     );
     writeJsonReplace(journalPath, journal);
 
-    const workerResult = spawnProgram(
-      boundWorker.executablePath,
-      boundWorker.scriptPath,
-      worktreePath,
-      fixedTimeoutSeconds,
-      sanitizedGitEnv(gitHome),
-    );
     const artDir = path.join(stateRoot, "artifacts", authReqHex);
-    writeTextFile(path.join(artDir, "worker.stdout"), String(workerResult.stdout || ""));
-    writeTextFile(path.join(artDir, "worker.stderr"), String(workerResult.stderr || ""));
-    if (workerResult.error) {
-      throw codedError("D069_WORKER_SPAWN_FAILED", workerResult.error.message);
-    }
-    if (workerResult.status !== 0) {
+    fs.mkdirSync(artDir, { recursive: true });
+
+    const schema = buildChangeArtifactSchema(allowedPath);
+    const schemaPath = path.join(artDir, "change-artifact.schema.json");
+    writeJsonReplace(schemaPath, schema);
+
+    // Capture custody BEFORE AO so we can prove no mutation after.
+    const custodyBefore = captureWorktreeCustody(
+      gitExecutablePath,
+      worktreePath,
+      repositoryPath,
+      gitHome,
+    );
+    if (custodyBefore.head !== runSpec.repository.expectedBaseRevision) {
       throw codedError(
-        "D069_WORKER_FAILED",
-        `fixture worker exited ${workerResult.status}: ${String(workerResult.stderr || "").trim()}`,
-        { status: workerResult.status },
+        "D070_PRE_AO_HEAD",
+        "pre-AO HEAD must equal expected base",
       );
     }
+    if (!custodyBefore.detached || custodyBefore.status.trim() !== "") {
+      throw codedError("D070_PRE_AO_CLEAN", "pre-AO worktree must be clean and detached");
+    }
+
+    const spawnOrdinal = typeof recordAoSpawn === "function" ? recordAoSpawn() : 1;
+    const processResult = await spawnAoProcess(boundCodex, {
+      worktreePath,
+      schemaPath,
+      allowedPath,
+      timeoutSeconds: aoTimeoutSeconds || 120,
+    });
+
+    // Never persist raw AO stdout/stderr by default.
+    let eventSummary = null;
+    if (!processResult.ok) {
+      persistAoMeta(artDir, processResult, null, spawnOrdinal);
+      if (processResult.meta.timedOut) {
+        throw codedError("D070_AO_TIMEOUT", "AO process timed out; process tree terminated");
+      }
+      if (processResult.meta.capBreached) {
+        throw codedError(
+          "D070_AO_OUTPUT_CAP",
+          `AO ${processResult.meta.capBreached} exceeded cap; process tree terminated`,
+        );
+      }
+      throw codedError(
+        "D070_AO_EXIT",
+        `AO process exited ${processResult.meta.exitCode}`,
+        { exitCode: processResult.meta.exitCode },
+      );
+    }
+
+    const events = parseCodexJsonl(processResult.stdout);
+    eventSummary = summarizeEvents(events);
+    persistAoMeta(artDir, processResult, eventSummary, spawnOrdinal);
+
+    const extracted = extractChangeArtifact(events);
+    // Post-AO clean custody gate BEFORE materialization (proves AO stayed read-only).
+    assertPostAoCleanCustody({
+      gitExecutablePath,
+      worktreePath,
+      repositoryPath,
+      gitHome,
+      expectedBaseRevision: runSpec.repository.expectedBaseRevision,
+      before: custodyBefore,
+    });
+
+    const validated = validateChangeArtifact(extracted.artifact, allowedPath);
+    writeJsonReplace(path.join(artDir, "change-artifact.json"), {
+      path: validated.path,
+      content: validated.content,
+      contentBytes: validated.contentBytes,
+    });
+
+    materializeChangeArtifact(worktreePath, validated);
 
     runGit(
       gitExecutablePath,
@@ -253,10 +351,10 @@ async function implementAfterClaim(ctx, args) {
     }
     if (changedFiles.length !== 1
       || changedFiles[0].status !== "M"
-      || changedFiles[0].path !== FIXTURE_RELATIVE) {
+      || changedFiles[0].path !== allowedPath) {
       throw codedError(
         "D069_SCOPE_CHANGE",
-        `expected exactly M ${FIXTURE_RELATIVE}, got ${JSON.stringify(changedFiles)}`,
+        `expected exactly M ${allowedPath}, got ${JSON.stringify(changedFiles)}`,
       );
     }
     const scopeResult = checkScope(runSpec.scope, changedFiles);
@@ -264,11 +362,11 @@ async function implementAfterClaim(ctx, args) {
       throw codedError("D069_SCOPE_VIOLATION", scopeResult.detail, { scopeResult });
     }
 
-    runGit(gitExecutablePath, worktreePath, ["add", "--", FIXTURE_RELATIVE], gitHome);
+    runGit(gitExecutablePath, worktreePath, ["add", "--", allowedPath], gitHome);
     runGit(
       gitExecutablePath,
       worktreePath,
-      ["commit", "-m", `d069 verified attempt ${authReqHex}`],
+      ["commit", "-m", `d070 verified attempt ${authReqHex}`],
       gitHome,
     );
     const commitHead = String(
@@ -360,7 +458,7 @@ async function implementAfterClaim(ctx, args) {
         headRevision: commitHead,
         baseIsAncestor: true,
         clean: true,
-        changedFiles: [{ status: "M", path: FIXTURE_RELATIVE }],
+        changedFiles: [{ status: "M", path: allowedPath }],
         collectedAt: gitCollectedAt,
         nameStatusArtifact: artifactDigest("git.name-status", nameStatusOut),
         patchArtifact: artifactDigest("git.patch", patchOut),

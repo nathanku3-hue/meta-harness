@@ -1,7 +1,8 @@
 "use strict";
 
 /**
- * D069 test helper: ordinary non-bare temporary fixture repository.
+ * D070-A1 test helper: ordinary non-bare temporary fixture repository.
+ * Offline tests bind the test-only Codex launcher (not a second production path).
  * Not a production export.
  */
 
@@ -17,15 +18,18 @@ const {
   PROVIDER_ID,
   WORKER_PROFILE,
 } = require("../../internal/d069/local-controller");
+const { AO_ENV_ALLOWLIST } = require("../../internal/d069/ao-constants");
+const { absNorm: supportAbsNorm } = require("../../internal/d069/support");
 const { computeRunSpecDigest } = require("../../lib/contracts/run-spec");
 const { sealRunSpecApproval } = require("../../lib/contracts/run-spec-approval");
 
-const FIXTURE_REPOSITORY_ID = "d069-fixture";
+const FIXTURE_REPOSITORY_ID = "d070-fixture";
 const FIXTURE_RELATIVE_FILE = "src/fixture.txt";
 const FIXTURE_INITIAL_BODY = "fixture-initial\n";
-const WORKER_MARKER_BODY = "fixture-initial\nD069_FIXTURE_WORKER_APPLIED=1\n";
+const A1_EXACT_BODY = "d070-ao-verified-marker\n";
 const FROZEN_NOW = "2026-07-12T12:00:00.000Z";
 const APPROVED_AT = "2026-07-12T11:00:00.000Z";
+const TEST_CODEX_VERSION = "0.144.1-test";
 
 function resolveGit() {
   const preferred = process.platform === "win32" ? "D:\\Git\\cmd\\git.exe" : "git";
@@ -51,9 +55,9 @@ function gitEnv() {
     ...process.env,
     GIT_TERMINAL_PROMPT: "0",
     GIT_CONFIG_NOSYSTEM: "1",
-    GIT_AUTHOR_NAME: "meta-harness-d069-fixture",
+    GIT_AUTHOR_NAME: "meta-harness-d070-fixture",
     GIT_AUTHOR_EMAIL: "fixture@meta-harness.local",
-    GIT_COMMITTER_NAME: "meta-harness-d069-fixture",
+    GIT_COMMITTER_NAME: "meta-harness-d070-fixture",
     GIT_COMMITTER_EMAIL: "fixture@meta-harness.local",
     GIT_PAGER: "cat",
     PAGER: "cat",
@@ -80,28 +84,36 @@ function runGit(gitPath, cwd, args) {
 }
 
 function absNorm(p) {
-  const resolved = path.resolve(p);
-  const normalized = path.normalize(resolved);
-  if (normalized.length > 3 && normalized.endsWith(path.sep)) {
-    return normalized.slice(0, -1);
+  return supportAbsNorm(p);
+}
+
+function snapshotHostEnv() {
+  const env = {};
+  for (const key of AO_ENV_ALLOWLIST) {
+    if (key === "CODEX_HOME") continue;
+    if (process.env[key]) env[key] = process.env[key];
   }
-  return normalized;
+  // Ensure PATH exists for Windows tests
+  if (!env.PATH) env.PATH = process.env.PATH || "";
+  return env;
 }
 
 /**
- * Create a short-lived D069 fixture layout under os.tmpdir().
+ * Create a short-lived fixture layout under os.tmpdir().
  */
 function createRuntimeFixtureLayout(options = {}) {
   const gitExecutablePath = options.gitExecutablePath || resolveGit();
-  const label = options.label || "d069";
+  const label = options.label || "d070";
   const root = absNorm(fs.mkdtempSync(path.join(os.tmpdir(), `${label}-`)));
   const repositoryPath = absNorm(path.join(root, "repo"));
   const stateRoot = absNorm(path.join(root, "state"));
   const workspaceRoot = absNorm(path.join(root, "ws"));
+  const codexHome = absNorm(path.join(root, "codex-home"));
 
   fs.mkdirSync(repositoryPath, { recursive: true });
   fs.mkdirSync(stateRoot, { recursive: true });
   fs.mkdirSync(workspaceRoot, { recursive: true });
+  fs.mkdirSync(codexHome, { recursive: true });
 
   runGit(gitExecutablePath, repositoryPath, ["init"]);
   runGit(gitExecutablePath, repositoryPath, ["config", "core.autocrlf", "false"]);
@@ -113,7 +125,7 @@ function createRuntimeFixtureLayout(options = {}) {
   fs.writeFileSync(fixtureAbsoluteFile, FIXTURE_INITIAL_BODY, "utf8");
 
   runGit(gitExecutablePath, repositoryPath, ["add", FIXTURE_RELATIVE_FILE]);
-  runGit(gitExecutablePath, repositoryPath, ["commit", "-m", "d069 fixture initial"]);
+  runGit(gitExecutablePath, repositoryPath, ["commit", "-m", "d070 fixture initial"]);
 
   const headRevision = String(
     runGit(gitExecutablePath, repositoryPath, ["rev-parse", "HEAD"]).stdout,
@@ -153,12 +165,13 @@ function createRuntimeFixtureLayout(options = {}) {
     repositoryPath,
     stateRoot,
     workspaceRoot,
+    codexHome,
     headRevision,
     objectFormat,
     fixtureRelativeFile: FIXTURE_RELATIVE_FILE,
     fixtureAbsoluteFile,
     initialBody: FIXTURE_INITIAL_BODY,
-    workerMarkerBody: WORKER_MARKER_BODY,
+    a1ExactBody: A1_EXACT_BODY,
     gitExecutablePath,
     cleanup,
   };
@@ -166,13 +179,18 @@ function createRuntimeFixtureLayout(options = {}) {
 
 function programPaths() {
   const programsDir = path.resolve(__dirname, "../../internal/d069/programs");
-  const fixtureWorkerScript = absNorm(path.join(programsDir, "fixture-worker.js"));
   const validationScript = absNorm(path.join(programsDir, "validation-program.js"));
+  const testLauncher = absNorm(path.join(programsDir, "test-codex-launcher.js"));
+  const testNative = absNorm(path.join(programsDir, "test-codex-native-stub.js"));
+  const treeChildLauncher = absNorm(path.join(programsDir, "test-tree-child-launcher.js"));
   return {
-    fixtureWorkerScript,
     validationScript,
-    fixtureWorkerSha256: sha256File(fixtureWorkerScript),
     validationSha256: sha256File(validationScript),
+    testLauncher,
+    testLauncherSha256: sha256File(testLauncher),
+    testNative,
+    testNativeSha256: sha256File(testNative),
+    treeChildLauncher,
   };
 }
 
@@ -183,6 +201,7 @@ function programPaths() {
 function buildControllerConfig(layout, options = {}) {
   const programs = programPaths();
   const clock = options.clock || (() => FROZEN_NOW);
+  const nodePath = absNorm(process.execPath);
 
   return {
     trustedRepository: {
@@ -205,11 +224,16 @@ function buildControllerConfig(layout, options = {}) {
       },
     },
     clock,
-    fixtureWorker: {
+    codexProgram: {
       workerProfile: WORKER_PROFILE,
-      executablePath: process.execPath,
-      scriptPath: programs.fixtureWorkerScript,
-      expectedScriptSha256: programs.fixtureWorkerSha256,
+      nodeExecutablePath: nodePath,
+      launcherScriptPath: programs.testLauncher,
+      expectedLauncherSha256: programs.testLauncherSha256,
+      nativeExecutablePath: programs.testNative,
+      expectedNativeSha256: programs.testNativeSha256,
+      expectedVersion: options.codexVersion || TEST_CODEX_VERSION,
+      codexHome: layout.codexHome,
+      hostEnv: snapshotHostEnv(),
     },
     validationProgram: {
       executablePath: process.execPath,
@@ -233,13 +257,14 @@ function buildRunRequest(layout, options = {}) {
   const programs = programPaths();
   const runSpec = {
     schemaVersion: "run-spec/v1",
-    runId: options.runId || "RUN-D069-V1",
+    runId: options.runId || "RUN-D070-V1",
     repository: {
       repositoryId: layout.trustedRepository.repositoryId,
       objectFormat: layout.objectFormat,
       expectedBaseRevision: layout.headRevision,
     },
-    objective: options.objective || "D069 local walking slice sequential verified commit",
+    objective: options.objective
+      || "D070-A1 controller-materialized AO artifact sequential verified commit",
     scope: {
       allow: ["src/fixture.txt"],
       deny: [],
@@ -260,7 +285,7 @@ function buildRunRequest(layout, options = {}) {
   const runSpecDigest = computeRunSpecDigest(runSpec);
   const runSpecApproval = sealRunSpecApproval({
     schemaVersion: "run-spec-approval/v1",
-    approvalId: options.approvalId || "APR-D069-V1",
+    approvalId: options.approvalId || "APR-D070-V1",
     approvedBy: options.approvedBy || "test@meta-harness.local",
     approvedAt: options.approvedAt || APPROVED_AT,
     runSpec,
@@ -270,8 +295,8 @@ function buildRunRequest(layout, options = {}) {
   return {
     runSpecApproval,
     authorizationRequest: {
-      authorizationId: options.authorizationId || "AUTH-D069-V1",
-      attemptId: options.attemptId || "ATTEMPT-D069-V1",
+      authorizationId: options.authorizationId || "AUTH-D070-V1",
+      attemptId: options.attemptId || "ATTEMPT-D070-V1",
     },
   };
 }
@@ -281,11 +306,13 @@ module.exports = {
   buildControllerConfig,
   buildRunRequest,
   programPaths,
+  snapshotHostEnv,
   FIXTURE_REPOSITORY_ID,
   FIXTURE_RELATIVE_FILE,
   FIXTURE_INITIAL_BODY,
-  WORKER_MARKER_BODY,
+  A1_EXACT_BODY,
   FROZEN_NOW,
   APPROVED_AT,
+  TEST_CODEX_VERSION,
   absNorm,
 };

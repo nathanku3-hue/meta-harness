@@ -2022,50 +2022,56 @@ Evidence: squash `e8e7713cc99b58faad1a2aaa0ecaf836e4e25958` (PR #24; reviewed he
 
 ## D070: AO Seam Decision — Reject Worker Write, Adopt Controller Materialization
 
-Status: **A0 decided; A1 authorized on one seam only**.
+Status: **A0 decided; A1 closed**.
 
 Decision:
 
-Reject the direct Codex filesystem-write seam on the current Windows host and adopt a controller-materialized artifact seam for D070-A1.
+Reject the direct Codex filesystem-write seam on the current Windows host and adopt a controller-materialized artifact seam. **D070-A1 is closed** on that seam.
 
-Observed results:
+Observed A0 results:
 
 - A0.1 sanitized authentication and invocation succeeded: ChatGPT login status was valid, Codex CLI `0.144.1` returned parseable JSONL, exited cleanly when stdin was closed, and did not move HEAD, refs, staging, or local Git config.
-- `--sandbox workspace-write` remained effectively read-only. Adding `--ask-for-approval never`, required Windows profile variables, and moving the detached worktree outside Temp did not change that result.
-- The safe managed `:workspace` sandbox profile provisioned scratch ACLs but did not execute the bounded write within 120 seconds. No sandbox bypass or danger-full-access fallback is authorized.
-- A0.2 succeeded under the explicit `:read-only` permission profile: Codex returned a schema-bound artifact exactly equal to `{ path: "src/fixture.txt", content: "d070-ao-verified-marker\n" }`.
-- After exact artifact validation, controller-owned materialization produced only unstaged `M src/fixture.txt`; detached HEAD, refs, local Git config, staging, and the Meta-Harness checkout remained unchanged.
+- `--sandbox workspace-write` remained effectively read-only. The safe managed `:workspace` profile never produced a bounded write. No sandbox bypass is authorized.
+- A0.2 succeeded under `:read-only`: schema-bound artifact `{ path, content }` with controller materialization producing unstaged `M src/fixture.txt` only.
 
-A1 binding seam:
+A1 closed seam:
 
 ```text
 sealed authorization
 → detached worktree + START_ALLOWED + claim
 → async authenticated Codex :read-only process
-→ schema-bound change artifact
-→ controller validates path/content against RunSpec
-→ controller materializes and commits
-→ exact validation
+  (bound node + launcher sha + native sha + version; allowlisted env;
+   stdio ignore/pipe/pipe; 120s process-tree timeout + reap)
+→ parse terminal JSONL (turn.completed; exact agent_message JSON object)
+→ post-AO clean custody gate (HEAD/base, clean incl. ignored, refs, config, worktrees)
+→ validate artifact keys; path == single-literal scope.allow; bounded content
+→ controller materializes exact bytes (no mkdir, no git by AO)
+→ controller stages/commits
+→ validation program exact-byte check (not RunSpec-sealed content)
 → IMPLEMENTATION_VERIFIED
 → create-only durable ref
 → terminal journal + integrity-checked replay
 ```
 
-Constraints:
+Authority honesty:
 
-- One request, one Codex process, one timeout, one terminal result.
-- Close child stdin explicitly; capture and parse JSONL; fail closed on malformed, missing, extra, or out-of-scope artifact fields.
-- Use operator-owned authenticated `CODEX_HOME` as an input boundary; do not copy credentials into probe or repository state.
-- Expected Codex caches/databases under `CODEX_HOME` are runtime state, not repository mutations; acceptance remains strict on worktree/Git scope and secret leakage.
-- No direct AO filesystem write, dangerous sandbox bypass, provider abstraction, D069 compatibility adapter, public run CLI, concurrency, cancellation framework, delivery, or recovery in A1.
-- Child-repository dogfood moves immediately after A1. Concurrency/cancellation follows only if dogfood produces an observed requirement.
-- Private D069 implementation may be replaced without backward compatibility once the A1 path is green.
+- RunSpec does **not** seal expected file bytes. Path comes from exactly one literal `scope.allow` entry with empty `deny` and no globs.
+- Content is a bounded non-empty non-NUL string; semantic exact bytes are enforced by the validation program (`text === "d070-ao-verified-marker\n"` for A1).
+- Final Git facts, patch digest, and validation bind the accepted implementation back to RunSpec.
 
-Product-intent deviation:
+Constraints accepted in A1:
 
-The original implemented MVP says the harness does not launch agents and requires no network/model API. Phase 23A therefore represents a deliberate post-MVP execution-custody expansion. After A1 and one dogfood path, explicitly re-charter Meta-Harness around that identity or remove the execution track; do not maintain a silent hybrid.
+- One request, one Codex process, one AO timeout (120s), one terminal result; validation timeout remains 60s.
+- Process-tree termination on timeout/output-cap; not a cancellation framework.
+- Persist AO metadata (hashes, counts, event types, validated `change-artifact.json`) — **not** raw stdout/stderr by default.
+- Operator-owned `CODEX_HOME` boundary only; no credential copy; no full home content inspection.
+- Provider `meta-harness-ao-codex` / `d070-ao-artifact-v1`. Fixture worker deleted; no dual production path.
+- `internal/d069` directory name retained only as temporary lineage debt until post-dogfood R1A.
+- No provider abstraction, public run CLI, delivery, or recovery in A1.
 
-Evidence: local ignored probe artifacts under `.meta-harness/local/`; exact D069 authority/runtime suite 12/12 PASS on Node `v25.2.1`; A0.1 safe-write attempts; A0.2 exact schema artifact and Git custody checks; decision-owner audit dated 2026-07-12.
+Roadmap after A1: immediate child-repo dogfood → concurrency/cancellation only from observed need → full R1A → product re-charter (execution-custody harness vs lightweight MVP).
+
+Evidence: offline artifact + full-chain sequential/replay + process-tree tests; live authenticated sequential+replay pass (Codex `0.144.1`); local live evidence under `.meta-harness/local/d070-a1-live-pass.json`; critical authority suite PASS on Node `v25.2.1`.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
