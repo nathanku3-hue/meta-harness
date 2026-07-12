@@ -146,14 +146,14 @@ test("D070 integrity: mismatched RunSpec validation command is rejected", async 
         expectedBaseRevision: layout.headRevision,
       },
       objective: "mismatch validation command",
-      scope: { allow: ["src/fixture.txt"], deny: [] },
+      scope: { allow: [layout.fixtureRelativeFile], deny: [] },
       validation: {
         commands: [{
-          argv: [process.execPath, programs.validationScript, "not-bound"],
+          argv: [...programs.validationArgv, "not-bound"],
           cwdRelative: ".",
           timeoutSeconds: 60,
           networkPolicy: "denied",
-          environmentPolicy: { allow: [] },
+          environmentPolicy: { allow: programs.validationAllow.slice() },
         }],
       },
       changePolicy: "forbid-noop",

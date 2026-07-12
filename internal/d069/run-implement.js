@@ -33,7 +33,6 @@ const {
 } = require("./support");
 const {
   CONTROLLER_AUTHOR_NAME,
-  sanitizedGitEnv,
   runGit,
   isDetachedHead,
   createOnlyRef,
@@ -270,6 +269,7 @@ async function implementAfterClaim(ctx, args) {
       worktreePath,
       schemaPath,
       allowedPath,
+      objective: runSpec.objective,
       timeoutSeconds: aoTimeoutSeconds || 120,
     });
 
@@ -415,11 +415,10 @@ async function implementAfterClaim(ctx, args) {
     const validationCmd = boundValidation.expectedCommand;
     const valStartedAt = clock();
     const valResult = spawnProgram(
-      boundValidation.executablePath,
-      boundValidation.scriptPath,
+      validationCmd.argv,
       worktreePath,
       validationCmd.timeoutSeconds,
-      sanitizedGitEnv(gitHome),
+      boundValidation.validationEnv,
     );
     const valEndedAt = clock();
     writeTextFile(path.join(artDir, "validation.stdout"), String(valResult.stdout || ""));

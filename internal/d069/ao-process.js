@@ -23,7 +23,7 @@ const {
   AO_STDOUT_MAX_BYTES,
   AO_STDERR_MAX_BYTES,
   AO_ENV_ALLOWLIST,
-  buildFixedAoPrompt,
+  buildObjectiveAoPrompt,
   WORKER_PROFILE,
 } = require("./ao-constants");
 
@@ -372,11 +372,12 @@ function spawnAoProcess(bound, {
   worktreePath,
   schemaPath,
   allowedPath,
+  objective,
   timeoutSeconds = AO_TIMEOUT_SECONDS,
 }) {
   const identity = revalidateCodexIdentity(bound);
 
-  const prompt = buildFixedAoPrompt(allowedPath);
+  const prompt = buildObjectiveAoPrompt(objective, allowedPath);
   const args = [
     bound.launcherRealPath,
     "--ask-for-approval",

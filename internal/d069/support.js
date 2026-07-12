@@ -269,6 +269,110 @@ function rootsPairwiseSeparated(a, b, labelA, labelB) {
   }
 }
 
+const {
+  WINDOWS_POWERSHELL_PATH,
+  VALIDATION_ENV_ALLOWLIST,
+  D071_SUBJECT_RELATIVE_PATH,
+} = require("./ao-constants");
+
+function requireRegularNonSymlinkFile(filePath, label) {
+  let lstat;
+  try {
+    lstat = fs.lstatSync(filePath);
+  } catch (err) {
+    throw codedError("D069_PROGRAM_PATH_MISSING", `${label} missing: ${err.message}`);
+  }
+  if (lstat.isSymbolicLink()) {
+    throw codedError("D069_PROGRAM_PATH_SYMLINK", `${label} must not be a symlink`);
+  }
+  const real = fs.realpathSync(filePath);
+  const st = fs.lstatSync(real);
+  if (!st.isFile() || st.isSymbolicLink()) {
+    throw codedError("D069_PROGRAM_PATH_NOT_REGULAR", `${label} must be a regular non-symlink file`);
+  }
+  return real;
+}
+
+function normalizeAllowList(allow) {
+  if (!Array.isArray(allow) || !allow.every(isNonEmptyString)) {
+    throw codedError("D069_VALIDATION_ENV", "environmentPolicy.allow must be a string array");
+  }
+  const sorted = [...allow].sort();
+  const unique = [...new Set(sorted)];
+  if (unique.length !== sorted.length) {
+    throw codedError("D069_VALIDATION_ENV", "environmentPolicy.allow must be unique");
+  }
+  return sorted;
+}
+
+function assertValidationAllowlist(allowSorted) {
+  const expected = [...VALIDATION_ENV_ALLOWLIST].sort();
+  if (JSON.stringify(allowSorted) !== JSON.stringify(expected)) {
+    throw codedError(
+      "D069_VALIDATION_ENV",
+      `environmentPolicy.allow must be exactly ${JSON.stringify(expected)}`,
+    );
+  }
+}
+
+/**
+ * Snapshot validation env from construction-bound allowlist only.
+ * networkPolicy denied is trust-based (exact hashed validator has no network ops).
+ */
+function buildValidationEnv(allowList, sourceEnv) {
+  const allow = normalizeAllowList(allowList);
+  assertValidationAllowlist(allow);
+  if (!isPlainObject(sourceEnv)) {
+    throw codedError("D071_VALIDATION_ENV_SOURCE", "validation sourceEnv must be a plain object");
+  }
+  const env = Object.create(null);
+  for (const key of allow) {
+    if (Object.prototype.hasOwnProperty.call(sourceEnv, key)
+      && sourceEnv[key] !== undefined
+      && sourceEnv[key] !== null
+      && String(sourceEnv[key]).length > 0) {
+      env[key] = String(sourceEnv[key]);
+    }
+  }
+  for (const key of allow) {
+    if (!Object.prototype.hasOwnProperty.call(env, key)) {
+      throw codedError(
+        "D071_VALIDATION_ENV_MISSING",
+        `validation env missing required host variable ${key}`,
+      );
+    }
+  }
+  return env;
+}
+
+function snapshotValidationHostEnv(sourceEnv) {
+  const env = {};
+  for (const key of VALIDATION_ENV_ALLOWLIST) {
+    if (sourceEnv && sourceEnv[key]) env[key] = String(sourceEnv[key]);
+    else if (process.env[key]) env[key] = String(process.env[key]);
+  }
+  return env;
+}
+
+function buildD071ValidationArgv(powershellPath, validatorScriptPath) {
+  return [
+    powershellPath,
+    "-NoLogo",
+    "-NoProfile",
+    "-NonInteractive",
+    "-ExecutionPolicy",
+    "Bypass",
+    "-File",
+    validatorScriptPath,
+    "-SubjectPath",
+    D071_SUBJECT_RELATIVE_PATH,
+  ];
+}
+
+/**
+ * D071 validation program identity: Windows PowerShell host + hashed parent-local .ps1.
+ * Sealed argv is executed verbatim (not reconstructed as [scriptPath]).
+ */
 function validateProgramIdentity(label, program, { requireExpectedCommand }) {
   if (!isPlainObject(program)) {
     throw codedError("D069_PROGRAM_REQUIRED", `${label} must be an object`);
@@ -279,6 +383,13 @@ function validateProgramIdentity(label, program, { requireExpectedCommand }) {
   if (!isNonEmptyString(program.scriptPath)) {
     throw codedError("D069_PROGRAM_SCRIPT", `${label}.scriptPath required`);
   }
+  if (!isNonEmptyString(program.expectedExecutableSha256)
+    || !/^[a-f0-9]{64}$/.test(program.expectedExecutableSha256)) {
+    throw codedError(
+      "D071_PROGRAM_EXECUTABLE_HASH",
+      `${label}.expectedExecutableSha256 must be 64 lowercase hex chars`,
+    );
+  }
   if (!isNonEmptyString(program.expectedScriptSha256)
     || !/^[a-f0-9]{64}$/.test(program.expectedScriptSha256)) {
     throw codedError(
@@ -287,30 +398,26 @@ function validateProgramIdentity(label, program, { requireExpectedCommand }) {
     );
   }
 
-  const execReal = fs.realpathSync(program.executablePath);
-  if (execReal !== fs.realpathSync(process.execPath)) {
+  const expectedPs = absNorm(WINDOWS_POWERSHELL_PATH);
+  const providedExec = absNorm(program.executablePath);
+  if (providedExec.toLowerCase() !== expectedPs.toLowerCase()) {
     throw codedError(
-      "D069_PROGRAM_EXECUTABLE_MISMATCH",
-      `${label}.executablePath must resolve to process.execPath`,
+      "D071_POWERSHELL_HOST",
+      `${label}.executablePath must be ${WINDOWS_POWERSHELL_PATH}`,
     );
   }
 
-  const scriptLstat = fs.lstatSync(program.scriptPath);
-  if (scriptLstat.isSymbolicLink()) {
+  const execReal = requireRegularNonSymlinkFile(program.executablePath, `${label}.executablePath`);
+  const execHash = sha256File(execReal);
+  if (execHash !== program.expectedExecutableSha256) {
     throw codedError(
-      "D069_PROGRAM_SCRIPT_SYMLINK",
-      `${label}.scriptPath must not be a symlink`,
-    );
-  }
-  const scriptReal = fs.realpathSync(program.scriptPath);
-  const st = fs.lstatSync(scriptReal);
-  if (!st.isFile() || st.isSymbolicLink()) {
-    throw codedError(
-      "D069_PROGRAM_SCRIPT_NOT_REGULAR",
-      `${label}.scriptPath must be a regular non-symlink file`,
+      "D071_EXECUTABLE_HASH_MISMATCH",
+      `${label} executable sha256 mismatch`,
+      { expected: program.expectedExecutableSha256, actual: execHash },
     );
   }
 
+  const scriptReal = requireRegularNonSymlinkFile(program.scriptPath, `${label}.scriptPath`);
   const actualHash = sha256File(scriptReal);
   if (actualHash !== program.expectedScriptSha256) {
     throw codedError(
@@ -320,12 +427,14 @@ function validateProgramIdentity(label, program, { requireExpectedCommand }) {
     );
   }
 
+  let expectedCommand;
+  let validationEnv;
   if (requireExpectedCommand) {
     const ec = program.expectedCommand;
     if (!isPlainObject(ec)) {
       throw codedError("D069_VALIDATION_COMMAND", "validationProgram.expectedCommand required");
     }
-    if (!Array.isArray(ec.argv) || ec.argv.length !== 2) {
+    if (!Array.isArray(ec.argv) || ec.argv.length < 2 || !ec.argv.every(isNonEmptyString)) {
       throw codedError("D069_VALIDATION_ARGV", "validationProgram.expectedCommand.argv invalid");
     }
     if (ec.cwdRelative !== ".") {
@@ -337,33 +446,115 @@ function validateProgramIdentity(label, program, { requireExpectedCommand }) {
     if (ec.networkPolicy !== "denied") {
       throw codedError("D069_VALIDATION_NETWORK", "validationProgram.expectedCommand.networkPolicy must be denied");
     }
-    if (!isPlainObject(ec.environmentPolicy)
-      || !Array.isArray(ec.environmentPolicy.allow)
-      || ec.environmentPolicy.allow.length !== 0) {
+    if (!isPlainObject(ec.environmentPolicy) || !Array.isArray(ec.environmentPolicy.allow)) {
       throw codedError(
         "D069_VALIDATION_ENV",
-        "validationProgram.expectedCommand.environmentPolicy.allow must be []",
+        "validationProgram.expectedCommand.environmentPolicy.allow required",
       );
     }
-    const intentOk = fs.realpathSync(ec.argv[0]) === execReal
-      && fs.realpathSync(ec.argv[1]) === scriptReal;
-    if (!intentOk) {
+    const allowSorted = normalizeAllowList(ec.environmentPolicy.allow);
+    assertValidationAllowlist(allowSorted);
+
+    const requiredArgv = buildD071ValidationArgv(absNorm(program.executablePath), absNorm(program.scriptPath));
+    if (ec.argv.length !== requiredArgv.length) {
       throw codedError(
         "D069_VALIDATION_ARGV_MISMATCH",
-        "validationProgram.expectedCommand.argv must be [process.execPath, scriptPath]",
+        "validation argv length does not match D071 PowerShell shape",
       );
     }
+    // argv[0] and -File target compared via realpath; all other args exact.
+    let argv0Real;
+    try {
+      argv0Real = fs.realpathSync(ec.argv[0]);
+    } catch (err) {
+      throw codedError("D069_VALIDATION_ARGV_MISMATCH", `argv[0] resolve failed: ${err.message}`);
+    }
+    if (argv0Real !== execReal) {
+      throw codedError(
+        "D069_VALIDATION_ARGV_MISMATCH",
+        "validation argv[0] must resolve to bound Windows PowerShell host",
+      );
+    }
+    const fileIdx = ec.argv.indexOf("-File");
+    if (fileIdx < 0 || fileIdx + 1 >= ec.argv.length) {
+      throw codedError("D069_VALIDATION_ARGV_MISMATCH", "validation argv must include -File <script>");
+    }
+    let fileReal;
+    try {
+      fileReal = fs.realpathSync(ec.argv[fileIdx + 1]);
+    } catch (err) {
+      throw codedError("D069_VALIDATION_ARGV_MISMATCH", `-File path resolve failed: ${err.message}`);
+    }
+    if (fileReal !== scriptReal) {
+      throw codedError(
+        "D069_VALIDATION_ARGV_MISMATCH",
+        "validation -File path must resolve to bound validator script",
+      );
+    }
+    for (let i = 0; i < requiredArgv.length; i += 1) {
+      if (i === 0 || i === fileIdx + 1) continue;
+      if (ec.argv[i] !== requiredArgv[i]) {
+        throw codedError(
+          "D069_VALIDATION_ARGV_MISMATCH",
+          `validation argv[${i}] mismatch`,
+        );
+      }
+    }
+
+    const hostEnv = snapshotValidationHostEnv(program.hostEnv || process.env);
+    validationEnv = buildValidationEnv(allowSorted, hostEnv);
+
+    // Optional observed PS version evidence (best-effort; fails closed only if probe errors hard).
+    let powershellVersion = null;
+    const verProbe = spawnSync(
+      execReal,
+      ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "$PSVersionTable.PSVersion.ToString()"],
+      {
+        encoding: "utf8",
+        windowsHide: true,
+        timeout: 15_000,
+        env: validationEnv,
+      },
+    );
+    if (!verProbe.error && verProbe.status === 0) {
+      powershellVersion = String(verProbe.stdout || "").trim() || null;
+    }
+
+    expectedCommand = {
+      argv: ec.argv.slice(),
+      cwdRelative: ec.cwdRelative,
+      timeoutSeconds: ec.timeoutSeconds,
+      networkPolicy: ec.networkPolicy,
+      environmentPolicy: { allow: allowSorted },
+    };
+
+    return {
+      executablePath: execReal,
+      expectedExecutableSha256: program.expectedExecutableSha256,
+      scriptPath: scriptReal,
+      expectedScriptSha256: program.expectedScriptSha256,
+      expectedCommand,
+      validationEnv,
+      powershellVersion,
+      argv: expectedCommand.argv.slice(),
+    };
   }
 
   return {
     executablePath: execReal,
+    expectedExecutableSha256: program.expectedExecutableSha256,
     scriptPath: scriptReal,
     expectedScriptSha256: program.expectedScriptSha256,
-    expectedCommand: requireExpectedCommand ? program.expectedCommand : undefined,
+    expectedCommand: undefined,
   };
 }
 
 function revalidateProgram(bound) {
+  const execReal = requireRegularNonSymlinkFile(bound.executablePath, "validation executable");
+  const execHash = sha256File(execReal);
+  if (execHash !== bound.expectedExecutableSha256) {
+    throw codedError("D071_EXECUTABLE_HASH_MISMATCH", "pre-spawn executable hash mismatch");
+  }
   const st = fs.lstatSync(bound.scriptPath);
   if (!st.isFile() || st.isSymbolicLink()) {
     throw codedError("D069_PROGRAM_SCRIPT_NOT_REGULAR", "pre-spawn: script not regular");
@@ -372,10 +563,19 @@ function revalidateProgram(bound) {
   if (actualHash !== bound.expectedScriptSha256) {
     throw codedError("D069_PROGRAM_HASH_MISMATCH", "pre-spawn script hash mismatch");
   }
+  if (execReal !== bound.executablePath) {
+    throw codedError("D071_EXECUTABLE_PATH_DRIFT", "validation executable path drift");
+  }
 }
 
-function spawnProgram(executablePath, scriptPath, cwd, timeoutSeconds, env) {
-  return spawnSync(executablePath, [scriptPath], {
+/**
+ * Execute the sealed validation argv verbatim (argv[0] = executable).
+ */
+function spawnProgram(argv, cwd, timeoutSeconds, env) {
+  if (!Array.isArray(argv) || argv.length < 2 || !argv.every(isNonEmptyString)) {
+    throw codedError("D069_VALIDATION_ARGV", "spawnProgram requires sealed argv array");
+  }
+  return spawnSync(argv[0], argv.slice(1), {
     cwd,
     encoding: "utf8",
     windowsHide: true,
@@ -457,6 +657,7 @@ function readJsonIfExists(filePath) {
 /**
  * Exact normalized equality between sealed RunSpec validation commands and
  * the construction-bound expected validation command.
+ * argv[0] and -File path are compared via realpath; every other arg exact.
  */
 function assertExactValidationCommandBinding(runSpec, expectedCommand) {
   const cmds = runSpec && runSpec.validation && runSpec.validation.commands;
@@ -475,32 +676,60 @@ function assertExactValidationCommandBinding(runSpec, expectedCommand) {
     throw codedError("D069_VALIDATION_COMMAND_BINDING", "validation argv length mismatch");
   }
   if (cmd.argv.length < 2) {
-    throw codedError("D069_VALIDATION_COMMAND_BINDING", "validation argv must include executable and script");
+    throw codedError("D069_VALIDATION_COMMAND_BINDING", "validation argv must include executable and flags");
   }
   let left0;
-  let left1;
   let right0;
-  let right1;
   try {
     left0 = fs.realpathSync(cmd.argv[0]);
-    left1 = fs.realpathSync(cmd.argv[1]);
     right0 = fs.realpathSync(expectedCommand.argv[0]);
-    right1 = fs.realpathSync(expectedCommand.argv[1]);
   } catch (err) {
     throw codedError(
       "D069_VALIDATION_COMMAND_BINDING",
-      `validation argv path resolve failed: ${err.message}`,
+      `validation argv[0] resolve failed: ${err.message}`,
     );
   }
-  if (left0 !== right0 || left1 !== right1) {
+  if (left0 !== right0) {
     throw codedError(
       "D069_VALIDATION_COMMAND_BINDING",
-      "runSpec validation argv paths must equal construction expectedCommand argv",
+      "runSpec validation argv[0] must equal construction expectedCommand argv[0]",
     );
   }
-  for (let i = 2; i < cmd.argv.length; i += 1) {
+  const leftFileIdx = cmd.argv.indexOf("-File");
+  const rightFileIdx = expectedCommand.argv.indexOf("-File");
+  if (leftFileIdx < 0 || rightFileIdx < 0 || leftFileIdx !== rightFileIdx) {
+    throw codedError(
+      "D069_VALIDATION_COMMAND_BINDING",
+      "validation argv -File position mismatch",
+    );
+  }
+  if (leftFileIdx + 1 >= cmd.argv.length || rightFileIdx + 1 >= expectedCommand.argv.length) {
+    throw codedError(
+      "D069_VALIDATION_COMMAND_BINDING",
+      "validation argv -File missing path argument",
+    );
+  }
+  let leftFile;
+  let rightFile;
+  try {
+    leftFile = fs.realpathSync(cmd.argv[leftFileIdx + 1]);
+    rightFile = fs.realpathSync(expectedCommand.argv[rightFileIdx + 1]);
+  } catch (err) {
+    throw codedError(
+      "D069_VALIDATION_COMMAND_BINDING",
+      `validation -File path resolve failed: ${err.message}`,
+    );
+  }
+  if (leftFile !== rightFile) {
+    throw codedError(
+      "D069_VALIDATION_COMMAND_BINDING",
+      "runSpec validation -File path must equal construction expectedCommand",
+    );
+  }
+  for (let i = 1; i < cmd.argv.length; i += 1) {
+    if (i === leftFileIdx + 1) continue;
     if (cmd.argv[i] !== expectedCommand.argv[i]) {
-      throw codedError("D069_VALIDATION_COMMAND_BINDING", "validation argv tail mismatch");
+      throw codedError("D069_VALIDATION_COMMAND_BINDING", `validation argv[${i}] mismatch`);
     }
   }
   if (cmd.cwdRelative !== expectedCommand.cwdRelative
@@ -542,6 +771,9 @@ module.exports = {
   validateProgramIdentity,
   revalidateProgram,
   spawnProgram,
+  buildValidationEnv,
+  snapshotValidationHostEnv,
+  buildD071ValidationArgv,
   artifactDigest,
   sealClaim,
   sealJournal,

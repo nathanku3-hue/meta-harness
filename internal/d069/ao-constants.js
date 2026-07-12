@@ -1,9 +1,11 @@
 "use strict";
 
 /**
- * D070-A1 private AO constants (lineage under internal/d069 until post-dogfood R1A).
+ * D070/D071 private AO constants (lineage under internal/d069 until post-dogfood R1A).
  * Not packaged. No public API.
  */
+
+const crypto = require("node:crypto");
 
 const PROVIDER_ID = "meta-harness-ao-codex";
 const WORKER_PROFILE = "d070-ao-artifact-v1";
@@ -14,35 +16,59 @@ const FIXED_TIMEOUT_SECONDS = 60;
 /** Separate fixed AO process timeout. Requires process-tree termination. */
 const AO_TIMEOUT_SECONDS = 120;
 
-/** Exact bytes required by the A1 validation program (not sealed in RunSpec). */
-const A1_VALIDATION_EXACT_CONTENT = "d070-ao-verified-marker\n";
-
-/** A1 content ceiling for schema-bound change artifact body. */
+/** Content ceiling for schema-bound change artifact body. */
 const AO_CONTENT_MAX_BYTES = 64 * 1024;
 
 /** Independent stdout / stderr capture ceilings. Exceeding kills the process tree. */
 const AO_STDOUT_MAX_BYTES = 2 * 1024 * 1024;
 const AO_STDERR_MAX_BYTES = 256 * 1024;
 
-const AO_FIXED_PROMPT_LINES = [
-  "Inspect the current repository read-only.",
-  "Return the exact schema-bound change artifact requested by the output schema.",
-  "Do not modify, stage, commit, create, delete, or rename any file.",
-  "The intended change is to replace the single allowed path entirely with these exact bytes:",
-  "d070-ao-verified-marker\\n  (one line of text: d070-ao-verified-marker followed by a single newline)",
-  "Do not include commentary outside the JSON result.",
-];
+/** Canonical Windows PowerShell host for D071 validation (not pwsh). */
+const WINDOWS_POWERSHELL_PATH =
+  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe";
 
-function buildFixedAoPrompt(allowedPath) {
+/**
+ * Validation-only host env keys. Supplied env must match this allowlist exactly.
+ * Absolute validation argv means PATH is not required.
+ */
+const VALIDATION_ENV_ALLOWLIST = Object.freeze([
+  "APPDATA",
+  "ComSpec",
+  "SystemRoot",
+  "TEMP",
+  "TMP",
+  "WINDIR",
+]);
+
+const D071_SUBJECT_RELATIVE_PATH = "scripts/utils/CheckShortcut.ps1";
+
+/**
+ * Deterministic AO prompt from sealed objective + one literal allowed path.
+ * Objective is JSON-string-encoded so newlines/quotes cannot escape the frame.
+ */
+function buildObjectiveAoPrompt(objective, allowedPath) {
+  if (typeof objective !== "string" || objective.length === 0) {
+    throw new Error("objective must be a non-empty string");
+  }
+  if (typeof allowedPath !== "string" || allowedPath.length === 0) {
+    throw new Error("allowedPath must be a non-empty string");
+  }
+  const objectiveJson = JSON.stringify(objective);
+  const pathJson = JSON.stringify(allowedPath);
   return [
     "Inspect the current repository read-only.",
     "Return the exact schema-bound change artifact requested by the output schema.",
     "Do not modify, stage, commit, create, delete, or rename any file.",
-    `The intended change is to replace ${allowedPath} entirely with one line of text:`,
-    "d070-ao-verified-marker",
-    "The content field must be exactly that line followed by a single trailing newline character.",
     "Do not include commentary outside the JSON result.",
+    `Sealed objective (JSON string): ${objectiveJson}`,
+    `Single allowed path (JSON string): ${pathJson}`,
+    "Replace that path entirely with content that satisfies the sealed objective.",
+    "The artifact must be exactly one JSON object with keys path and content only.",
   ].join("\n");
+}
+
+function promptSha256(prompt) {
+  return crypto.createHash("sha256").update(String(prompt), "utf8").digest("hex");
 }
 
 /** Explicit child env allowlist. Values are snapshotted at controller construction. */
@@ -71,11 +97,13 @@ module.exports = {
   WORKER_PROFILE,
   FIXED_TIMEOUT_SECONDS,
   AO_TIMEOUT_SECONDS,
-  A1_VALIDATION_EXACT_CONTENT,
   AO_CONTENT_MAX_BYTES,
   AO_STDOUT_MAX_BYTES,
   AO_STDERR_MAX_BYTES,
-  AO_FIXED_PROMPT_LINES,
-  buildFixedAoPrompt,
+  WINDOWS_POWERSHELL_PATH,
+  VALIDATION_ENV_ALLOWLIST,
+  D071_SUBJECT_RELATIVE_PATH,
+  buildObjectiveAoPrompt,
+  promptSha256,
   AO_ENV_ALLOWLIST,
 };

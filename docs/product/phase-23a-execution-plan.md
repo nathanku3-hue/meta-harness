@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D069 closed under `e8e7713`. D070-A1 transport/custody is closed and audit-hardened locally. Next: D071 one meaningful single-file child-repository execution; the fixed marker is deleted, not preserved.
+**Status:** D069 closed under `e8e7713`. D070-A1 transport/custody closed under `8ebe690`. D071 implementation present (objective prompt, PowerShell validator, marker deleted, hermetic offline chain); **live ToolLauncher dogfood pending** before closure.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -11,7 +11,7 @@
 | D068 | **Closed** under `be82763` (PR #23 squash; reviewed head `4b259c9`; base `f926868`) |
 | D069 | **Closed** under `e8e7713` (PR #24 squash; reviewed head `245fa3d`; base `5afe075`) |
 | D070-A1 | **Transport/custody closed** — AO `:read-only` schema artifact → post-AO custody → controller commit → validation → durable ref → replay; actual version and AO evidence are bound |
-| D071 | **Next** — isolated ToolLauncher `7fab419f20ba`; only `scripts/utils/CheckShortcut.ps1`; sealed objective → compact JSON probe → exact PowerShell validation → live VERIFIED + replay; remove marker compatibility |
+| D071 | **Implementation present / live pending** — isolated ToolLauncher `7fab419f20ba`; only `scripts/utils/CheckShortcut.ps1`; sealed objective → compact JSON probe → exact PS 5.1 validation (missing+valid+corrupt) → live VERIFIED + replay; marker deleted |
 | After D071 | Immediate R1A, then observed concurrency only if required |
 
 ## Functional-first roadmap

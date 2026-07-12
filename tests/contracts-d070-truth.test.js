@@ -54,43 +54,38 @@ function findRoadmapRow(rows, idPattern) {
   return row;
 }
 
-test("status records A1 custody closure and D071 meaningful dogfood next", () => {
+test("status records D071 implementation pending live ToolLauncher proof", () => {
   const status = read(".meta-harness/status.md");
   const lastVerified = section(status, "Last verified");
   const nextAction = section(status, "Next action");
   const goal = section(status, "Goal");
   const currentTruth = section(status, "Current truth");
 
-  assert.match(lastVerified, /112\/112/i);
-  assert.match(lastVerified, /live/i);
-  assert.match(lastVerified, /version.*observed|--version/i);
-  assert.match(lastVerified, /AO metadata|artifact|schema/i);
-  assert.match(lastVerified, /quality ratchet: PASS/i);
-  assert.match(lastVerified, /READY yes/i);
   assert.match(goal, /D071/i);
   assert.match(goal, /child-repositor/i);
-  assert.match(nextAction, /D071/i);
-  assert.match(nextAction, /sealed `?RunSpec\.objective`?|sealed objective/i);
-  assert.match(nextAction, /delete the fixed-marker|No backward-compatible marker/i);
-  assert.match(nextAction, /ToolLauncher/i);
-  assert.match(nextAction, /scripts\/utils\/CheckShortcut\.ps1/i);
-  assert.match(nextAction, /PowerShell/i);
   assert.match(currentTruth, /closed under/i);
   assert.match(currentTruth, new RegExp(D068_SQUASH_SHORT));
   assert.match(currentTruth, new RegExp(D069_SQUASH_SHORT));
   assert.match(currentTruth, /A0\.1 NO-GO/i);
   assert.match(currentTruth, /A0\.2 GO|A0\.2/i);
   assert.match(currentTruth, /D070-A1 transport\/custody slice closed/i);
-  assert.match(currentTruth, /version is now probed/i);
-  assert.match(currentTruth, /terminal replay now requires intact SHA-256/i);
-  assert.match(currentTruth, /not yet a meaningful product slice/i);
-
-  assert.doesNotMatch(lastVerified, /under review/i);
-  assert.doesNotMatch(nextAction, /open D069|Implement D070-A1/i);
-  assert.doesNotMatch(goal, /Open D069/i);
-  assert.doesNotMatch(currentTruth, /Next:\s*D069/i);
-  assert.doesNotMatch(status, /D069 (?:is )?open\/next|D068 under review|D069 under review/i);
+  assert.match(currentTruth, /D071 implementation is present and pending live proof/i);
+  assert.match(currentTruth, /marker prompt\/validator deleted|marker deleted/i);
+  assert.match(currentTruth, /Windows PowerShell/i);
+  assert.match(currentTruth, /validate-toollauncher-shortcut\.ps1/i);
+  assert.match(currentTruth, /missing\/valid\/corrupt/i);
+  assert.match(currentTruth, /not yet proven|pending live/i);
+  assert.match(lastVerified, /19\/19|offline D071/i);
+  assert.match(lastVerified, /pending/i);
+  assert.match(nextAction, /D071/i);
+  assert.match(nextAction, /ToolLauncher/i);
+  assert.match(nextAction, /7fab419f20ba/i);
+  assert.match(nextAction, /scripts\/utils\/CheckShortcut\.ps1/i);
+  assert.match(nextAction, /sealed `?RunSpec\.objective`?|Sealed `RunSpec\.objective`/i);
+  assert.match(nextAction, /PowerShell/i);
+  assert.match(nextAction, /No push until D071 closes/i);
   assert.doesNotMatch(nextAction, /force(?:-|\s)?with(?:-|\s)?lease|force-push|force push/i);
+  assert.doesNotMatch(currentTruth, /d070-ao-verified-marker/i);
 
   const contractIndexSource = read("lib/contracts/index.js");
   assert.doesNotMatch(contractIndexSource, /under review/i);
@@ -144,4 +139,22 @@ test("post-MVP product re-charter is explicit across primary truth surfaces", ()
   assert.match(readme, /D071/i);
   assert.match(prd, /D071/i);
   assert.match(spec, /meaningful child-repository dogfood/i);
+});
+
+test("vendored ToolLauncher baseline blob matches pinned identity", () => {
+  const { spawnSync } = require("node:child_process");
+  const fixture = path.join(
+    root,
+    "tests/fixtures/d071/toollauncher-checkshortcut-7fab419f.ps1",
+  );
+  assert.ok(fs.existsSync(fixture));
+  const hash = String(
+    spawnSync("git", ["hash-object", fixture], { encoding: "utf8", windowsHide: true }).stdout || "",
+  ).trim();
+  assert.equal(hash, "aa1d3b7c71761b9a50139f828e7c154bc9693b66");
+  assert.ok(fs.existsSync(path.join(root, "internal/d069/programs/validate-toollauncher-shortcut.ps1")));
+  assert.equal(
+    fs.existsSync(path.join(root, "internal/d069/programs/validation-program.js")),
+    false,
+  );
 });

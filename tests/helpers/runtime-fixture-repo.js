@@ -1,9 +1,8 @@
 "use strict";
 
 /**
- * D070-A1 test helper: ordinary non-bare temporary fixture repository.
- * Offline tests bind the test-only Codex launcher (not a second production path).
- * Not a production export.
+ * D071 hermetic fixture repository helper.
+ * Vendored ToolLauncher baseline — no E:\\code\\ToolLauncher dependency.
  */
 
 const fs = require("node:fs");
@@ -16,92 +15,60 @@ const {
   PROVIDER_ID,
   WORKER_PROFILE,
 } = require("../../internal/d069/local-controller");
+const { D071_SUBJECT_RELATIVE_PATH } = require("../../internal/d069/ao-constants");
 const { absNorm: supportAbsNorm } = require("../../internal/d069/support");
 const { computeRunSpecDigest } = require("../../lib/contracts/run-spec");
 const { sealRunSpecApproval } = require("../../lib/contracts/run-spec-approval");
 const { programPaths, snapshotHostEnv } = require("./runtime-programs");
+const { resolveGit, runGit } = require("./runtime-git");
 
-const FIXTURE_REPOSITORY_ID = "d070-fixture";
-const FIXTURE_RELATIVE_FILE = "src/fixture.txt";
-const FIXTURE_INITIAL_BODY = "fixture-initial\n";
-const A1_EXACT_BODY = "d070-ao-verified-marker\n";
+const FIXTURE_REPOSITORY_ID = "d071-fixture";
+const FIXTURE_RELATIVE_FILE = D071_SUBJECT_RELATIVE_PATH;
+const TOOLLAUNCHER_BASE_REVISION = "7fab419f20ba5c7a4008d6a6071d5aad10ba534c";
+const TOOLLAUNCHER_BASELINE_BLOB = "aa1d3b7c71761b9a50139f828e7c154bc9693b66";
 const FROZEN_NOW = "2026-07-12T12:00:00.000Z";
 const APPROVED_AT = "2026-07-12T11:00:00.000Z";
 const TEST_CODEX_VERSION = "0.144.1-test";
-
-function resolveGit() {
-  const preferred = process.platform === "win32" ? "D:\\Git\\cmd\\git.exe" : "git";
-  const candidates = [preferred, "git"];
-  for (const c of candidates) {
-    const probe = spawnSync(c, ["--version"], { encoding: "utf8", windowsHide: true });
-    if (probe.error || probe.status !== 0) continue;
-    if (path.isAbsolute(c) && fs.existsSync(c)) {
-      return fs.realpathSync(c);
-    }
-    const whereCmd = process.platform === "win32" ? "where" : "which";
-    const located = spawnSync(whereCmd, [c], { encoding: "utf8", windowsHide: true });
-    if (located.status === 0) {
-      const first = String(located.stdout || "").trim().split(/\r?\n/)[0];
-      if (first) return fs.realpathSync(first);
-    }
-  }
-  throw new Error("runtime-fixture-repo: unable to resolve git");
-}
-
-function gitEnv() {
-  return {
-    ...process.env,
-    GIT_TERMINAL_PROMPT: "0",
-    GIT_CONFIG_NOSYSTEM: "1",
-    GIT_AUTHOR_NAME: "meta-harness-d070-fixture",
-    GIT_AUTHOR_EMAIL: "fixture@meta-harness.local",
-    GIT_COMMITTER_NAME: "meta-harness-d070-fixture",
-    GIT_COMMITTER_EMAIL: "fixture@meta-harness.local",
-    GIT_PAGER: "cat",
-    PAGER: "cat",
-  };
-}
-
-function hooksPathDisabled() {
-  return process.platform === "win32" ? "NUL" : "/dev/null";
-}
-
-function runGit(gitPath, cwd, args) {
-  const result = spawnSync(
-    gitPath,
-    ["-c", `core.hooksPath=${hooksPathDisabled()}`, "-c", "commit.gpgsign=false", ...args],
-    { cwd, encoding: "utf8", windowsHide: true, env: gitEnv() },
-  );
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error(
-      `git ${args.join(" ")} failed: ${String(result.stderr || result.stdout || "").trim()}`,
-    );
-  }
-  return result;
-}
+const D071_OBJECTIVE = [
+  "Replace scripts/utils/CheckShortcut.ps1 with a deterministic command-line probe.",
+  "Accept optional -StartupPath. Emit one compact JSON object with fields found,",
+  "startup_path, target_path, arguments, and working_directory.",
+  "Missing shortcut => found=false with empty/null remaining fields.",
+  "Unreadable or corrupt shortcut must fail nonzero without success JSON.",
+  "No network, API key, provider, or launcher execution.",
+].join(" ");
 
 function absNorm(p) {
   return supportAbsNorm(p);
 }
 
-/**
- * Create a short-lived fixture layout under os.tmpdir().
- */
+function loadVendoredBaseline(programs) {
+  const body = fs.readFileSync(programs.baselineFixture);
+  const hash = String(
+    spawnSync("git", ["hash-object", programs.baselineFixture], {
+      encoding: "utf8",
+      windowsHide: true,
+    }).stdout || "",
+  ).trim();
+  if (hash !== TOOLLAUNCHER_BASELINE_BLOB) {
+    throw new Error(`vendored baseline blob ${hash} != pinned ${TOOLLAUNCHER_BASELINE_BLOB}`);
+  }
+  return body;
+}
+
 function createRuntimeFixtureLayout(options = {}) {
   const gitExecutablePath = options.gitExecutablePath || resolveGit();
-  const label = options.label || "d070";
+  const label = options.label || "d071";
   const root = absNorm(fs.mkdtempSync(path.join(os.tmpdir(), `${label}-`)));
   const repositoryPath = absNorm(path.join(root, "repo"));
   const stateRoot = absNorm(path.join(root, "state"));
   const workspaceRoot = absNorm(path.join(root, "ws"));
   const codexHome = absNorm(path.join(root, "codex-home"));
+  const programs = programPaths();
 
-  fs.mkdirSync(repositoryPath, { recursive: true });
-  fs.mkdirSync(stateRoot, { recursive: true });
-  fs.mkdirSync(workspaceRoot, { recursive: true });
-  fs.mkdirSync(codexHome, { recursive: true });
-
+  for (const p of [repositoryPath, stateRoot, workspaceRoot, codexHome]) {
+    fs.mkdirSync(p, { recursive: true });
+  }
   runGit(gitExecutablePath, repositoryPath, ["init"]);
   runGit(gitExecutablePath, repositoryPath, ["config", "core.autocrlf", "false"]);
 
@@ -109,15 +76,14 @@ function createRuntimeFixtureLayout(options = {}) {
     path.join(repositoryPath, ...FIXTURE_RELATIVE_FILE.split("/")),
   );
   fs.mkdirSync(path.dirname(fixtureAbsoluteFile), { recursive: true });
-  fs.writeFileSync(fixtureAbsoluteFile, FIXTURE_INITIAL_BODY, "utf8");
-
+  const baselineBody = loadVendoredBaseline(programs);
+  fs.writeFileSync(fixtureAbsoluteFile, baselineBody);
   runGit(gitExecutablePath, repositoryPath, ["add", FIXTURE_RELATIVE_FILE]);
-  runGit(gitExecutablePath, repositoryPath, ["commit", "-m", "d070 fixture initial"]);
+  runGit(gitExecutablePath, repositoryPath, ["commit", "-m", "d071 fixture baseline"]);
 
   const headRevision = String(
     runGit(gitExecutablePath, repositoryPath, ["rev-parse", "HEAD"]).stdout,
   ).trim();
-
   let objectFormat = "sha1";
   try {
     const fmt = String(
@@ -127,28 +93,14 @@ function createRuntimeFixtureLayout(options = {}) {
   } catch {
     objectFormat = headRevision.length === 64 ? "sha256" : "sha1";
   }
-
-  const status = String(
-    runGit(gitExecutablePath, repositoryPath, ["status", "--porcelain"]).stdout,
-  );
-  if (status.trim() !== "") {
+  if (String(runGit(gitExecutablePath, repositoryPath, ["status", "--porcelain"]).stdout).trim()) {
     throw new Error("fixture repository is not clean after initial commit");
   }
-
-  function cleanup() {
-    try {
-      fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
-    } catch {
-      // best-effort
-    }
-  }
+  const knownGoodBody = fs.readFileSync(programs.knownGoodFixture, "utf8");
 
   return {
     root,
-    trustedRepository: {
-      repositoryId: FIXTURE_REPOSITORY_ID,
-      repositoryPath,
-    },
+    trustedRepository: { repositoryId: FIXTURE_REPOSITORY_ID, repositoryPath },
     repositoryPath,
     stateRoot,
     workspaceRoot,
@@ -157,22 +109,21 @@ function createRuntimeFixtureLayout(options = {}) {
     objectFormat,
     fixtureRelativeFile: FIXTURE_RELATIVE_FILE,
     fixtureAbsoluteFile,
-    initialBody: FIXTURE_INITIAL_BODY,
-    a1ExactBody: A1_EXACT_BODY,
+    initialBody: baselineBody.toString("utf8"),
+    knownGoodBody,
+    baselineBlobSha1: TOOLLAUNCHER_BASELINE_BLOB,
+    toolLauncherBaseRevision: TOOLLAUNCHER_BASE_REVISION,
     gitExecutablePath,
-    cleanup,
+    cleanup() {
+      try {
+        fs.rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+      } catch { /* best-effort */ }
+    },
   };
 }
 
-/**
- * Trusted test assembly config for createLocalWalkingSliceController.
- * Default clock is frozen so concurrent same-request digests match.
- */
 function buildControllerConfig(layout, options = {}) {
   const programs = programPaths();
-  const clock = options.clock || (() => FROZEN_NOW);
-  const nodePath = absNorm(process.execPath);
-
   return {
     trustedRepository: {
       repositoryId: layout.trustedRepository.repositoryId,
@@ -184,19 +135,16 @@ function buildControllerConfig(layout, options = {}) {
       authorizationTtlSeconds: 3600,
       maxReadinessAgeSeconds: 7200,
       maxCommandTimeoutSeconds: FIXED_TIMEOUT_SECONDS,
-      provider: {
-        id: PROVIDER_ID,
-        workerProfile: WORKER_PROFILE,
-      },
+      provider: { id: PROVIDER_ID, workerProfile: WORKER_PROFILE },
       workspacePolicy: {
         schemaVersion: "workspace-policy/v1",
         approvedRoot: layout.workspaceRoot,
       },
     },
-    clock,
+    clock: options.clock || (() => FROZEN_NOW),
     codexProgram: {
       workerProfile: WORKER_PROFILE,
-      nodeExecutablePath: nodePath,
+      nodeExecutablePath: absNorm(process.execPath),
       launcherScriptPath: programs.testLauncher,
       expectedLauncherSha256: programs.testLauncherSha256,
       nativeExecutablePath: programs.testNative,
@@ -206,67 +154,55 @@ function buildControllerConfig(layout, options = {}) {
       hostEnv: snapshotHostEnv(),
     },
     validationProgram: {
-      executablePath: process.execPath,
+      executablePath: programs.powershellPath,
+      expectedExecutableSha256: programs.powershellSha256,
       scriptPath: programs.validationScript,
       expectedScriptSha256: programs.validationSha256,
+      hostEnv: programs.snapshotValidationHostEnv(),
       expectedCommand: {
-        argv: [process.execPath, programs.validationScript],
-        cwdRelative: ".",
-        timeoutSeconds: FIXED_TIMEOUT_SECONDS,
-        networkPolicy: "denied",
-        environmentPolicy: { allow: [] },
+        ...programs.validationExpectedCommand,
+        argv: programs.validationArgv.slice(),
       },
     },
   };
 }
 
-/**
- * Real sealed RunSpecApproval + authorization request for controller.run.
- */
 function buildRunRequest(layout, options = {}) {
   const programs = programPaths();
   const runSpec = {
     schemaVersion: "run-spec/v1",
-    runId: options.runId || "RUN-D070-V1",
+    runId: options.runId || "RUN-D071-V1",
     repository: {
       repositoryId: layout.trustedRepository.repositoryId,
       objectFormat: layout.objectFormat,
       expectedBaseRevision: layout.headRevision,
     },
-    objective: options.objective
-      || "D070-A1 controller-materialized AO artifact sequential verified commit",
-    scope: {
-      allow: ["src/fixture.txt"],
-      deny: [],
-    },
+    objective: options.objective || D071_OBJECTIVE,
+    scope: { allow: [FIXTURE_RELATIVE_FILE], deny: [] },
     validation: {
-      commands: [
-        {
-          argv: [process.execPath, programs.validationScript],
-          cwdRelative: ".",
-          timeoutSeconds: FIXED_TIMEOUT_SECONDS,
-          networkPolicy: "denied",
-          environmentPolicy: { allow: [] },
-        },
-      ],
+      commands: [{
+        argv: programs.validationArgv.slice(),
+        cwdRelative: ".",
+        timeoutSeconds: FIXED_TIMEOUT_SECONDS,
+        networkPolicy: "denied",
+        environmentPolicy: { allow: programs.validationAllow.slice() },
+      }],
     },
     changePolicy: "forbid-noop",
   };
   const runSpecDigest = computeRunSpecDigest(runSpec);
-  const runSpecApproval = sealRunSpecApproval({
-    schemaVersion: "run-spec-approval/v1",
-    approvalId: options.approvalId || "APR-D070-V1",
-    approvedBy: options.approvedBy || "test@meta-harness.local",
-    approvedAt: options.approvedAt || APPROVED_AT,
-    runSpec,
-    runSpecDigest,
-  });
-
   return {
-    runSpecApproval,
+    runSpecApproval: sealRunSpecApproval({
+      schemaVersion: "run-spec-approval/v1",
+      approvalId: options.approvalId || "APR-D071-V1",
+      approvedBy: options.approvedBy || "test@meta-harness.local",
+      approvedAt: options.approvedAt || APPROVED_AT,
+      runSpec,
+      runSpecDigest,
+    }),
     authorizationRequest: {
-      authorizationId: options.authorizationId || "AUTH-D070-V1",
-      attemptId: options.attemptId || "ATTEMPT-D070-V1",
+      authorizationId: options.authorizationId || "AUTH-D071-V1",
+      attemptId: options.attemptId || "ATTEMPT-D071-V1",
     },
   };
 }
@@ -279,8 +215,9 @@ module.exports = {
   snapshotHostEnv,
   FIXTURE_REPOSITORY_ID,
   FIXTURE_RELATIVE_FILE,
-  FIXTURE_INITIAL_BODY,
-  A1_EXACT_BODY,
+  D071_OBJECTIVE,
+  TOOLLAUNCHER_BASE_REVISION,
+  TOOLLAUNCHER_BASELINE_BLOB,
   FROZEN_NOW,
   APPROVED_AT,
   TEST_CODEX_VERSION,

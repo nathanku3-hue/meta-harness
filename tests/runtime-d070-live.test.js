@@ -125,24 +125,26 @@ test("D070-A1 live: authenticated Codex :read-only full chain + replay", async (
         hostEnv: snapshotHostEnv(),
       },
       validationProgram: {
-        executablePath: process.execPath,
+        executablePath: programs.powershellPath,
+        expectedExecutableSha256: programs.powershellSha256,
         scriptPath: programs.validationScript,
         expectedScriptSha256: programs.validationSha256,
+        hostEnv: programs.snapshotValidationHostEnv(),
         expectedCommand: {
-          argv: [process.execPath, programs.validationScript],
+          argv: programs.validationArgv.slice(),
           cwdRelative: ".",
           timeoutSeconds: FIXED_TIMEOUT_SECONDS,
           networkPolicy: "denied",
-          environmentPolicy: { allow: [] },
+          environmentPolicy: { allow: programs.validationAllow.slice() },
         },
       },
     });
 
     const request = buildRunRequest(layout, {
-      runId: "RUN-D070-LIVE",
-      approvalId: "APR-D070-LIVE",
-      authorizationId: "AUTH-D070-LIVE",
-      attemptId: "ATTEMPT-D070-LIVE",
+      runId: "RUN-D071-LIVE",
+      approvalId: "APR-D071-LIVE",
+      authorizationId: "AUTH-D071-LIVE",
+      attemptId: "ATTEMPT-D071-LIVE",
       approvedAt,
     });
 
@@ -200,7 +202,8 @@ test("D070-A1 live: authenticated Codex :read-only full chain + replay", async (
     }
     const implementationCommit = trackedWorktreeClean ? headCommit : null;
     const evidence = {
-      kind: "d070-a1-live-pass",
+      kind: "d071-fixture-live-pass",
+      note: "Hermetic fixture path with live Codex; S5 ToolLauncher dogfood uses tracked evidence envelope",
       provider: PROVIDER_ID,
       workerProfile: WORKER_PROFILE,
       codexVersion: live.version,

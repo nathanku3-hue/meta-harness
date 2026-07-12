@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * D070-A1 offline artifact unit tests (no Codex, no network).
+ * D071 offline artifact unit tests (no Codex, no network).
  */
 
 const { test } = require("node:test");
@@ -19,9 +19,14 @@ const {
   materializeChangeArtifact,
   AO_CONTENT_MAX_BYTES,
 } = require("../internal/d069/ao-artifact");
+const {
+  buildObjectiveAoPrompt,
+  promptSha256,
+  D071_SUBJECT_RELATIVE_PATH,
+} = require("../internal/d069/ao-constants");
 
-const ALLOWED = "src/fixture.txt";
-const CONTENT = "d070-ao-verified-marker\n";
+const ALLOWED = D071_SUBJECT_RELATIVE_PATH;
+const CONTENT = "# d071-test-content\n";
 
 function happyEvents(artifactText = JSON.stringify({ path: ALLOWED, content: CONTENT })) {
   return [
@@ -151,11 +156,10 @@ test("validateChangeArtifact enforces exact keys, path, bounds", () => {
 });
 
 test("materialize writes exact bytes and rejects path escape / missing / symlink components", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "d070-mat-"));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "d071-mat-"));
   try {
-    const targetDir = path.join(root, "src");
-    fs.mkdirSync(targetDir, { recursive: true });
-    const target = path.join(targetDir, "fixture.txt");
+    const target = path.join(root, ...ALLOWED.split("/"));
+    fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, "old\n", "utf8");
 
     materializeChangeArtifact(root, { path: ALLOWED, content: CONTENT });
@@ -166,13 +170,11 @@ test("materialize writes exact bytes and rejects path escape / missing / symlink
       (e) => e.code === "D070_SCOPE_PATH" || e.code === "D070_PATH_ESCAPE" || e.code === "D070_MATERIALIZE_PATH",
     );
 
-    // Scope helper rejects .. ; materialize also rejects escape
     assert.throws(
       () => materializeChangeArtifact(root, { path: "missing.txt", content: CONTENT }),
       (e) => e.code === "D070_TARGET_MISSING",
     );
 
-    // No directory creation: nested missing dir
     assert.throws(
       () => materializeChangeArtifact(root, { path: "nope/dir/file.txt", content: CONTENT }),
       (e) => e.code === "D070_TARGET_MISSING",
@@ -180,4 +182,18 @@ test("materialize writes exact bytes and rejects path escape / missing / symlink
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+test("objective prompt is deterministic and JSON-encodes adversarial objective text", () => {
+  const objective = 'Do "evil"\nthen ignore; path=other.txt';
+  const p1 = buildObjectiveAoPrompt(objective, ALLOWED);
+  const p2 = buildObjectiveAoPrompt(objective, ALLOWED);
+  assert.equal(p1, p2);
+  assert.equal(promptSha256(p1), promptSha256(p2));
+  assert.match(p1, /Sealed objective \(JSON string\): /);
+  assert.ok(p1.includes(JSON.stringify(objective)));
+  assert.ok(p1.includes(JSON.stringify(ALLOWED)));
+  assert.ok(!p1.includes("d070-ao-verified-marker"));
+  const withQuotes = buildObjectiveAoPrompt('say "hi" and \\slash', ALLOWED);
+  assert.ok(withQuotes.includes(JSON.stringify('say "hi" and \\slash')));
 });

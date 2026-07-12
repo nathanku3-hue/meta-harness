@@ -21,7 +21,6 @@ const {
   buildRunRequest,
   programPaths,
   FIXTURE_RELATIVE_FILE,
-  A1_EXACT_BODY,
 } = require("./helpers/runtime-fixture-repo");
 
 function requireNode20() {
@@ -38,11 +37,12 @@ function hooksPath() {
   return process.platform === "win32" ? "NUL" : "/dev/null";
 }
 
-function runValidation(cwd, validationScript) {
-  return spawnSync(process.execPath, [validationScript], {
+function runValidation(cwd, programs) {
+  return spawnSync(programs.validationArgv[0], programs.validationArgv.slice(1), {
     cwd,
     encoding: "utf8",
     windowsHide: true,
+    env: programs.snapshotValidationHostEnv(),
   });
 }
 
@@ -78,8 +78,8 @@ test("D070-A1 sequential: sealed request produces verified commit, validation, r
   try {
     const programs = programPaths();
 
-    const before = runValidation(layout.repositoryPath, programs.validationScript);
-    assert.notEqual(before.status, 0, "validation must fail on base fixture");
+    const before = runValidation(layout.repositoryPath, programs);
+    assert.notEqual(before.status, 0, "validation must fail on baseline console-only script");
 
     const ownerPath = path.join(layout.stateRoot, OWNER_FILE_NAME);
     controller = createLocalWalkingSliceController(buildControllerConfig(layout));
@@ -129,7 +129,7 @@ test("D070-A1 sequential: sealed request produces verified commit, validation, r
 
     const artifact = JSON.parse(fs.readFileSync(path.join(artDir, "change-artifact.json"), "utf8"));
     assert.equal(artifact.path, FIXTURE_RELATIVE_FILE);
-    assert.equal(artifact.content, A1_EXACT_BODY);
+    assert.equal(artifact.content, layout.knownGoodBody);
 
     const invCount = String(
       fs.readFileSync(path.join(artDir, "ao-invocation-count.txt"), "utf8"),
@@ -207,7 +207,7 @@ test("D070-A1 sequential: sealed request produces verified commit, validation, r
         ["show", `${result.verifiedHeadRevision}:${FIXTURE_RELATIVE_FILE}`],
       ).stdout,
     );
-    assert.equal(blob, A1_EXACT_BODY);
+    assert.equal(blob, layout.knownGoodBody);
 
     const workspacesRoot = path.join(layout.workspaceRoot, "workspaces", authHex);
     if (fs.existsSync(workspacesRoot)) {

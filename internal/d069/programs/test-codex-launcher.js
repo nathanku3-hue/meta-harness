@@ -2,13 +2,25 @@
 "use strict";
 
 /**
- * Offline test-only Codex launcher for D070-A1 full-chain tests.
+ * Offline test-only Codex launcher for D071 full-chain tests.
  * Emits production-shaped JSONL; does not call a model or network.
  * Not a second production path. Bound via the same codexProgram identity fields.
  */
 
 const fs = require("node:fs");
 const path = require("node:path");
+
+function loadKnownGoodContent() {
+  const override = process.env.D071_AO_FIXTURE_CONTENT_PATH;
+  if (override && fs.existsSync(override)) {
+    return fs.readFileSync(override, "utf8");
+  }
+  const knownGood = path.resolve(
+    __dirname,
+    "../../../tests/fixtures/d071/known-good-checkshortcut.ps1",
+  );
+  return fs.readFileSync(knownGood, "utf8");
+}
 
 function main(argv) {
   if (argv.length === 1 && argv[0] === "--version") {
@@ -59,7 +71,13 @@ function main(argv) {
     mode = "ok";
   }
 
-  const content = "d070-ao-verified-marker\n";
+  let content;
+  try {
+    content = loadKnownGoodContent();
+  } catch (err) {
+    process.stderr.write(`test-codex-launcher: known-good fixture missing: ${err.message}\n`);
+    return 2;
+  }
   const artifact = { path: allowedPath, content };
 
   function emit(obj) {
@@ -67,7 +85,6 @@ function main(argv) {
   }
 
   if (mode === "timeout-child") {
-    // Spawn a long-lived child then hang (used only by process-tree unit tests via separate harness).
     const { spawn } = require("node:child_process");
     const child = spawn(process.execPath, ["-e", "setInterval(()=>{}, 1000)"], {
       stdio: "ignore",
@@ -80,7 +97,7 @@ function main(argv) {
       "utf8",
     );
     setInterval(() => {}, 1000);
-    return undefined; // keep alive
+    return undefined;
   }
 
   if (mode === "fail-terminal") {
@@ -110,7 +127,7 @@ function main(argv) {
     return 0;
   }
 
-  // Happy path — production-shaped JSONL
+  // Happy path — production-shaped JSONL with ToolLauncher-shaped content
   emit({ type: "thread.started", thread_id: "test-thread" });
   emit({ type: "turn.started" });
   emit({
