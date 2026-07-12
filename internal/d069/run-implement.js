@@ -27,6 +27,7 @@ const {
   revalidateProgram,
   spawnProgram,
   artifactDigest,
+  sha256File,
   sealJournal,
   sameCanonicalExistingPath,
 } = require("./support");
@@ -181,6 +182,7 @@ function persistAoMeta(artDir, processResult, eventSummary, spawnOrdinal) {
     eventTypeCounts: eventSummary ? eventSummary.eventTypeCounts : null,
     terminalType: eventSummary ? eventSummary.terminalType : null,
     promptSha256: processResult.meta.promptSha256,
+    identity: processResult.meta.identity,
     argv: processResult.meta.argv,
     killInfo: processResult.meta.killInfo,
     // Bounded redacted failure diagnostic only (no raw model streams).
@@ -244,6 +246,7 @@ async function implementAfterClaim(ctx, args) {
     const schema = buildChangeArtifactSchema(allowedPath);
     const schemaPath = path.join(artDir, "change-artifact.schema.json");
     writeJsonReplace(schemaPath, schema);
+    const changeArtifactSchemaSha256 = sha256File(schemaPath);
 
     // Capture custody BEFORE AO so we can prove no mutation after.
     const custodyBefore = captureWorktreeCustody(
@@ -292,7 +295,9 @@ async function implementAfterClaim(ctx, args) {
 
     const events = parseCodexJsonl(processResult.stdout);
     eventSummary = summarizeEvents(events);
+    const aoMetaPath = path.join(artDir, "ao-process-meta.json");
     persistAoMeta(artDir, processResult, eventSummary, spawnOrdinal);
+    const aoProcessMetaSha256 = sha256File(aoMetaPath);
 
     const extracted = extractChangeArtifact(events);
     // Post-AO clean custody gate BEFORE materialization (proves AO stayed read-only).
@@ -306,11 +311,13 @@ async function implementAfterClaim(ctx, args) {
     });
 
     const validated = validateChangeArtifact(extracted.artifact, allowedPath);
-    writeJsonReplace(path.join(artDir, "change-artifact.json"), {
+    const changeArtifactPath = path.join(artDir, "change-artifact.json");
+    writeJsonReplace(changeArtifactPath, {
       path: validated.path,
       content: validated.content,
       contentBytes: validated.contentBytes,
     });
+    const changeArtifactSha256 = sha256File(changeArtifactPath);
 
     materializeChangeArtifact(worktreePath, validated);
 
@@ -550,6 +557,9 @@ async function implementAfterClaim(ctx, args) {
       updatedAt: clock(),
       implementationAssessmentDigest: assessment.implementationAssessmentDigest,
       factsDigest: trustedFacts.factsDigest,
+      aoProcessMetaSha256,
+      changeArtifactSha256,
+      changeArtifactSchemaSha256,
       verifiedHeadRevision: commitHead,
       durableRef,
     });
@@ -567,6 +577,9 @@ async function implementAfterClaim(ctx, args) {
       claimDigest: claim.claimDigest,
       factsDigest: trustedFacts.factsDigest,
       implementationAssessmentDigest: assessment.implementationAssessmentDigest,
+      aoProcessMetaSha256,
+      changeArtifactSha256,
+      changeArtifactSchemaSha256,
       verifiedHeadRevision: commitHead,
       durableRef,
       assessment,

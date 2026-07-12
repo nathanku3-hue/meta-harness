@@ -33,6 +33,7 @@ const {
   isNonEmptyString,
   hostRealPath,
   sha256Utf8,
+  sha256File,
   digestHex,
   writeJsonNoReplace,
   sealClaim,
@@ -175,15 +176,49 @@ function inspectExistingAttempt(ctx, receipt, authReqHex) {
   };
 }
 
+function assertAoEvidenceBindings(ctx, journal, authReqHex) {
+  const artDir = path.join(ctx.stateRoot, "artifacts", authReqHex);
+  const bindings = [
+    ["aoProcessMetaSha256", path.join(artDir, "ao-process-meta.json")],
+    ["changeArtifactSha256", path.join(artDir, "change-artifact.json")],
+    ["changeArtifactSchemaSha256", path.join(artDir, "change-artifact.schema.json")],
+  ];
+  for (const [field, filePath] of bindings) {
+    if (!isNonEmptyString(journal[field])) {
+      throw codedError("D070_STATE_CORRUPT", `verified journal missing ${field}`);
+    }
+    let actual;
+    try {
+      actual = sha256File(filePath);
+    } catch (err) {
+      throw codedError(
+        "D070_STATE_CORRUPT",
+        `AO evidence file unreadable for ${field}: ${err.message}`,
+      );
+    }
+    if (actual !== journal[field]) {
+      throw codedError(
+        "D070_STATE_CORRUPT",
+        `AO evidence digest mismatch for ${field}`,
+      );
+    }
+  }
+}
+
 function replayVerified(ctx, receipt, claim, journal, paths, authReqHex) {
   const { repositoryId, repositoryPath, gitHome, gitExecutablePath } = ctx;
   if (!isNonEmptyString(journal.verifiedHeadRevision)
     || !isNonEmptyString(journal.durableRef)
     || !isNonEmptyString(journal.implementationAssessmentDigest)
     || !isNonEmptyString(journal.factsDigest)
-    || !isNonEmptyString(journal.startCheckDigest)) {
+    || !isNonEmptyString(journal.startCheckDigest)
+    || !isNonEmptyString(journal.aoProcessMetaSha256)
+    || !isNonEmptyString(journal.changeArtifactSha256)
+    || !isNonEmptyString(journal.changeArtifactSchemaSha256)) {
     throw codedError("D069_STATE_CORRUPT", "verified journal missing required terminal fields");
   }
+
+  assertAoEvidenceBindings(ctx, journal, authReqHex);
 
   const expectedRef = `refs/meta-harness/attempts/${authReqHex}`;
   if (journal.durableRef !== expectedRef) {
@@ -242,6 +277,9 @@ function replayVerified(ctx, receipt, claim, journal, paths, authReqHex) {
     claimDigest: claim.claimDigest,
     factsDigest: journal.factsDigest,
     implementationAssessmentDigest: journal.implementationAssessmentDigest,
+    aoProcessMetaSha256: journal.aoProcessMetaSha256,
+    changeArtifactSha256: journal.changeArtifactSha256,
+    changeArtifactSchemaSha256: journal.changeArtifactSchemaSha256,
     verifiedHeadRevision: journal.verifiedHeadRevision,
     durableRef: journal.durableRef,
     assessment,

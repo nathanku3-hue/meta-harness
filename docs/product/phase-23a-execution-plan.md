@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D069 closed under `e8e7713`. D070-A0 decided (A0.1 NO-GO / A0.2 GO). **D070-A1 closed** on controller-materialized Codex `:read-only` artifacts. Next: child-repo dogfood.
+**Status:** D069 closed under `e8e7713`. D070-A1 transport/custody is closed and audit-hardened locally. Next: D071 one meaningful single-file child-repository execution; the fixed marker is deleted, not preserved.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -10,8 +10,9 @@
 | --- | --- |
 | D068 | **Closed** under `be82763` (PR #23 squash; reviewed head `4b259c9`; base `f926868`) |
 | D069 | **Closed** under `e8e7713` (PR #24 squash; reviewed head `245fa3d`; base `5afe075`) |
-| D070-A1 | **Closed** — AO `:read-only` schema artifact → post-AO custody → controller materialize/commit → exact validation → durable ref → replay |
-| Next | Real child-repo dogfood (then observed concurrency only if required) |
+| D070-A1 | **Transport/custody closed** — AO `:read-only` schema artifact → post-AO custody → controller commit → validation → durable ref → replay; actual version and AO evidence are bound |
+| D071 | **Next** — isolated ToolLauncher `7fab419f20ba`; only `scripts/utils/CheckShortcut.ps1`; sealed objective → compact JSON probe → exact PowerShell validation → live VERIFIED + replay; remove marker compatibility |
+| After D071 | Immediate R1A, then observed concurrency only if required |
 
 ## Functional-first roadmap
 
@@ -24,13 +25,14 @@ D070-A0.1 direct AO workspace-write → NO-GO on current Windows host
         ↓
 D070-A0.2 read-only schema artifact → controller materialization → GO
         ↓
-D070-A1 one verified AO-backed path in the full evidence chain → CLOSED
+D070-A1 AO transport/custody path → CLOSED + audit-hardened
         ↓
-real child-repo dogfood
+D071 ToolLauncher single-file execution
+(`scripts/utils/CheckShortcut.ps1`; sealed objective; JSON validator; no marker compatibility)
+        ↓
+full R1A delete marker/unused AO surfaces + rename internal/d069 lineage debt
         ↓
 only observed concurrency / cancellation control
-        ↓
-full R1A delete unused from AO + dogfood imports/traces (rename internal/d069 lineage debt)
         ↓
 delivery/recovery only from observed need
 ```

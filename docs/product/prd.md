@@ -14,6 +14,12 @@ It translates human product intent into Codex worker task language, then transla
 
 Meta-Harness is a Codex-native mission log for making multi-stream agent work understandable, resumable, and product-directed.
 
+## Current Post-MVP Re-charter
+
+Meta-Harness is now intentionally evolving into a **local authority-bound agent execution-custody harness**. The current direction keeps durable Markdown truth, but adds sealed authorization, isolated execution, controller-owned mutation and validation, durable Git result custody, and terminal replay.
+
+This is a major, explicit deviation from the original lightweight MVP, which did not launch agents or require network/model access. D071 must prove one useful single-file change in a real child repository before the execution direction expands further.
+
 ## Problem
 
 Codex and other CLI agents can do strong bounded work, but multi-step work still fails in predictable ways:

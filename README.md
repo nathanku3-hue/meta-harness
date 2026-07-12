@@ -46,6 +46,12 @@ The first version should stay product-first and small:
 
 The harness should wrap existing agents and tools rather than becoming a new agent framework.
 
+### Post-MVP re-charter — 2026-07-12
+
+The governing product direction has intentionally moved beyond the original no-launch, no-network MVP. Meta-Harness is now being developed as a **local authority-bound agent execution-custody harness**: sealed intent and scope authorize one isolated agent attempt; the controller owns mutation, validation, durable result custody, and replay. Markdown status remains a core product surface, but visibility alone is no longer the end-state.
+
+This execution path remains private while D071 proves one meaningful child-repository change. No public execution CLI, generic provider framework, or compatibility layer is implied by the re-charter.
+
 ## Target MVP CLI
 
 The product target is a global npm CLI. This repo now exposes the `meta-harness` binary through `package.json`:

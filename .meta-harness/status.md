@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Dogfood one child repository on the D070-A1 controller-materialized AO path before any concurrency expansion. Kernel frozen.
+Deliver D071 as one meaningful single-file child-repository execution: sealed RunSpec objective → Codex read-only artifact → controller commit → real repository validation. No marker compatibility path. Kernel frozen.
 
 Phase:
 in_progress
 
 Current truth:
-Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 NO-GO / A0.2 GO remain binding. **D070-A1 closed:** private walking slice now runs authenticated Codex `:read-only` → schema-bound `{path,content}` artifact → post-AO clean custody gate → controller materialization/commit → exact-byte validation → `IMPLEMENTATION_VERIFIED` → create-only durable ref → integrity-checked replay. Content is **not** sealed by RunSpec; path is single-literal `scope.allow`; validation program requires exact `d070-ao-verified-marker\n`. Process-tree timeout custody is included (120s AO timeout; validation remains 60s). Raw AO streams are not persisted. Provider `meta-harness-ao-codex` / `d070-ao-artifact-v1`. Fixture worker deleted. `internal/d069` name retained only as temporary lineage debt until post-dogfood R1A. Next: **immediate child-repo dogfood** → concurrency/cancellation only from observed need → full R1A → product re-charter decision.
+Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 NO-GO / A0.2 GO remain binding. **D070-A1 transport/custody slice closed locally:** authenticated Codex `:read-only` → schema-bound `{path,content}` → post-AO clean custody → controller materialization/commit → exact validation → `IMPLEMENTATION_VERIFIED` → create-only durable ref → replay. The decision-owner audit found and repaired two closure gaps in the current working tree: Codex version is now probed at construction and immediately before spawn, and terminal replay now requires intact SHA-256 bindings for `ao-process-meta.json`, `change-artifact.json`, and its schema. Full suite and fresh live pass are green after the repair. **A1 is not yet a meaningful product slice:** prompt and validation remain hard-wired to `d070-ao-verified-marker\n`, and `.meta-harness/repos.json` contains no child target. Next is D071: replace the marker path outright with one sealed-objective, real-validation, real-child-repository execution. No backward-compatible marker mode. Concurrency remains deferred; R1A follows D071 evidence.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -244,35 +244,40 @@ Relevant decisions:
 - D068: **closed** under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`).
 - D069: **closed** under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`).
 - D070-A0 decision: direct worker-write seam **NO-GO**; controller-materialized artifact seam **GO**.
-- D070-A1: **closed** on controller-materialized Codex `:read-only` artifacts (provider `meta-harness-ao-codex` / `d070-ao-artifact-v1`).
+- D070-A1: **transport/custody closed locally** on controller-materialized Codex `:read-only` artifacts (provider `meta-harness-ao-codex` / `d070-ao-artifact-v1`). Audit hardening is present in the working tree and awaits its own commit.
+- Product re-charter: **decided now**, not deferred. Meta-Harness post-MVP direction is a local authority-bound agent execution-custody harness; the lightweight Markdown-only MVP remains historical and supported as the shipped surface, not the governing end-state.
 
-Current score (2026-07-12 A1 close):
-- overall product flow: **7.3/10**
-- Phase 23A execution path: **8.4/10**
-- functional execution: **7.6/10**
-- trusted runtime custody: **8.7/10**
-- D069 completion: **9.4/10**
-- AO capability discovery: **8.2/10**
-- AO verified integration: **8.0/10** (full authority chain offline + live)
+Current score (2026-07-12 decision-owner audit after A1):
+- overall product flow: **7.4/10**
+- Phase 23A execution custody: **8.9/10**
+- meaningful functional execution: **6.4/10** (live verified, but still fixed-marker only)
+- trusted runtime custody: **9.2/10** after actual version probes and durable AO-evidence binding
+- AO capability discovery: **8.4/10**
+- AO verified integration: **8.6/10** (offline + live + replay-bound provenance)
 - real concurrent single-use: **0.8/10**
 - child-repository dogfood: **0.0/10**
-- roadmap honesty: **9.2/10**
-- engineering health: **8.6/10**
-- product-intent alignment: **5.5/10** until post-dogfood re-charter
+- dogfood readiness: **5.2/10** (target/objective/validator selected; fixed prompt/private validator still must be replaced)
+- roadmap honesty: **9.5/10**
+- engineering health: **8.8/10** (112/112 test files green; quality and readiness pass; private slice remains marker-specific)
+- continuity with original lightweight MVP intent: **4.0/10**
+- clarity/alignment with current re-chartered intent: **9.0/10**
 
 Blockers:
 - Direct Codex workspace writes remain NO-GO on this host.
-- Child-repo dogfood not yet run.
+- A1 cannot perform a meaningful child task without replacing the fixed marker prompt/validator.
+- No child repository is registered in `.meta-harness/repos.json`.
+- Quant was evaluated and rejected for D071 because its active truth freezes unrelated runtime/governance changes. The selected low-risk target is an isolated clean copy of ToolLauncher commit `7fab419f20ba`.
 
 Last verified:
-- D070-A1 offline: artifact unit + process-tree timeout + full-chain sequential/replay + integrity suite PASS on Node `v25.2.1`.
-- D070-A1 live: authenticated Codex `0.144.1` sequential `IMPLEMENTATION_VERIFIED` + replay with one AO spawn; evidence `.meta-harness/local/d070-a1-live-pass.json`.
-- A0.1 NO-GO / A0.2 GO remain binding background for the seam choice.
-- Raw AO stdout/stderr not persisted; post-AO clean custody gate required before materialization.
-- Validation exact bytes: `d070-ao-verified-marker\n` (not RunSpec-sealed content).
+- Full repository suite: **112/112 test files PASS** on Node `v25.2.1`.
+- `sync check`: PASS; quality ratchet: PASS after splitting both over-budget test modules without refreshing the baseline; `ready --quick`: READY yes. Public CLI count 27 > 25 remains a warning, not a blocker.
+- D070 critical suite and authenticated live path PASS after audit hardening. Because the hardening is uncommitted, current live evidence records a dirty-tree diff hash and leaves `implementationCommit=null`; a clean commit-bound rerun is still required before D071.
+- Codex version `0.144.1` is now observed by `--version`, not self-labelled.
+- Replay fails closed when AO metadata, validated artifact, or schema evidence is changed.
+- Raw AO stdout/stderr remain unpersisted; post-AO clean custody remains mandatory.
 
 Next action:
-Run one real child-repository dogfood on the D070-A1 controller-materialized path. Do not build concurrency/cancellation frameworks unless dogfood produces an observed requirement. Do not reopen `lib/contracts/*` without a concrete bind failure. After dogfood, re-charter product identity or remove the execution track.
+First land the audit-hardening diff and rerun the live test from a clean tracked tree so evidence names the exact implementation commit. Then execute D071 against an isolated clean copy of ToolLauncher commit `7fab419f20ba`. Scope is exactly `scripts/utils/CheckShortcut.ps1`. Objective: replace the console-only checker with a deterministic command-line probe that accepts optional `-StartupPath` and emits one compact JSON object containing `found`, `startup_path`, `target_path`, `arguments`, and `working_directory`; missing shortcut is a valid `found=false` result, while unreadable/corrupt shortcuts fail nonzero. Derive the AO prompt from sealed `RunSpec.objective`; bind an exact PowerShell validation command that parses the missing-path JSON result; delete the fixed-marker prompt/validator/tests rather than retaining compatibility; reach live `IMPLEMENTATION_VERIFIED` plus replay. Do not build a provider interface, public CLI, or concurrency framework. Do not reopen `lib/contracts/*`; replace the private two-argument Node validation restriction with this one exact trusted PowerShell command.
 
 Updated:
 2026-07-12

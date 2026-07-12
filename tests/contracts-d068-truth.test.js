@@ -1,9 +1,6 @@
 "use strict";
 
-/**
- * Phase 23A active-lifecycle truth (D068 + D069 closed; D070 next).
- * Filename retained for stable discovery; asserts current canonical truth surfaces.
- */
+/** Historical D068/D069 closure and frozen authority-contract truth. */
 
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -89,73 +86,6 @@ function parseEvents() {
       }
     });
 }
-
-function roadmapTableRows() {
-  const md = read("docs/product/roadmap.md");
-  const summary = section(md, "Phase Summary");
-  const rows = [];
-  for (const line of summary.split(/\r?\n/)) {
-    if (!line.startsWith("|")) continue;
-    if (/^\|\s*Phase\s*\|/i.test(line) || /^\|\s*-+/.test(line)) continue;
-    const cells = line
-      .split("|")
-      .slice(1, -1)
-      .map((c) => c.trim());
-    if (cells.length < 4) continue;
-    rows.push({ id: cells[0], name: cells[1], state: cells[2], detail: cells[3] });
-  }
-  return rows;
-}
-
-function findRoadmapRow(rows, idPattern) {
-  const row = rows.find((r) => idPattern.test(r.id));
-  assert.ok(row, `missing roadmap row matching ${idPattern}`);
-  return row;
-}
-
-test("status records D070 A1 closed on controller-materialized AO path", () => {
-  const status = read(".meta-harness/status.md");
-  const lastVerified = section(status, "Last verified");
-  const nextAction = section(status, "Next action");
-  const goal = section(status, "Goal");
-  const currentTruth = section(status, "Current truth");
-
-  assert.match(lastVerified, /D070-A1/i);
-  assert.match(lastVerified, /live/i);
-  assert.match(lastVerified, /IMPLEMENTATION_VERIFIED|authenticated Codex/i);
-  assert.match(lastVerified, /d070-ao-verified-marker/i);
-
-  assert.match(goal, /dogfood/i);
-  assert.match(nextAction, /dogfood/i);
-  assert.match(nextAction, /child-repositor/i);
-  assert.match(currentTruth, /closed under/i);
-  assert.match(currentTruth, new RegExp(D068_SQUASH_SHORT));
-  assert.match(currentTruth, new RegExp(D069_SQUASH_SHORT));
-  assert.match(currentTruth, /A0\.1 NO-GO/i);
-  assert.match(currentTruth, /A0\.2 GO|A0\.2/i);
-  assert.match(currentTruth, /D070-A1 closed/i);
-  assert.match(currentTruth, /controller-materialized|controller materializ/i);
-
-  assert.doesNotMatch(lastVerified, /under review/i);
-  assert.doesNotMatch(nextAction, /open D069/i);
-  assert.doesNotMatch(nextAction, /Implement D070-A1/i);
-  assert.doesNotMatch(goal, /Open D069/i);
-  assert.doesNotMatch(currentTruth, /Next:\s*D069/i);
-  assert.doesNotMatch(status, /D069 is open\/next/i);
-  assert.doesNotMatch(status, /D069 open\/next/i);
-  assert.doesNotMatch(nextAction, /force(?:-|\s)?with(?:-|\s)?lease|force-push|force push/i);
-  assert.doesNotMatch(nextAction, /parallel\s+R1A/i);
-
-  assert.doesNotMatch(status, /D068 under review/i);
-  assert.doesNotMatch(status, /D068 remains open/i);
-  assert.doesNotMatch(status, /D069 under review/i);
-  assert.doesNotMatch(status, /D069 remains open/i);
-  assert.doesNotMatch(status, /PR #24 pending/i);
-
-  const contractIndexSource = read("lib/contracts/index.js");
-  assert.doesNotMatch(contractIndexSource, /under review/i);
-  assert.match(contractIndexSource, /frozen|closed/i);
-});
 
 test("events retain D068 history and append D069 closure", () => {
   const events = parseEvents();
@@ -284,51 +214,6 @@ test("active Phase 23A authority chain is RunSpecApproval-rooted", () => {
   assert.doesNotMatch(plan, /Next:\s*D069 local controller/i);
   assert.doesNotMatch(plan, /D068 remains open/i);
   assert.doesNotMatch(plan, /R1A delete unused[\s\S]*D070 AO/i);
-});
-
-test("roadmap schedules artifact-based D070 A1 → dogfood → observed controls → R1A", () => {
-  const rows = roadmapTableRows();
-
-  const d068 = findRoadmapRow(rows, /23A-PR1R|D068/);
-  assert.match(d068.id, /D068/);
-  assert.match(d068.state + " " + d068.detail, /closed under/i);
-  assert.match(d068.state + " " + d068.detail, new RegExp(D068_SQUASH_SHORT));
-  assert.doesNotMatch(d068.state, /under review/i);
-
-  const d069 = findRoadmapRow(rows, /D069|23A-PR2/);
-  assert.match(d069.name, /Local Controller Walking Slice/i);
-  assert.match(d069.state + " " + d069.detail, /closed under/i);
-  assert.match(d069.state + " " + d069.detail, new RegExp(D069_SQUASH_SHORT));
-  assert.doesNotMatch(d069.state, /next/i);
-  assert.doesNotMatch(d069.name + d069.detail, /AO capability|provenance probe/i);
-
-  const d070 = findRoadmapRow(rows, /D070|23A-PR3/);
-  assert.match(d070.name + " " + d070.detail, /AO Substitution|substitute AO|walking slice|AO path/i);
-  assert.match(d070.state + " " + d070.detail, /A0 decided|A1 closed/i);
-  assert.match(d070.detail, /workspace-write[\s\S]*NO-GO|NO-GO/i);
-  assert.match(d070.detail, /schema-bound|controller materialize|read-only/i);
-  assert.doesNotMatch(d070.state + " " + d070.detail, /after R1A/i);
-  assert.doesNotMatch(d070.state, /A1 next/i);
-
-  const dogfood = findRoadmapRow(rows, /^23A-PR4$/);
-  assert.match(dogfood.name, /Dogfood/i);
-  assert.match(dogfood.state + " " + dogfood.detail, /next|immediately after A1|after D070/i);
-
-  const observedControls = findRoadmapRow(rows, /23A-PR4B/);
-  assert.match(observedControls.name + " " + observedControls.detail, /Concurrency|cancellation/i);
-  assert.match(observedControls.state + " " + observedControls.detail, /only if dogfood requires|observed requirement/i);
-
-  const r1a = findRoadmapRow(rows, /^R1A$/);
-  assert.match(r1a.name + " " + r1a.detail, /deletion|imports|traces|Evidence-Based Core Reduction/i);
-  assert.match(r1a.state + " " + r1a.detail, /after AO-backed dogfood|after dogfood/i);
-  assert.doesNotMatch(r1a.state + " " + r1a.detail, /after D069(?!\s)/i);
-  assert.doesNotMatch(r1a.state + " " + r1a.detail, /parallel after merge/i);
-
-  const ids = rows.map((r) => r.id).join("\n");
-  assert.doesNotMatch(ids, /^R1$/m);
-  const names = rows.map((r) => r.name).join("\n");
-  assert.doesNotMatch(names, /AO capability\s*\/\s*provenance probe/i);
-  assert.doesNotMatch(names, /Concrete local runtime/i);
 });
 
 test("production contracts export exact public allowlist", () => {

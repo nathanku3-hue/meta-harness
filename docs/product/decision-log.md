@@ -2022,11 +2022,11 @@ Evidence: squash `e8e7713cc99b58faad1a2aaa0ecaf836e4e25958` (PR #24; reviewed he
 
 ## D070: AO Seam Decision — Reject Worker Write, Adopt Controller Materialization
 
-Status: **A0 decided; A1 closed**.
+Status: **A0 decided; A1 transport/custody closed; audit hardening implemented locally**.
 
 Decision:
 
-Reject the direct Codex filesystem-write seam on the current Windows host and adopt a controller-materialized artifact seam. **D070-A1 is closed** on that seam.
+Reject the direct Codex filesystem-write seam on the current Windows host and adopt a controller-materialized artifact seam. **D070-A1 closes transport and custody on that seam; it does not yet prove meaningful child-repository work.**
 
 Observed A0 results:
 
@@ -2040,7 +2040,7 @@ A1 closed seam:
 sealed authorization
 → detached worktree + START_ALLOWED + claim
 → async authenticated Codex :read-only process
-  (bound node + launcher sha + native sha + version; allowlisted env;
+  (bound node + launcher sha + native sha + observed version; allowlisted env;
    stdio ignore/pipe/pipe; 120s process-tree timeout + reap)
 → parse terminal JSONL (turn.completed; exact agent_message JSON object)
 → post-AO clean custody gate (HEAD/base, clean incl. ignored, refs, config, worktrees)
@@ -2050,7 +2050,8 @@ sealed authorization
 → validation program exact-byte check (not RunSpec-sealed content)
 → IMPLEMENTATION_VERIFIED
 → create-only durable ref
-→ terminal journal + integrity-checked replay
+→ terminal journal binding AO metadata/artifact/schema SHA-256
+→ integrity-checked replay
 ```
 
 Authority honesty:
@@ -2063,15 +2064,57 @@ Constraints accepted in A1:
 
 - One request, one Codex process, one AO timeout (120s), one terminal result; validation timeout remains 60s.
 - Process-tree termination on timeout/output-cap; not a cancellation framework.
-- Persist AO metadata (hashes, counts, event types, validated `change-artifact.json`) — **not** raw stdout/stderr by default.
+- Persist AO metadata (hashes, counts, event types, validated `change-artifact.json`) — **not** raw stdout/stderr by default. Terminal replay requires intact SHA-256 bindings for AO metadata, validated artifact, and schema.
 - Operator-owned `CODEX_HOME` boundary only; no credential copy; no full home content inspection.
 - Provider `meta-harness-ao-codex` / `d070-ao-artifact-v1`. Fixture worker deleted; no dual production path.
 - `internal/d069` directory name retained only as temporary lineage debt until post-dogfood R1A.
 - No provider abstraction, public run CLI, delivery, or recovery in A1.
 
-Roadmap after A1: immediate child-repo dogfood → concurrency/cancellation only from observed need → full R1A → product re-charter (execution-custody harness vs lightweight MVP).
+Audit correction after A1 implementation:
 
-Evidence: offline artifact + full-chain sequential/replay + process-tree tests; live authenticated sequential+replay pass (Codex `0.144.1`); local live evidence under `.meta-harness/local/d070-a1-live-pass.json`; critical authority suite PASS on Node `v25.2.1`.
+- The first implementation self-labelled the configured version instead of observing it. The controller now executes the bound launcher with `--version` at construction and immediately before AO spawn; false labels fail closed.
+- The first terminal replay validated assessment/ref state but did not durably bind AO provenance artifacts. The terminal journal now binds SHA-256 for `ao-process-meta.json`, `change-artifact.json`, and `change-artifact.schema.json`; missing or changed evidence blocks replay.
+- Full repository suite and authenticated live sequential+replay remain green after both corrections. Live evidence now distinguishes a clean implementation commit from a dirty-tree probe: dirty runs record `headCommit` plus `trackedDiffSha256` and leave `implementationCommit=null`.
+
+Roadmap after A1: D071 one meaningful single-file child-repository execution → immediate R1A → concurrency/cancellation only from observed need. Product re-charter is no longer deferred.
+
+Evidence: offline artifact + full-chain sequential/replay + process-tree + AO-evidence tamper tests; live authenticated sequential+replay pass (observed Codex `0.144.1`); local live evidence under `.meta-harness/local/d070-a1-live-pass.json`; 112/112 repository test files PASS on Node `v25.2.1`; sync, quality-ratchet, and quick-readiness gates PASS. The two over-budget touched test modules were split without a baseline refresh. Audit-hardening must be committed and rerun from a clean tracked tree before its evidence may name an implementation commit.
+
+## D071: Re-charter and Meaningful Single-File Child Dogfood
+
+Status: **next binding gate**.
+
+Decision:
+
+Re-charter Meta-Harness now as a local authority-bound agent execution-custody harness. The original Markdown-first, no-agent-launch, no-network MVP remains historical shipped scope, but it is no longer the governing product direction. This is an intentional major deviation, recorded before further execution work.
+
+D071 must combine functionalization with dogfood rather than create another synthetic framework. Target selection is binding:
+
+- Reject Quant for this gate: its active truth freezes unrelated runtime/governance changes and requires separate owner authorization.
+- Use an isolated clean copy of ToolLauncher commit `7fab419f20ba` so inherited working-tree changes are untouched.
+- Scope exactly `scripts/utils/CheckShortcut.ps1`.
+- Objective: replace the console-only checker with a deterministic command-line probe accepting optional `-StartupPath` and emitting one compact JSON object with `found`, `startup_path`, `target_path`, `arguments`, and `working_directory`. Missing shortcut is a valid `found=false` result; unreadable/corrupt shortcuts fail nonzero.
+- Validation: one exact trusted PowerShell command invokes the missing-path case, parses JSON, and asserts `found=false` plus the requested path.
+
+```text
+clean ToolLauncher child snapshot
+→ sealed RunSpec objective as AO task intent
+→ one literal scope.allow path
+→ authenticated Codex :read-only artifact
+→ controller materialization/commit
+→ exact PowerShell JSON validation
+→ IMPLEMENTATION_VERIFIED
+→ durable ref + replay
+```
+
+Binding constraints:
+
+- Delete the fixed `d070-ao-verified-marker` prompt, validator, and active fixture expectations once D071 is green. No marker compatibility mode.
+- Do not create a generic provider interface, public execution CLI, multi-file planner, queue, or concurrency framework.
+- Keep `lib/contracts/*` frozen unless the real child task produces a concrete bind failure.
+- The child target and task must remain the selected ToolLauncher utility change, not a renamed fixture, marker-only edit, Quant scope expansion, or alternate child chosen for convenience.
+- After D071, perform R1A immediately from actual imports/tests/traces and remove `internal/d069` lineage naming.
+- Add concurrency/cancellation only when D071 evidence demonstrates a need.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

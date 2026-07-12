@@ -100,6 +100,9 @@ test("D070 duplicate same-request: first verifies, second replays; one AO spawn 
     assert.equal(second.verifiedHeadRevision, first.verifiedHeadRevision);
     assert.equal(second.durableRef, first.durableRef);
     assert.equal(second.factsDigest, first.factsDigest);
+    assert.equal(second.aoProcessMetaSha256, first.aoProcessMetaSha256);
+    assert.equal(second.changeArtifactSha256, first.changeArtifactSha256);
+    assert.equal(second.changeArtifactSchemaSha256, first.changeArtifactSchemaSha256);
     assert.equal(controller.getAoSpawnCount(), 1);
 
     const workspacesRoot = path.join(layout.workspaceRoot, "workspaces", authHex);
@@ -114,6 +117,21 @@ test("D070 duplicate same-request: first verifies, second replays; one AO spawn 
     ).trim();
     assert.equal(refSha, first.verifiedHeadRevision);
   });
+});
+
+test("D070 identity: controller construction rejects false Codex version label", async () => {
+  requireNode20();
+  const layout = createRuntimeFixtureLayout({ label: "d070version" });
+  try {
+    assert.throws(
+      () => createLocalWalkingSliceController(
+        buildControllerConfig(layout, { codexVersion: "9.9.9-false" }),
+      ),
+      (err) => err && err.code === "D070_VERSION_MISMATCH",
+    );
+  } finally {
+    layout.cleanup();
+  }
 });
 
 test("D070 integrity: mismatched RunSpec validation command is rejected", async () => {
@@ -197,6 +215,31 @@ test("D070 integrity: terminal replay fails when durable ref is moved", async ()
       () => controller.run(request),
       (err) => err && (err.code === "D069_STATE_CORRUPT" || err.code === "D069_REF_MISMATCH" || String(err.message).length > 0),
     );
+  });
+});
+
+test("D070 integrity: tampered AO evidence files fail closed on replay", async () => {
+  await withController("d070aotamper", async (layout, controller) => {
+    const request = buildRunRequest(layout);
+    const first = await controller.run(request);
+    assert.equal(first.disposition, "VERIFIED");
+    const authHex = digestHex(first.authorizationRequestDigest);
+    const artDir = path.join(layout.stateRoot, "artifacts", authHex);
+    for (const name of [
+      "ao-process-meta.json",
+      "change-artifact.json",
+      "change-artifact.schema.json",
+    ]) {
+      const target = path.join(artDir, name);
+      const original = fs.readFileSync(target);
+      fs.appendFileSync(target, " ");
+      await assert.rejects(
+        () => controller.run(request),
+        (err) => err && err.code === "D070_STATE_CORRUPT",
+        name,
+      );
+      fs.writeFileSync(target, original);
+    }
   });
 });
 

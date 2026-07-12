@@ -58,6 +58,44 @@ function snapshotAoEnv(codexHome, sourceEnv) {
   return env;
 }
 
+function probeCodexVersion(nodeExecutablePath, launcherScriptPath, env) {
+  const result = spawnSync(
+    nodeExecutablePath,
+    [launcherScriptPath, "--version"],
+    {
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 15_000,
+      env: { ...env },
+      maxBuffer: 64 * 1024,
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+  if (result.error) {
+    throw codedError(
+      "D070_VERSION_PROBE",
+      `codex --version probe failed: ${result.error.message}`,
+      { causeCode: result.error.code },
+    );
+  }
+  if (result.status !== 0) {
+    throw codedError(
+      "D070_VERSION_PROBE",
+      `codex --version exited ${result.status}: ${String(result.stderr || "").trim()}`,
+      { status: result.status },
+    );
+  }
+  const output = String(result.stdout || "").trim();
+  const match = /^codex-cli\s+([^\s]+)$/.exec(output);
+  if (!match) {
+    throw codedError(
+      "D070_VERSION_OUTPUT",
+      `unexpected codex --version output: ${JSON.stringify(output)}`,
+    );
+  }
+  return match[1];
+}
+
 function revalidateCodexIdentity(bound) {
   if (!isPlainObject(bound)) {
     throw codedError("D070_CODEX_BOUND", "bound codex program required");
@@ -97,8 +135,16 @@ function revalidateCodexIdentity(bound) {
     throw codedError("D070_NATIVE_HASH", "native executable sha256 mismatch");
   }
 
-  if (bound.expectedVersion !== bound.boundVersion) {
-    throw codedError("D070_VERSION", "codex version binding mismatch");
+  const liveVersion = probeCodexVersion(
+    bound.nodeRealPath,
+    bound.launcherRealPath,
+    bound.env,
+  );
+  if (liveVersion !== bound.expectedVersion || liveVersion !== bound.boundVersion) {
+    throw codedError(
+      "D070_VERSION",
+      `codex version ${liveVersion} does not match bound ${bound.expectedVersion}`,
+    );
   }
 
   if (bound.workerProfile !== WORKER_PROFILE) {
@@ -111,7 +157,7 @@ function revalidateCodexIdentity(bound) {
     launcherSha256: launcherSha,
     nativeRealPath: bound.nativeRealPath,
     nativeSha256: nativeSha,
-    version: bound.expectedVersion,
+    version: liveVersion,
   };
 }
 
@@ -188,6 +234,13 @@ function bindCodexProgram(codexProgram, { sourceEnv } = {}) {
     absNorm(codexProgram.codexHome),
     sourceEnv || codexProgram.hostEnv || {},
   );
+  const boundVersion = probeCodexVersion(nodeRealPath, launcherRealPath, env);
+  if (boundVersion !== codexProgram.expectedVersion) {
+    throw codedError(
+      "D070_VERSION_MISMATCH",
+      `codex --version ${boundVersion} does not match expected ${codexProgram.expectedVersion}`,
+    );
+  }
 
   return {
     workerProfile: WORKER_PROFILE,
@@ -200,7 +253,7 @@ function bindCodexProgram(codexProgram, { sourceEnv } = {}) {
     nativeRealPath,
     expectedNativeSha256: codexProgram.expectedNativeSha256,
     expectedVersion: codexProgram.expectedVersion,
-    boundVersion: codexProgram.expectedVersion,
+    boundVersion,
     codexHome: absNorm(codexProgram.codexHome),
     env,
     aoTimeoutSeconds: AO_TIMEOUT_SECONDS,
@@ -321,7 +374,7 @@ function spawnAoProcess(bound, {
   allowedPath,
   timeoutSeconds = AO_TIMEOUT_SECONDS,
 }) {
-  revalidateCodexIdentity(bound);
+  const identity = revalidateCodexIdentity(bound);
 
   const prompt = buildFixedAoPrompt(allowedPath);
   const args = [
@@ -451,6 +504,7 @@ function spawnAoProcess(bound, {
         killInfo,
         pid: pid || null,
         promptSha256: sha256Utf8(prompt),
+        identity,
         argv: [
           bound.nodeRealPath,
           bound.launcherRealPath,
@@ -611,4 +665,5 @@ module.exports = {
   processExists,
   listDescendantPidsWindows,
   sha256Utf8,
+  probeCodexVersion,
 };

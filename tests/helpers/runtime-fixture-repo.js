@@ -6,22 +6,20 @@
  * Not a production export.
  */
 
-const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
 const {
-  sha256File,
   FIXED_TIMEOUT_SECONDS,
   PROVIDER_ID,
   WORKER_PROFILE,
 } = require("../../internal/d069/local-controller");
-const { AO_ENV_ALLOWLIST } = require("../../internal/d069/ao-constants");
 const { absNorm: supportAbsNorm } = require("../../internal/d069/support");
 const { computeRunSpecDigest } = require("../../lib/contracts/run-spec");
 const { sealRunSpecApproval } = require("../../lib/contracts/run-spec-approval");
+const { programPaths, snapshotHostEnv } = require("./runtime-programs");
 
 const FIXTURE_REPOSITORY_ID = "d070-fixture";
 const FIXTURE_RELATIVE_FILE = "src/fixture.txt";
@@ -85,17 +83,6 @@ function runGit(gitPath, cwd, args) {
 
 function absNorm(p) {
   return supportAbsNorm(p);
-}
-
-function snapshotHostEnv() {
-  const env = {};
-  for (const key of AO_ENV_ALLOWLIST) {
-    if (key === "CODEX_HOME") continue;
-    if (process.env[key]) env[key] = process.env[key];
-  }
-  // Ensure PATH exists for Windows tests
-  if (!env.PATH) env.PATH = process.env.PATH || "";
-  return env;
 }
 
 /**
@@ -174,23 +161,6 @@ function createRuntimeFixtureLayout(options = {}) {
     a1ExactBody: A1_EXACT_BODY,
     gitExecutablePath,
     cleanup,
-  };
-}
-
-function programPaths() {
-  const programsDir = path.resolve(__dirname, "../../internal/d069/programs");
-  const validationScript = absNorm(path.join(programsDir, "validation-program.js"));
-  const testLauncher = absNorm(path.join(programsDir, "test-codex-launcher.js"));
-  const testNative = absNorm(path.join(programsDir, "test-codex-native-stub.js"));
-  const treeChildLauncher = absNorm(path.join(programsDir, "test-tree-child-launcher.js"));
-  return {
-    validationScript,
-    validationSha256: sha256File(validationScript),
-    testLauncher,
-    testLauncherSha256: sha256File(testLauncher),
-    testNative,
-    testNativeSha256: sha256File(testNative),
-    treeChildLauncher,
   };
 }
 

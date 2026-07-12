@@ -23,7 +23,13 @@ meta-harness
 
 Use Markdown as the product surface and minimal runtime code as the mechanical helper.
 
-The runtime should not become the product. The product is the durable workflow truth.
+The runtime should not become the MVP product. The MVP product is the durable workflow truth.
+
+## Post-MVP Product Direction — Execution Custody
+
+As of D070/D071, the governing post-MVP direction is a local authority-bound agent execution-custody harness. A sealed RunSpec and approval authorize one isolated attempt; an authenticated read-only agent returns a bounded artifact; the controller alone materializes, commits, validates, publishes a durable result, and replays terminal truth.
+
+This is an intentional deviation from the MVP constraints below: the private Phase 23A runtime launches an agent and uses its authenticated network path. The original CLI and Markdown surfaces remain shipped MVP behavior, but the no-launch/no-network rule is historical MVP scope rather than the current end-state. No public execution CLI or generic provider abstraction is authorized before meaningful child-repository dogfood.
 
 ## Repository State
 

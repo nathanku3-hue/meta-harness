@@ -123,6 +123,9 @@ test("D070-A1 sequential: sealed request produces verified commit, validation, r
     assert.match(meta.stderrSha256, /^[a-f0-9]{64}$/);
     assert.ok(meta.eventCount >= 1);
     assert.equal(meta.terminalType, "turn.completed");
+    assert.equal(meta.identity.version, "0.144.1-test");
+    assert.match(meta.identity.launcherSha256, /^[a-f0-9]{64}$/);
+    assert.match(meta.identity.nativeSha256, /^[a-f0-9]{64}$/);
 
     const artifact = JSON.parse(fs.readFileSync(path.join(artDir, "change-artifact.json"), "utf8"));
     assert.equal(artifact.path, FIXTURE_RELATIVE_FILE);
@@ -138,6 +141,12 @@ test("D070-A1 sequential: sealed request produces verified commit, validation, r
     assert.equal(journal.terminal, true);
     assert.equal(journal.factsDigest, result.factsDigest);
     assert.equal(journal.implementationAssessmentDigest, result.implementationAssessmentDigest);
+    assert.equal(journal.aoProcessMetaSha256, result.aoProcessMetaSha256);
+    assert.equal(journal.changeArtifactSha256, result.changeArtifactSha256);
+    assert.equal(journal.changeArtifactSchemaSha256, result.changeArtifactSchemaSha256);
+    assert.match(journal.aoProcessMetaSha256, /^[a-f0-9]{64}$/);
+    assert.match(journal.changeArtifactSha256, /^[a-f0-9]{64}$/);
+    assert.match(journal.changeArtifactSchemaSha256, /^[a-f0-9]{64}$/);
     assert.equal(journal.verifiedHeadRevision, result.verifiedHeadRevision);
     assert.equal(journal.durableRef, result.durableRef);
     assert.equal(journal.durableRef, `refs/meta-harness/attempts/${authHex}`);
@@ -224,6 +233,9 @@ test("D070-A1 sequential: sealed request produces verified commit, validation, r
     assert.equal(replay.verdict, "IMPLEMENTATION_VERIFIED");
     assert.equal(replay.verifiedHeadRevision, result.verifiedHeadRevision);
     assert.equal(replay.durableRef, result.durableRef);
+    assert.equal(replay.aoProcessMetaSha256, result.aoProcessMetaSha256);
+    assert.equal(replay.changeArtifactSha256, result.changeArtifactSha256);
+    assert.equal(replay.changeArtifactSchemaSha256, result.changeArtifactSchemaSha256);
     assert.equal(controller.getAoSpawnCount(), 1, "replay must not spawn AO again");
     assert.equal(
       String(fs.readFileSync(path.join(artDir, "ao-invocation-count.txt"), "utf8")).trim(),

@@ -11,6 +11,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 function main(argv) {
+  if (argv.length === 1 && argv[0] === "--version") {
+    process.stdout.write("codex-cli 0.144.1-test\n");
+    return 0;
+  }
+
   const schemaIdx = argv.indexOf("--output-schema");
   if (schemaIdx < 0 || schemaIdx + 1 >= argv.length) {
     process.stderr.write("test-codex-launcher: missing --output-schema\n");
