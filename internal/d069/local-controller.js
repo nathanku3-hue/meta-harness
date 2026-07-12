@@ -1,0 +1,297 @@
+"use strict";
+
+/**
+ * D069 private local walking-slice controller.
+ *
+ * Not packaged (internal/). No public API. No kernel expansion.
+ * Disposable after D070 decides worktree ownership.
+ *
+ * Locked provider:
+ *   id: meta-harness-local-fixture
+ *   workerProfile: d069-fixed-fixture-v1
+ */
+
+const fs = require("node:fs");
+const path = require("node:path");
+const crypto = require("node:crypto");
+
+const {
+  codedError,
+  isPlainObject,
+  isNonEmptyString,
+  isAbsoluteNormalizedFsPath,
+  sha256File,
+  requireNodeMajorAtLeast,
+  publishNoReplace,
+  writeJsonNoReplace,
+  canonicalExistingRoot,
+  rootsPairwiseSeparated,
+  validateProgramIdentity,
+  ownerDigestFor,
+} = require("./support");
+const {
+  CONTROLLER_AUTHOR_NAME,
+  CONTROLLER_AUTHOR_EMAIL,
+  ensureIsolatedGitHome,
+  resolveGitExecutable,
+  runGit,
+} = require("./git-ops");
+const { executeAttempt } = require("./run-attempt");
+
+const PROVIDER_ID = "meta-harness-local-fixture";
+const WORKER_PROFILE = "d069-fixed-fixture-v1";
+const OWNER_FILE_NAME = "controller-owner.json";
+const OWNER_SCHEMA = "d069-controller-owner/v1";
+const FIXED_TIMEOUT_SECONDS = 60;
+
+function validateAuthorizationPolicyShape(policy) {
+  if (!isPlainObject(policy)) {
+    throw codedError("D069_POLICY_REQUIRED", "authorizationPolicy is required");
+  }
+  const required = [
+    "authorizationTtlSeconds",
+    "maxReadinessAgeSeconds",
+    "maxCommandTimeoutSeconds",
+    "provider",
+    "workspacePolicy",
+  ];
+  for (const key of required) {
+    if (!Object.prototype.hasOwnProperty.call(policy, key)) {
+      throw codedError("D069_POLICY_SHAPE", `authorizationPolicy.${key} required`);
+    }
+  }
+  if (!isPlainObject(policy.provider)
+    || policy.provider.id !== PROVIDER_ID
+    || policy.provider.workerProfile !== WORKER_PROFILE) {
+    throw codedError(
+      "D069_PROVIDER_IDENTITY",
+      `authorizationPolicy.provider must be { id: "${PROVIDER_ID}", workerProfile: "${WORKER_PROFILE}" }`,
+    );
+  }
+  if (!isPlainObject(policy.workspacePolicy)
+    || policy.workspacePolicy.schemaVersion !== "workspace-policy/v1"
+    || !isAbsoluteNormalizedFsPath(policy.workspacePolicy.approvedRoot)) {
+    throw codedError(
+      "D069_WORKSPACE_POLICY",
+      "authorizationPolicy.workspacePolicy must be { schemaVersion: workspace-policy/v1, approvedRoot: absolute normalized path }",
+    );
+  }
+}
+
+/**
+ * @param {object} config
+ * @returns {{ run: Function, close: Function }}
+ */
+function createLocalWalkingSliceController(config) {
+  requireNodeMajorAtLeast(20);
+
+  if (!isPlainObject(config)) {
+    throw codedError("D069_CONFIG_REQUIRED", "config object required");
+  }
+
+  const {
+    trustedRepository,
+    stateRoot: stateRootInput,
+    workspaceRoot: workspaceRootInput,
+    authorizationPolicy,
+    clock,
+    fixtureWorker,
+    validationProgram,
+  } = config;
+
+  if (!isPlainObject(trustedRepository)
+    || !isNonEmptyString(trustedRepository.repositoryId)
+    || !isAbsoluteNormalizedFsPath(trustedRepository.repositoryPath)) {
+    throw codedError(
+      "D069_TRUSTED_REPO",
+      "trustedRepository must be { repositoryId, repositoryPath } with absolute normalized path",
+    );
+  }
+  if (!isAbsoluteNormalizedFsPath(stateRootInput)) {
+    throw codedError("D069_STATE_ROOT", "stateRoot must be absolute normalized path");
+  }
+  if (!isAbsoluteNormalizedFsPath(workspaceRootInput)) {
+    throw codedError("D069_WORKSPACE_ROOT", "workspaceRoot must be absolute normalized path");
+  }
+  if (typeof clock !== "function") {
+    throw codedError("D069_CLOCK", "clock must be a function returning exact UTC timestamp string");
+  }
+
+  validateAuthorizationPolicyShape(authorizationPolicy);
+
+  if (!isPlainObject(fixtureWorker)
+    || fixtureWorker.workerProfile !== authorizationPolicy.provider.workerProfile) {
+    throw codedError(
+      "D069_WORKER_PROFILE_MISMATCH",
+      "fixtureWorker.workerProfile must equal authorizationPolicy.provider.workerProfile",
+    );
+  }
+  if (fixtureWorker.workerProfile !== WORKER_PROFILE) {
+    throw codedError(
+      "D069_WORKER_PROFILE",
+      `fixtureWorker.workerProfile must be "${WORKER_PROFILE}"`,
+    );
+  }
+
+  const repositoryPath = canonicalExistingRoot(
+    trustedRepository.repositoryPath,
+    "trustedRepository.repositoryPath",
+  );
+  const repositoryId = trustedRepository.repositoryId;
+
+  fs.mkdirSync(stateRootInput, { recursive: true });
+  fs.mkdirSync(workspaceRootInput, { recursive: true });
+
+  const stateRoot = canonicalExistingRoot(stateRootInput, "stateRoot");
+  const workspaceRoot = canonicalExistingRoot(workspaceRootInput, "workspaceRoot");
+
+  rootsPairwiseSeparated(repositoryPath, stateRoot, "repositoryPath", "stateRoot");
+  rootsPairwiseSeparated(repositoryPath, workspaceRoot, "repositoryPath", "workspaceRoot");
+  rootsPairwiseSeparated(stateRoot, workspaceRoot, "stateRoot", "workspaceRoot");
+
+  const approvedRootCanon = canonicalExistingRoot(
+    authorizationPolicy.workspacePolicy.approvedRoot,
+    "authorizationPolicy.workspacePolicy.approvedRoot",
+  );
+  if (approvedRootCanon !== workspaceRoot) {
+    throw codedError(
+      "D069_APPROVED_ROOT",
+      "canonical approvedRoot must equal canonical workspaceRoot",
+    );
+  }
+
+  const boundPolicy = {
+    authorizationTtlSeconds: authorizationPolicy.authorizationTtlSeconds,
+    maxReadinessAgeSeconds: authorizationPolicy.maxReadinessAgeSeconds,
+    maxCommandTimeoutSeconds: authorizationPolicy.maxCommandTimeoutSeconds,
+    provider: {
+      id: authorizationPolicy.provider.id,
+      workerProfile: authorizationPolicy.provider.workerProfile,
+    },
+    workspacePolicy: {
+      schemaVersion: "workspace-policy/v1",
+      approvedRoot: workspaceRoot,
+    },
+  };
+
+  const boundWorker = validateProgramIdentity("fixtureWorker", fixtureWorker, {
+    requireExpectedCommand: false,
+  });
+  const boundValidation = validateProgramIdentity("validationProgram", validationProgram, {
+    requireExpectedCommand: true,
+  });
+
+  const gitHome = ensureIsolatedGitHome(stateRoot);
+  const { gitExecutablePath } = resolveGitExecutable(gitHome);
+  runGit(gitExecutablePath, repositoryPath, ["rev-parse", "--is-inside-work-tree"], gitHome);
+
+  const controllerInstanceNonce = crypto.randomBytes(16).toString("hex");
+  const ownerBody = {
+    schemaVersion: OWNER_SCHEMA,
+    controllerInstanceNonce,
+    repositoryId,
+    repositoryPath,
+    stateRoot,
+    workspaceRoot,
+    processId: process.pid,
+    createdAt: clock(),
+  };
+  const ownerDigest = ownerDigestFor(ownerBody);
+  const ownerRecord = { ...ownerBody, ownerDigest };
+  const ownerPath = path.join(stateRoot, OWNER_FILE_NAME);
+
+  try {
+    writeJsonNoReplace(ownerPath, ownerRecord);
+  } catch (err) {
+    if (err && (err.code === "EEXIST" || err.code === "EPERM")) {
+      throw codedError(
+        "D069_STATE_OWNED",
+        "stateRoot already has a controller-owner.json (second controller rejected)",
+        { causeCode: err.code },
+      );
+    }
+    throw codedError(
+      "D069_OWNER_PUBLISH_FAILED",
+      `failed to publish controller-owner.json: ${err.message}`,
+      { causeCode: err.code },
+    );
+  }
+
+  let closed = false;
+  let activeCalls = 0;
+
+  const attemptCtx = {
+    repositoryId,
+    repositoryPath,
+    stateRoot,
+    workspaceRoot,
+    boundPolicy,
+    boundWorker,
+    boundValidation,
+    gitHome,
+    gitExecutablePath,
+    clock,
+    fixedTimeoutSeconds: FIXED_TIMEOUT_SECONDS,
+  };
+
+  async function run(request) {
+    if (closed) {
+      throw codedError("D069_CONTROLLER_CLOSED", "controller is closed");
+    }
+    activeCalls += 1;
+    try {
+      return await executeAttempt(attemptCtx, request);
+    } finally {
+      activeCalls -= 1;
+    }
+  }
+
+  async function close() {
+    if (closed) {
+      return { ok: true, idempotent: true };
+    }
+    if (activeCalls > 0) {
+      throw codedError(
+        "D069_CLOSE_ACTIVE",
+        "close() rejected while run() is active; owner record retained",
+      );
+    }
+
+    let onDisk;
+    try {
+      onDisk = JSON.parse(fs.readFileSync(ownerPath, "utf8"));
+    } catch (err) {
+      throw codedError(
+        "D069_OWNER_MISSING",
+        `controller-owner.json unreadable during close: ${err.message}`,
+      );
+    }
+
+    if (!isPlainObject(onDisk)
+      || onDisk.controllerInstanceNonce !== controllerInstanceNonce
+      || onDisk.ownerDigest !== ownerDigest) {
+      throw codedError(
+        "D069_OWNER_MISMATCH",
+        "stored owner record does not match this controller instance; not removed",
+      );
+    }
+
+    fs.unlinkSync(ownerPath);
+    closed = true;
+    return { ok: true, idempotent: false };
+  }
+
+  return { run, close };
+}
+
+module.exports = {
+  createLocalWalkingSliceController,
+  PROVIDER_ID,
+  WORKER_PROFILE,
+  FIXED_TIMEOUT_SECONDS,
+  OWNER_FILE_NAME,
+  publishNoReplace,
+  sha256File,
+  CONTROLLER_AUTHOR_NAME,
+  CONTROLLER_AUTHOR_EMAIL,
+};
