@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Open D069 local controller walking slice (functional-first custody runtime). Kernel frozen.
+Open D070 AO substitution in the same walking slice (functional-first). Kernel frozen.
 
 Phase:
 in_progress
 
 Current truth:
-Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** Pure authority kernel frozen; no AO, no delivery actor, no public run CLI. Next: D069 → D070 AO substitution → child-repo dogfood → full R1A — not R1A before AO/dogfood.
+Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** Private fixed-fixture sequential walking slice landed (`internal/d069/*`); no AO yet, no delivery actor, no public run CLI. Next: D070-A0 AO capability probe → D070-A1 one verified AO path → overlap/cancel/cleanup from observation → child-repo dogfood → full R1A — not R1A before AO/dogfood.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -204,16 +204,17 @@ Superseded/deferred truth:
 - Phase 21A–21F, 22A, and 22B are closed. D067 superseded. **D068 closed under `be82763`** (PR #23 squash; reviewed head `4b259c9`). Slice 0B.1 repaired stale active pre-merge wording; historical events unchanged.
 
 Active streams:
-- coding: D069 local controller walking slice next (branch from post-0B.1 commit).
+- coding: D070 AO substitution next (A0 capability probe immediately after D069 closure).
 - research: no active research stream.
-- writing: no active pre-merge D068 truth work; 0B.1 lifecycle repair complete.
-- review: no active PR #23 review stream.
+- writing: no active pre-merge D069 truth work; D069 closed under e8e7713.
+- review: no active PR #24 review stream.
 
 Scope boundary:
-- D068 public contract kernel is frozen on main under `be82763` (no AO, no delivery actor, no public run CLI).
+- D068 public contract kernel is frozen on main under `be82763` (no delivery actor, no public run CLI).
+- D069 private local walking slice is closed under `e8e7713` (fixture worker only; no AO-owned execution; no real concurrent single-use evidence).
 - D064–D066 objects are historical/read-only guidance only — not load-bearing authority inputs.
-- Non-goals for D068 (closed): delivery assessment, user-facing state mapper, generic ExecutionProvider, durable journal implementation, R1 mass deletion inside the same PR.
-- D069 is open/next after D068 closure and Slice 0B.1 truth repair.
+- Non-goals retained: delivery assessment, user-facing state mapper, generic ExecutionProvider, R1 mass deletion before AO/dogfood.
+- D070 is open/next after D069 closure.
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
@@ -239,22 +240,23 @@ Relevant decisions:
 - D066: Phase 22B closed (`f926868`).
 - D067: superseded; archive `fb40d18`.
 - D068: **closed** under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`).
+- D069: **closed** under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`).
 
 Blockers:
-- None for D068. No merge blocker. Next functional work is D069 (after 0B.1 lands).
+- None for D069. No merge blocker. Next functional work is D070-A0 (AO capability probe).
 
 Last verified:
-D068 closed under be82763 (PR #23 squash).
-Tree-object equality PASS (4b259c9 tree == be82763 tree);
-ancestry PASS (f926868 ancestor of be82763).
-Slice 0B local gates: focused authority/truth 67 passed;
-full suite 106 files 0 failed; quality PASS; ready ok:true;
-sync PASS checked=30; git diff --check PASS.
-Slice 0B.1: active-status lifecycle repair; D068 closed under be82763; D069 open/next;
-no active PR #23 review stream; no merge blocker; events append-only repair record.
+D069 closed under e8e7713 (PR #24 squash).
+Tree-object equality PASS (245fa3d tree == e8e7713 tree = 5c16edf);
+ancestry PASS (5afe075 ancestor of e8e7713).
+Required checks on exact reviewed head 245fa3d: Node tests PASS;
+D069 Windows integration PASS; Semgrep CI gate PASS.
+Post-merge closure gates: Phase 23A truth 6/6 PASS; D069 runtime 6/6 PASS;
+git diff --check PASS; main == origin/main; clean post-land checkout.
 
 Next action:
-Open D069 local controller walking slice on a feature branch from the 0B.1 commit.
+Begin D070-A0 AO capability probe (resolve executable, observe Git/workspace behavior,
+record GO/CONDITIONAL/NO-GO). Do not build concurrency or provider abstraction first.
 Do not reopen lib/contracts/* without a real runtime failure.
 
 Updated:

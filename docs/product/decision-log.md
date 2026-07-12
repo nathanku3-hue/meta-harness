@@ -1986,6 +1986,40 @@ Roadmap after D068 (functional-first): D069 local controller walking slice → D
 
 Evidence: squash `be82763264503427a12af400e8413b10cdbf7363` (PR #23; reviewed head `4b259c9`; pre-merge base `f926868`; tree-object equality PASS; ancestry PASS); `lib/contracts/*`; `tests/contracts-authority-*.test.js`; `tests/contracts-d068-truth.test.js`; `docs/product/runtime-authority-architecture.md`. Pre-merge independent verification at `ed9aecd` / `4b259c9`; required PR checks PASS on reviewed head.
 
+## D069: Phase 23A-PR2 Local Controller Walking Slice
+
+Status: **closed under D069** (`e8e7713cc99b58faad1a2aaa0ecaf836e4e25958`).
+
+Decision:
+
+Accept D069 as a **private fixed-fixture sequential walking slice** proving sealed authorization, controller-owned implementation, meaningful validation, durable exact-ref custody, verified cleanup, and integrity-checked terminal duplicate replay.
+
+Scope accepted:
+
+- Private runtime under `internal/d069/*` (not packaged; no public `meta-harness run`).
+- Locked provider `meta-harness-local-fixture` / `d069-fixed-fixture-v1`.
+- Real Git readiness → authorize → worktree → attestation → `START_ALLOWED` → atomic journal claim → fixture worker → controller commit → exact validation → `IMPLEMENTATION_VERIFIED`.
+- Create-only durable ref `refs/meta-harness/attempts/<authHex>`.
+- Stored receipt/claim/journal/assessment integrity revalidated on replay; assessment and durable ref bound to current request.
+- Disposition results include `terminal` and `restart`.
+- Windows host-path identity (realpath.native, 8.3 short-name / long-name equivalence) for worktree top-level and cleanup registration.
+- Quality exception limited to `internal/d069`.
+- Pre-existing durable ref path publishes terminal `controller_failed` journal.
+
+Honest limits (do **not** claim):
+
+- Real asynchronous overlap or multi-process claim races.
+- Distinct-request serialization under concurrency.
+- AO-owned execution.
+- Broad repository compatibility beyond the fixed fixture.
+- Failure-journal storage failure survival (ordinary post-claim failures terminalize when journal publication remains available; journal storage failure itself is not claimed as survived).
+
+`CLAIMED_INCOMPLETE` and `ALREADY_CLAIMED` may remain implemented dispositions but are not empirical D069 concurrency evidence.
+
+Roadmap after D069 (functional-first): D070-A0 AO capability probe → D070-A1 one verified AO path → same-request / distinct-request overlap → cancel/timeout → observed cleanup ownership → child-repo dogfood → full R1A → delivery/recovery only from observed need.
+
+Evidence: squash `e8e7713cc99b58faad1a2aaa0ecaf836e4e25958` (PR #24; reviewed head `245fa3ddf2f860af5b512ba457221820375a03af`; pre-merge base `5afe075f065e74122149af1913de128f9c2ad17d`; feature tree `5c16edf0223d563a9e84b4099d0fe57ad73d55ce` == landed tree; ancestry PASS); required checks on exact reviewed head PASS (Node tests, D069 Windows integration, Semgrep); `internal/d069/*`; `tests/runtime-d069-*.test.js`.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:

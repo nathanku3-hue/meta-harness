@@ -1,5 +1,10 @@
 "use strict";
 
+/**
+ * Phase 23A active-lifecycle truth (D068 + D069 closed; D070 next).
+ * Filename retained for stable discovery; asserts current canonical truth surfaces.
+ */
+
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -30,10 +35,16 @@ const AUTHORITY_CHAIN_OBJECTS = [
   "ImplementationAssessment",
 ];
 
-const SQUASH_SHA = "be82763264503427a12af400e8413b10cdbf7363";
-const SQUASH_SHORT = "be82763";
-const REVIEWED_HEAD = "4b259c9";
-const PREMERGE_BASE = "f926868";
+const D068_SQUASH_SHA = "be82763264503427a12af400e8413b10cdbf7363";
+const D068_SQUASH_SHORT = "be82763";
+const D068_REVIEWED_HEAD = "4b259c9";
+const D068_PREMERGE_BASE = "f926868";
+
+const D069_SQUASH_SHA = "e8e7713cc99b58faad1a2aaa0ecaf836e4e25958";
+const D069_SQUASH_SHORT = "e8e7713";
+const D069_REVIEWED_HEAD = "245fa3d";
+const D069_PREMERGE_BASE = "5afe075";
+const D069_TREE = "5c16edf";
 
 function read(rel) {
   return fs.readFileSync(path.join(root, rel), "utf8");
@@ -102,47 +113,48 @@ function findRoadmapRow(rows, idPattern) {
   return row;
 }
 
-test("status Last verified and Next action describe closed D068 and open D069", () => {
+test("status Last verified and Next action describe closed D069 and open D070", () => {
   const status = read(".meta-harness/status.md");
   const lastVerified = section(status, "Last verified");
   const nextAction = section(status, "Next action");
   const goal = section(status, "Goal");
   const currentTruth = section(status, "Current truth");
 
-  assert.match(lastVerified, new RegExp(SQUASH_SHORT));
+  assert.match(lastVerified, new RegExp(D069_SQUASH_SHORT));
   assert.match(lastVerified, /tree-object equality PASS/i);
   assert.match(lastVerified, /ancestry PASS/i);
   assert.match(lastVerified, /PASS/);
+  assert.match(lastVerified, new RegExp(D069_REVIEWED_HEAD));
+  assert.match(lastVerified, new RegExp(D069_TREE));
 
-  assert.match(goal, /D069/i);
-  assert.match(nextAction, /D069/i);
+  assert.match(goal, /D070/i);
+  assert.match(nextAction, /D070/i);
   assert.match(currentTruth, /closed under/i);
-  assert.match(currentTruth, new RegExp(SQUASH_SHORT));
+  assert.match(currentTruth, new RegExp(D068_SQUASH_SHORT));
+  assert.match(currentTruth, new RegExp(D069_SQUASH_SHORT));
 
   assert.doesNotMatch(lastVerified, /under review/i);
-  assert.doesNotMatch(nextAction, /squash-merge\s+PR\s*#?23/i);
-  assert.doesNotMatch(nextAction, /push pending|checks pending|squash merge pending/i);
-  assert.doesNotMatch(goal, /squash-merge\s+PR\s*#?23/i);
-  assert.doesNotMatch(currentTruth, /remains open until PR/i);
-  assert.doesNotMatch(status, /PR #23 pending/i);
+  assert.doesNotMatch(nextAction, /open D069/i);
+  assert.doesNotMatch(nextAction, /squash-merge\s+PR\s*#?24/i);
+  assert.doesNotMatch(goal, /Open D069/i);
+  assert.doesNotMatch(currentTruth, /Next:\s*D069/i);
+  assert.doesNotMatch(status, /D069 is open\/next/i);
+  assert.doesNotMatch(status, /D069 open\/next/i);
   assert.doesNotMatch(nextAction, /force(?:-|\s)?with(?:-|\s)?lease|force-push|force push/i);
   assert.doesNotMatch(nextAction, /parallel\s+R1A/i);
-  assert.doesNotMatch(nextAction, /AO probe/i);
 
-  // Whole-status global lifecycle consistency (active document only).
-  // events.jsonl is intentionally excluded: pre-merge historical lines remain.
   assert.doesNotMatch(status, /D068 under review/i);
   assert.doesNotMatch(status, /D068 remains open/i);
-  assert.doesNotMatch(status, /PR #23 merge-approved/i);
-  assert.doesNotMatch(status, /pre-merge D068 truth reconciliation/i);
-  assert.doesNotMatch(status, /authorized squash-merge of PR #23/i);
+  assert.doesNotMatch(status, /D069 under review/i);
+  assert.doesNotMatch(status, /D069 remains open/i);
+  assert.doesNotMatch(status, /PR #24 pending/i);
 
   const contractIndexSource = read("lib/contracts/index.js");
   assert.doesNotMatch(contractIndexSource, /under review/i);
   assert.match(contractIndexSource, /frozen|closed/i);
 });
 
-test("events retain pre-merge reconciliation and append D068 closure", () => {
+test("events retain D068 history and append D069 closure", () => {
   const events = parseEvents();
   assert.ok(events.length >= 3);
 
@@ -165,41 +177,61 @@ test("events retain pre-merge reconciliation and append D068 closure", () => {
   assert.equal(recon.ts, recon.time);
   assert.ok(!Number.isNaN(Date.parse(recon.ts)), `unparseable recon ts: ${recon.ts}`);
 
-  const closure = [...d068].reverse().find(
+  const d068Closure = [...d068].reverse().find(
     (e) =>
       typeof e.result === "string" &&
       /closed by squash merge|closed under/i.test(e.result) &&
       typeof e.evidence === "string" &&
-      e.evidence.includes(SQUASH_SHORT),
+      e.evidence.includes(D068_SQUASH_SHORT),
   );
-  assert.ok(closure, "missing D068 closure event");
-  assert.equal(closure.ts, closure.time);
-  assert.ok(!Number.isNaN(Date.parse(closure.ts)), `unparseable closure ts: ${closure.ts}`);
+  assert.ok(d068Closure, "missing D068 closure event");
+  assert.equal(d068Closure.ts, d068Closure.time);
+  assert.match(String(d068Closure.evidence), new RegExp(D068_SQUASH_SHA));
+  assert.match(String(d068Closure.evidence), /PR\s*#?23/i);
+  assert.match(String(d068Closure.evidence), new RegExp(D068_REVIEWED_HEAD));
+  assert.match(String(d068Closure.evidence), new RegExp(D068_PREMERGE_BASE));
+  assert.match(String(d068Closure.evidence), /tree-object equality PASS/i);
+  assert.match(String(d068Closure.evidence), /ancestry PASS/i);
+
+  const d069 = events.filter((e) => e.decision === "D069");
+  assert.ok(d069.length >= 1, "expected D069 closure event");
+  const d069Closure = [...d069].reverse().find(
+    (e) =>
+      typeof e.result === "string" &&
+      /closed by squash merge|closed under/i.test(e.result) &&
+      typeof e.evidence === "string" &&
+      e.evidence.includes(D069_SQUASH_SHORT),
+  );
+  assert.ok(d069Closure, "missing D069 closure event");
+  assert.equal(d069Closure.ts, d069Closure.time);
+  assert.ok(!Number.isNaN(Date.parse(d069Closure.ts)), `unparseable D069 ts: ${d069Closure.ts}`);
   assert.ok(
-    Date.parse(closure.ts) > Date.parse(recon.ts),
-    "closure event must be later than pre-merge reconciliation",
+    Date.parse(d069Closure.ts) > Date.parse(d068Closure.ts),
+    "D069 closure must be later than D068 closure",
   );
-  assert.match(String(closure.evidence), new RegExp(SQUASH_SHA));
-  assert.match(String(closure.evidence), /PR\s*#?23/i);
-  assert.match(String(closure.evidence), new RegExp(REVIEWED_HEAD));
-  assert.match(String(closure.evidence), new RegExp(PREMERGE_BASE));
-  assert.match(String(closure.evidence), /tree-object equality PASS/i);
-  assert.match(String(closure.evidence), /ancestry PASS/i);
-  assert.match(String(closure.next_action || ""), /D069/i);
+  assert.match(String(d069Closure.evidence), new RegExp(D069_SQUASH_SHA));
+  assert.match(String(d069Closure.evidence), /PR\s*#?24/i);
+  assert.match(String(d069Closure.evidence), new RegExp(D069_REVIEWED_HEAD));
+  assert.match(String(d069Closure.evidence), new RegExp(D069_PREMERGE_BASE));
+  assert.match(String(d069Closure.evidence), /tree-object equality PASS/i);
+  assert.match(String(d069Closure.evidence), /ancestry PASS/i);
+  assert.match(String(d069Closure.next_action || ""), /D070/i);
 
   const joined = JSON.stringify(events);
   assert.match(joined, /D064/);
   assert.match(joined, /D065/);
   assert.match(joined, /D066/);
   assert.match(joined, /D067/);
+  assert.match(joined, /D068/);
+  assert.match(joined, /D069/);
 });
 
-test("decision log D068 header is closed under squash SHA", () => {
+test("decision log D068 and D069 headers are closed under squash SHAs", () => {
   const log = read("docs/product/decision-log.md");
   const d068 = log.split("## D068:")[1] || "";
   const header = d068.slice(0, 600);
   assert.match(header, /Status:\s*\*\*closed under D068\*\*/i);
-  assert.match(header, new RegExp(SQUASH_SHA));
+  assert.match(header, new RegExp(D068_SQUASH_SHA));
   assert.doesNotMatch(header, /under review in PR/i);
   assert.doesNotMatch(header, /remains open until/i);
   assert.doesNotMatch(header, /amendment in progress/i);
@@ -209,6 +241,20 @@ test("decision log D068 header is closed under squash SHA", () => {
   assert.match(body, /dogfood/i);
   assert.match(body, /R1A/i);
   assert.doesNotMatch(body, /D069 local controller walking slice → R1A deletion/i);
+
+  const d069 = log.split("## D069:")[1] || "";
+  const d069Header = d069.slice(0, 800);
+  assert.match(d069Header, /Status:\s*\*\*closed under D069\*\*/i);
+  assert.match(d069Header, new RegExp(D069_SQUASH_SHA));
+  assert.doesNotMatch(d069Header, /under review/i);
+  assert.doesNotMatch(d069Header, /remains open/i);
+  assert.match(d069, /fixed-fixture sequential/i);
+  assert.match(d069, /IMPLEMENTATION_VERIFIED/);
+  assert.match(d069, /D070-A0|D070/);
+  assert.match(d069, /do \*\*not\*\* claim|do not claim/i);
+  assert.match(d069, /Real asynchronous overlap/i);
+  assert.match(d069, /AO-owned execution/i);
+  assert.doesNotMatch(d069Header, /AO-owned execution claimed as proven/i);
 });
 
 test("active Phase 23A authority chain is RunSpecApproval-rooted", () => {
@@ -230,29 +276,32 @@ test("active Phase 23A authority chain is RunSpecApproval-rooted", () => {
   assert.doesNotMatch(chain, /approved operator-plan artifact/i);
 
   assert.match(plan, /closed under/i);
-  assert.match(plan, new RegExp(SQUASH_SHORT));
+  assert.match(plan, new RegExp(D069_SQUASH_SHORT));
+  assert.match(plan, /D070/);
+  assert.doesNotMatch(plan, /Next:\s*D069 local controller/i);
   assert.doesNotMatch(plan, /D068 remains open/i);
   assert.doesNotMatch(plan, /R1A delete unused[\s\S]*D070 AO/i);
 });
 
-test("roadmap active rows schedule D069 → D070 → dogfood → R1A", () => {
+test("roadmap active rows schedule D069 closed → D070 next → dogfood → R1A", () => {
   const rows = roadmapTableRows();
 
   const d068 = findRoadmapRow(rows, /23A-PR1R|D068/);
   assert.match(d068.id, /D068/);
   assert.match(d068.state + " " + d068.detail, /closed under/i);
-  assert.match(d068.state + " " + d068.detail, new RegExp(SQUASH_SHORT));
+  assert.match(d068.state + " " + d068.detail, new RegExp(D068_SQUASH_SHORT));
   assert.doesNotMatch(d068.state, /under review/i);
 
   const d069 = findRoadmapRow(rows, /D069|23A-PR2/);
   assert.match(d069.name, /Local Controller Walking Slice/i);
-  assert.match(d069.state + " " + d069.detail, /next|walking/i);
-  assert.doesNotMatch(d069.state, /closed|completed/i);
+  assert.match(d069.state + " " + d069.detail, /closed under/i);
+  assert.match(d069.state + " " + d069.detail, new RegExp(D069_SQUASH_SHORT));
+  assert.doesNotMatch(d069.state, /next/i);
   assert.doesNotMatch(d069.name + d069.detail, /AO capability|provenance probe/i);
 
   const d070 = findRoadmapRow(rows, /D070|23A-PR3/);
-  assert.match(d070.name + " " + d070.detail, /AO Substitution|substitute AO|walking slice/i);
-  assert.match(d070.state + " " + d070.detail, /after D069/i);
+  assert.match(d070.name + " " + d070.detail, /AO Substitution|substitute AO|walking slice|AO path/i);
+  assert.match(d070.state + " " + d070.detail, /next|after D069/i);
   assert.doesNotMatch(d070.state + " " + d070.detail, /after R1A/i);
 
   const dogfood = findRoadmapRow(rows, /23A-PR4/);

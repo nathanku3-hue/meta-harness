@@ -72,8 +72,8 @@ Evidence: 106 tests pass, workflows are strong, package scope is controlled. Rep
 | 23A | Controlled Execution Vertical Slice | in progress | Authority kernel first, then local walking slice. See `phase-23a-execution-plan.md` + `runtime-authority-architecture.md`. |
 | 23A-PR1 | Execution Contract Authority (D067) | **superseded** | Historical only (`archive/23a-pr1-d067-fb40d18`). Do not merge as load-bearing. |
 | 23A-PR1R / D068 | Execution Authority Contracts | **closed under be82763** | Squash merge of PR #23 (reviewed head `4b259c9`, base `f926868`): `RunSpec` + `RunSpecApproval` + readiness facts + `AttemptAuthorization` + start + implementation. No delivery assessor. Kernel frozen. |
-| 23A-PR2 / D069 | Local Controller Walking Slice | **next** | Private local controller: real Git readiness → authorize → worktree → attestation → START_ALLOWED → atomic journal claim → fixture worker → controller commit → ImplementationFacts → `IMPLEMENTATION_VERIFIED`. |
-| 23A-PR3 / D070 | AO Substitution | after D069 | Substitute AO into the same walking slice; observed GO / CONDITIONAL / NO-GO. Not a standalone AO research track. |
+| 23A-PR2 / D069 | Local Controller Walking Slice | **closed under e8e7713** | Squash merge of PR #24 (reviewed head `245fa3d`, base `5afe075`): private fixed-fixture sequential path to `IMPLEMENTATION_VERIFIED` with durable ref, integrity-checked terminal replay, Windows host-path identity. No AO; real concurrency deferred to D070. |
+| 23A-PR3 / D070 | AO Substitution | **next** | After D069: A0 capability probe then one verified AO-backed path in the same evidence chain; observed GO / CONDITIONAL / NO-GO. Not a standalone AO research track; no concurrency before one AO path works. |
 | 23A-PR4 | Child-Repo Dogfood | after D070 | One real verified execution path after D070. |
 | R1A | Evidence-Based Core Reduction | after dogfood | Delete unused modules from fixture + AO + dogfood imports, test traces, and CLI invocation traces — not a pre-runtime planning phase. |
 | 23A-PR5 | Delivery actor | later | Only after dogfood; separately credentialed; bound delivery assessment. |
