@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. **D071 closed under `74f8ac1`** (live ToolLauncher dogfood + replay; evidence envelope tracked). Next: R1A.
+**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. **D071 functional execution passed under `74f8ac1`, but terminal custody closure is superseded**: the disposable child clone/state root removed the verified commit/ref and AO evidence after the run. Next: close D072 persistent result custody, then REPLACE → PROVE → DELETE → DECIDE.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -11,8 +11,9 @@
 | D068 | **Closed** under `be82763` (PR #23 squash; reviewed head `4b259c9`; base `f926868`) |
 | D069 | **Closed** under `e8e7713` (PR #24 squash; reviewed head `245fa3d`; base `5afe075`) |
 | D070-A1 | **Transport/custody closed** — AO `:read-only` schema artifact → post-AO custody → controller commit → validation → durable ref → replay; actual version and AO evidence are bound |
-| D071 | **Closed under `74f8ac1`** — isolated ToolLauncher `7fab419f20ba`; only `scripts/utils/CheckShortcut.ps1`; sealed objective → compact JSON probe → exact PS 5.1 validation (missing+valid+corrupt) → live VERIFIED + replay; marker deleted; evidence `docs/ops/audits/d071-toollauncher-dogfood-evidence.json` |
-| After D071 | **R1A next**, then observed concurrency only if required |
+| D071 | **Functional PASS; custody closure superseded** — isolated ToolLauncher `7fab419f20ba`; sealed objective → exact PS 5.1 missing/valid/corrupt validation → live VERIFIED + in-process replay; marker deleted. Post-close audit: child object/ref and AO evidence were deleted with transient roots. |
+| D072 | **Next** — persistent child Git custody + full approval/readiness/receipt/attestation/start/claim/AO/facts/assessment/journal evidence + stored-terminal lookup before reauthorization + fresh-controller replay after receipt expiry and transient cleanup with zero AO spawn + independently verifiable bundle/manifest + default optional-path validation |
+| After D072 | **REPLACE** with one skill-owned heterogeneous child and delete the former production path in the same change; **PROVE** a third child through example/test only; **DELETE** unsupported surface by current user job and unique invariant; **DECIDE** public execution only after repeated real use |
 
 ## Functional-first roadmap
 
@@ -27,14 +28,25 @@ D070-A0.2 read-only schema artifact → controller materialization → GO
         ↓
 D070-A1 AO transport/custody path → CLOSED + audit-hardened
         ↓
-D071 ToolLauncher single-file execution CLOSED (74f8ac1)
+D071 ToolLauncher single-file functional execution PASS (74f8ac1)
 (`scripts/utils/CheckShortcut.ps1`; sealed objective; JSON validator; no marker compatibility)
         ↓
-full R1A delete leftover/unused AO surfaces + rename internal/d069 lineage debt
+post-close audit: transient cleanup erased child ref/object and replay evidence
         ↓
-only observed concurrency / cancellation control
+D072 persistent child result custody + graceful fresh-process replay + independently verifiable evidence
         ↓
-delivery/recovery only from observed need
+REPLACE: active bounded-repository-change skill + sealed host-neutral command capsule
++ one private adapter + one production runtime root + second heterogeneous child
++ delete ToolLauncher/PowerShell/CheckShortcut/Windows-only fixture and former path
+        ↓
+PROVE: third child through one existing-skill example + one end-to-end test only
++ no SKILL.md, runtime, kernel, CLI, roadmap, or architecture edits
+        ↓
+DELETE: preserve supported jobs (`init`, `record`, `status`, `check`, `sync`, and active `release check`)
++ delete everything without a current supported job or unique safety invariant
++ no compatibility path
+        ↓
+DECIDE public execution only after repeated real use
 ```
 
 ## Explicit non-goals for D068 (historical)

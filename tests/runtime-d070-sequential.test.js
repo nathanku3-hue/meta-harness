@@ -4,7 +4,9 @@
  * D070-A1 offline full-chain sequential + replay (test Codex launcher).
  */
 
-const { test } = require("node:test");
+const {
+  windowsRuntimeTest: test,
+} = require("./helpers/windows-runtime-test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -97,14 +99,16 @@ test("D070-A1 sequential: sealed request produces verified commit, validation, r
 
     const authHex = digestHex(result.authorizationRequestDigest);
     const attemptDir = path.join(layout.stateRoot, "attempts", authHex);
-    const journalPath = path.join(attemptDir, "journal.json");
-    const assessmentPath = path.join(attemptDir, "assessment.json");
+    const journalPath = path.join(attemptDir, "journal.current.json");
     const claimPath = path.join(attemptDir, "claim.json");
-    const artDir = path.join(layout.stateRoot, "artifacts", authHex);
+    const artDir = path.join(attemptDir, "evidence");
+    const assessmentPath = path.join(artDir, "implementation-assessment.json");
+    const manifestPath = path.join(artDir, "custody-manifest.json");
 
     assert.ok(fs.existsSync(claimPath), "claim.json present");
-    assert.ok(fs.existsSync(assessmentPath), "assessment.json present");
-    assert.ok(fs.existsSync(journalPath), "journal.json present");
+    assert.ok(fs.existsSync(assessmentPath), "implementation-assessment.json present");
+    assert.ok(fs.existsSync(journalPath), "journal.current.json present");
+    assert.ok(fs.existsSync(manifestPath), "custody-manifest.json present");
     assert.ok(fs.existsSync(path.join(artDir, "validation.stdout")));
     assert.ok(fs.existsSync(path.join(artDir, "ao-process-meta.json")));
     assert.ok(fs.existsSync(path.join(artDir, "change-artifact.json")));
@@ -131,11 +135,6 @@ test("D070-A1 sequential: sealed request produces verified commit, validation, r
     assert.equal(artifact.path, FIXTURE_RELATIVE_FILE);
     assert.equal(artifact.content, layout.knownGoodBody);
 
-    const invCount = String(
-      fs.readFileSync(path.join(artDir, "ao-invocation-count.txt"), "utf8"),
-    ).trim();
-    assert.equal(invCount, "1");
-
     const journal = JSON.parse(fs.readFileSync(journalPath, "utf8"));
     assert.equal(journal.state, "verified");
     assert.equal(journal.terminal, true);
@@ -154,6 +153,10 @@ test("D070-A1 sequential: sealed request produces verified commit, validation, r
     const assessment = JSON.parse(fs.readFileSync(assessmentPath, "utf8"));
     assert.equal(assessment.verdict, "IMPLEMENTATION_VERIFIED");
     assert.equal(assessment.verifiedHeadRevision, result.verifiedHeadRevision);
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    assert.equal(manifest.terminalManifestDigest, result.terminalManifestDigest);
+    assert.equal(manifest.authorizationReceiptDigest, result.authorizationReceiptDigest);
+    assert.equal(manifest.runSpecDigest, result.runSpecDigest);
 
     const refSha = String(
       runGit(
@@ -237,11 +240,7 @@ test("D070-A1 sequential: sealed request produces verified commit, validation, r
     assert.equal(replay.changeArtifactSha256, result.changeArtifactSha256);
     assert.equal(replay.changeArtifactSchemaSha256, result.changeArtifactSchemaSha256);
     assert.equal(controller.getAoSpawnCount(), 1, "replay must not spawn AO again");
-    assert.equal(
-      String(fs.readFileSync(path.join(artDir, "ao-invocation-count.txt"), "utf8")).trim(),
-      "1",
-      "launcher invocation counter stays at 1",
-    );
+    assert.equal(replay.terminalManifestDigest, result.terminalManifestDigest);
 
     assert.ok(fs.existsSync(ownerPath), "owner remains until close");
     await controller.close();

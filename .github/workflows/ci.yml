@@ -51,5 +51,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run D069 runtime tests
-        run: node --test tests/runtime-d069-sequential.test.js tests/runtime-d069-duplicate.test.js
+      - name: Run tests
+        run: npm test

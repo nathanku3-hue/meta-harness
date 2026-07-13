@@ -30,7 +30,6 @@ const {
   writeJsonNoReplace,
   canonicalExistingRoot,
   rootsPairwiseSeparated,
-  validateProgramIdentity,
   ownerDigestFor,
 } = require("./support");
 const {
@@ -47,7 +46,7 @@ const {
   FIXED_TIMEOUT_SECONDS,
   AO_TIMEOUT_SECONDS,
 } = require("./ao-constants");
-const { bindCodexProgram } = require("./ao-process");
+const { createLazyExecutionBindings } = require("./execution-bindings");
 
 const OWNER_FILE_NAME = "controller-owner.json";
 const OWNER_SCHEMA = "d069-controller-owner/v1";
@@ -182,18 +181,12 @@ function createLocalWalkingSliceController(config) {
     },
   };
 
-  const boundCodex = bindCodexProgram(codexProgram, {
-    sourceEnv: codexProgram.hostEnv || {},
+  const executionBindings = createLazyExecutionBindings({
+    codexProgram,
+    validationProgram,
+    expectedWorkerProfile: boundPolicy.provider.workerProfile,
+    fixedTimeoutSeconds: FIXED_TIMEOUT_SECONDS,
   });
-  const boundValidation = validateProgramIdentity("validationProgram", validationProgram, {
-    requireExpectedCommand: true,
-  });
-  if (boundValidation.expectedCommand.timeoutSeconds !== FIXED_TIMEOUT_SECONDS) {
-    throw codedError(
-      "D070_VALIDATION_TIMEOUT",
-      `validation timeout must remain ${FIXED_TIMEOUT_SECONDS}s`,
-    );
-  }
 
   const gitHome = ensureIsolatedGitHome(stateRoot);
   const { gitExecutablePath } = resolveGitExecutable(gitHome);
@@ -242,8 +235,7 @@ function createLocalWalkingSliceController(config) {
     stateRoot,
     workspaceRoot,
     boundPolicy,
-    boundCodex,
-    boundValidation,
+    bindExecutionTools: executionBindings.bindForNewAttempt,
     gitHome,
     gitExecutablePath,
     clock,

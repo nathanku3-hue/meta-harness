@@ -27,9 +27,9 @@ The runtime should not become the MVP product. The MVP product is the durable wo
 
 ## Post-MVP Product Direction — Execution Custody
 
-As of D070/D071, the governing post-MVP direction is a local authority-bound agent execution-custody harness. A sealed RunSpec and approval authorize one isolated attempt; an authenticated read-only agent returns a bounded artifact; the controller alone materializes, commits, validates, publishes a durable result, and replays terminal truth.
+As of D070/D071, the governing post-MVP direction is a local authority-bound agent execution-custody harness. A sealed RunSpec and approval authorize one isolated attempt; an authenticated read-only agent returns a bounded artifact; the controller materializes, commits, and validates it. D071 proved that functional path in ToolLauncher, but D072 is still required to make the child Git result and terminal evidence survive transient cleanup and remain independently replayable.
 
-This is an intentional deviation from the MVP constraints below: the private Phase 23A runtime launches an agent and uses its authenticated network path. The original CLI and Markdown surfaces remain shipped MVP behavior, but the no-launch/no-network rule is historical MVP scope rather than the current end-state. No public execution CLI or generic provider abstraction is authorized before meaningful child-repository dogfood.
+This is an intentional deviation from the MVP constraints below: the private Phase 23A runtime launches an agent and uses its authenticated network path. The original CLI and Markdown surfaces remain shipped MVP behavior, but the no-launch/no-network rule is historical MVP scope rather than the current end-state. No public execution CLI or generic provider abstraction is authorized before D072 persistent custody closes and a separate product decision opens that surface.
 
 ## Repository State
 

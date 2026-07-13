@@ -2022,7 +2022,7 @@ Evidence: squash `e8e7713cc99b58faad1a2aaa0ecaf836e4e25958` (PR #24; reviewed he
 
 ## D070: AO Seam Decision — Reject Worker Write, Adopt Controller Materialization
 
-Status: **A0 decided; A1 transport/custody closed; audit hardening implemented locally**.
+Status: **A0 decided; A1 transport/custody closed under audit-hardening commit `8ebe690`**.
 
 Decision:
 
@@ -2076,13 +2076,13 @@ Audit correction after A1 implementation:
 - The first terminal replay validated assessment/ref state but did not durably bind AO provenance artifacts. The terminal journal now binds SHA-256 for `ao-process-meta.json`, `change-artifact.json`, and `change-artifact.schema.json`; missing or changed evidence blocks replay.
 - Full repository suite and authenticated live sequential+replay remain green after both corrections. Live evidence now distinguishes a clean implementation commit from a dirty-tree probe: dirty runs record `headCommit` plus `trackedDiffSha256` and leave `implementationCommit=null`.
 
-Roadmap after A1: D071 one meaningful single-file child-repository execution → immediate R1A → concurrency/cancellation only from observed need. Product re-charter is no longer deferred.
+Roadmap after A1 originally placed R1A immediately after D071. The D071 post-close audit inserts D072 persistent child-result custody before R1A because the functional run deleted its child object/ref and terminal evidence during cleanup. Concurrency/cancellation remains only from observed need. Product re-charter is no longer deferred.
 
-Evidence: offline artifact + full-chain sequential/replay + process-tree + AO-evidence tamper tests; live authenticated sequential+replay pass (observed Codex `0.144.1`); local live evidence under `.meta-harness/local/d070-a1-live-pass.json`; 112/112 repository test files PASS on Node `v25.2.1`; sync, quality-ratchet, and quick-readiness gates PASS. The two over-budget touched test modules were split without a baseline refresh. Audit-hardening must be committed and rerun from a clean tracked tree before its evidence may name an implementation commit.
+Evidence: audit-hardening commit `8ebe690a6b434bd2ef4b711909c6514d15f9a44c`; offline artifact + full-chain sequential/replay + process-tree + AO-evidence tamper tests; clean-tree live authenticated sequential+replay pass on that exact implementation commit (observed Codex `0.144.1`); local live evidence under `.meta-harness/local/d070-a1-live-pass.json`; 112/112 repository test files PASS on Node `v25.2.1`; sync, quality-ratchet, and quick-readiness gates PASS. The two over-budget touched test modules were split without a baseline refresh.
 
 ## D071: Re-charter and Meaningful Single-File Child Dogfood
 
-Status: **closed** under implementation commit `74f8ac17e66aafb86546227ec8ec93f1f48f6f17`.
+Status: **functional execution PASS under `74f8ac17e66aafb86546227ec8ec93f1f48f6f17`; terminal custody closure superseded by D072 audit**.
 
 Decision:
 
@@ -2110,9 +2110,131 @@ clean ToolLauncher child snapshot
 → durable ref + replay
 ```
 
-Evidence: `docs/ops/audits/d071-toollauncher-dogfood-evidence.json` (verified child head `9f41bbbb…`, durable ref under `refs/meta-harness/attempts/…`, Codex `0.144.1`). Offline command recorded in that envelope (20/20 focused set at closure). `lib/contracts/*` remained frozen.
+Historical execution evidence: `docs/ops/audits/d071-toollauncher-dogfood-evidence.json` (claimed verified child head `9f41bbbb…`, attempt ref, Codex `0.144.1`). Offline command was recorded in that envelope. `lib/contracts/*` remained frozen.
 
-Next: immediate R1A from actual imports/tests/traces. Concurrency/cancellation only if D071 evidence later demonstrates a need (none observed).
+Post-close audit correction:
+
+- The live test created the ToolLauncher clone and controller state below temporary roots and deleted both in `finally`.
+- After cleanup, child commit `9f41bbbb28d89301223292bc5aea11039fba47bb` and the claimed `refs/meta-harness/attempts/...` ref are absent from the ToolLauncher and Meta-Harness object stores.
+- `ao-process-meta.json`, `change-artifact.json`, schema, terminal journal, assessment, and receipt were also deleted. The tracked envelope retains their hash strings but not the hashed evidence, so those values cannot be independently recomputed.
+- The local live envelope recorded `authorizationReceiptDigest=null`; the tracked envelope substituted `authorizationRequestDigest`, which is a different authority object.
+- The PowerShell validator proves explicit missing, valid, and corrupt paths, but always supplies `-StartupPath`; it does not prove the parameter is optional or that the default startup path branch works.
+- Therefore D071 proves meaningful objective-driven functional execution, but not terminal durable result custody. Audit record: `docs/ops/audits/d071-post-close-custody-audit.json`.
+
+Next: D072 persistent child-result custody. R1A is blocked until D072 retains and replays the child result after all transient roots are deleted. Concurrency remains deferred because no concurrency need was observed.
+
+## D072: Persistent Child Result Custody
+
+Status: **approved for implementation with binding amendments**.
+
+Decision:
+
+Repair the observed D071 custody failure before deleting private runtime lineage. D072 stays private and single-repository, with no compatibility path, provider registry, concurrency framework, public execution surface, delivery actor, or kernel expansion. Functional correction comes first; export and closure evidence follow only after graceful fresh-process custody replay is proven.
+
+Required control flow:
+
+```text
+validate request shape
+→ validate RunSpecApproval
+→ validate trusted repository identity and policy shape
+→ look up the canonical receipt at state/authorizations/auth-<sha256 authorizationId>.json
+```
+
+When a stored receipt exists:
+
+```text
+validate receipt seal and authorizationId
+→ verify attemptId, approvalDigest, runSpecDigest, authorization/workspace-policy digests, logical provider, and capability
+→ locate the attempt by the receipt's original authorizationRequestDigest
+→ classify stored state before any execution-tool binding, readiness collection, or authorization issuance
+```
+
+A fully verified terminal state replays. A receipt without attempt state, claim without journal, invalid terminal manifest, conflicting receipt/request, or expired incomplete receipt fails closed. A nonterminal journal returns its stored incomplete/claimed state without reauthorization. A stored terminal failure returns that same failure. No replacement authorization identity may be issued while any canonical stored receipt exists.
+
+Only when no stored receipt exists may the controller lazily bind Codex and the validator, compare the exact trusted validation command, collect readiness, authorize, and execute.
+
+Minimum module ownership:
+
+- `custody-replay.js`: canonical receipt lookup, stored binding validation, and terminal-state classification.
+- `execution-bindings.js`: lazy binding of the fixed Codex and validator executables for genuinely new attempts only.
+- `terminal-evidence.js`: immutable terminal evidence preparation, verification, publication, and replay validation.
+- `custody-export.js`: thin Git bundle, portable manifest, privacy review, and independent verification inputs.
+- `run-attempt.js`: orchestration only; it must not absorb another complete custody state machine.
+
+Terminal publication protocol:
+
+```text
+mutable journal.current.json during execution
+→ prepare exact terminal evidence in a unique staging directory
+→ verify every file, digest, and cross-binding
+→ create the durable Git result ref
+→ publish the evidence directory with no-replace semantics
+→ write custody-manifest.json last with no-replace semantics
+```
+
+The terminal manifest is the completion commit point. Replay recognizes only a valid no-replace terminal manifest plus the matching durable Git ref. The canonical receipt index remains authoritative. A byte-identical receipt copy may be retained in attempt evidence for portability, but replay must prove byte or digest equality with the indexed canonical receipt and must reject divergence.
+
+Retained local layout:
+
+```text
+.meta-harness/local/custody/
+  d072-toollauncher-<implementation-short>-<authorization-id-hash>/
+    repository/
+    state/
+      authorizations/
+        auth-<authorization-id-hash>.json
+      attempts/
+        <authorization-request-digest>/
+          claim.json
+          journal.current.json
+          evidence/
+            run-spec-approval.json
+            authorization-request.json
+            readiness.json
+            authorization-receipt.json
+            workspace-attestation.json
+            start-check.json
+            ao-process-meta.json
+            change-artifact.json
+            change-artifact.schema.json
+            implementation-facts.json
+            implementation-assessment.json
+            terminal-journal.json
+            custody-manifest.json
+    workspaces/
+    exports/
+```
+
+The custody root is unique and create-only for one immutable implementation commit and authorization identity. Live cleanup may prune only managed attempt worktrees beneath `workspaces/`; it must not remove or overwrite `repository/`, `state/`, or `exports/`.
+
+Binding acceptance:
+
+- Controller construction may eagerly bind repository path/ID, state/workspace roots, authorization policy, Git executable and isolated Git home, controller ownership, and logical provider/profile. It must not resolve, hash, read, or version-probe Codex or PowerShell until a genuinely new attempt has been selected.
+- Terminal replay must succeed with syntactically valid configuration objects containing absolute nonexistent execution-tool paths. Any attempted access to those paths fails the canary test.
+- Both `VERIFIED` and `REPLAY` results expose `authorizationRequestDigest`, `authorizationReceiptDigest`, `runSpecDigest`, `verifiedHeadRevision`, `durableRef`, and `terminalManifestDigest`.
+- Replay creates no readiness facts, no new receipt, no replacement attempt directory, no attempt worktree, and no AO or validation process.
+- A verified terminal attempt replays after receipt expiry and after Codex or validator drift/removal. With no stored attempt, changed or missing execution-tool identity fails before AO spawn.
+- At least one closure test is process-level: process 1 executes and exits; process 2 starts from retained repository/state and replays with tool canaries and AO count zero. Two controller instances in one process are useful but insufficient for closure.
+- The exact local custody retains sealed source bytes sufficient for fresh-controller replay and local hash recomputation. Host-specific absolute paths may remain only in this ignored local custody.
+- The portable tracked audit pack contains a thin bundle, canonical manifest, privacy-reviewed or redacted projections, source-object hashes, exported-object hashes, and no credentials, environment values, raw AO streams, or unnecessary absolute paths. A pre-push leakage scan is a closure gate.
+- The thin bundle contains the verified result ref and declares pinned ToolLauncher base `7fab419f20ba5c7a4008d6a6071d5aad10ba534c` as a prerequisite. It does not contain the base object. Independent verification begins in a repository that already has that exact base, runs `git bundle verify`, confirms the prerequisite, fetches the result ref, resolves the result commit, and verifies its parent equals the pinned base.
+- No third party recomputability claim may be made for an exact local source-object hash unless the corresponding exact bytes are included in the tracked audit pack.
+- The fourth PowerShell branch creates a temporary `APPDATA`, sets it only in the child `ProcessStartInfo.EnvironmentVariables["APPDATA"]`, omits `-StartupPath`, derives the expected default beneath that temporary root, asserts `startup_path` equals the derived path, proves the operator's real `APPDATA` and Startup directory are untouched, and removes the temporary tree in `finally`.
+- `lib/contracts/*` remains frozen through D072 closure.
+- D072 closes mechanically when one immutable implementation commit produces live `VERIFIED`, graceful fresh-process `REPLAY`, and an independently verified portable export. Human review is required only if authority, public API, or ambiguous security evidence changes.
+- After D072, REPLACE delivers one real second child through the active bounded-repository-change skill, one sealed host-neutral validation-command capsule, one thin private adapter, and the sole production runtime root. Host environment values remain local execution bindings and are excluded from sealed request data.
+- REPLACE also migrates retained custody tests to a platform-neutral validator fixture and deletes ToolLauncher, PowerShell, CheckShortcut.ps1, the temporary Windows test classifier, phase-numbered runtime identity, `internal/d069` production imports, and the former execution path. No transition pair or compatibility bridge may remain.
+- PROVE adds a third child through one new example under the existing bounded-repository-change skill and one end-to-end test, plus a deterministic child fixture only when necessary. The generic `SKILL.md`, runtime, kernel, CLI, roadmap, and architecture truth remain unchanged.
+- DELETE then preserves supported user jobs rather than repository import callers. The intended minimum surface is `init`, `record`, `status`, `check`, `sync`, and `release check` only while release remains an active supported job. No aliases, deprecated dispatch, or old output schemas survive.
+
+PROVE precedes broad public-surface deletion so the reusable skills-first seam is demonstrated before another control-plane cleanup round.
+
+Implementation order:
+
+1. Close D072 against one immutable implementation commit with truthful cross-platform test classification, live `VERIFIED`, graceful fresh-process `REPLAY`, and independent export verification.
+2. REPLACE: deliver the heterogeneous child and delete the former production path in the same change.
+3. PROVE: add the third child through existing-skill example and test only; zero workflow, runtime, kernel, CLI, or product-truth edits.
+4. DELETE: remove every surface without a current supported user job or unique safety invariant; net active surface must decrease.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

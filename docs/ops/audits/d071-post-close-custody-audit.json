@@ -1,0 +1,43 @@
+{
+  "kind": "d071-post-close-custody-audit",
+  "schemaVersion": "d071-custody-audit/v1",
+  "auditedMetaHarnessHead": "8b9853fcb1980824952dc1514eb7e572525c573c",
+  "implementationCommit": "74f8ac17e66aafb86546227ec8ec93f1f48f6f17",
+  "closureCommit": "8b9853fcb1980824952dc1514eb7e572525c573c",
+  "childRepositoryId": "toollauncher",
+  "childBaseRevision": "7fab419f20ba5c7a4008d6a6071d5aad10ba534c",
+  "claimedVerifiedChildHeadRevision": "9f41bbbb28d89301223292bc5aea11039fba47bb",
+  "claimedDurableRef": "refs/meta-harness/attempts/5aa7b3bf07185b5bdd23cc2654bc77e00db278beaf6d45ba5f7f8d2a013f2ac4",
+  "findings": {
+    "functionalLiveExecutionObserved": true,
+    "missingValidCorruptValidationObserved": true,
+    "replayObservedBeforeCleanup": true,
+    "verifiedChildObjectRetained": false,
+    "durableRefRetained": false,
+    "aoProcessMetaRetained": false,
+    "changeArtifactRetained": false,
+    "changeArtifactSchemaRetained": false,
+    "terminalJournalRetained": false,
+    "authorizationReceiptDigestRetained": false,
+    "freshControllerReplayImplemented": false,
+    "stableTerminalLookupBeforeReauthorization": false,
+    "terminalReplayIndependentOfCurrentExecutionTools": false,
+    "defaultOptionalStartupPathBranchValidated": false
+  },
+  "basis": [
+    "tests/runtime-d071-toollauncher-live.test.js deletes the isolated child clone and temporary state root in finally",
+    "the claimed child commit is absent from both the ToolLauncher and Meta-Harness object stores after cleanup",
+    "the claimed refs/meta-harness/attempts ref is absent after cleanup",
+    "the tracked closure envelope contains hashes only; the hashed AO metadata, artifact, schema, journal, assessment, and receipt are not retained",
+    "the local live envelope records authorizationReceiptDigest as null; the tracked envelope substitutes authorizationRequestDigest",
+    "executeAttempt authorizes from newly collected readiness before inspecting stored attempts; readiness.inspectedAt changes its digest, so a later controller derives a different authorization-request digest and cannot locate the original attempt through the normal path",
+    "terminal completion is supposed to survive later authorization expiry, but no private stored-receipt terminal replay path exists before reauthorization",
+    "controller construction eagerly binds and probes Codex plus the validation executable/script before any replay classification, so retained terminal truth still depends on current execution-tool availability and hashes",
+    "the validator always invokes the subject with -StartupPath and therefore does not prove the parameter is optional or the default path branch works"
+  ],
+  "verdict": "FUNCTIONAL_PASS_CUSTODY_NOT_CLOSED",
+  "supersedesClosureClaim": true,
+  "nextDecision": "D072",
+  "nextGate": "persistent child result custody, stable stored-receipt terminal lookup, and independently replayable evidence before R1A",
+  "auditedAt": "2026-07-12T12:12:49Z"
+}

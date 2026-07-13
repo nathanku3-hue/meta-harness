@@ -54,6 +54,11 @@ const {
   captureWorktreeCustody,
   assertPostAoCleanCustody,
 } = require("./ao-custody");
+const {
+  prepareTerminalEvidence,
+  publishPreparedTerminalEvidence,
+  discardPreparedTerminalEvidence,
+} = require("./terminal-evidence");
 
 const JOURNAL_SCHEMA = "d069-journal/v1";
 
@@ -211,6 +216,9 @@ async function implementAfterClaim(ctx, args) {
 
   const {
     runSpec,
+    runSpecApproval,
+    authorizationRequest,
+    readiness,
     receipt,
     attestation,
     startCheck,
@@ -223,7 +231,8 @@ async function implementAfterClaim(ctx, args) {
   } = args;
 
   let worktreePath = initialWorktree;
-  const journalPath = path.join(attemptDir, "journal.json");
+  let preparedTerminalEvidence = null;
+  const journalPath = path.join(attemptDir, "journal.current.json");
   let claimedForFailure = true;
 
   try {
@@ -239,7 +248,7 @@ async function implementAfterClaim(ctx, args) {
     );
     writeJsonReplace(journalPath, journal);
 
-    const artDir = path.join(stateRoot, "artifacts", authReqHex);
+    const artDir = path.join(attemptDir, "working");
     fs.mkdirSync(artDir, { recursive: true });
 
     const schema = buildChangeArtifactSchema(allowedPath);
@@ -508,6 +517,47 @@ async function implementAfterClaim(ctx, args) {
     }
     const assessment = impl.implementationAssessment;
 
+    journal = sealJournal({
+      schemaVersion: JOURNAL_SCHEMA,
+      authorizationRequestDigest: receipt.authorizationRequestDigest,
+      claimDigest: claim.claimDigest,
+      authorizationReceiptDigest: receipt.receiptDigest,
+      startCheckDigest: startCheck.startCheckDigest,
+      workspaceRef,
+      invocationNonce,
+      state: "verified",
+      terminal: true,
+      updatedAt: clock(),
+      implementationAssessmentDigest: assessment.implementationAssessmentDigest,
+      factsDigest: trustedFacts.factsDigest,
+      aoProcessMetaSha256,
+      changeArtifactSha256,
+      changeArtifactSchemaSha256,
+      verifiedHeadRevision: commitHead,
+      durableRef,
+    });
+    preparedTerminalEvidence = prepareTerminalEvidence({
+      stateRoot,
+      authReqHex,
+      runSpecApproval,
+      authorizationRequest,
+      readiness,
+      receipt,
+      attestation,
+      startCheck,
+      claim,
+      aoProcessMetaPath: path.join(artDir, "ao-process-meta.json"),
+      changeArtifactPath: path.join(artDir, "change-artifact.json"),
+      changeArtifactSchemaPath: path.join(artDir, "change-artifact.schema.json"),
+      workingDir: artDir,
+      implementationFacts: trustedFacts,
+      assessment,
+      terminalJournal: journal,
+      verifiedHeadRevision: commitHead,
+      durableRef,
+      publishedAt: clock(),
+    });
+
     createOnlyRef(
       gitExecutablePath,
       repositoryPath,
@@ -516,8 +566,6 @@ async function implementAfterClaim(ctx, args) {
       runSpec.repository.objectFormat,
       gitHome,
     );
-    writeJsonReplace(path.join(attemptDir, "assessment.json"), assessment);
-
     removeWorktreeVerified(gitExecutablePath, repositoryPath, worktreePath, gitHome);
     worktreePath = null;
 
@@ -543,26 +591,10 @@ async function implementAfterClaim(ctx, args) {
       throw codedError("D069_PRIMARY_HEAD", "primary HEAD must remain at expected base");
     }
 
-    journal = sealJournal({
-      schemaVersion: JOURNAL_SCHEMA,
-      authorizationRequestDigest: receipt.authorizationRequestDigest,
-      claimDigest: claim.claimDigest,
-      authorizationReceiptDigest: receipt.receiptDigest,
-      startCheckDigest: startCheck.startCheckDigest,
-      workspaceRef,
-      invocationNonce,
-      state: "verified",
-      terminal: true,
-      updatedAt: clock(),
-      implementationAssessmentDigest: assessment.implementationAssessmentDigest,
-      factsDigest: trustedFacts.factsDigest,
-      aoProcessMetaSha256,
-      changeArtifactSha256,
-      changeArtifactSchemaSha256,
-      verifiedHeadRevision: commitHead,
-      durableRef,
-    });
     writeJsonReplace(journalPath, journal);
+    const terminalEvidence = publishPreparedTerminalEvidence(preparedTerminalEvidence);
+    preparedTerminalEvidence = null;
+    fs.rmSync(artDir, { recursive: true, force: true });
     claimedForFailure = false;
 
     return {
@@ -573,6 +605,8 @@ async function implementAfterClaim(ctx, args) {
       won: true,
       verdict: "IMPLEMENTATION_VERIFIED",
       authorizationRequestDigest: receipt.authorizationRequestDigest,
+      authorizationReceiptDigest: receipt.receiptDigest,
+      runSpecDigest: receipt.runSpecDigest,
       claimDigest: claim.claimDigest,
       factsDigest: trustedFacts.factsDigest,
       implementationAssessmentDigest: assessment.implementationAssessmentDigest,
@@ -581,9 +615,12 @@ async function implementAfterClaim(ctx, args) {
       changeArtifactSchemaSha256,
       verifiedHeadRevision: commitHead,
       durableRef,
+      terminalManifestDigest: terminalEvidence.terminalManifestDigest,
       assessment,
     };
   } catch (err) {
+    discardPreparedTerminalEvidence(preparedTerminalEvidence);
+    preparedTerminalEvidence = null;
     if (claimedForFailure) {
       writeTerminalFailure(
         journalPath, receipt, claim, startCheck, workspaceRef, invocationNonce, clock, err,

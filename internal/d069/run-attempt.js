@@ -25,6 +25,7 @@ const { evaluateWorkspaceStart } = require("../../lib/contracts/workspace-start"
 
 const {
   validateAttemptAuthorization,
+  isWithinAuthorizationWindow,
 } = require("../../lib/contracts/attempt-authorization");
 
 const {
@@ -33,7 +34,6 @@ const {
   isNonEmptyString,
   hostRealPath,
   sha256Utf8,
-  sha256File,
   digestHex,
   writeJsonNoReplace,
   sealClaim,
@@ -50,6 +50,12 @@ const {
   refExists,
 } = require("./git-ops");
 const { implementAfterClaim } = require("./run-implement");
+const {
+  lookupStoredReceipt,
+  rejectReplacementAuthorizationIdentity,
+  validateStoredReceiptBindings,
+} = require("./custody-replay");
+const { verifyTerminalEvidence } = require("./terminal-evidence");
 
 const CLAIM_SCHEMA = "d069-claim/v1";
 const DETACHED_BRANCH_SENTINEL = "(detached)";
@@ -96,8 +102,7 @@ function attemptPaths(stateRoot, authReqHex) {
   return {
     attemptDir,
     claimPath: path.join(attemptDir, "claim.json"),
-    journalPath: path.join(attemptDir, "journal.json"),
-    assessmentPath: path.join(attemptDir, "assessment.json"),
+    journalPath: path.join(attemptDir, "journal.current.json"),
   };
 }
 
@@ -130,14 +135,10 @@ function inspectExistingAttempt(ctx, receipt, authReqHex) {
   assertClaimDigest(claim);
 
   if (!journalRead.exists) {
-    return {
-      ok: true,
-      disposition: "CLAIMED_INCOMPLETE",
-      terminal: false,
-      restart: false,
-      authorizationRequestDigest: receipt.authorizationRequestDigest,
-      claimDigest: claim.claimDigest,
-    };
+    throw codedError(
+      "D072_CLAIM_WITHOUT_JOURNAL",
+      "claim exists without operational journal; reauthorization denied",
+    );
   }
 
   const journal = journalRead.value;
@@ -149,7 +150,7 @@ function inspectExistingAttempt(ctx, receipt, authReqHex) {
   assertJournalDigest(journal);
 
   if (journal.terminal === true && journal.state === "verified") {
-    return replayVerified(ctx, receipt, claim, journal, paths, authReqHex);
+    return replayVerified(ctx, receipt, claim, journal, authReqHex);
   }
 
   if (journal.terminal === true) {
@@ -160,52 +161,29 @@ function inspectExistingAttempt(ctx, receipt, authReqHex) {
       restart: false,
       code: "D069_PRIOR_TERMINAL_FAILURE",
       authorizationRequestDigest: receipt.authorizationRequestDigest,
+      authorizationReceiptDigest: receipt.receiptDigest,
+      runSpecDigest: receipt.runSpecDigest,
       journalState: journal.state,
       failureCode: journal.failureCode || null,
     };
   }
 
+  const withinWindow = isWithinAuthorizationWindow(receipt, ctx.clock());
   return {
-    ok: true,
-    disposition: "ALREADY_CLAIMED",
+    ok: withinWindow,
+    disposition: withinWindow ? "ALREADY_CLAIMED" : "INCOMPLETE_EXPIRED",
     terminal: false,
     restart: false,
+    code: withinWindow ? null : "D072_INCOMPLETE_RECEIPT_EXPIRED",
     authorizationRequestDigest: receipt.authorizationRequestDigest,
+    authorizationReceiptDigest: receipt.receiptDigest,
+    runSpecDigest: receipt.runSpecDigest,
     claimDigest: claim.claimDigest,
     journalState: journal.state,
   };
 }
 
-function assertAoEvidenceBindings(ctx, journal, authReqHex) {
-  const artDir = path.join(ctx.stateRoot, "artifacts", authReqHex);
-  const bindings = [
-    ["aoProcessMetaSha256", path.join(artDir, "ao-process-meta.json")],
-    ["changeArtifactSha256", path.join(artDir, "change-artifact.json")],
-    ["changeArtifactSchemaSha256", path.join(artDir, "change-artifact.schema.json")],
-  ];
-  for (const [field, filePath] of bindings) {
-    if (!isNonEmptyString(journal[field])) {
-      throw codedError("D070_STATE_CORRUPT", `verified journal missing ${field}`);
-    }
-    let actual;
-    try {
-      actual = sha256File(filePath);
-    } catch (err) {
-      throw codedError(
-        "D070_STATE_CORRUPT",
-        `AO evidence file unreadable for ${field}: ${err.message}`,
-      );
-    }
-    if (actual !== journal[field]) {
-      throw codedError(
-        "D070_STATE_CORRUPT",
-        `AO evidence digest mismatch for ${field}`,
-      );
-    }
-  }
-}
-
-function replayVerified(ctx, receipt, claim, journal, paths, authReqHex) {
+function replayVerified(ctx, receipt, claim, journal, authReqHex) {
   const { repositoryId, repositoryPath, gitHome, gitExecutablePath } = ctx;
   if (!isNonEmptyString(journal.verifiedHeadRevision)
     || !isNonEmptyString(journal.durableRef)
@@ -218,7 +196,13 @@ function replayVerified(ctx, receipt, claim, journal, paths, authReqHex) {
     throw codedError("D069_STATE_CORRUPT", "verified journal missing required terminal fields");
   }
 
-  assertAoEvidenceBindings(ctx, journal, authReqHex);
+  const terminalEvidence = verifyTerminalEvidence({
+    stateRoot: ctx.stateRoot,
+    authReqHex,
+    receipt,
+    claim,
+    journal,
+  });
 
   const expectedRef = `refs/meta-harness/attempts/${authReqHex}`;
   if (journal.durableRef !== expectedRef) {
@@ -228,11 +212,7 @@ function replayVerified(ctx, receipt, claim, journal, paths, authReqHex) {
     );
   }
 
-  const assessmentRead = readJsonIfExists(paths.assessmentPath);
-  if (!assessmentRead.exists || !isPlainObject(assessmentRead.value)) {
-    throw codedError("D069_STATE_CORRUPT", "verified journal without assessment.json");
-  }
-  const assessment = assessmentRead.value;
+  const assessment = terminalEvidence.assessment;
   assertAssessmentDigest(assessment);
 
   if (assessment.verdict !== "IMPLEMENTATION_VERIFIED"
@@ -274,6 +254,8 @@ function replayVerified(ctx, receipt, claim, journal, paths, authReqHex) {
     won: false,
     verdict: "IMPLEMENTATION_VERIFIED",
     authorizationRequestDigest: receipt.authorizationRequestDigest,
+    authorizationReceiptDigest: receipt.receiptDigest,
+    runSpecDigest: receipt.runSpecDigest,
     claimDigest: claim.claimDigest,
     factsDigest: journal.factsDigest,
     implementationAssessmentDigest: journal.implementationAssessmentDigest,
@@ -282,6 +264,7 @@ function replayVerified(ctx, receipt, claim, journal, paths, authReqHex) {
     changeArtifactSchemaSha256: journal.changeArtifactSchemaSha256,
     verifiedHeadRevision: journal.verifiedHeadRevision,
     durableRef: journal.durableRef,
+    terminalManifestDigest: terminalEvidence.terminalManifestDigest,
     assessment,
   };
 }
@@ -296,7 +279,6 @@ async function executeAttempt(ctx, request) {
     stateRoot,
     workspaceRoot,
     boundPolicy,
-    boundValidation,
     gitHome,
     gitExecutablePath,
     clock,
@@ -343,6 +325,27 @@ async function executeAttempt(ctx, request) {
       );
     }
 
+    const storedReceipt = lookupStoredReceipt(stateRoot, authRequest.authorizationId);
+    if (storedReceipt.exists) {
+      const receipt = validateStoredReceiptBindings({
+        receipt: storedReceipt.receipt,
+        runSpecApproval,
+        authorizationRequest: authRequest,
+        boundPolicy,
+      });
+      const authReqHex = digestHex(receipt.authorizationRequestDigest);
+      const existing = inspectExistingAttempt(ctx, receipt, authReqHex);
+      if (existing) return existing;
+      throw codedError(
+        "D072_RECEIPT_WITHOUT_ATTEMPT",
+        "canonical authorization receipt exists without matching attempt state; reauthorization denied",
+      );
+    }
+
+    rejectReplacementAuthorizationIdentity(stateRoot, authRequest, runSpecApproval);
+
+    const { boundCodex, boundValidation } = ctx.bindExecutionTools();
+    const executionCtx = { ...ctx, boundCodex, boundValidation };
     assertExactValidationCommandBinding(runSpec, boundValidation.expectedCommand);
 
     const live = liveRepositoryFacts(gitExecutablePath, repositoryPath, gitHome);
@@ -497,8 +500,11 @@ async function executeAttempt(ctx, request) {
 
     const ownedWorktree = worktreePath;
     worktreePath = null;
-    return implementAfterClaim(ctx, {
+    return implementAfterClaim(executionCtx, {
       runSpec,
+      runSpecApproval,
+      authorizationRequest: authRequest,
+      readiness,
       receipt,
       attestation,
       startCheck,

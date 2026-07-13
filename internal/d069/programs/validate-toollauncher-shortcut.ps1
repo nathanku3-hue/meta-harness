@@ -1,5 +1,5 @@
 # D071 trusted validation program (parent-local, hashed at controller construction).
-# Proves missing / valid / corrupt branches of CheckShortcut.ps1.
+# Proves missing / valid / corrupt / default-parameter branches of CheckShortcut.ps1.
 # networkPolicy: denied is trust-based (no network ops here); not OS firewall isolation.
 param(
     [Parameter(Mandatory = $true)]
@@ -16,22 +16,30 @@ function Fail([string]$Message) {
 function Invoke-Subject {
     param(
         [Parameter(Mandatory = $true)][string]$SubjectAbs,
-        [Parameter(Mandatory = $true)][string]$StartupPath
+        [AllowNull()][string]$StartupPath,
+        [AllowNull()][string]$AppDataOverride
     )
     # Windows PowerShell 5.1: use Arguments string (ArgumentList is .NET Core only).
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $psi.FileName = (Join-Path $PSHOME "powershell.exe")
     $qSubject = '"' + ($SubjectAbs -replace '"', '`"') + '"'
-    $qStartup = '"' + ($StartupPath -replace '"', '`"') + '"'
-    $psi.Arguments = @(
+    $argumentParts = @(
         "-NoLogo",
         "-NoProfile",
         "-NonInteractive",
         "-ExecutionPolicy", "Bypass",
-        "-File", $qSubject,
-        "-StartupPath", $qStartup
-    ) -join " "
+        "-File", $qSubject
+    )
+    if (-not [string]::IsNullOrWhiteSpace($StartupPath)) {
+        $qStartup = '"' + ($StartupPath -replace '"', '`"') + '"'
+        $argumentParts += @("-StartupPath", $qStartup)
+    }
+    $psi.Arguments = $argumentParts -join " "
     $psi.UseShellExecute = $false
+    if (-not [string]::IsNullOrWhiteSpace($AppDataOverride)) {
+        # Explicit child-only override required for Windows PowerShell 5.1.
+        $psi.EnvironmentVariables["APPDATA"] = $AppDataOverride
+    }
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
     $psi.CreateNoWindow = $true
@@ -79,6 +87,30 @@ function Assert-NullOrEmpty([object]$Value, [string]$Field) {
     if ($null -eq $Value) { return }
     if ($Value -is [string] -and $Value.Length -eq 0) { return }
     Fail "field '$Field' must be null or empty string for missing shortcut; got $($Value | Out-String)"
+}
+
+function Snapshot-Path([string]$Target) {
+    if (-not (Test-Path -LiteralPath $Target)) {
+        return "ABSENT"
+    }
+    $item = Get-Item -LiteralPath $Target -Force
+    if (-not $item.PSIsContainer) {
+        return "FILE|$($item.Length)|$($item.LastWriteTimeUtc.Ticks)|$($item.Attributes)"
+    }
+    $rows = @(
+        Get-ChildItem -LiteralPath $Target -Force -Recurse -ErrorAction Stop |
+            ForEach-Object {
+                $relative = $_.FullName.Substring($Target.Length).TrimStart('\')
+                if ($_.PSIsContainer) {
+                    "D|$relative|$($_.LastWriteTimeUtc.Ticks)|$($_.Attributes)"
+                }
+                else {
+                    "F|$relative|$($_.Length)|$($_.LastWriteTimeUtc.Ticks)|$($_.Attributes)"
+                }
+            } |
+            Sort-Object
+    )
+    return ($rows -join "`n")
 }
 
 function Paths-Equal([string]$Left, [string]$Right) {
@@ -188,5 +220,45 @@ finally {
     }
 }
 
-Write-Output "d071-validation-ok"
+# --- Branch 4: omitted -StartupPath uses child-only temporary APPDATA ---
+$operatorAppData = [string]$env:APPDATA
+$operatorStartup = Join-Path $operatorAppData "Microsoft\Windows\Start Menu\Programs\Startup"
+$operatorDefault = Join-Path $operatorStartup "AI Tool Launcher.lnk"
+$operatorStartupBefore = Snapshot-Path $operatorStartup
+$operatorDefaultBefore = Snapshot-Path $operatorDefault
+$tempAppData = Join-Path $env:TEMP ("mh-d072-appdata-" + [guid]::NewGuid().ToString("N"))
+try {
+    New-Item -ItemType Directory -Path $tempAppData -Force | Out-Null
+    $expectedDefault = Join-Path $tempAppData "Microsoft\Windows\Start Menu\Programs\Startup\AI Tool Launcher.lnk"
+    $defaultRun = Invoke-Subject -SubjectAbs $subjectAbs -StartupPath $null -AppDataOverride $tempAppData
+    if ($defaultRun.ExitCode -ne 0) {
+        Fail "default branch must exit 0; got $($defaultRun.ExitCode) stderr=$($defaultRun.StdErr)"
+    }
+    $defaultObj = Parse-OneJsonObject $defaultRun.StdOut
+    if ($defaultObj.found -ne $false) {
+        Fail "default branch found must be false"
+    }
+    if (-not (Paths-Equal ([string]$defaultObj.startup_path) $expectedDefault)) {
+        Fail "default branch startup_path mismatch (got='$($defaultObj.startup_path)' want='$expectedDefault')"
+    }
+    Assert-NullOrEmpty $defaultObj.target_path "target_path"
+    Assert-NullOrEmpty $defaultObj.arguments "arguments"
+    Assert-NullOrEmpty $defaultObj.working_directory "working_directory"
+    if ([string]$env:APPDATA -ne $operatorAppData) {
+        Fail "validator process APPDATA changed outside child process"
+    }
+    if ((Snapshot-Path $operatorStartup) -ne $operatorStartupBefore) {
+        Fail "operator Startup directory changed during default branch"
+    }
+    if ((Snapshot-Path $operatorDefault) -ne $operatorDefaultBefore) {
+        Fail "operator default shortcut changed during default branch"
+    }
+}
+finally {
+    if (Test-Path -LiteralPath $tempAppData) {
+        Remove-Item -LiteralPath $tempAppData -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
+Write-Output "d072-validation-ok"
 exit 0

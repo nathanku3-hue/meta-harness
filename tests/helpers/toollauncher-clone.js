@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * D071: create a temporary detached local clone of ToolLauncher.
+ * D071/D072: create a detached no-hardlink local clone of ToolLauncher.
  * Does not use git worktree (avoids mutating dirty live checkout admin state).
  */
 
@@ -53,7 +53,7 @@ function resolveGit() {
 }
 
 /**
- * @param {{ sourcePath?: string, baseRevision?: string }} [options]
+ * @param {{ sourcePath?: string, baseRevision?: string, rootPath?: string, retain?: boolean }} [options]
  * @returns {{ repositoryPath: string, headRevision: string, tree: string, cleanup: Function, gitExecutablePath: string, sourcePath: string }}
  */
 function createDetachedToolLauncherClone(options = {}) {
@@ -64,8 +64,18 @@ function createDetachedToolLauncherClone(options = {}) {
   }
 
   const gitExecutablePath = resolveGit();
-  const root = absNorm(fs.mkdtempSync(path.join(os.tmpdir(), "d071-tl-clone-")));
-  const repositoryPath = absNorm(path.join(root, "repo"));
+  const retain = options.retain === true;
+  let root;
+  if (options.rootPath) {
+    root = absNorm(options.rootPath);
+    if (fs.existsSync(root)) {
+      throw new Error(`ToolLauncher custody root already exists: ${root}`);
+    }
+    fs.mkdirSync(root, { recursive: false });
+  } else {
+    root = absNorm(fs.mkdtempSync(path.join(os.tmpdir(), "d071-tl-clone-")));
+  }
+  const repositoryPath = absNorm(path.join(root, options.rootPath ? "repository" : "repo"));
 
   // Local clone without hardlinks so object store is independent of the dirty live tree.
   runGit(gitExecutablePath, root, [
@@ -132,6 +142,7 @@ function createDetachedToolLauncherClone(options = {}) {
   }
 
   function cleanup() {
+    if (retain) return;
     try {
       fs.rmSync(root, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
     } catch {

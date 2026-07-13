@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Execute R1A evidence-based core reduction immediately after closed D071: delete leftover unused AO/marker surfaces and `internal/d069` lineage debt from actual imports/tests/traces. Kernel frozen. No concurrency framework unless a real observed need appears.
+Close D072 persistent child-result custody against one immutable implementation commit, then execute REPLACE → PROVE → DELETE → DECIDE. D072 requires live VERIFIED, graceful fresh-process REPLAY, and independently verified export. No compatibility layer, delivery actor, public run CLI, concurrency framework, or recurring closure ceremony.
 
 Phase:
 in_progress
 
 Current truth:
-Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 NO-GO / A0.2 GO remain binding. **D070-A1 transport/custody slice closed** under audit-hardening commit `8ebe690`. **D071 closed under `74f8ac1`:** sealed objective → authenticated Codex `:read-only` → controller commit → Windows PowerShell 5.1 hashed validator (missing+valid+corrupt) → live `IMPLEMENTATION_VERIFIED` + replay against isolated ToolLauncher `7fab419f20ba` / `scripts/utils/CheckShortcut.ps1`. Marker path deleted. Tracked evidence: `docs/ops/audits/d071-toollauncher-dogfood-evidence.json`. Quant excluded. `lib/contracts/*` frozen. Concurrency not required by D071 evidence.
+Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 NO-GO / A0.2 GO remain binding. **D070-A1 transport/custody slice closed** under audit-hardening commit `8ebe690`. **D071 functional execution passed under `74f8ac1`, but its closure claim remains superseded by the post-close custody audit:** sealed objective → authenticated Codex `:read-only` → controller commit → Windows PowerShell 5.1 validator (missing+valid+corrupt) → live `IMPLEMENTATION_VERIFIED` + in-process replay against isolated ToolLauncher `7fab419f20ba` / `scripts/utils/CheckShortcut.ps1`. That historical live test deleted both the isolated child repository and its state root in `finally`; the claimed child commit `9f41bbbb…`, create-only ref, AO metadata, change artifact, schema, terminal journal, assessment, and receipt are not retained. The audit also traced restart failure to authorization-before-lookup combined with a time-varying readiness digest. Audit evidence: `docs/ops/audits/d071-post-close-custody-audit.json`. **D072 is implemented offline, but not closed:** canonical stored-receipt lookup occurs before execution-tool binding, readiness, or authorization; Codex and PowerShell bind lazily only for a new attempt; a terminal manifest is published last after the durable ref and exact evidence verification; canonical and portable receipt bytes must match; verified and replay results expose request/receipt/RunSpec/head/ref/manifest bindings; expired terminal custody replays with nonexistent tool paths; conflicts and incomplete states fail closed; a separate Node process replays with zero AO spawns; the default omitted-`-StartupPath` branch uses child-only temporary `APPDATA`; and a privacy-safe prerequisite thin bundle is independently verified from the exact base. The remaining D072 closure gate is a clean implementation commit followed by the persistent live ToolLauncher proof against that exact commit, retained local custody/export roots, leakage scan, and mechanical acceptance. **REPLACE remains blocked until that live closure completes.** Marker path remains deleted. Quant remains excluded. `lib/contracts/*` remains frozen.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -204,19 +204,19 @@ Superseded/deferred truth:
 - Phase 21A–21F, 22A, and 22B are closed. D067 superseded. **D068 closed under `be82763`** (PR #23 squash; reviewed head `4b259c9`). Slice 0B.1 repaired stale active pre-merge wording; historical events unchanged.
 
 Active streams:
-- coding: D070-A1 closed; next is child-repo dogfood on the same seam.
-- research: closed for this gate; write-seam NO-GO and artifact-seam GO are observed.
-- writing: A1 truth flip + lineage note for temporary `internal/d069` directory name.
-- review: A1 offline full-chain + live authenticated sequential/replay passed.
+- coding: D072 runtime, restart, adversarial, default-parameter, and portable-export slices are green offline; exact-commit persistent live closure remains the blocking gate.
+- research: closed; direct write remains NO-GO and controller-materialized artifact execution remains the selected seam.
+- writing: post-close custody correction + score/roadmap alignment; historical D071 closure event remains preserved and superseded.
+- review: functional validation/replay passed at run time, but post-cleanup object/ref/evidence retention failed audit.
 
 Scope boundary:
 - D068 public contract kernel is frozen on main under `be82763` (no delivery actor, no public run CLI).
-- D070-A1 private path replaces the fixture worker inside the D069 walking-slice lineage (`internal/d069` name is temporary debt until R1A).
+- D070-A1 private path replaces the fixture worker inside the D069 walking-slice lineage. REPLACE must leave one production runtime root and no production import from `internal/d069`.
 - D070 uses authenticated Codex read-only structured output followed by controller validation/materialization. Direct AO filesystem write, sandbox bypass, generic `ExecutionProvider`, and a D069 compatibility adapter are rejected.
-- Content is not sealed by RunSpec; exact bytes are enforced by the validation program. Path is single-literal `scope.allow`.
+- Content is not sealed by RunSpec. Path is single-literal `scope.allow`; semantic acceptance is established by the exact trusted validation command. A1 used exact bytes historically, while D071 validates behavior rather than one canonical implementation.
 - D064–D066 objects are historical/read-only guidance only — not load-bearing authority inputs.
-- Original-intent deviation is explicit: the implemented MVP specification says the harness does not launch agents and requires no network/model API; Phase 23A is a deliberate post-MVP execution-custody expansion. Product identity must be re-chartered after dogfood or the execution track must be removed.
-- Process-tree timeout custody shipped in A1; broader concurrency/cancellation still behind dogfood.
+- Original-intent deviation is explicit: the implemented MVP specification says the harness does not launch agents and requires no network/model API; Phase 23A is a deliberate post-MVP execution-custody expansion. Product identity is now explicitly re-chartered as a local authority-bound agent execution-custody harness; the lightweight Markdown MVP remains historical shipped scope.
+- Process-tree timeout custody shipped in A1; broader concurrency/cancellation remains deferred because D071 exposed a persistence problem, not an overlap/cancellation problem.
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
@@ -244,40 +244,54 @@ Relevant decisions:
 - D068: **closed** under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`).
 - D069: **closed** under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`).
 - D070-A0 decision: direct worker-write seam **NO-GO**; controller-materialized artifact seam **GO**.
-- D070-A1: **transport/custody closed locally** on controller-materialized Codex `:read-only` artifacts (provider `meta-harness-ao-codex` / `d070-ao-artifact-v1`). Audit hardening is present in the working tree and awaits its own commit.
+- D070-A1: **transport/custody closed** under audit-hardening commit `8ebe690` on controller-materialized Codex `:read-only` artifacts (provider `meta-harness-ao-codex` / `d070-ao-artifact-v1`).
+- D071: **functional child execution PASS; terminal custody closure superseded** by `docs/ops/audits/d071-post-close-custody-audit.json`.
+- D072: **offline implementation green; exact-commit live closure pending** — canonical receipt lookup precedes execution-tool binding/readiness/authorization; terminal evidence and portable exports publish their manifests last with no-replace semantics; graceful later-clock process replay, tool canaries, fail-closed conflicts, omitted-`-StartupPath` validation, prerequisite thin-bundle verification, and privacy leakage checks pass offline. A clean implementation commit and retained persistent ToolLauncher live proof remain required for closure.
 - Product re-charter: **decided now**, not deferred. Meta-Harness post-MVP direction is a local authority-bound agent execution-custody harness; the lightweight Markdown-only MVP remains historical and supported as the shipped surface, not the governing end-state.
 
-Current score (2026-07-12 decision-owner audit after A1):
-- overall product flow: **7.4/10**
-- Phase 23A execution custody: **8.9/10**
-- meaningful functional execution: **6.4/10** (live verified, but still fixed-marker only)
-- trusted runtime custody: **9.2/10** after actual version probes and durable AO-evidence binding
-- AO capability discovery: **8.4/10**
-- AO verified integration: **8.6/10** (offline + live + replay-bound provenance)
-- real concurrent single-use: **0.8/10**
-- child-repository dogfood: **0.0/10**
-- dogfood readiness: **5.2/10** (target/objective/validator selected; fixed prompt/private validator still must be replaced)
-- roadmap honesty: **9.5/10**
-- engineering health: **8.8/10** (112/112 test files green; quality and readiness pass; private slice remains marker-specific)
-- continuity with original lightweight MVP intent: **4.0/10**
-- clarity/alignment with current re-chartered intent: **9.0/10**
+Pre-D072 audit score baseline (2026-07-12; historical, before the current implementation):
+- overall product flow: **7.6/10**
+- meaningful functional execution: **8.1/10**
+- Phase 23A execution custody: **7.0/10**
+- trusted runtime custody: **6.2/10**
+- AO verified integration: **8.7/10**
+- durable child-result custody: **1.2/10**
+- graceful terminal replay: **0.5/10**
+- independently portable evidence: **3.2/10**
+- reusable multi-child core: **2.5/10**
+- CI/test truth integrity: **6.8/10**
+- engineering health: **8.1/10**
+- roadmap honesty: **9.7/10**
+- continuity with original MVP: **4.0/10**
+- alignment with re-chartered direction: **8.8/10**
+
+Current working-tree delta (2026-07-13; no closure score assigned before live audit):
+- Durable terminal evidence, canonical receipt replay, process restart, execution-tool canaries, and portable prerequisite-bundle verification now pass offline.
+- CI commands reference existing D070/D072 tests while preserving the configured Windows check identity.
+- Native Windows Node 25 bounded complete-set verification passed all 116 discovered test files with zero failures. Ubuntu CI is configured to run the same `npm test` suite under Node 25; Windows-bound tests are discovered and explicitly skipped before fixture construction on non-Windows hosts. The Ubuntu CI result is pending. Local WSL Node 18 is unsupported and excluded from closure evidence.
+- No numerical closure uplift is claimed until one clean implementation commit completes the retained persistent ToolLauncher live proof and mechanical acceptance.
+- ToolLauncher/PowerShell validation overfitting remains real and is assigned to REPLACE, not hidden inside D072.
 
 Blockers:
+- D072 has not yet been committed as one clean implementation identity, so the exact-commit live proof cannot honestly run.
+- No persistent live ToolLauncher custody root yet binds one immutable Meta-Harness implementation commit and authorization identity.
+- No live `VERIFIED` AO-count-one → process-exit → fresh-process `REPLAY` AO-count-zero result has yet been retained against the pinned ToolLauncher base.
+- The hermetic portable export and leakage scan pass, but the corresponding privacy-safe live audit pack has not yet been produced and closure-audited.
+- The private production validation core still hardcodes Windows PowerShell, `scripts/utils/CheckShortcut.ps1`, and D071-specific argv. REPLACE must migrate retained custody tests to a platform-neutral validator, remove the temporary Windows classifier, and delete that production path in the same change.
 - Direct Codex workspace writes remain NO-GO on this host.
-- A1 cannot perform a meaningful child task without replacing the fixed marker prompt/validator.
-- No child repository is registered in `.meta-harness/repos.json`.
-- Quant was evaluated and rejected for D071 because its active truth freezes unrelated runtime/governance changes. The selected low-risk target is an isolated clean copy of ToolLauncher commit `7fab419f20ba`.
 
 Last verified:
-- D071 implementation commit: `74f8ac17e66aafb86546227ec8ec93f1f48f6f17` (clean tree live-bound).
-- Live dogfood command: `D071_LIVE_TOOLLAUNCHER=1 node --test tests/runtime-d071-toollauncher-live.test.js` → **PASS** (Codex `0.144.1`, `aoSpawnCount=1`, replay disposition `REPLAY`).
-- Verified child head: `9f41bbbb28d89301223292bc5aea11039fba47bb` on ToolLauncher base `7fab419f20ba…` / tree `6bd348cd…`.
-- Tracked evidence: `docs/ops/audits/d071-toollauncher-dogfood-evidence.json`.
-- Offline focused set PASS on Node `v25.2.1`; quality ratchet PASS; sync PASS. Public CLI count 27 > 25 remains a warning, not a blocker.
-- networkPolicy denied remains trust-based (exact hashed validator has no network ops), not OS firewall isolation.
+- Historical D071 implementation commit `74f8ac17e66aafb86546227ec8ec93f1f48f6f17` reported live `IMPLEMENTATION_VERIFIED`, AO count one, and in-process replay, but child commit `9f41bbbb28d89301223292bc5aea11039fba47bb` and its claimed ref remain absent after historical cleanup.
+- D072 semantic truth, focused D070 runtime, D072 fresh-controller replay, graceful process restart, adversarial custody, default-parameter validation, and portable export/independent verification pass offline on the current working tree.
+- The graceful process restart proof executes in process 1, closes normally, exits, starts process 2 from retained repository/state, replays after receipt expiry with absolute nonexistent Codex/validator paths, and reports AO count zero.
+- Abrupt termination recovery, stale-owner recovery, partial-publication recovery, and filesystem-crash durability are not D072 claims.
+- The portable verifier starts with the exact prerequisite base, verifies the thin bundle, fetches the result ref, proves parent equality and changed-path scope, compares result bytes, recomputes exported hashes, and reruns the PowerShell validator.
+- Quality, sync, quick read-only readiness, and `git diff --check` pass; the existing public CLI-count warning remains.
+- The persistent live D072 test is intentionally skipped unless `D072_LIVE_TOOLLAUNCHER=1` and a clean tracked implementation commit are both present.
+- `networkPolicy: denied` remains trust-based, not OS firewall isolation.
 
 Next action:
-Begin R1A immediately: evidence-based deletion of leftover unused AO/marker surfaces and rename/remove `internal/d069` lineage debt from actual imports/tests/traces. Do not add concurrency/cancellation frameworks unless a new observed need appears. Push of the closed D071 stack is authorized after this closure commit if desired.
+Create the clean D072 implementation commit, then run the exact-commit persistent ToolLauncher proof under a unique create-only `.meta-harness/local/custody/d072-toollauncher-<implementation-short>-<authorization-id-hash>/` root. Process 1 must produce live `VERIFIED` with AO count one; after normal close, process exit, later time, and transient worktree pruning, process 2 must use execution-tool canaries and produce `REPLAY` with zero AO spawns. Retain `repository/`, `state/`, and `exports/`; independently verify the prerequisite thin bundle and privacy-safe manifest; run the leakage gate; close D072 automatically when all acceptance checks pass. Keep `lib/contracts/*` frozen. Then REPLACE with one active bounded-repository-change skill, one sealed host-neutral command capsule excluding host environment values, one private adapter, one production runtime root, and one real heterogeneous child; delete the former path in the same change. PROVE a third child through a new example under the existing skill and one end-to-end test only, without core or product-truth edits. Only after that reusable seam is demonstrated, DELETE unsupported surface while preserving `init`, `record`, `status`, `check`, `sync`, and active `release check` jobs. DECIDE on a public execution surface only after repeated real operator use.
 
 Updated:
-2026-07-12
+2026-07-13

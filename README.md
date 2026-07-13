@@ -50,7 +50,7 @@ The harness should wrap existing agents and tools rather than becoming a new age
 
 The governing product direction has intentionally moved beyond the original no-launch, no-network MVP. Meta-Harness is now being developed as a **local authority-bound agent execution-custody harness**: sealed intent and scope authorize one isolated agent attempt; the controller owns mutation, validation, durable result custody, and replay. Markdown status remains a core product surface, but visibility alone is no longer the end-state.
 
-This execution path remains private while D071 proves one meaningful child-repository change. No public execution CLI, generic provider framework, or compatibility layer is implied by the re-charter.
+D071 proved one meaningful child-repository change through validation, but post-close audit found that its transient clone cleanup erased the retained Git result and replay evidence. The execution path remains private while D072 closes persistent result custody. No public execution CLI, generic provider framework, or compatibility layer is implied by the re-charter.
 
 ## Target MVP CLI
 

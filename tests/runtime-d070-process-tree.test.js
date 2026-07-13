@@ -4,29 +4,32 @@
  * D070-A1 process-tree timeout custody (offline fixture process with child).
  */
 
-const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { test } = require("node:test");
 
 const {
   spawnTrackedNodeProcess,
   processExists,
 } = require("../internal/d069/ao-process");
-const { programPaths, absNorm } = require("./helpers/runtime-fixture-repo");
+
+const TREE_CHILD_LAUNCHER = path.resolve(
+  __dirname,
+  "../internal/d069/programs/test-tree-child-launcher.js",
+);
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
 test("process-tree timeout kills parent and descendant", async () => {
-  const programs = programPaths();
-  const outDir = absNorm(fs.mkdtempSync(path.join(os.tmpdir(), "d070-tree-")));
+  const outDir = path.resolve(fs.mkdtempSync(path.join(os.tmpdir(), "d070-tree-")));
   try {
     const result = await spawnTrackedNodeProcess({
       nodeExecutablePath: process.execPath,
-      scriptPath: programs.treeChildLauncher,
+      scriptPath: TREE_CHILD_LAUNCHER,
       scriptArgs: [outDir],
       cwd: outDir,
       env: {

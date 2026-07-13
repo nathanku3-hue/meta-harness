@@ -4,7 +4,9 @@
  * D070-A1 integrity: duplicate replay + fail-closed cases (offline launcher).
  */
 
-const { test } = require("node:test");
+const {
+  windowsRuntimeTest: test,
+} = require("./helpers/windows-runtime-test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -86,7 +88,7 @@ test("D070 duplicate same-request: first verifies, second replays; one AO spawn 
     const authHex = digestHex(first.authorizationRequestDigest);
     assert.ok(fs.existsSync(path.join(layout.stateRoot, "attempts", authHex, "claim.json")));
     const journal = JSON.parse(
-      fs.readFileSync(path.join(layout.stateRoot, "attempts", authHex, "journal.json"), "utf8"),
+      fs.readFileSync(path.join(layout.stateRoot, "attempts", authHex, "journal.current.json"), "utf8"),
     );
     assert.equal(journal.state, "verified");
     assert.equal(journal.terminal, true);
@@ -109,7 +111,7 @@ test("D070 duplicate same-request: first verifies, second replays; one AO spawn 
     if (fs.existsSync(workspacesRoot)) {
       assert.equal(fs.readdirSync(workspacesRoot).length, 0);
     }
-    const artDir = path.join(layout.stateRoot, "artifacts", authHex);
+    const artDir = path.join(layout.stateRoot, "attempts", authHex, "evidence");
     assert.ok(fs.existsSync(path.join(artDir, "ao-process-meta.json")));
     assert.equal(fs.existsSync(path.join(artDir, "worker.stdout")), false);
     const refSha = String(
@@ -119,17 +121,23 @@ test("D070 duplicate same-request: first verifies, second replays; one AO spawn 
   });
 });
 
-test("D070 identity: controller construction rejects false Codex version label", async () => {
+test("D072 identity: new attempt binds Codex lazily and fails before AO spawn", async () => {
   requireNode20();
   const layout = createRuntimeFixtureLayout({ label: "d070version" });
+  let controller;
   try {
-    assert.throws(
-      () => createLocalWalkingSliceController(
-        buildControllerConfig(layout, { codexVersion: "9.9.9-false" }),
-      ),
+    controller = createLocalWalkingSliceController(
+      buildControllerConfig(layout, { codexVersion: "9.9.9-false" }),
+    );
+    await assert.rejects(
+      () => controller.run(buildRunRequest(layout)),
       (err) => err && err.code === "D070_VERSION_MISMATCH",
     );
+    assert.equal(controller.getAoSpawnCount(), 0);
   } finally {
+    if (controller) {
+      try { await controller.close(); } catch { /* ignore */ }
+    }
     layout.cleanup();
   }
 });
@@ -177,7 +185,7 @@ test("D070 integrity: mismatched RunSpec validation command is rejected", async 
   });
 });
 
-test("D070 integrity: create-only durable ref rejects pre-existing ref and terminalizes", async () => {
+test("D072 custody: canonical receipt without attempt state fails closed", async () => {
   await withController("d070ref", async (layout, controller) => {
     const request = buildRunRequest(layout);
     const first = await controller.run(request);
@@ -187,14 +195,10 @@ test("D070 integrity: create-only durable ref rejects pre-existing ref and termi
     fs.rmSync(attemptDir, { recursive: true, force: true });
     await assert.rejects(
       () => controller.run(request),
-      (err) => err && err.code === "D069_REF_EXISTS",
+      (err) => err && err.code === "D072_RECEIPT_WITHOUT_ATTEMPT",
     );
-    const journal = JSON.parse(
-      fs.readFileSync(path.join(attemptDir, "journal.json"), "utf8"),
-    );
-    assert.equal(journal.state, "controller_failed");
-    assert.equal(journal.terminal, true);
-    assert.equal(journal.failureCode, "D069_REF_EXISTS");
+    assert.equal(fs.existsSync(attemptDir), false);
+    assert.equal(controller.getAoSpawnCount(), 1);
   });
 });
 
@@ -224,7 +228,7 @@ test("D070 integrity: tampered AO evidence files fail closed on replay", async (
     const first = await controller.run(request);
     assert.equal(first.disposition, "VERIFIED");
     const authHex = digestHex(first.authorizationRequestDigest);
-    const artDir = path.join(layout.stateRoot, "artifacts", authHex);
+    const artDir = path.join(layout.stateRoot, "attempts", authHex, "evidence");
     for (const name of [
       "ao-process-meta.json",
       "change-artifact.json",
@@ -235,7 +239,7 @@ test("D070 integrity: tampered AO evidence files fail closed on replay", async (
       fs.appendFileSync(target, " ");
       await assert.rejects(
         () => controller.run(request),
-        (err) => err && err.code === "D070_STATE_CORRUPT",
+        (err) => err && err.code === "D072_TERMINAL_EVIDENCE_CORRUPT",
         name,
       );
       fs.writeFileSync(target, original);
@@ -249,7 +253,7 @@ test("D070 integrity: tampered stored digests fail closed on replay", async () =
     const first = await controller.run(request);
     assert.equal(first.disposition, "VERIFIED");
     const authHex = digestHex(first.authorizationRequestDigest);
-    const journalPath = path.join(layout.stateRoot, "attempts", authHex, "journal.json");
+    const journalPath = path.join(layout.stateRoot, "attempts", authHex, "journal.current.json");
     const journal = JSON.parse(fs.readFileSync(journalPath, "utf8"));
     journal.factsDigest = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
     fs.writeFileSync(journalPath, `${JSON.stringify(journal, null, 2)}\n`, "utf8");
