@@ -50,10 +50,11 @@ function git(input, cwd, args, options = {}) {
   );
 }
 
-function commandEnvironment(command) {
+function commandEnvironment(command, sourceEnv) {
   const env = {};
+  const source = sourceEnv && typeof sourceEnv === "object" ? sourceEnv : process.env;
   for (const key of command.environmentPolicy.allow) {
-    const value = process.env[key];
+    const value = source[key];
     if (value !== undefined && value !== null && String(value).length > 0) {
       env[key] = String(value);
     }
@@ -165,7 +166,7 @@ function main() {
     const result = run(input.validationExecutablePath, command.argv.slice(1), {
       cwd: commandCwd,
       timeout: command.timeoutSeconds * 1000,
-      env: commandEnvironment(command),
+      env: commandEnvironment(command, input.validationHostEnv),
     });
     validation.push({
       argv: command.argv,

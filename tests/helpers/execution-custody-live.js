@@ -39,6 +39,81 @@ function snapshotHostEnv(keys) {
   return result;
 }
 
+function packageTreeDigest(root) {
+  const hash = crypto.createHash("sha256");
+  function visit(directory, relative = "") {
+    const entries = fs.readdirSync(directory, { withFileTypes: true })
+      .filter((entry) => entry.name !== "__pycache__" && !entry.name.endsWith(".pyc"))
+      .sort((left, right) => left.name.localeCompare(right.name));
+    for (const entry of entries) {
+      const childRelative = relative ? `${relative}/${entry.name}` : entry.name;
+      const child = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        hash.update(`D\0${childRelative}\0`);
+        visit(child, childRelative);
+      } else if (entry.isFile()) {
+        hash.update(`F\0${childRelative}\0`);
+        hash.update(fs.readFileSync(child));
+        hash.update("\0");
+      } else {
+        throw new Error(`unsupported validation dependency entry: ${child}`);
+      }
+    }
+  }
+  visit(root);
+  return hash.digest("hex");
+}
+
+function buildPythonValidationHostEnv(example, tools, clone) {
+  const validationAllow = [...new Set(
+    example.validationCapsule.commands.flatMap((command) => command.environmentPolicy.allow),
+  )];
+  const hostEnv = snapshotHostEnv(validationAllow);
+  const packageProbe = spawnSync(
+    tools.pythonPath,
+    ["-c", "from pathlib import Path; import pygments; print(Path(pygments.__file__).parent)"],
+    { encoding: "utf8", windowsHide: true, timeout: 15_000, env: process.env },
+  );
+  if (packageProbe.error || packageProbe.status !== 0) {
+    throw new Error(`Pygments package probe failed: ${String(packageProbe.stderr || packageProbe.stdout || "").trim()}`);
+  }
+  const sourcePackage = absNorm(String(packageProbe.stdout || "").trim());
+  if (!fs.existsSync(sourcePackage) || !fs.statSync(sourcePackage).isDirectory()) {
+    throw new Error(`Pygments package probe returned invalid directory: ${sourcePackage}`);
+  }
+
+  const capsuleRoot = absNorm(path.join(clone.root, "validation-pythonpath"));
+  const targetPackage = path.join(capsuleRoot, "pygments");
+  if (!fs.existsSync(targetPackage)) {
+    fs.mkdirSync(capsuleRoot, { recursive: false });
+    fs.cpSync(sourcePackage, targetPackage, {
+      recursive: true,
+      errorOnExist: true,
+      force: false,
+      filter: (candidate) => {
+        const name = path.basename(candidate);
+        return name !== "__pycache__" && !name.endsWith(".pyc");
+      },
+    });
+  }
+  const sourceDigest = packageTreeDigest(sourcePackage);
+  const capsuleDigest = packageTreeDigest(targetPackage);
+  if (sourceDigest !== capsuleDigest) {
+    throw new Error("Pygments validation capsule digest differs from its source package");
+  }
+
+  hostEnv.PYTHONPATH = capsuleRoot;
+  const importProbe = spawnSync(
+    tools.pythonPath,
+    ["-c", "import pygments, pytest, uuid; assert 'validation-pythonpath' in pygments.__file__; assert hasattr(uuid, 'uuid4')"],
+    { encoding: "utf8", windowsHide: true, timeout: 15_000, env: hostEnv },
+  );
+  if (importProbe.error || importProbe.status !== 0) {
+    throw new Error(`python validation environment probe failed: ${String(importProbe.stderr || importProbe.stdout || "").trim()}`);
+  }
+  return { hostEnv, sourcePackage, capsuleRoot, capsuleDigest };
+}
+
 function detectLiveTools() {
   const force = /^(?:1|true)$/i.test(String(process.env.D073_LIVE_CUSTODY || ""));
   const nodePath = absNorm(
@@ -159,9 +234,7 @@ function buildRequest(example, candidateShort, clockValue) {
 }
 
 function buildConfig({ example, clone, tools }) {
-  const validationAllow = [...new Set(
-    example.validationCapsule.commands.flatMap((command) => command.environmentPolicy.allow),
-  )];
+  const { hostEnv } = buildPythonValidationHostEnv(example, tools, clone);
   return {
     trustedRepository: {
       repositoryId: example.repository.repositoryId,
@@ -194,7 +267,7 @@ function buildConfig({ example, clone, tools }) {
       commandName: example.validationCapsule.commandName,
       executablePath: tools.pythonPath,
       expectedExecutableSha256: sha256File(tools.pythonPath),
-      hostEnv: snapshotHostEnv(validationAllow),
+      hostEnv,
       expectedCommands: example.validationCapsule.commands,
     },
   };
@@ -252,6 +325,11 @@ function runControllerProcess({ clone, label, config, request, clockValue }) {
 
 function runIndependentVerifier({ clone, portable, result, example, tools }) {
   const inputPath = path.join(clone.exportsRoot, "independent-verifier-input.json");
+  const {
+    hostEnv: validationHostEnv,
+    sourcePackage,
+    capsuleRoot,
+  } = buildPythonValidationHostEnv(example, tools, clone);
   fs.writeFileSync(inputPath, `${JSON.stringify({
     gitExecutablePath: clone.gitExecutablePath,
     sourceRepositoryPath: clone.repositoryPath,
@@ -263,6 +341,7 @@ function runIndependentVerifier({ clone, portable, result, example, tools }) {
     allowedPath: example.allowedPath,
     validationExecutablePath: tools.pythonPath,
     validationCommands: example.validationCapsule.commands,
+    validationHostEnv,
     sensitiveValues: [
       clone.root,
       tools.nodePath,
@@ -270,6 +349,8 @@ function runIndependentVerifier({ clone, portable, result, example, tools }) {
       tools.nativePath,
       tools.codexHome,
       tools.pythonPath,
+      sourcePackage,
+      capsuleRoot,
     ],
   }, null, 2)}\n`, "utf8");
   return runJsonChild(
@@ -280,6 +361,7 @@ function runIndependentVerifier({ clone, portable, result, example, tools }) {
 
 module.exports = {
   detectLiveTools,
+  buildPythonValidationHostEnv,
   loadExample,
   clonePinnedChild,
   buildRequest,
