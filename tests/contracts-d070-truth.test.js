@@ -55,16 +55,17 @@ function findRoadmapRow(rows, idPattern) {
   return row;
 }
 
-test("status records D071 historical gap and D072 offline implementation pending live closure", () => {
+test("status records the D072 live failure and D073 replacement custody gate", () => {
   const status = read(".meta-harness/status.md");
   const lastVerified = section(status, "Last verified");
   const nextAction = section(status, "Next action");
   const goal = section(status, "Goal");
   const currentTruth = section(status, "Current truth");
 
-  assert.match(goal, /D072/i);
-  assert.match(goal, /persistent child-result custody/i);
-  assert.match(goal, /REPLACE\s*→\s*PROVE\s*→\s*DELETE\s*→\s*DECIDE/i);
+  assert.match(goal, /D073/i);
+  assert.match(goal, /REPLACE\+CLOSE/i);
+  assert.match(goal, /host-neutral functional slice/i);
+  assert.match(goal, /PROVE\s*→\s*DELETE\s*→\s*DECIDE/i);
   assert.match(currentTruth, new RegExp(D068_SQUASH_SHORT));
   assert.match(currentTruth, new RegExp(D069_SQUASH_SHORT));
   assert.match(currentTruth, /D070-A1 transport\/custody slice closed/i);
@@ -72,38 +73,36 @@ test("status records D071 historical gap and D072 offline implementation pending
   assert.match(currentTruth, new RegExp(D071_IMPL_SHORT));
   assert.match(currentTruth, /ToolLauncher/i);
   assert.match(currentTruth, /CheckShortcut\.ps1/i);
-  assert.match(currentTruth, /missing\+valid\+corrupt|missing\/valid\/corrupt/i);
-  assert.match(currentTruth, /live/i);
-  assert.match(currentTruth, /isolated child repository/i);
-  assert.match(currentTruth, /state root/i);
-  assert.match(currentTruth, /finally|cleanup/i);
-  assert.match(currentTruth, /no longer exist|not retained|absent/i);
-  assert.match(currentTruth, /time-varying readiness digest/i);
-  assert.match(currentTruth, /D072 is implemented offline, but not closed/i);
-  assert.match(currentTruth, /canonical stored-receipt lookup/i);
-  assert.match(currentTruth, /before execution-tool binding, readiness, or authorization/i);
-  assert.match(currentTruth, /terminal manifest is published last/i);
-  assert.match(currentTruth, /separate Node process/i);
-  assert.match(currentTruth, /zero AO spawns/i);
-  assert.match(currentTruth, /temporary `?APPDATA`?/i);
-  assert.match(currentTruth, /prerequisite thin bundle/i);
-  assert.match(currentTruth, /clean implementation commit/i);
-  assert.match(currentTruth, /persistent live ToolLauncher proof/i);
   assert.match(currentTruth, /d071-post-close-custody-audit\.json/i);
+  assert.match(currentTruth, /D072 custody mechanics are implemented offline/i);
+  assert.match(currentTruth, /5d677a8/i);
+  assert.match(currentTruth, /116 files with zero failures/i);
+  assert.match(currentTruth, /one successful AO spawn/i);
+  assert.match(currentTruth, /failed trusted validation before terminal publication/i);
+  assert.match(currentTruth, /d072-exact-commit-live-gate-audit\.json/i);
+  assert.match(currentTruth, /D073 now combines REPLACE with custody closure/i);
+  assert.match(currentTruth, /canonical receipt-first replay/i);
+  assert.match(currentTruth, /lazy execution-tool binding/i);
+  assert.match(currentTruth, /manifest-last terminal publication/i);
+  assert.match(currentTruth, /fresh-process zero-spawn replay/i);
+  assert.match(currentTruth, /No ToolLauncher retry or compatibility bridge/i);
   assert.match(lastVerified, /74f8ac1|implementation commit/i);
   assert.match(lastVerified, /9f41bbbb/i);
   assert.match(lastVerified, /absent/i);
   assert.match(lastVerified, /graceful process restart proof/i);
   assert.match(lastVerified, /AO count zero/i);
   assert.match(lastVerified, /portable verifier/i);
-  assert.match(nextAction, /clean D072 implementation commit/i);
-  assert.match(nextAction, /unique create-only/i);
-  assert.match(nextAction, /process 1/i);
-  assert.match(nextAction, /process 2/i);
-  assert.match(nextAction, /zero AO spawns/i);
-  assert.match(nextAction, /close D072 automatically/i);
-  assert.match(nextAction, /REPLACE/i);
-  assert.match(nextAction, /PROVE/i);
+  assert.match(nextAction, /D073/i);
+  assert.match(nextAction, /real non-ToolLauncher child/i);
+  assert.match(nextAction, /host-neutral validation-command capsule/i);
+  assert.match(nextAction, /AO count one/i);
+  assert.match(nextAction, /VERIFIED/i);
+  assert.match(nextAction, /second process/i);
+  assert.match(nextAction, /REPLAY/i);
+  assert.match(nextAction, /AO count zero/i);
+  assert.match(nextAction, /independent portable verification/i);
+  assert.match(nextAction, /delete ToolLauncher\/PowerShell\/CheckShortcut/i);
+  assert.match(nextAction, /D074 PROVE/i);
   assert.match(nextAction, /DELETE/i);
   assert.match(nextAction, /DECIDE/i);
   assert.doesNotMatch(currentTruth, /d070-ao-verified-marker/i);
@@ -128,7 +127,7 @@ test("CI runs one complete suite per platform and preserves the Windows check id
   );
 });
 
-test("roadmap schedules D071 functional pass → D072 custody → REPLACE → PROVE → DELETE → DECIDE", () => {
+test("roadmap schedules D072 substrate → D073 REPLACE+CLOSE → D074 PROVE → DELETE → DECIDE", () => {
   const rows = roadmapTableRows();
   const d068 = findRoadmapRow(rows, /23A-PR1R|D068/);
   assert.match(d068.state + d068.detail, /closed under/i);
@@ -152,26 +151,34 @@ test("roadmap schedules D071 functional pass → D072 custody → REPLACE → PR
 
   const d072 = findRoadmapRow(rows, /D072|23A-PR4R/);
   assert.match(d072.name, /Persistent Child Result Custody/i);
-  assert.match(d072.state + d072.detail, /offline implementation green/i);
-  assert.match(d072.state + d072.detail, /exact-commit live closure pending/i);
-  assert.match(d072.detail, /canonical receipt lookup/i);
-  assert.match(d072.detail, /bind lazily/i);
-  assert.match(d072.detail, /manifest last/i);
-  assert.match(d072.detail, /fresh process/i);
-  assert.match(d072.detail, /zero AO spawns/i);
-  assert.match(d072.detail, /temporary child-only `?APPDATA`?/i);
-  assert.match(d072.detail, /prerequisite thin bundle/i);
-  assert.match(d072.detail, /persistent no-hardlink ToolLauncher live run/i);
+  assert.match(d072.state + d072.detail, /custody substrate implemented/i);
+  assert.match(d072.state + d072.detail, /live closure failed|closure failed/i);
+  assert.match(d072.detail, /5d677a8/i);
+  assert.match(d072.detail, /116 files, zero failures/i);
+  assert.match(d072.detail, /one successful AO spawn/i);
+  assert.match(d072.detail, /before terminal publication/i);
+  assert.match(d072.detail, /receipt-first replay/i);
+  assert.match(d072.detail, /lazy execution-tool binding/i);
+  assert.match(d072.detail, /manifest-last evidence/i);
+  assert.match(d072.detail, /tool-canary replay/i);
+  assert.match(d072.detail, /prerequisite thin-bundle verification/i);
+  assert.match(d072.detail, /d072-exact-commit-live-gate-audit\.json/i);
+  assert.match(d072.detail, /No further ToolLauncher prompt-only repair/i);
 
-  const replace = findRoadmapRow(rows, /^REPLACE$/);
-  assert.match(replace.state + replace.detail, /after D072/i);
+  const replace = findRoadmapRow(rows, /D073|REPLACE\+CLOSE/);
+  assert.match(replace.name, /Functional Custody Replacement Slice/i);
+  assert.match(replace.state + replace.detail, /next/i);
   assert.match(replace.detail, /bounded-repository-change skill/i);
   assert.match(replace.detail, /host-neutral validation-command capsule/i);
   assert.match(replace.detail, /sole production custody path/i);
+  assert.match(replace.detail, /AO count one.*VERIFIED/i);
+  assert.match(replace.detail, /REPLAY with AO count zero/i);
+  assert.match(replace.detail, /independent portable verification/i);
   assert.match(replace.detail, /delete ToolLauncher, PowerShell, CheckShortcut\.ps1/i);
+  assert.match(replace.detail, /No compatibility pair or dual runtime/i);
 
-  const prove = findRoadmapRow(rows, /^PROVE$/);
-  assert.match(prove.state + prove.detail, /after REPLACE/i);
+  const prove = findRoadmapRow(rows, /D074|PROVE/);
+  assert.match(prove.state + prove.detail, /after D073/i);
   assert.match(prove.detail, /existing bounded-repository-change skill/i);
   assert.match(prove.detail, /generic `SKILL\.md`.*unchanged/i);
   assert.match(prove.detail, /VERIFIED/i);
@@ -206,7 +213,8 @@ test("post-MVP product re-charter is explicit across primary truth surfaces", ()
   assert.match(readme, /D071/i);
   assert.match(prd, /D071/i);
   assert.match(spec, /D071[\s\S]*ToolLauncher/i);
-  assert.match(spec, /D072[\s\S]*persistent custody/i);
+  assert.match(spec, /D072[\s\S]*receipt-first replay/i);
+  assert.match(spec, /D073[\s\S]*host-neutral replacement functional slice/i);
 });
 
 test("vendored baseline plus D071 historical evidence and custody correction exist", () => {

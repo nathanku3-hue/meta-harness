@@ -18,7 +18,7 @@ Meta-Harness is a Codex-native mission log for making multi-stream agent work un
 
 Meta-Harness is now intentionally evolving into a **local authority-bound agent execution-custody harness**. The current direction keeps durable Markdown truth, but adds sealed authorization, isolated execution, controller-owned mutation and validation, durable Git result custody, and terminal replay.
 
-This is a major, explicit deviation from the original lightweight MVP, which did not launch agents or require network/model access. D071 proved one useful single-file change in a real child repository, but the post-close audit found that the verified child object/ref and terminal evidence were deleted with transient roots. D072 persistent result custody must close before the execution direction expands further.
+This is a major, explicit deviation from the original lightweight MVP, which did not launch agents or require network/model access. D071 proved one useful single-file change in a real child repository, but the post-close audit found that the verified child object/ref and terminal evidence were deleted with transient roots. D072 implemented the custody substrate offline; exact candidate `5d677a8` then showed that the ToolLauncher-specific live closure gate still conflated custody with Windows/model-output behavior. D073 now combines custody closure with the host-neutral replacement functional slice and deletes the former path in the same change. This is an explicit roadmap change, not silent drift.
 
 ## Problem
 

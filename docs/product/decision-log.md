@@ -2229,12 +2229,63 @@ Binding acceptance:
 
 PROVE precedes broad public-surface deletion so the reusable skills-first seam is demonstrated before another control-plane cleanup round.
 
-Implementation order:
+Historical implementation order:
 
 1. Close D072 against one immutable implementation commit with truthful cross-platform test classification, live `VERIFIED`, graceful fresh-process `REPLAY`, and independent export verification.
 2. REPLACE: deliver the heterogeneous child and delete the former production path in the same change.
 3. PROVE: add the third child through existing-skill example and test only; zero workflow, runtime, kernel, CLI, or product-truth edits.
 4. DELETE: remove every surface without a current supported user job or unique safety invariant; net active surface must decrease.
+
+This ordering is superseded by D073 after the exact-commit live audit. D072's custody invariants remain binding substrate; only the ToolLauncher-specific closure procedure and the separate pre-REPLACE gate are superseded.
+
+## D073: Functional Custody Replacement Slice
+
+Status: **approved**.
+
+Decision:
+
+Pull REPLACE forward and absorb D072 closure into the replacement functional slice. Do not run another ToolLauncher prompt-only repair round. Candidate `5d677a894ec25e5c48cd5f0bf15e59f3bf0b5db3` passed native Windows Node `v25.2.1` `npm test` across 116 files with zero failures, then its retained create-only live root spawned AO once, received an exit-0 schema artifact, and failed trusted validation before terminal publication because the generated PowerShell script treated omitted `-StartupPath` as an empty string rather than deriving the child-only `APPDATA` default. Audit: `docs/ops/audits/d072-exact-commit-live-gate-audit.json`.
+
+The failure is functional-contract failure, not a terminal-custody failure. It neither closes nor disproves receipt-first replay, lazy tool binding, manifest-last publication, fail-closed conflict handling, fresh-process tool-canary replay, or portable prerequisite-bundle verification. It does prove that the D072 live gate combines three independent variables: model artifact quality, ToolLauncher/Windows PowerShell semantics, and custody. A deterministic green suite proves the controller against known-good bytes; it cannot certify a particular live model artifact.
+
+Forward rule:
+
+- Preserve `5d677a8` and its failed create-only custody root as immutable evidence. Do not amend or reuse either identity.
+- Select one real non-ToolLauncher child with an existing host-neutral test command and one useful single-file objective.
+- Create the active bounded-repository-change skill, one sealed host-neutral validation-command capsule, one thin private child adapter, and the sole production custody runtime.
+- Migrate the D072 custody substrate without weakening receipt-first lookup, lazy execution-tool binding, terminal-manifest commit point, no-replace evidence publication, fail-closed incomplete/conflicting state handling, fresh-process replay, portable export, and leakage controls.
+- Require one exact implementation commit to produce live AO count one and `VERIFIED`; after normal controller close and process exit, require a second process with unusable execution-tool paths to produce `REPLAY` and AO count zero; require independent portable verification and leakage scan.
+- In the same change, delete ToolLauncher, Windows PowerShell, CheckShortcut.ps1, the temporary Windows test classifier, phase-numbered production runtime identity, all production imports from `internal/d069`, and the former execution path. Historical audits may remain. No compatibility adapter, dual runtime, alias, or transition pair may remain.
+- Keep `lib/contracts/*` frozen unless the host-neutral slice proves a concrete authority-contract defect. A preference or naming cleanup is not sufficient.
+
+Revised order:
+
+1. **D073 REPLACE+CLOSE:** host-neutral real child, sole runtime, live VERIFIED → normal exit → fresh-process zero-spawn REPLAY → independent portable verification; delete the former path in the same change.
+2. **D074 PROVE:** add a third child through one new example under the existing skill and one end-to-end test only; no generic skill, runtime, kernel, CLI, roadmap, or architecture edits.
+3. **DELETE:** remove every surface without a current supported user job or unique safety invariant; net active surface must decrease; no backward compatibility.
+4. **DECIDE:** consider a public execution surface only after repeated real operator use.
+
+Current score after the exact-commit audit:
+
+- overall product flow: **7.4/10**
+- meaningful functional execution: **8.0/10**
+- Phase 23A execution custody: **7.6/10**
+- trusted runtime custody implementation: **7.8/10**
+- live closure evidence: **4.8/10**
+- AO verified integration: **8.7/10**
+- durable child-result custody: **6.8/10**
+- graceful terminal replay: **7.2/10**
+- independently portable evidence: **7.0/10**
+- reusable multi-child core: **2.5/10**
+- CI/test truth integrity: **5.9/10**
+- engineering health: **8.0/10**
+- roadmap honesty after this decision: **9.8/10**
+- continuity with original MVP: **3.8/10**
+- alignment with re-chartered direction: **8.4/10**
+
+Deviation statement:
+
+The product remains a major, deliberate deviation from the original Markdown-first MVP: it now launches an authenticated agent, uses network/model access, authorizes controller-owned mutation, validates the result, and retains Git/evidence custody. D073 is also an aggressive deviation from the immediately prior roadmap: REPLACE no longer waits for a ToolLauncher-specific D072 closure. The deviation is explicit and forward-moving because the old gate optimizes a path scheduled for deletion and obscures the reusable custody property that actually needs closure.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

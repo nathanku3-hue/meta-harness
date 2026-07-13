@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d072-exact-commit-live-gate-audit",
+  "auditedAt": "2026-07-14T00:21:04.3649738+08:00",
+  "verdict": "CUSTODY_SUBSTRATE_IMPLEMENTED_LEGACY_LIVE_CLOSURE_FAILED_AND_SUPERSEDED",
+  "implementation": {
+    "commit": "5d677a894ec25e5c48cd5f0bf15e59f3bf0b5db3",
+    "tree": "077cdc3ca80a85d66d7c66f5310f416b08a56ed6",
+    "parent": "85a524b79669bf6935ae6d790f9b8e3a965568b0",
+    "branch": "main",
+    "trackedTreeCleanBeforeGate": true,
+    "aheadOfOriginMain": 6
+  },
+  "nativeSuite": {
+    "command": "npm test",
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "startedAt": "2026-07-13T14:00:33.778Z",
+    "endedAt": "2026-07-13T14:08:47.530Z",
+    "testFiles": 116,
+    "failed": 0,
+    "exitCode": 0,
+    "durationSeconds": 492.7,
+    "resultPath": ".meta-harness/local/audit-full-suite-result.json"
+  },
+  "liveGate": {
+    "test": "tests/runtime-d071-toollauncher-live.test.js",
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "startedAt": "2026-07-13T16:14:35.044Z",
+    "endedAt": "2026-07-13T16:17:55.546Z",
+    "exitCode": 1,
+    "retainedCustodyRoot": ".meta-harness/local/custody/d072-toollauncher-5d677a894ec2-cd7001efc607",
+    "createOnlyRootPreserved": true,
+    "aoSpawnCount": 1,
+    "aoExitCode": 0,
+    "aoTimedOut": false,
+    "controllerFailureCode": "D069_VALIDATION_FAILED",
+    "failedStage": "process-1 trusted functional validation before terminal evidence publication",
+    "failureSummary": "The live artifact declared [string]$StartupPath and tested only for null. Windows PowerShell binds an omitted string parameter as an empty string in this shape, so the child APPDATA default branch did not execute and the script threw StartupPath cannot be empty.",
+    "verifiedDispositionProduced": false,
+    "freshProcessReplayAttempted": false,
+    "portableExportProduced": false,
+    "resultPath": ".meta-harness/local/audit-d072-live-result-5d677a8.json"
+  },
+  "findings": {
+    "custodyImplementationCoveredOffline": true,
+    "canonicalReceiptLookupBeforeExecutionBindingCoveredOffline": true,
+    "terminalManifestLastPublicationCoveredOffline": true,
+    "freshProcessReplayWithToolCanariesCoveredOffline": true,
+    "portablePrerequisiteBundleVerificationCoveredOffline": true,
+    "liveTerminalCustodyProven": false,
+    "liveFailureWasCustodyFailure": false,
+    "liveFailureWasFunctionalContractFailure": true,
+    "completeSuiteWasSufficientForLiveClosure": false,
+    "completeSuiteUsesDeterministicKnownGoodArtifactForFunctionalPath": true,
+    "legacyClosureGateConflatesCustodyWithToolLauncherPowerShellSemantics": true,
+    "repeatingToolLauncherPromptRepairsWouldPrimarilyOptimizeLegacyTaskReliability": true,
+    "currentRuntimeIsStillSingleChildWindowsAndPhaseLineageSpecific": true,
+    "originalMvpDeviationRemainsExplicit": true
+  },
+  "maximalInsight": [
+    "D072 fixed the observed persistence architecture offline, but the closure test still measures three independent variables at once: live model output quality, ToolLauncher/Windows PowerShell behavior, and custody/replay/export.",
+    "A green deterministic suite cannot certify a stochastic live artifact. The suite proves the controller against a known-good artifact; the live gate proves whether a particular model response satisfies the sealed objective.",
+    "The latest failure occurred before terminal publication, so it neither validates nor invalidates the new durable-custody protocol. It does invalidate the claim that 5d677a8 closes D072.",
+    "Another ToolLauncher-specific prompt amendment would move the repository sideways: it would improve one historical task while preserving the single-child Windows coupling that REPLACE is already intended to delete.",
+    "The fastest honest forward path is to combine D072 closure with REPLACE on one host-neutral functional child, carry forward the custody substrate, and delete the legacy production path in the same change."
+  ],
+  "decision": {
+    "id": "D073",
+    "name": "Functional Custody Replacement Slice",
+    "status": "approved",
+    "supersedes": "D072 ToolLauncher-specific live closure procedure and the separate after-D072 REPLACE ordering",
+    "preserves": "D072 custody implementation and all fail-closed invariants as the substrate to migrate",
+    "nextGate": "One host-neutral real child must complete live AO VERIFIED with one spawn, normal process exit, fresh-process REPLAY with zero spawns and unusable execution-tool canaries, independent portable verification, and leakage scan through the sole replacement runtime.",
+    "sameChangeDeletion": [
+      "ToolLauncher active closure path",
+      "Windows PowerShell and CheckShortcut validation production coupling",
+      "temporary Windows runtime test classifier",
+      "phase-numbered production runtime identity",
+      "production imports from internal/d069",
+      "former execution path and compatibility shims"
+    ],
+    "forbidden": [
+      "reuse of the failed create-only custody root",
+      "amendment of 5d677a8",
+      "another ToolLauncher prompt-only repair round",
+      "backward-compatible adapter or dual runtime",
+      "public execution CLI",
+      "provider registry",
+      "concurrency or cancellation framework",
+      "delivery or recovery framework"
+    ],
+    "followingOrder": [
+      "D073 REPLACE+CLOSE",
+      "D074 PROVE third child through example and one end-to-end test only",
+      "DELETE unsupported surface by current user job and unique invariant",
+      "DECIDE public execution surface only after repeated real use"
+    ]
+  },
+  "scores": {
+    "scale": "0-10",
+    "overallProductFlow": 7.4,
+    "meaningfulFunctionalExecution": 8.0,
+    "phase23AExecutionCustody": 7.6,
+    "trustedRuntimeCustodyImplementation": 7.8,
+    "liveClosureEvidence": 4.8,
+    "aoVerifiedIntegration": 8.7,
+    "durableChildResultCustody": 6.8,
+    "gracefulTerminalReplay": 7.2,
+    "independentlyPortableEvidence": 7.0,
+    "reusableMultiChildCore": 2.5,
+    "ciAndTestTruthIntegrity": 5.9,
+    "engineeringHealth": 8.0,
+    "roadmapHonestyAfterThisAudit": 9.8,
+    "continuityWithOriginalMvp": 3.8,
+    "alignmentWithRecharteredDirection": 8.4
+  },
+  "deviation": {
+    "fromOriginalIntent": "Major and deliberate. The original Markdown-first mission log did not launch agents or require network/model access. The active product now authorizes live agent execution, controller-owned mutation, validation, Git custody, and replay.",
+    "fromCurrentRecharter": "Directionally aligned but structurally incomplete. The custody substrate is strong, while the active runtime remains phase-numbered, Windows-specific, ToolLauncher-specific, and not reusable across children.",
+    "roadmapChange": "Aggressive and explicit. REPLACE moves forward and absorbs D072 closure; there is no separate ToolLauncher retry gate and no silent compatibility period."
+  }
+}

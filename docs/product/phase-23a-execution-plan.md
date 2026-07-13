@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. **D071 functional execution passed under `74f8ac1`, but terminal custody closure is superseded**: the disposable child clone/state root removed the verified commit/ref and AO evidence after the run. Next: close D072 persistent result custody, then REPLACE → PROVE → DELETE → DECIDE.
+**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. **D071 functional execution passed under `74f8ac1`, but terminal custody closure is superseded. D072 implemented the custody substrate offline; exact candidate `5d677a8` passed the 116-file native suite and then failed the ToolLauncher live gate during functional validation before terminal publication.** Next: D073 REPLACE+CLOSE → D074 PROVE → DELETE → DECIDE. No ToolLauncher retry or compatibility bridge.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -12,8 +12,9 @@
 | D069 | **Closed** under `e8e7713` (PR #24 squash; reviewed head `245fa3d`; base `5afe075`) |
 | D070-A1 | **Transport/custody closed** — AO `:read-only` schema artifact → post-AO custody → controller commit → validation → durable ref → replay; actual version and AO evidence are bound |
 | D071 | **Functional PASS; custody closure superseded** — isolated ToolLauncher `7fab419f20ba`; sealed objective → exact PS 5.1 missing/valid/corrupt validation → live VERIFIED + in-process replay; marker deleted. Post-close audit: child object/ref and AO evidence were deleted with transient roots. |
-| D072 | **Next** — persistent child Git custody + full approval/readiness/receipt/attestation/start/claim/AO/facts/assessment/journal evidence + stored-terminal lookup before reauthorization + fresh-controller replay after receipt expiry and transient cleanup with zero AO spawn + independently verifiable bundle/manifest + default optional-path validation |
-| After D072 | **REPLACE** with one skill-owned heterogeneous child and delete the former production path in the same change; **PROVE** a third child through example/test only; **DELETE** unsupported surface by current user job and unique invariant; **DECIDE** public execution only after repeated real use |
+| D072 | **Substrate implemented; legacy closure superseded** — receipt-first lookup, lazy tool binding, immutable terminal evidence, fresh-process replay, fail-closed conflicts, and portable verification pass offline. `5d677a8` live process 1 spawned AO once but failed trusted PowerShell optional-parameter validation before VERIFIED. Failed create-only root retained. |
+| D073 | **Next — REPLACE+CLOSE** with one skill-owned host-neutral real child; require live VERIFIED, normal exit, fresh-process REPLAY with zero AO spawn and tool canaries, independent export verification, and leakage scan; delete ToolLauncher/PowerShell/CheckShortcut, Windows classifier, phase-lineage production identity, `internal/d069` production imports, and former path in the same change. |
+| D074 onward | **PROVE** a third child through example/test only; **DELETE** unsupported surface by current user job and unique invariant; **DECIDE** public execution only after repeated real use. |
 
 ## Functional-first roadmap
 
@@ -33,13 +34,14 @@ D071 ToolLauncher single-file functional execution PASS (74f8ac1)
         ↓
 post-close audit: transient cleanup erased child ref/object and replay evidence
         ↓
-D072 persistent child result custody + graceful fresh-process replay + independently verifiable evidence
+D072 custody substrate implemented offline; 5d677a8 legacy live closure fails before terminal publication
         ↓
-REPLACE: active bounded-repository-change skill + sealed host-neutral command capsule
-+ one private adapter + one production runtime root + second heterogeneous child
-+ delete ToolLauncher/PowerShell/CheckShortcut/Windows-only fixture and former path
+D073 REPLACE+CLOSE: active bounded-repository-change skill + sealed host-neutral command capsule
++ one private adapter + one production runtime root + real heterogeneous child
++ live VERIFIED → normal exit → fresh-process zero-spawn REPLAY → independent export
++ delete ToolLauncher/PowerShell/CheckShortcut/Windows classifier/internal-d069 production path
         ↓
-PROVE: third child through one existing-skill example + one end-to-end test only
+D074 PROVE: third child through one existing-skill example + one end-to-end test only
 + no SKILL.md, runtime, kernel, CLI, roadmap, or architecture edits
         ↓
 DELETE: preserve supported jobs (`init`, `record`, `status`, `check`, `sync`, and active `release check`)
