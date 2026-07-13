@@ -33,7 +33,8 @@ const D071_OBJECTIVE = [
   "Replace scripts/utils/CheckShortcut.ps1 with a deterministic command-line probe.",
   "Accept optional -StartupPath. Emit one compact JSON object with fields found,",
   "startup_path, target_path, arguments, and working_directory.",
-  "Missing shortcut => found=false with empty/null remaining fields.",
+  "Missing shortcut => found=false, startup_path equals the resolved requested path,",
+  "and target_path, arguments, and working_directory are empty/null.",
   "Unreadable or corrupt shortcut must fail nonzero without success JSON.",
   "No network, API key, provider, or launcher execution.",
 ].join(" ");
