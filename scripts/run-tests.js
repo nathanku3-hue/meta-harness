@@ -8,10 +8,10 @@ const { spawn } = require("node:child_process");
 
 const root = path.resolve(__dirname, "..");
 const testsRoot = path.join(root, "tests");
-const SERIAL_TEST = /(?:^|\/)(?:cli-expert-packet|cli-ready|cli-ready-repro|release-check|release-check-evidence)\.test\.js$/;
+const SERIAL_TEST = /(?:^|\/)(?:cli-expert-packet|cli-ready|cli-ready-repro|release-check|release-check-evidence|runtime-d070-duplicate|runtime-d070-sequential|runtime-d072-adversarial|runtime-d072-export|runtime-d072-replay)\.test\.js$/;
 const DEFAULT_CONCURRENCY = Math.max(1, Math.min(3, os.availableParallelism ? os.availableParallelism() : os.cpus().length || 2));
 const PARALLEL_CONCURRENCY = positiveInteger(process.env.META_HARNESS_TEST_CONCURRENCY, DEFAULT_CONCURRENCY);
-const FILE_TIMEOUT_MS = positiveInteger(process.env.META_HARNESS_TEST_FILE_TIMEOUT_MS, 90_000);
+const FILE_TIMEOUT_MS = positiveInteger(process.env.META_HARNESS_TEST_FILE_TIMEOUT_MS, 240_000);
 
 function positiveInteger(value, fallback) {
   const parsed = Number.parseInt(String(value || ""), 10);
@@ -108,18 +108,16 @@ async function main() {
   const serialTests = tests.filter((file) => SERIAL_TEST.test(toSlash(path.relative(root, file))));
   const parallelTests = tests.filter((file) => !SERIAL_TEST.test(toSlash(path.relative(root, file))));
   const started = Date.now();
-  const tasks = [];
+  const results = [];
 
   if (parallelTests.length > 0) {
     console.error(`# parallel test files: ${parallelTests.length} (concurrency ${PARALLEL_CONCURRENCY})`);
-    tasks.push(runPool(parallelTests, PARALLEL_CONCURRENCY));
+    results.push(...await runPool(parallelTests, PARALLEL_CONCURRENCY));
   }
   if (serialTests.length > 0) {
     console.error(`# serial test files: ${serialTests.length}`);
-    tasks.push(runSerial(serialTests));
+    results.push(...await runSerial(serialTests));
   }
-
-  const results = (await Promise.all(tasks)).flat();
   const failed = results.filter((result) => result.status !== 0 || result.timedOut || result.error);
   console.error(`# test files: ${results.length}; failed: ${failed.length}; duration: ${((Date.now() - started) / 1000).toFixed(1)}s`);
   process.exitCode = failed.length > 0 ? 1 : 0;

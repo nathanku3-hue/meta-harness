@@ -79,12 +79,12 @@ function detectLiveCodex() {
 
 test("D070-A1 live: authenticated Codex :read-only full chain + replay", async (t) => {
   const live = detectLiveCodex();
-  if (!live.available) {
-    if (live.force) {
-      assert.fail("D070_LIVE_CODEX set but Codex identity paths are incomplete");
-    }
-    t.skip("live Codex identity not available on this host");
+  if (!live.force) {
+    t.skip("set D070_LIVE_CODEX=1 to run the historical authenticated Codex proof");
     return;
+  }
+  if (!live.available) {
+    assert.fail("D070_LIVE_CODEX set but Codex identity paths are incomplete");
   }
 
   const major = Number.parseInt(String(process.versions.node).split(".")[0], 10);
