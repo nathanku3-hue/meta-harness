@@ -18,7 +18,7 @@
         "timeoutSeconds": 120,
         "networkPolicy": "denied",
         "environmentPolicy": {
-          "allow": ["HOME", "PATH", "PYTHONPATH", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "TMPDIR", "USERPROFILE"]
+          "allow": ["HOME", "PATH", "PYTHONPATH", "PYTHONUSERBASE", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "TMPDIR", "USERPROFILE"]
         }
       },
       {
@@ -31,7 +31,7 @@
         "timeoutSeconds": 120,
         "networkPolicy": "denied",
         "environmentPolicy": {
-          "allow": ["HOME", "PATH", "PYTHONPATH", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "TMPDIR", "USERPROFILE"]
+          "allow": ["HOME", "PATH", "PYTHONPATH", "PYTHONUSERBASE", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "TMPDIR", "USERPROFILE"]
         }
       }
     ]
