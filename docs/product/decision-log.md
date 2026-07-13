@@ -2240,7 +2240,7 @@ This ordering is superseded by D073 after the exact-commit live audit. D072's cu
 
 ## D073: Functional Custody Replacement Slice
 
-Status: **approved**.
+Status: **closed under `87de018`**.
 
 Decision:
 
@@ -2286,6 +2286,14 @@ Current score after the exact-commit audit:
 Deviation statement:
 
 The product remains a major, deliberate deviation from the original Markdown-first MVP: it now launches an authenticated agent, uses network/model access, authorizes controller-owned mutation, validates the result, and retains Git/evidence custody. D073 is also an aggressive deviation from the immediately prior roadmap: REPLACE no longer waits for a ToolLauncher-specific D072 closure. The deviation is explicit and forward-moving because the old gate optimizes a path scheduled for deletion and obscures the reusable custody property that actually needs closure.
+
+### D073 closure record
+
+D073 closed under exact implementation candidate `87de018b06cb788eedbc8d3cf9e0737989702471` / tree `1ecfc71dc28f67e62832aa594d4efe7a5c4548f1`. Native Windows Node `v25.2.1` `npm test` passed 111 files with zero failures. Against pinned Fluxara base `8548fe5460511c86ed312284b3712e17622134d2`, live process 1 spawned the authenticated agent exactly once and reached `VERIFIED` at child commit `2f2e6156b5b89726e4047a1118e2aebac5c55f27`. After normal process exit, process 2 used unusable execution-tool paths and returned `REPLAY` with zero spawns. The portable prerequisite bundle independently reconstructed the child result, proved exact parent and single-path scope, reran both validation commands successfully, and passed leakage scanning across 16 files. Audit: `docs/ops/audits/d073-functional-custody-replacement-audit.json`.
+
+The active production runtime is now solely `internal/execution-custody`. ToolLauncher, Windows PowerShell, CheckShortcut, the Windows runtime classifier, phase-numbered production identity, production imports from `internal/d069`, and the former execution path are deleted. No compatibility adapter, dual runtime, public execution CLI, provider registry, or speculative concurrency framework was added. Failed candidate roots for `1fa3e0e`, `b61109a`, and `f31b443` remain retained and were not reused.
+
+D074 is next. It may add only one third-child example under the existing bounded-repository-change skill and one end-to-end test, plus a deterministic child fixture only if necessary. It may not change the generic skill, runtime, contracts kernel, CLI, roadmap, or architecture truth unless it proves a concrete defect.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. **D071 functional execution passed under `74f8ac1`, but terminal custody closure is superseded. D072 implemented the custody substrate offline; exact candidate `5d677a8` passed the 116-file native suite and then failed the ToolLauncher live gate during functional validation before terminal publication.** Next: D073 REPLACE+CLOSE → D074 PROVE → DELETE → DECIDE. No ToolLauncher retry or compatibility bridge.
+**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`: 111-file native suite PASS, live Fluxara VERIFIED with one spawn, normal fresh-process REPLAY with zero spawns and unusable tools, independent portable verification PASS, leakage PASS, and former ToolLauncher/Windows/phase-lineage runtime deleted.** Next: D074 PROVE → DELETE → DECIDE.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -13,8 +13,9 @@
 | D070-A1 | **Transport/custody closed** — AO `:read-only` schema artifact → post-AO custody → controller commit → validation → durable ref → replay; actual version and AO evidence are bound |
 | D071 | **Functional PASS; custody closure superseded** — isolated ToolLauncher `7fab419f20ba`; sealed objective → exact PS 5.1 missing/valid/corrupt validation → live VERIFIED + in-process replay; marker deleted. Post-close audit: child object/ref and AO evidence were deleted with transient roots. |
 | D072 | **Substrate implemented; legacy closure superseded** — receipt-first lookup, lazy tool binding, immutable terminal evidence, fresh-process replay, fail-closed conflicts, and portable verification pass offline. `5d677a8` live process 1 spawned AO once but failed trusted PowerShell optional-parameter validation before VERIFIED. Failed create-only root retained. |
-| D073 | **Next — REPLACE+CLOSE** with one skill-owned host-neutral real child; require live VERIFIED, normal exit, fresh-process REPLAY with zero AO spawn and tool canaries, independent export verification, and leakage scan; delete ToolLauncher/PowerShell/CheckShortcut, Windows classifier, phase-lineage production identity, `internal/d069` production imports, and former path in the same change. |
-| D074 onward | **PROVE** a third child through example/test only; **DELETE** unsupported surface by current user job and unique invariant; **DECIDE** public execution only after repeated real use. |
+| D073 | **Closed under `87de018`** — Fluxara `8548fe5` → verified child `2f2e615`; live spawn one → VERIFIED; fresh process with unusable tools → REPLAY spawn zero; independent export and leakage PASS; former ToolLauncher/PowerShell/CheckShortcut/Windows/phase-lineage path deleted without compatibility. |
+| D074 | **Next — PROVE** a third real child through one new example and one end-to-end test only; no generic skill, runtime, contracts, CLI, roadmap, or architecture edits. |
+| DELETE / DECIDE | Remove unsupported surfaces by current user job and unique invariant, then consider public execution only after repeated real use. |
 
 ## Functional-first roadmap
 
@@ -36,12 +37,12 @@ post-close audit: transient cleanup erased child ref/object and replay evidence
         ↓
 D072 custody substrate implemented offline; 5d677a8 legacy live closure fails before terminal publication
         ↓
-D073 REPLACE+CLOSE: active bounded-repository-change skill + sealed host-neutral command capsule
-+ one private adapter + one production runtime root + real heterogeneous child
-+ live VERIFIED → normal exit → fresh-process zero-spawn REPLAY → independent export
-+ delete ToolLauncher/PowerShell/CheckShortcut/Windows classifier/internal-d069 production path
+D073 REPLACE+CLOSE CLOSED (87de018)
++ Fluxara live VERIFIED spawn one → normal exit → fresh-process zero-spawn REPLAY
++ independent portable export + leakage PASS
++ ToolLauncher/PowerShell/CheckShortcut/Windows/internal-d069 production path deleted
         ↓
-D074 PROVE: third child through one existing-skill example + one end-to-end test only
+D074 PROVE NEXT: third child through one existing-skill example + one end-to-end test only
 + no SKILL.md, runtime, kernel, CLI, roadmap, or architecture edits
         ↓
 DELETE: preserve supported jobs (`init`, `record`, `status`, `check`, `sync`, and active `release check`)

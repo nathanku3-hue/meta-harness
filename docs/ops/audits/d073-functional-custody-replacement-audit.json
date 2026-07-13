@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d073-functional-custody-replacement-audit",
+  "auditedAt": "2026-07-14T02:12:13+08:00",
+  "verdict": "FUNCTIONAL_CUSTODY_REPLACEMENT_CLOSED",
+  "implementation": {
+    "commit": "87de018b06cb788eedbc8d3cf9e0737989702471",
+    "tree": "1ecfc71dc28f67e62832aa594d4efe7a5c4548f1",
+    "parent": "f31b443abcb53f41062ebc93b2d9c6a5945b378c",
+    "branch": "main",
+    "trackedTreeCleanBeforeGate": true,
+    "runtimeRoot": "internal/execution-custody",
+    "skill": ".agents/skills/bounded-repository-change/SKILL.md",
+    "example": ".agents/skills/bounded-repository-change/examples/fluxara-demo-output.json"
+  },
+  "nativeSuite": {
+    "command": "npm test",
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "startedAt": "2026-07-13T18:05:28.656Z",
+    "endedAt": "2026-07-13T18:08:55.485Z",
+    "testFiles": 111,
+    "failed": 0,
+    "exitCode": 0,
+    "durationSeconds": 204.6,
+    "resultPath": ".meta-harness/local/audit-full-suite-result.json"
+  },
+  "liveGate": {
+    "test": "tests/runtime-execution-custody-live.test.js",
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "startedAt": "2026-07-13T18:09:19.862Z",
+    "endedAt": "2026-07-13T18:12:13.847Z",
+    "exitCode": 0,
+    "retainedCustodyRoot": ".meta-harness/local/custody/d073-fluxara-87de018b06cb-25704bfbcfd6",
+    "child": {
+      "repositoryId": "fluxara",
+      "baseRevision": "8548fe5460511c86ed312284b3712e17622134d2",
+      "baseTree": "c33ac3efbb1587c1bb3693a641c5cac595fc830e",
+      "allowedPath": "fluxara_core/demo.py",
+      "verifiedHeadRevision": "2f2e6156b5b89726e4047a1118e2aebac5c55f27"
+    },
+    "process1": {
+      "disposition": "VERIFIED",
+      "verdict": "IMPLEMENTATION_VERIFIED",
+      "agentSpawnCount": 1,
+      "durableRef": "refs/meta-harness/attempts/93a1484c56f7b60b8ad83f87db36967b62645613e7e1f799b2549cdf68121c39",
+      "terminalManifestDigest": "sha256:07e0bf7303a063f7667ac3dc803b7e1500aa11c06399a766f44c39f839b2c993"
+    },
+    "process2": {
+      "disposition": "REPLAY",
+      "verdict": "IMPLEMENTATION_VERIFIED",
+      "agentSpawnCount": 0,
+      "executionToolPathsUsable": false
+    },
+    "portable": {
+      "exportManifestDigest": "sha256:44919db8942a0d1d7095fed04b43126a1d959f56f03977d01138194cd9ff0591",
+      "leakageScanPassed": true,
+      "scannedFiles": 16,
+      "independentVerificationPassed": true,
+      "parentEqualsBase": true,
+      "changedPaths": [
+        "fluxara_core/demo.py"
+      ],
+      "validationExitCodes": [
+        0,
+        0
+      ]
+    }
+  },
+  "failedCandidatesRetained": [
+    {
+      "commit": "1fa3e0ebe3134ea2e6b2d33f37d87db09c91889c",
+      "root": ".meta-harness/local/custody/d073-fluxara-1fa3e0ebe313-dad680564a64",
+      "failure": "sealed validation environment omitted the Python user package base; pytest could not import Pygments"
+    },
+    {
+      "commit": "b61109ac2dd36914625e92634ea431b5ad24c621",
+      "root": ".meta-harness/local/custody/d073-fluxara-b61109ac2dd3-03cf16d64ff3",
+      "failure": "a Pygments-only validation capsule excluded Fluxara scientific dependencies including NumPy and pandas"
+    },
+    {
+      "commit": "f31b443abcb53f41062ebc93b2d9c6a5945b378c",
+      "root": ".meta-harness/local/custody/d073-fluxara-f31b443abcb5-b5d28ee6da54",
+      "failure": "process 1 VERIFIED and process 2 REPLAY passed, but export correctly rejected an absolute temporary path in validation stdout"
+    }
+  ],
+  "replacement": {
+    "singleProductionRuntimeRoot": true,
+    "activeToolLauncherPathDeleted": true,
+    "activePowerShellValidatorDeleted": true,
+    "activeCheckShortcutFixturesDeleted": true,
+    "windowsRuntimeClassifierDeleted": true,
+    "phaseNumberedProductionIdentityDeleted": true,
+    "productionImportsFromInternalD069": 0,
+    "compatibilityAdapterPresent": false,
+    "dualRuntimePresent": false,
+    "publicExecutionCliAdded": false,
+    "providerRegistryAdded": false,
+    "concurrencyFrameworkAdded": false,
+    "contractsKernelChanged": false
+  },
+  "findings": {
+    "hostNeutralRealChildClosed": true,
+    "liveModelComplianceObserved": true,
+    "receiptFirstReplayClosed": true,
+    "lazyExecutionToolBindingClosed": true,
+    "manifestLastPublicationClosed": true,
+    "freshProcessZeroSpawnReplayClosed": true,
+    "portablePrerequisiteBundleClosed": true,
+    "leakageControlsClosed": true,
+    "primaryChildCheckoutRemainedCleanAtBase": true,
+    "failedRootsPreservedAndNotReused": true
+  },
+  "decision": {
+    "id": "D073",
+    "status": "closed",
+    "next": "D074",
+    "nextGate": "Add a third real child through one new example under the existing bounded-repository-change skill and one end-to-end test only. Do not change the generic skill, runtime, contracts kernel, CLI, roadmap, or architecture truth unless a concrete defect is demonstrated.",
+    "remoteStatus": "not pushed; Ubuntu CI remains pending because no remote action was authorized"
+  }
+}

@@ -1,13 +1,13 @@
 # Status
 
 Goal:
-Close durable child-result custody through D073 REPLACE+CLOSE: migrate the D072 custody substrate into one host-neutral functional slice, prove live VERIFIED → fresh-process REPLAY → independent export, and delete the ToolLauncher/Windows/phase-lineage path in the same change. Then execute PROVE → DELETE → DECIDE. No compatibility layer, delivery actor, public run CLI, provider registry, concurrency framework, or recurring closure ceremony.
+Execute D074 PROVE: add one third real child through one new example under the existing bounded-repository-change skill and one end-to-end test only. Do not change the generic skill, execution-custody runtime, contracts kernel, CLI, roadmap, or architecture truth unless a concrete defect is demonstrated. Then execute DELETE → DECIDE.
 
 Phase:
 in_progress
 
 Current truth:
-Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 NO-GO / A0.2 GO remain binding. **D070-A1 transport/custody slice closed** under audit-hardening commit `8ebe690`. **D071 functional execution passed under `74f8ac1`, but its closure claim remains superseded by the post-close custody audit:** sealed objective → authenticated Codex `:read-only` → controller commit → Windows PowerShell 5.1 validator (missing+valid+corrupt) → live `IMPLEMENTATION_VERIFIED` + in-process replay against isolated ToolLauncher `7fab419f20ba` / `scripts/utils/CheckShortcut.ps1`. That historical live test deleted both the isolated child repository and its state root in `finally`; the claimed child commit `9f41bbbb…`, create-only ref, AO metadata, change artifact, schema, terminal journal, assessment, and receipt are not retained. The audit also traced restart failure to authorization-before-lookup combined with a time-varying readiness digest. Audit evidence: `docs/ops/audits/d071-post-close-custody-audit.json`. **D072 custody mechanics are implemented offline, but the ToolLauncher-specific closure procedure is superseded:** exact candidate `5d677a8` passed native Windows Node 25 `npm test` across 116 files with zero failures, then its retained live root failed in process 1 after one successful AO spawn because the generated PowerShell artifact mishandled an omitted string parameter and failed trusted validation before terminal publication. This neither closes nor disproves the custody protocol; it proves the gate still conflates model output quality, legacy Windows semantics, and custody. Audit: `docs/ops/audits/d072-exact-commit-live-gate-audit.json`. **D073 now combines REPLACE with custody closure:** carry forward canonical receipt-first replay, lazy execution-tool binding, manifest-last terminal publication, fail-closed conflict handling, fresh-process zero-spawn replay, portable prerequisite-bundle verification, and leakage controls into one host-neutral real-child slice, then delete ToolLauncher/PowerShell/CheckShortcut, the Windows classifier, phase-numbered production identity, `internal/d069` production imports, and the former path in the same change. No ToolLauncher retry or compatibility bridge is authorized. Marker path remains deleted. Quant remains excluded. `lib/contracts/*` remains frozen.
+Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 NO-GO / A0.2 GO remain binding. **D070-A1 transport/custody slice closed** under audit-hardening commit `8ebe690`. **D071 functional execution passed under `74f8ac1`, but its closure claim remains superseded by the post-close custody audit:** sealed objective → authenticated Codex `:read-only` → controller commit → Windows PowerShell 5.1 validator (missing+valid+corrupt) → live `IMPLEMENTATION_VERIFIED` + in-process replay against isolated ToolLauncher `7fab419f20ba` / `scripts/utils/CheckShortcut.ps1`. That historical live test deleted both the isolated child repository and its state root in `finally`; the claimed child commit `9f41bbbb…`, create-only ref, AO metadata, change artifact, schema, terminal journal, assessment, and receipt are not retained. The audit also traced restart failure to authorization-before-lookup combined with a time-varying readiness digest. Audit evidence: `docs/ops/audits/d071-post-close-custody-audit.json`. **D072 custody mechanics are implemented offline, but the ToolLauncher-specific closure procedure is superseded:** exact candidate `5d677a8` passed native Windows Node 25 `npm test` across 116 files with zero failures, then its retained live root failed in process 1 after one successful AO spawn because the generated PowerShell artifact mishandled an omitted string parameter and failed trusted validation before terminal publication. This neither closes nor disproves the custody protocol; it proves the gate still conflates model output quality, legacy Windows semantics, and custody. Audit: `docs/ops/audits/d072-exact-commit-live-gate-audit.json`. **D073 closed under exact implementation candidate `87de018`:** the 111-file native Windows Node 25 suite passed with zero failures; live Fluxara process 1 spawned the authenticated agent once and reached `VERIFIED` at child commit `2f2e6156`; after normal exit, process 2 used unusable execution-tool paths and returned `REPLAY` with zero spawns; portable export independently reconstructed the result, reran both sealed validation commands, and passed leakage scanning across 16 files. The sole production runtime is `internal/execution-custody`; the active ToolLauncher/PowerShell/CheckShortcut path, Windows classifier, phase-numbered production identity, and production imports from `internal/d069` are deleted with no compatibility or dual runtime. Audit: `docs/ops/audits/d073-functional-custody-replacement-audit.json`. Marker path remains deleted. Quant remains excluded. `lib/contracts/*` remains frozen.
 
 Phase 18 truth:
 - JSON output includes top-level `response_handoff`.
@@ -204,14 +204,14 @@ Superseded/deferred truth:
 - Phase 21A–21F, 22A, and 22B are closed. D067 superseded. **D068 closed under `be82763`** (PR #23 squash; reviewed head `4b259c9`). Slice 0B.1 repaired stale active pre-merge wording; historical events unchanged.
 
 Active streams:
-- coding: D072 runtime, restart, adversarial, default-parameter, and portable-export slices are green offline; exact-commit persistent live closure remains the blocking gate.
+- coding: D073 is closed under `87de018`; D074 third-child proof is next and may add only one example plus one end-to-end test.
 - research: closed; direct write remains NO-GO and controller-materialized artifact execution remains the selected seam.
 - writing: post-close custody correction + score/roadmap alignment; historical D071 closure event remains preserved and superseded.
 - review: functional validation/replay passed at run time, but post-cleanup object/ref/evidence retention failed audit.
 
 Scope boundary:
 - D068 public contract kernel is frozen on main under `be82763` (no delivery actor, no public run CLI).
-- D070-A1/D072 remain the private walking-slice lineage and custody substrate. D073 REPLACE+CLOSE must leave one host-neutral production runtime root, no production import from `internal/d069`, and no active ToolLauncher/PowerShell closure path.
+- D073 left one host-neutral production runtime root at `internal/execution-custody`, zero production imports from `internal/d069`, and no active ToolLauncher/PowerShell closure path.
 - D070 uses authenticated Codex read-only structured output followed by controller validation/materialization. Direct AO filesystem write, sandbox bypass, generic `ExecutionProvider`, and a D069 compatibility adapter are rejected.
 - Content is not sealed by RunSpec. Path is single-literal `scope.allow`; semantic acceptance is established by the exact trusted validation command. A1 used exact bytes historically, while D071 validates behavior rather than one canonical implementation.
 - D064–D066 objects are historical/read-only guidance only — not load-bearing authority inputs.
@@ -247,7 +247,7 @@ Relevant decisions:
 - D070-A1: **transport/custody closed** under audit-hardening commit `8ebe690` on controller-materialized Codex `:read-only` artifacts (provider `meta-harness-ao-codex` / `d070-ao-artifact-v1`).
 - D071: **functional child execution PASS; terminal custody closure superseded** by `docs/ops/audits/d071-post-close-custody-audit.json`.
 - D072: **custody substrate implemented; ToolLauncher-specific live closure failed and is superseded** — `5d677a8` passed the 116-file native suite, then one live AO artifact failed trusted default-parameter validation before terminal publication. The create-only failed root is retained and must not be reused. Audit: `docs/ops/audits/d072-exact-commit-live-gate-audit.json`.
-- D073: **approved — Functional Custody Replacement Slice**. Pull REPLACE forward and absorb D072 closure into one host-neutral real-child gate. Require live AO count one → VERIFIED, normal exit, fresh-process tool-canary REPLAY with AO count zero, independent portable verification, and leakage scan; delete the former Windows/ToolLauncher/phase-lineage production path in the same change, with no compatibility pair.
+- D073: **closed under `87de018` — Functional Custody Replacement Slice**. Fluxara live process 1 reached VERIFIED with one spawn; fresh process 2 replayed with unusable tool paths and zero spawns; independent portable verification and leakage scanning passed; the former Windows/ToolLauncher/phase-lineage path was deleted without compatibility.
 - Product re-charter: **decided now**, not deferred. Meta-Harness post-MVP direction is a local authority-bound agent execution-custody harness; the lightweight Markdown-only MVP remains historical and supported as the shipped surface, not the governing end-state.
 
 Pre-D072 audit score baseline (2026-07-12; historical, before the current implementation):
@@ -266,7 +266,7 @@ Pre-D072 audit score baseline (2026-07-12; historical, before the current implem
 - continuity with original MVP: **4.0/10**
 - alignment with re-chartered direction: **8.8/10**
 
-Current audit score (2026-07-14; after exact-commit live failure and roadmap correction):
+Current audit score (2026-07-14; historical pre-D073-closure score from the D072 audit):
 - overall product flow: **7.4/10**
 - meaningful functional execution: **8.0/10**
 - Phase 23A execution custody: **7.6/10**
@@ -290,24 +290,24 @@ Score interpretation:
 - The roadmap score rises only because the coupling and pivot are now explicit; no capability score is inflated by the decision change.
 
 Blockers:
-- No host-neutral real child has yet completed the combined D073 live custody gate.
-- No live candidate has yet reached `VERIFIED` AO-count-one → normal process exit → fresh-process `REPLAY` AO-count-zero → independently verified portable export under the replacement runtime.
-- The active private runtime still hardcodes Windows PowerShell, `scripts/utils/CheckShortcut.ps1`, D071-specific argv, phase-numbered module identity, and production imports from `internal/d069`.
-- The deterministic suite does not independently establish live model compliance with a sealed functional objective; D073 must keep a live dogfood gate while making its objective and validator host-neutral and narrowly reliable.
+- D073 has no remaining local closure blocker.
+- D074 still requires a third real child through one new example and one end-to-end test only; generic runtime or product-truth edits are forbidden unless that proof exposes a concrete defect.
+- Ubuntu CI and remote publication remain pending because no push or remote action was authorized.
 - Direct Codex workspace writes remain NO-GO on this host.
 
 Last verified:
 - Historical D071 implementation commit `74f8ac17e66aafb86546227ec8ec93f1f48f6f17` reported live `IMPLEMENTATION_VERIFIED`, AO count one, and in-process replay, but child commit `9f41bbbb28d89301223292bc5aea11039fba47bb` and its claimed ref remain absent after historical cleanup.
-- D072 semantic truth, focused D070 runtime, D072 fresh-controller replay, graceful process restart, adversarial custody, default-parameter validation, and portable export/independent verification pass offline on the current working tree.
-- The graceful process restart proof executes in process 1, closes normally, exits, starts process 2 from retained repository/state, replays after receipt expiry with absolute nonexistent Codex/validator paths, and reports AO count zero.
-- Abrupt termination recovery, stale-owner recovery, partial-publication recovery, and filesystem-crash durability are not D072 claims.
-- The portable verifier starts with the exact prerequisite base, verifies the thin bundle, fetches the result ref, proves parent equality and changed-path scope, compares result bytes, recomputes exported hashes, and reruns the PowerShell validator.
-- Quality, sync, quick read-only readiness, and `git diff --check` pass; the existing public CLI-count warning remains.
-- The persistent live D072 test is intentionally skipped unless `D072_LIVE_TOOLLAUNCHER=1` and a clean tracked implementation commit are both present.
+- Exact D073 candidate `87de018b06cb788eedbc8d3cf9e0737989702471` / tree `1ecfc71dc28f67e62832aa594d4efe7a5c4548f1` passed native Windows Node `v25.2.1` `npm test`: 111 files, zero failures, exit 0.
+- Retained root `.meta-harness/local/custody/d073-fluxara-87de018b06cb-25704bfbcfd6` contains process-1 VERIFIED, process-2 zero-spawn REPLAY, terminal evidence, durable child ref, portable export, and independent verifier checkout.
+- Fluxara child base `8548fe5460511c86ed312284b3712e17622134d2` remained the clean primary checkout; verified child commit is `2f2e6156b5b89726e4047a1118e2aebac5c55f27` and changed only `fluxara_core/demo.py`.
+- The portable verifier proved exact parent equality, single-path scope, content equality, both validation commands exit 0, export manifest integrity, and leakage PASS across 16 exported files.
+- Failed candidate roots for `1fa3e0e`, `b61109a`, and `f31b443` remain retained and were not reused.
+- Abrupt termination recovery, stale-owner recovery, partial-publication recovery, and filesystem-crash durability are not D073 claims.
+- The live replacement test is intentionally skipped unless `D073_LIVE_CUSTODY=1` and a clean tracked implementation commit are both present.
 - `networkPolicy: denied` remains trust-based, not OS firewall isolation.
 
 Next action:
-Execute D073 as one no-compatibility replacement slice. Select one real non-ToolLauncher child with an existing host-neutral test command and one useful single-file objective. Create the active bounded-repository-change skill, sealed host-neutral validation-command capsule, thin child adapter, and sole production custody runtime. Migrate the D072 receipt-first replay, lazy binding, manifest-last evidence, fail-closed state checks, fresh-process replay, export, and leakage invariants. The exact live candidate must produce AO count one and `VERIFIED`; after normal close and process exit, a second process with unusable execution-tool paths must produce `REPLAY` and AO count zero; independent portable verification must pass. In the same change, delete ToolLauncher/PowerShell/CheckShortcut active fixtures and validation, the Windows classifier, phase-numbered production identity, all production imports from `internal/d069`, and the former path. Preserve historical audits only. Then D074 PROVE adds a third child through one existing-skill example and one end-to-end test only; afterward DELETE unsupported surface and DECIDE a public execution surface only after repeated real use.
+Execute D074 PROVE. Add one third real child by creating exactly one new example under `.agents/skills/bounded-repository-change/examples/` and one end-to-end test, plus a deterministic child fixture only if strictly necessary. The generic `SKILL.md`, `internal/execution-custody/*`, `lib/contracts/*`, CLI, roadmap, and architecture truth must remain unchanged. Require VERIFIED, normal fresh-process zero-spawn REPLAY with unusable execution-tool paths, independent portable verification, and leakage PASS. After D074, perform consumer-led DELETE, then DECIDE a public execution surface only after repeated real use.
 
 Updated:
 2026-07-14
