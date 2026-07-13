@@ -25,7 +25,7 @@
         "argv": [
           "python",
           "-c",
-          "import tempfile; from pathlib import Path; from fluxara_core.demo import main; d=tempfile.TemporaryDirectory(); p=Path(d.name)/'nested'/'history.csv'; result=main(p); assert Path(result)==p; assert p.is_file() and p.stat().st_size>0; d.cleanup()"
+          "import contextlib,io,tempfile; from pathlib import Path; from fluxara_core.demo import main; d=tempfile.TemporaryDirectory(); p=Path(d.name)/'nested'/'history.csv'; captured=io.StringIO(); redirect=contextlib.redirect_stdout(captured); redirect.__enter__(); result=main(p); redirect.__exit__(None,None,None); assert Path(result)==p; assert p.is_file() and p.stat().st_size>0; assert f'wrote {p}' in captured.getvalue(); d.cleanup()"
         ],
         "cwdRelative": ".",
         "timeoutSeconds": 120,
