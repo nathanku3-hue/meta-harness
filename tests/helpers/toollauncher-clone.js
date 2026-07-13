@@ -75,7 +75,8 @@ function createDetachedToolLauncherClone(options = {}) {
   } else {
     root = absNorm(fs.mkdtempSync(path.join(os.tmpdir(), "d071-tl-clone-")));
   }
-  const repositoryPath = absNorm(path.join(root, options.rootPath ? "repository" : "repo"));
+  const repositoryDirectoryName = options.rootPath ? "repository" : "repo";
+  const repositoryPath = absNorm(path.join(root, repositoryDirectoryName));
 
   // Local clone without hardlinks so object store is independent of the dirty live tree.
   runGit(gitExecutablePath, root, [
@@ -83,7 +84,7 @@ function createDetachedToolLauncherClone(options = {}) {
     "--no-hardlinks",
     "--no-checkout",
     sourcePath,
-    "repo",
+    repositoryDirectoryName,
   ]);
 
   // Normalize line-ending policy before materializing files so controller
