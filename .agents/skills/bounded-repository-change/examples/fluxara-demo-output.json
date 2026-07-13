@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "bounded-repository-change-example/v1",
+  "exampleId": "fluxara-demo-output",
+  "repository": {
+    "repositoryId": "fluxara",
+    "objectFormat": "sha1",
+    "expectedBaseRevision": "8548fe5460511c86ed312284b3712e17622134d2",
+    "expectedBaseTree": "c33ac3efbb1587c1bb3693a641c5cac595fc830e"
+  },
+  "allowedPath": "fluxara_core/demo.py",
+  "objective": "Refactor fluxara_core/demo.py so main accepts an optional output_path path-like argument defaulting to fluxara_history.csv. After the deterministic simulation, create the output parent directory when necessary, write the history CSV to that path, print the actual output path, and return the normalized path string. Preserve zero-argument CLI behavior and all existing simulation semantics. Remove the unused os import. Do not modify any other file and do not use network access.",
+  "validationCapsule": {
+    "commandName": "python",
+    "commands": [
+      {
+        "argv": ["python", "-m", "pytest", "-q"],
+        "cwdRelative": ".",
+        "timeoutSeconds": 120,
+        "networkPolicy": "denied",
+        "environmentPolicy": {
+          "allow": ["HOME", "PATH", "PYTHONPATH", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "TMPDIR", "USERPROFILE"]
+        }
+      },
+      {
+        "argv": [
+          "python",
+          "-c",
+          "import tempfile; from pathlib import Path; from fluxara_core.demo import main; d=tempfile.TemporaryDirectory(); p=Path(d.name)/'nested'/'history.csv'; result=main(p); assert Path(result)==p; assert p.is_file() and p.stat().st_size>0; d.cleanup()"
+        ],
+        "cwdRelative": ".",
+        "timeoutSeconds": 120,
+        "networkPolicy": "denied",
+        "environmentPolicy": {
+          "allow": ["HOME", "PATH", "PYTHONPATH", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "TMPDIR", "USERPROFILE"]
+        }
+      }
+    ]
+  }
+}

@@ -8,7 +8,7 @@ const { spawn } = require("node:child_process");
 
 const root = path.resolve(__dirname, "..");
 const testsRoot = path.join(root, "tests");
-const SERIAL_TEST = /(?:^|\/)(?:cli-expert-packet|cli-ready|cli-ready-repro|release-check|release-check-evidence|runtime-d070-duplicate|runtime-d070-sequential|runtime-d072-adversarial|runtime-d072-export|runtime-d072-replay)\.test\.js$/;
+const SERIAL_TEST = /(?:^|\/)(?:cli-expert-packet|cli-ready|cli-ready-repro|release-check|release-check-evidence|runtime-execution-custody(?:-live|-process-tree)?)\.test\.js$/;
 const DEFAULT_CONCURRENCY = Math.max(1, Math.min(3, os.availableParallelism ? os.availableParallelism() : os.cpus().length || 2));
 const PARALLEL_CONCURRENCY = positiveInteger(process.env.META_HARNESS_TEST_CONCURRENCY, DEFAULT_CONCURRENCY);
 const FILE_TIMEOUT_MS = positiveInteger(process.env.META_HARNESS_TEST_FILE_TIMEOUT_MS, 240_000);
