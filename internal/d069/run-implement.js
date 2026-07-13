@@ -50,6 +50,7 @@ const {
   summarizeEvents,
 } = require("./ao-artifact");
 const { spawnAoProcess } = require("./ao-process");
+const { AO_TIMEOUT_SECONDS } = require("./ao-constants");
 const {
   captureWorktreeCustody,
   assertPostAoCleanCustody,
@@ -279,7 +280,7 @@ async function implementAfterClaim(ctx, args) {
       schemaPath,
       allowedPath,
       objective: runSpec.objective,
-      timeoutSeconds: aoTimeoutSeconds || 120,
+      timeoutSeconds: aoTimeoutSeconds || AO_TIMEOUT_SECONDS,
     });
 
     // Never persist raw AO stdout/stderr by default.

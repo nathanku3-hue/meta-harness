@@ -14,7 +14,7 @@ const WORKER_PROFILE = "d070-ao-artifact-v1";
 const FIXED_TIMEOUT_SECONDS = 60;
 
 /** Separate fixed AO process timeout. Requires process-tree termination. */
-const AO_TIMEOUT_SECONDS = 120;
+const AO_TIMEOUT_SECONDS = 240;
 
 /** Content ceiling for schema-bound change artifact body. */
 const AO_CONTENT_MAX_BYTES = 64 * 1024;
