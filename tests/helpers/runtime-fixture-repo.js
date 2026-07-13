@@ -31,7 +31,9 @@ const APPROVED_AT = "2026-07-12T11:00:00.000Z";
 const TEST_CODEX_VERSION = "0.144.1-test";
 const D071_OBJECTIVE = [
   "Replace scripts/utils/CheckShortcut.ps1 with a deterministic command-line probe.",
-  "Accept optional -StartupPath. Emit one compact JSON object with fields found,",
+  "Accept optional -StartupPath. When omitted, derive the default at runtime from the child",
+  "process $env:APPDATA plus 'Microsoft\\Windows\\Start Menu\\Programs\\Startup\\AI Tool Launcher.lnk';",
+  "do not use Shell, KnownFolder, or SpecialFolder APIs. Emit one compact JSON object with fields found,",
   "startup_path, target_path, arguments, and working_directory.",
   "Missing shortcut => found=false, startup_path equals the resolved requested path,",
   "and target_path, arguments, and working_directory are empty/null.",
