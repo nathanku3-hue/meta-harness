@@ -1,19 +1,23 @@
 {
   "schema_version": "1.0.0",
   "v": 1,
-  "generated_at": "2026-07-08T14:26:55.147Z",
-  "generated_by": "meta-harness quality baseline",
-  "source_commit": "ffbc5ebba0128c6cd71a29267acdbfd66fbacb76",
+  "generated_at": "2026-07-14T18:56:58.873Z",
+  "generated_by": "meta-harness quality baseline refresh",
+  "source_commit": "eaf7ed9409e11662f1f4c3cced8a37ae4d251038",
   "baseline_policy_hash": "acc33a3beb1c967c85c2229ab6e5d308900d1ac8e551bcd74926a7a5e6fd2ea6",
   "owners_hash": "5ab5a4c7a3679e2b5ead605ae516302cd7362dc48efd2f6cfd2e37e4301f0730",
-  "previous_baseline_hash": null,
-  "quality_summary_before": null,
-  "quality_summary_after": {
+  "previous_baseline_hash": "138acbc4eed3dff720d0f11046aca6956ecd30aa135a37749711bf0bbdff66bb",
+  "quality_summary_before": {
     "source_files": 249,
     "overbudget_files": 1,
     "complexity_findings": 1
   },
-  "manual_override_decision": null,
+  "quality_summary_after": {
+    "source_files": 308,
+    "overbudget_files": 6,
+    "complexity_findings": 1
+  },
+  "manual_override_decision": "D076",
   "mode": "ratchet",
   "budgets": {
     "max_source_file_lines": 500,
@@ -43,7 +47,7 @@
       "overbudget": false
     },
     "lib/command-registry.js": {
-      "lines": 296,
+      "lines": 303,
       "overbudget": false
     },
     "lib/commands/brief.js": {
@@ -72,6 +76,10 @@
     },
     "lib/commands/event.js": {
       "lines": 42,
+      "overbudget": false
+    },
+    "lib/commands/execute.js": {
+      "lines": 98,
       "overbudget": false
     },
     "lib/commands/expert-packet.js": {
@@ -111,7 +119,7 @@
       "overbudget": false
     },
     "lib/commands/poll.js": {
-      "lines": 193,
+      "lines": 195,
       "overbudget": false
     },
     "lib/commands/quality.js": {
@@ -250,6 +258,58 @@
       "lines": 99,
       "overbudget": false
     },
+    "lib/contracts/attempt-authorization.js": {
+      "lines": 383,
+      "overbudget": false
+    },
+    "lib/contracts/authorize.js": {
+      "lines": 313,
+      "overbudget": false
+    },
+    "lib/contracts/canonical-json.js": {
+      "lines": 209,
+      "overbudget": false
+    },
+    "lib/contracts/digest.js": {
+      "lines": 41,
+      "overbudget": false
+    },
+    "lib/contracts/execution-readiness-facts.js": {
+      "lines": 207,
+      "overbudget": false
+    },
+    "lib/contracts/implementation-assessment.js": {
+      "lines": 283,
+      "overbudget": false
+    },
+    "lib/contracts/implementation-facts.js": {
+      "lines": 215,
+      "overbudget": false
+    },
+    "lib/contracts/index.js": {
+      "lines": 37,
+      "overbudget": false
+    },
+    "lib/contracts/run-spec-approval.js": {
+      "lines": 126,
+      "overbudget": false
+    },
+    "lib/contracts/run-spec.js": {
+      "lines": 328,
+      "overbudget": false
+    },
+    "lib/contracts/scope.js": {
+      "lines": 210,
+      "overbudget": false
+    },
+    "lib/contracts/workspace-attestation.js": {
+      "lines": 250,
+      "overbudget": false
+    },
+    "lib/contracts/workspace-start.js": {
+      "lines": 357,
+      "overbudget": false
+    },
     "lib/decision-inbox-check.js": {
       "lines": 246,
       "overbudget": false
@@ -276,6 +336,74 @@
     },
     "lib/events.js": {
       "lines": 129,
+      "overbudget": false
+    },
+    "lib/execution-custody/agent-custody.js": {
+      "lines": 132,
+      "overbudget": false
+    },
+    "lib/execution-custody/agent-process.js": {
+      "lines": 694,
+      "overbudget": true
+    },
+    "lib/execution-custody/attempt.js": {
+      "lines": 525,
+      "overbudget": true
+    },
+    "lib/execution-custody/change-artifact.js": {
+      "lines": 394,
+      "overbudget": false
+    },
+    "lib/execution-custody/constants.js": {
+      "lines": 81,
+      "overbudget": false
+    },
+    "lib/execution-custody/controller-process.js": {
+      "lines": 46,
+      "overbudget": false
+    },
+    "lib/execution-custody/controller.js": {
+      "lines": 305,
+      "overbudget": false
+    },
+    "lib/execution-custody/custody-export.js": {
+      "lines": 450,
+      "overbudget": false
+    },
+    "lib/execution-custody/custody-replay.js": {
+      "lines": 149,
+      "overbudget": false
+    },
+    "lib/execution-custody/execute.js": {
+      "lines": 930,
+      "overbudget": true
+    },
+    "lib/execution-custody/execution-bindings.js": {
+      "lines": 120,
+      "overbudget": false
+    },
+    "lib/execution-custody/git-ops.js": {
+      "lines": 294,
+      "overbudget": false
+    },
+    "lib/execution-custody/implement.js": {
+      "lines": 651,
+      "overbudget": true
+    },
+    "lib/execution-custody/portable-verifier.js": {
+      "lines": 242,
+      "overbudget": false
+    },
+    "lib/execution-custody/support.js": {
+      "lines": 461,
+      "overbudget": false
+    },
+    "lib/execution-custody/terminal-evidence.js": {
+      "lines": 315,
+      "overbudget": false
+    },
+    "lib/execution-readiness.js": {
+      "lines": 212,
       "overbudget": false
     },
     "lib/expert-packet.js": {
@@ -435,11 +563,11 @@
       "overbudget": false
     },
     "lib/release-local-checks.js": {
-      "lines": 247,
+      "lines": 250,
       "overbudget": false
     },
     "lib/release-package-check.js": {
-      "lines": 296,
+      "lines": 468,
       "overbudget": false
     },
     "lib/repo-adoption-doctor.js": {
@@ -448,6 +576,10 @@
     },
     "lib/repo-drift.js": {
       "lines": 351,
+      "overbudget": false
+    },
+    "lib/repo-git-state.js": {
+      "lines": 157,
       "overbudget": false
     },
     "lib/repo-rollup-action-brief.js": {
@@ -531,7 +663,7 @@
       "overbudget": false
     },
     "lib/repo-rollup.js": {
-      "lines": 386,
+      "lines": 394,
       "overbudget": false
     },
     "lib/research-decision-handoff.js": {
@@ -564,6 +696,10 @@
     },
     "lib/security-workflow-check.js": {
       "lines": 157,
+      "overbudget": false
+    },
+    "lib/selected-repo-resolver.js": {
+      "lines": 82,
       "overbudget": false
     },
     "lib/ship-gate/current-change-set.js": {
@@ -610,6 +746,10 @@
       "lines": 113,
       "overbudget": false
     },
+    "lib/worker-entry-gate.js": {
+      "lines": 209,
+      "overbudget": false
+    },
     "lib/zip.js": {
       "lines": 126,
       "overbudget": false
@@ -619,7 +759,7 @@
       "overbudget": false
     },
     "scripts/run-tests.js": {
-      "lines": 131,
+      "lines": 129,
       "overbudget": false
     },
     "tests/cli-args.test.js": {
@@ -632,6 +772,10 @@
     },
     "tests/cli-domain-governance.test.js": {
       "lines": 39,
+      "overbudget": false
+    },
+    "tests/cli-execute.test.js": {
+      "lines": 119,
       "overbudget": false
     },
     "tests/cli-expert-packet.test.js": {
@@ -687,7 +831,7 @@
       "overbudget": false
     },
     "tests/command-registry.test.js": {
-      "lines": 86,
+      "lines": 92,
       "overbudget": false
     },
     "tests/context-gate-adoption-details.test.js": {
@@ -718,12 +862,52 @@
       "lines": 111,
       "overbudget": false
     },
+    "tests/contracts-authority-authorization.test.js": {
+      "lines": 279,
+      "overbudget": false
+    },
+    "tests/contracts-authority-final-adversarial.test.js": {
+      "lines": 247,
+      "overbudget": false
+    },
+    "tests/contracts-authority-implementation.test.js": {
+      "lines": 174,
+      "overbudget": false
+    },
+    "tests/contracts-authority-run-spec-approval.test.js": {
+      "lines": 106,
+      "overbudget": false
+    },
+    "tests/contracts-authority-scope-commands.test.js": {
+      "lines": 36,
+      "overbudget": false
+    },
+    "tests/contracts-authority-start.test.js": {
+      "lines": 93,
+      "overbudget": false
+    },
+    "tests/contracts-authority-strict-json.test.js": {
+      "lines": 103,
+      "overbudget": false
+    },
+    "tests/contracts-d068-truth.test.js": {
+      "lines": 243,
+      "overbudget": false
+    },
+    "tests/contracts-execution-custody-truth.test.js": {
+      "lines": 1115,
+      "overbudget": true
+    },
     "tests/decision-inbox-check.test.js": {
       "lines": 413,
       "overbudget": false
     },
     "tests/domain-governance.test.js": {
       "lines": 290,
+      "overbudget": false
+    },
+    "tests/execution-readiness.test.js": {
+      "lines": 191,
       "overbudget": false
     },
     "tests/fanout-budget.test.js": {
@@ -778,12 +962,40 @@
       "lines": 113,
       "overbudget": false
     },
+    "tests/helpers/contracts-fixtures.js": {
+      "lines": 295,
+      "overbudget": false
+    },
+    "tests/helpers/execution-custody-export-verifier.js": {
+      "lines": 22,
+      "overbudget": false
+    },
+    "tests/helpers/execution-custody-fixture.js": {
+      "lines": 298,
+      "overbudget": false
+    },
+    "tests/helpers/execution-custody-git.js": {
+      "lines": 58,
+      "overbudget": false
+    },
+    "tests/helpers/execution-custody-live.js": {
+      "lines": 315,
+      "overbudget": false
+    },
+    "tests/helpers/execution-custody-process-child.js": {
+      "lines": 9,
+      "overbudget": false
+    },
     "tests/helpers/security-fixture.js": {
       "lines": 153,
       "overbudget": false
     },
     "tests/insight-extractor.test.js": {
       "lines": 48,
+      "overbudget": false
+    },
+    "tests/installed-execution-custody.test.js": {
+      "lines": 451,
       "overbudget": false
     },
     "tests/judge-profile.test.js": {
@@ -970,6 +1182,30 @@
       "lines": 53,
       "overbudget": false
     },
+    "tests/runtime-execution-custody-artifact.test.js": {
+      "lines": 107,
+      "overbudget": false
+    },
+    "tests/runtime-execution-custody-devspace-live.test.js": {
+      "lines": 143,
+      "overbudget": false
+    },
+    "tests/runtime-execution-custody-live.test.js": {
+      "lines": 81,
+      "overbudget": false
+    },
+    "tests/runtime-execution-custody-process-tree.test.js": {
+      "lines": 60,
+      "overbudget": false
+    },
+    "tests/runtime-execution-custody.test.js": {
+      "lines": 142,
+      "overbudget": false
+    },
+    "tests/runtime-execution-request.test.js": {
+      "lines": 183,
+      "overbudget": false
+    },
     "tests/scout-reconciler.test.js": {
       "lines": 74,
       "overbudget": false
@@ -1021,11 +1257,15 @@
     "tests/test_meta_harness.py": {
       "lines": 75,
       "overbudget": false
+    },
+    "tests/worker-entry-gate.test.js": {
+      "lines": 258,
+      "overbudget": false
     }
   },
   "ratchets": {
     "process_exit": {
-      "count": 0
+      "count": 2
     },
     "main_boundary_missing": {
       "count": 0
@@ -1048,6 +1288,7 @@
       "distill",
       "domain-governance",
       "event",
+      "execute",
       "expert-packet",
       "gate",
       "governance",
@@ -1120,7 +1361,7 @@
         "budget_category": "implementation"
       },
       "lib/command-registry.js": {
-        "lines": 296,
+        "lines": 303,
         "overbudget": false,
         "max_lines": 400,
         "budget_category": "implementation"
@@ -1163,6 +1404,12 @@
       },
       "lib/commands/event.js": {
         "lines": 42,
+        "overbudget": false,
+        "max_lines": 200,
+        "budget_category": "command"
+      },
+      "lib/commands/execute.js": {
+        "lines": 98,
         "overbudget": false,
         "max_lines": 200,
         "budget_category": "command"
@@ -1222,7 +1469,7 @@
         "budget_category": "command"
       },
       "lib/commands/poll.js": {
-        "lines": 193,
+        "lines": 195,
         "overbudget": false,
         "max_lines": 200,
         "budget_category": "command"
@@ -1431,6 +1678,84 @@
         "max_lines": 400,
         "budget_category": "implementation"
       },
+      "lib/contracts/attempt-authorization.js": {
+        "lines": 383,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/authorize.js": {
+        "lines": 313,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/canonical-json.js": {
+        "lines": 209,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/digest.js": {
+        "lines": 41,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/execution-readiness-facts.js": {
+        "lines": 207,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/implementation-assessment.js": {
+        "lines": 283,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/implementation-facts.js": {
+        "lines": 215,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/index.js": {
+        "lines": 37,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/run-spec-approval.js": {
+        "lines": 126,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/run-spec.js": {
+        "lines": 328,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/scope.js": {
+        "lines": 210,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/workspace-attestation.js": {
+        "lines": 250,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/contracts/workspace-start.js": {
+        "lines": 357,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
       "lib/decision-inbox-check.js": {
         "lines": 246,
         "overbudget": false,
@@ -1469,6 +1794,108 @@
       },
       "lib/events.js": {
         "lines": 129,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/agent-custody.js": {
+        "lines": 132,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/agent-process.js": {
+        "lines": 694,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/attempt.js": {
+        "lines": 525,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/change-artifact.js": {
+        "lines": 394,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/constants.js": {
+        "lines": 81,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/controller-process.js": {
+        "lines": 46,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/controller.js": {
+        "lines": 305,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/custody-export.js": {
+        "lines": 450,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/custody-replay.js": {
+        "lines": 149,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/execute.js": {
+        "lines": 930,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/execution-bindings.js": {
+        "lines": 120,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/git-ops.js": {
+        "lines": 294,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/implement.js": {
+        "lines": 651,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/portable-verifier.js": {
+        "lines": 242,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/support.js": {
+        "lines": 461,
+        "overbudget": true,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-custody/terminal-evidence.js": {
+        "lines": 315,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/execution-readiness.js": {
+        "lines": 212,
         "overbudget": false,
         "max_lines": 400,
         "budget_category": "implementation"
@@ -1708,14 +2135,14 @@
         "budget_category": "implementation"
       },
       "lib/release-local-checks.js": {
-        "lines": 247,
+        "lines": 250,
         "overbudget": false,
         "max_lines": 400,
         "budget_category": "implementation"
       },
       "lib/release-package-check.js": {
-        "lines": 296,
-        "overbudget": false,
+        "lines": 468,
+        "overbudget": true,
         "max_lines": 400,
         "budget_category": "implementation"
       },
@@ -1727,6 +2154,12 @@
       },
       "lib/repo-drift.js": {
         "lines": 351,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/repo-git-state.js": {
+        "lines": 157,
         "overbudget": false,
         "max_lines": 400,
         "budget_category": "implementation"
@@ -1852,7 +2285,7 @@
         "budget_category": "implementation"
       },
       "lib/repo-rollup.js": {
-        "lines": 386,
+        "lines": 394,
         "overbudget": false,
         "max_lines": 400,
         "budget_category": "implementation"
@@ -1901,6 +2334,12 @@
       },
       "lib/security-workflow-check.js": {
         "lines": 157,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
+      "lib/selected-repo-resolver.js": {
+        "lines": 82,
         "overbudget": false,
         "max_lines": 400,
         "budget_category": "implementation"
@@ -1971,6 +2410,12 @@
         "max_lines": 400,
         "budget_category": "implementation"
       },
+      "lib/worker-entry-gate.js": {
+        "lines": 209,
+        "overbudget": false,
+        "max_lines": 400,
+        "budget_category": "implementation"
+      },
       "lib/zip.js": {
         "lines": 126,
         "overbudget": false,
@@ -1984,7 +2429,7 @@
         "budget_category": "source"
       },
       "scripts/run-tests.js": {
-        "lines": 131,
+        "lines": 129,
         "overbudget": false,
         "max_lines": 400,
         "budget_category": "source"
@@ -2003,6 +2448,12 @@
       },
       "tests/cli-domain-governance.test.js": {
         "lines": 39,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/cli-execute.test.js": {
+        "lines": 119,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
@@ -2086,7 +2537,7 @@
         "budget_category": "test"
       },
       "tests/command-registry.test.js": {
-        "lines": 86,
+        "lines": 92,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
@@ -2133,6 +2584,60 @@
         "max_lines": 300,
         "budget_category": "test"
       },
+      "tests/contracts-authority-authorization.test.js": {
+        "lines": 279,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/contracts-authority-final-adversarial.test.js": {
+        "lines": 247,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/contracts-authority-implementation.test.js": {
+        "lines": 174,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/contracts-authority-run-spec-approval.test.js": {
+        "lines": 106,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/contracts-authority-scope-commands.test.js": {
+        "lines": 36,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/contracts-authority-start.test.js": {
+        "lines": 93,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/contracts-authority-strict-json.test.js": {
+        "lines": 103,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/contracts-d068-truth.test.js": {
+        "lines": 243,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/contracts-execution-custody-truth.test.js": {
+        "lines": 1115,
+        "overbudget": true,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
       "tests/decision-inbox-check.test.js": {
         "lines": 413,
         "overbudget": true,
@@ -2141,6 +2646,12 @@
       },
       "tests/domain-governance.test.js": {
         "lines": 290,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/execution-readiness.test.js": {
+        "lines": 191,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
@@ -2223,6 +2734,42 @@
         "max_lines": 300,
         "budget_category": "test"
       },
+      "tests/helpers/contracts-fixtures.js": {
+        "lines": 295,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/helpers/execution-custody-export-verifier.js": {
+        "lines": 22,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/helpers/execution-custody-fixture.js": {
+        "lines": 298,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/helpers/execution-custody-git.js": {
+        "lines": 58,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/helpers/execution-custody-live.js": {
+        "lines": 315,
+        "overbudget": true,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/helpers/execution-custody-process-child.js": {
+        "lines": 9,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
       "tests/helpers/security-fixture.js": {
         "lines": 153,
         "overbudget": false,
@@ -2232,6 +2779,12 @@
       "tests/insight-extractor.test.js": {
         "lines": 48,
         "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/installed-execution-custody.test.js": {
+        "lines": 451,
+        "overbudget": true,
         "max_lines": 300,
         "budget_category": "test"
       },
@@ -2511,6 +3064,42 @@
         "max_lines": 300,
         "budget_category": "test"
       },
+      "tests/runtime-execution-custody-artifact.test.js": {
+        "lines": 107,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/runtime-execution-custody-devspace-live.test.js": {
+        "lines": 143,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/runtime-execution-custody-live.test.js": {
+        "lines": 81,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/runtime-execution-custody-process-tree.test.js": {
+        "lines": 60,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/runtime-execution-custody.test.js": {
+        "lines": 142,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/runtime-execution-request.test.js": {
+        "lines": 183,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
       "tests/scout-reconciler.test.js": {
         "lines": 74,
         "overbudget": false,
@@ -2588,11 +3177,17 @@
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
+      },
+      "tests/worker-entry-gate.test.js": {
+        "lines": 258,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
       }
     },
     "surfaces": {
       "cli_commands": {
-        "count": 27,
+        "count": 28,
         "max": 25,
         "commands": [
           "brief",
@@ -2603,6 +3198,7 @@
           "distill",
           "domain-governance",
           "event",
+          "execute",
           "expert-packet",
           "gate",
           "governance",
@@ -2687,5 +3283,5 @@
       }
     }
   },
-  "new_baseline_hash": "138acbc4eed3dff720d0f11046aca6956ecd30aa135a37749711bf0bbdff66bb"
+  "new_baseline_hash": "3548332e82a38b068b8fd331c03e85b43cbf23552ad8ff99834e70d30c10a98b"
 }
