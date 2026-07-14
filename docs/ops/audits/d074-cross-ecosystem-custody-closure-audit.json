@@ -1,0 +1,215 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d074-cross-ecosystem-custody-closure-audit",
+  "auditedAt": "2026-07-14T19:57:42+08:00",
+  "verdict": "CROSS_ECOSYSTEM_CUSTODY_PROOF_CLOSED",
+  "decision": {
+    "id": "D074",
+    "status": "closed",
+    "closedUnderCandidate": "4ad92f0bf0643a48bb90ab86ee3fe7f9fd31184b",
+    "candidateTree": "064689e945889c1ee2d5b4a132d6c7a12cf2d706",
+    "closureCommitRequired": true,
+    "next": "D075_OPERATE",
+    "publicExecutionSurfaceAuthorized": false,
+    "compatibilityAuthorized": false,
+    "providerRegistryAuthorized": false,
+    "broadDeletionAuthorized": false
+  },
+  "failedCandidateHistory": {
+    "candidate": "87472e187a8d228bbf0a5b51167bb5969aa4dfb5",
+    "tree": "7a447d810905f1ff28b6bf676c602f8b4d3c1cc8",
+    "retainedCustodyRoot": ".meta-harness/local/custody/custody-devspace-87472e187a8d-5c3362472026",
+    "immutable": true,
+    "rerun": false,
+    "amended": false,
+    "failureClassification": "test_verifier_portability_defect",
+    "failureStage": "independent_portable_verifier_bundle_verify",
+    "repairAudit": "docs/ops/audits/d074-candidate-87472e1-live-failure-audit.json"
+  },
+  "implementationCandidate": {
+    "commit": "4ad92f0bf0643a48bb90ab86ee3fe7f9fd31184b",
+    "tree": "064689e945889c1ee2d5b4a132d6c7a12cf2d706",
+    "parent": "87472e187a8d228bbf0a5b51167bb5969aa4dfb5",
+    "message": "test: repair D074 shallow bundle verification",
+    "pathCount": 9,
+    "trackedWorktreeCleanBeforeSuite": true,
+    "trackedWorktreeCleanAfterSuite": true,
+    "trackedWorktreeCleanAfterLiveGate": true,
+    "productionRuntimeChanged": false,
+    "publicSurfaceChanged": false,
+    "contractKernelChanged": false,
+    "packageOrLockfileChanged": false
+  },
+  "candidateSuite": {
+    "command": "npm test",
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "npmVersion": "11.16.0",
+    "startedAt": "2026-07-14T19:50:55.0598938+08:00",
+    "endedAt": "2026-07-14T19:54:06.6841286+08:00",
+    "testFiles": 112,
+    "failed": 0,
+    "exitCode": 0,
+    "runnerDurationSeconds": 190.5,
+    "wrapperDurationSeconds": 191.6,
+    "resultPath": ".meta-harness/local/d074-candidate-suite-4ad92f0.json",
+    "resultSha256": "93419a7f4ccca2e566bfa300d71a90c57c9bece81dd22a1b2805b1a82943f95a",
+    "logPath": ".meta-harness/local/d074-candidate-suite-4ad92f0.log",
+    "logSha256": "5801757a3ee41b1770a8bd52e3c37e514b720460c4fa6fbba81b8371f0cf4941"
+  },
+  "liveGate": {
+    "command": "node --test --test-reporter=dot --test-concurrency=1 tests/runtime-execution-custody-devspace-live.test.js",
+    "environment": {
+      "CUSTODY_LIVE": "unset",
+      "CUSTODY_LIVE_DEVSPACE": "1",
+      "CUSTODY_LIVE_FLUXARA": "unset"
+    },
+    "nodeVersion": "v25.2.1",
+    "startedAt": "2026-07-14T19:54:44.4857472+08:00",
+    "endedAt": "2026-07-14T19:55:49.1439492+08:00",
+    "durationSeconds": 64.7,
+    "exitCode": 0,
+    "resultPath": ".meta-harness/local/d074-devspace-live-4ad92f0.json",
+    "resultSha256": "09524d3a8ebf417f71355c37d01fc61874c67812659fd899e142d2a43acb62a1",
+    "logPath": ".meta-harness/local/d074-devspace-live-4ad92f0.log",
+    "logSha256": "0c65f527e81e7c96a3b4e914b5953d74d00b935e4a101d05b730a47d7bb356e5",
+    "closurePath": ".meta-harness/local/custody/custody-devspace-4ad92f0bf064-b2e76672f6b4/exports/devspace-live-closure.json",
+    "closureSha256": "cacde91d90cd5abd198c6a5752ebaaac246bf112003e636e1e199676ba39f81a"
+  },
+  "childAuthority": {
+    "repositoryId": "devspace",
+    "sourceObjectRepository": "E:/Code/devspace/devspace-src",
+    "sourceOperatorCheckoutDirtyBefore": true,
+    "sourceOperatorStatusAfter": " M src/server.ts",
+    "workingTreeBytesUsedAsAuthority": false,
+    "retainedCustodyRoot": ".meta-harness/local/custody/custody-devspace-4ad92f0bf064-b2e76672f6b4",
+    "baseRevision": "00952c05f01248773a90cd293aed528672eb6f1b",
+    "baseTree": "65e249664f7146e7bff6c36d530f3de1cd0068e4",
+    "primaryCloneHead": "00952c05f01248773a90cd293aed528672eb6f1b",
+    "primaryCloneTree": "65e249664f7146e7bff6c36d530f3de1cd0068e4",
+    "primaryCloneTrackedWorktreeClean": true,
+    "visibleRevisionCount": 1,
+    "shallowBoundary": "00952c05f01248773a90cd293aed528672eb6f1b",
+    "remoteCount": 0,
+    "allowedPath": "scripts/dev-server.mjs"
+  },
+  "process1": {
+    "clock": "2026-07-14T11:54:53.524Z",
+    "processExitCode": 0,
+    "controllerClosedAndProcessExited": true,
+    "disposition": "VERIFIED",
+    "verdict": "IMPLEMENTATION_VERIFIED",
+    "agentSpawnCount": 1,
+    "agentSpawnOrdinal": 1,
+    "agentExitCode": 0,
+    "agentTimedOut": false,
+    "agentVersion": "0.144.1",
+    "agentNodeRealPath": "D:\\nodejs\\node.exe",
+    "agentLauncherSha256": "134063e133f0b4244fa3b251acf973d4fe4b4aeeacbdc135211bf480f59f1477",
+    "agentNativeSha256": "cbacbb9726262ef558b4af0438a1b2a5bba9076132401d947b5b4d2bf92ab0e4",
+    "promptSha256": "941df7686379cbd67f0dc84e57bd21e8eb63684906a95542e7e156cf1b1da584",
+    "verifiedHeadRevision": "30ad240b0b709cd330132b978e096ccbc7620c1a",
+    "verifiedTree": "f7d7ff71c97a69046d3779a7bc8c32153bde506b",
+    "resultParent": "00952c05f01248773a90cd293aed528672eb6f1b",
+    "changedPaths": [
+      "scripts/dev-server.mjs"
+    ],
+    "durableRef": "refs/meta-harness/attempts/babefc9946271112317c7119e5ae2d824a3b91fd5cb46bf5515c17eebbdb4680",
+    "durableRefTarget": "30ad240b0b709cd330132b978e096ccbc7620c1a",
+    "terminalManifestDigest": "sha256:ff8c695ecf57f94218f5c2c936ed2f4004c46b9117a6bc86a4de07804614ac7a",
+    "aoProcessMetaSha256": "6105920088cb7aff6de19bf44bd731c2848b1f5bbe567d5938694bbef77c58fb",
+    "authorizationReceiptSha256": "a6d54338ba24d2899da36f7b458de55fe57af3b189548abe0c119c20867dbe4d",
+    "implementationAssessmentSha256": "91947235de7dc9a8211248ac4ef4ad4489be43209f64948244957a8c6aaa4fcf",
+    "terminalJournalSha256": "5f7d40b8e16f9d87809e5f17e5cf772f8940cf64b2b645a57b81f972209332a9"
+  },
+  "process2": {
+    "clock": "2026-07-14T12:55:53.524Z",
+    "authorizationExpiresAt": "2026-07-14T12:54:53.524Z",
+    "secondsAfterAuthorizationExpiry": 60,
+    "laterThanAuthorizationExpiry": true,
+    "processExitCode": 0,
+    "controllerClosedAndProcessExited": true,
+    "disposition": "REPLAY",
+    "verdict": "IMPLEMENTATION_VERIFIED",
+    "agentSpawnCount": 0,
+    "executionToolPathsUsable": false,
+    "validationToolPathUsable": false,
+    "verifiedHeadUnchanged": true,
+    "terminalManifestUnchanged": true
+  },
+  "portable": {
+    "exportName": "custody-30ad240b0b70-babefc994627",
+    "exportManifestDigest": "sha256:ec4f1b5f3d11a02a7df14d1023a733a4289f8afca928149b6c2ddda81622a348",
+    "exportManifestFileSha256": "f5cfe5a8fb80445087baff42bf9986e8cb59405126aa31439e7c373b0e07bb9f",
+    "bundleSha256": "f0b9df3a2bc04608142f882ed63fbd56dd52cd9f249c34128065bd6def6806be",
+    "containsBaseObject": false,
+    "prerequisiteBaseRevision": "00952c05f01248773a90cd293aed528672eb6f1b",
+    "independentVerificationPassed": true,
+    "independentResultCommit": "30ad240b0b709cd330132b978e096ccbc7620c1a",
+    "independentParent": "00952c05f01248773a90cd293aed528672eb6f1b",
+    "independentChangedPaths": [
+      "scripts/dev-server.mjs"
+    ],
+    "validation": [
+      {
+        "argv": [
+          "node",
+          "--check",
+          "scripts/dev-server.mjs"
+        ],
+        "exitCode": 0
+      },
+      {
+        "description": "import safety, exact no-install command, and lifecycle-preservation landmarks",
+        "exitCode": 0
+      }
+    ],
+    "leakageScanPassed": true,
+    "scannedFiles": 16,
+    "findings": []
+  },
+  "repairConfirmation": {
+    "shallowPrerequisiteAnchoredAt": "refs/verify/base",
+    "failedCandidateRetainedExportReverifiedBeforeNewCandidate": true,
+    "newCandidateIndependentVerificationPassed": true,
+    "sameFailureDidNotRecur": true,
+    "validatorWeakened": false,
+    "productionRuntimeChangedForRepair": false
+  },
+  "claims": {
+    "crossEcosystemReuseProved": true,
+    "oneSharedCustodyWorkflowUsedByFluxaraAndDevSpace": true,
+    "exactShallowAuthorityProved": true,
+    "authenticatedDevSpaceExecutionProved": true,
+    "durableChildResultCustodyProved": true,
+    "expiredFreshProcessReplayProved": true,
+    "zeroSpawnReplayProved": true,
+    "portableNodeValidationProved": true,
+    "leakagePassProved": true,
+    "exhaustiveDevServerLifecycleCertification": false,
+    "portableThirdPartyHermeticEnvironment": false,
+    "d074Closed": true
+  },
+  "scores": {
+    "overallProductFlow": 8.6,
+    "meaningfulFunctionalExecution": 8.9,
+    "phase23AExecutionCustody": 9.1,
+    "trustedRuntimeCustodyImplementation": 8.8,
+    "liveClosureEvidence": 9.1,
+    "authenticatedAgentIntegration": 9.1,
+    "durableChildResultCustody": 9.0,
+    "gracefulTerminalReplay": 9.0,
+    "independentlyPortableEvidence": 8.9,
+    "reusableMultiChildCore": 8.2,
+    "ciTestTruthIntegrity": 8.5,
+    "engineeringHealth": 8.8,
+    "roadmapHonesty": 9.8,
+    "continuityWithOriginalMvp": 3.3,
+    "alignmentWithRecharteredDirection": 9.6
+  },
+  "intentDeviation": {
+    "fromOriginalMvp": "major_deliberate_and_explicit",
+    "fromPriorRoadmap": "no_new_direction_change",
+    "detail": "D074 closes the already-approved cross-ecosystem proof without production abstraction or public-surface growth. D075 private operator use remains the next gate before DECIDE or DELETE."
+  }
+}

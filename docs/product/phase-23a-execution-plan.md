@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`: 111-file native suite PASS, live Fluxara VERIFIED with one spawn, normal fresh-process REPLAY with zero spawns and unusable tools, independent portable verification PASS, leakage PASS, and former ToolLauncher/Windows/phase-lineage runtime deleted.** D074 cross-ecosystem implementation remains open. First immutable candidate `87472e1` passed the exact 112-file suite and produced retained authenticated DevSpace VERIFIED, later-than-expiry zero-spawn REPLAY assertions, export, and leakage PASS, but the end-to-end test exited 1 because the independent verifier did not anchor the shallow prerequisite base to a local ref before `git bundle verify`. The failed candidate/root are preserved. A bounded two-file test repair, real shallow thin-bundle regression, retained-export reverification, and final 112-file audit suite pass; next: bank new immutable candidate → exact candidate suite → one DevSpace-only authenticated live closure → D075 OPERATE → DECIDE → DELETE.
+**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`: 111-file native suite PASS, live Fluxara VERIFIED with one spawn, normal fresh-process REPLAY with zero spawns and unusable tools, independent portable verification PASS, leakage PASS, and former ToolLauncher/Windows/phase-lineage runtime deleted. D074 PROVE closed under exact repair candidate `4ad92f0`: 112-file native suite PASS, exact shallow DevSpace authority, one authenticated spawn → VERIFIED child `30ad240b`, normal exit, fresh-process REPLAY 60 seconds after expiry with zero spawns and unusable tools, independent Node validation PASS, and leakage PASS.** Both D074 candidate roots remain retained. Next: D075 OPERATE → DECIDE → DELETE.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -14,7 +14,7 @@
 | D071 | **Functional PASS; custody closure superseded** — isolated ToolLauncher `7fab419f20ba`; sealed objective → exact PS 5.1 missing/valid/corrupt validation → live VERIFIED + in-process replay; marker deleted. Post-close audit: child object/ref and AO evidence were deleted with transient roots. |
 | D072 | **Substrate implemented; legacy closure superseded** — receipt-first lookup, lazy tool binding, immutable terminal evidence, fresh-process replay, fail-closed conflicts, and portable verification pass offline. `5d677a8` live process 1 spawned AO once but failed trusted PowerShell optional-parameter validation before VERIFIED. Failed create-only root retained. |
 | D073 | **Closed under `87de018`** — Fluxara `8548fe5` → verified child `2f2e615`; live spawn one → VERIFIED; fresh process with unusable tools → REPLAY spawn zero; independent export and leakage PASS; former ToolLauncher/PowerShell/CheckShortcut/Windows/phase-lineage path deleted without compatibility. |
-| D074 | **First immutable candidate failed only at portable-verifier prerequisite anchoring; audited repair candidate next** — `87472e1` passed the exact 112-file native suite and retained DevSpace child `b821c485` after one authenticated spawn, terminal VERIFIED, expired zero-spawn REPLAY assertions, clean export, and leakage PASS. Independent verification failed because the exact shallow base object was fetched but not anchored to a local ref. Preserve the candidate/root. The two-file `refs/verify/base` repair, real shallow regression, retained-export reverification, truth contract, and final 112-file audit suite now pass; bank them in one new immutable candidate. Production skill/runtime/kernel/CLI/package surfaces remain frozen. |
+| D074 | **Closed under `4ad92f0`** — exact candidate suite 112/112 PASS; DevSpace pinned base `00952c05` → verified child `30ad240b`; one authenticated spawn → terminal VERIFIED; normal process exit; fresh process after expiry → REPLAY spawn zero with unusable tools; independent export validation and leakage PASS; failed `87472e1` and both create-only roots retained. Production skill/runtime/kernel/CLI/package surfaces remained frozen. |
 | D075 | **OPERATE after D074** through one minimal private example-driven seam for repeated real changes. No public CLI, compatibility, provider registry, delivery, concurrency, or workflow framework. |
 | DECIDE / DELETE | Decide a stable public execution surface from repeated D075 evidence, then delete unsupported surfaces only after replacement usability exists. |
 
@@ -63,7 +63,12 @@ BOUNDED TEST-VERIFIER REPAIR
 + real shallow-source thin-bundle regression PASS
 + retained export re-verifies: exact parent/path, both Node commands exit 0, leakage PASS
         ↓
-NEW IMMUTABLE CANDIDATE + exact 112-file suite + DevSpace-only authenticated live closure
+REPAIR CANDIDATE 4ad92f0 → D074 CLOSED
++ exact 112-file suite PASS
++ exact one-revision shallow DevSpace authority; no remote; clean pinned-base primary clone
++ one authenticated spawn → terminal VERIFIED child 30ad240b + durable ref
++ normal exit → process 2 at expiry + 60s → REPLAY with unusable tools and zero spawns
++ independent two-command Node validation + leakage PASS across 16 files
         ↓
 D075 OPERATE: minimal private example-driven seam + repeated real operator changes
 + record friction; no public CLI or compatibility path

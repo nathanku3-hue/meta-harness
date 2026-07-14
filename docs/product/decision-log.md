@@ -2472,6 +2472,33 @@ Binding next gate:
 
 No retry of `87472e1`, amend, validator weakening, production-runtime change, compatibility, Fluxara substitution, remote push, or public-surface expansion is authorized.
 
+### D074 cross-ecosystem custody closure
+
+Audit: `docs/ops/audits/d074-cross-ecosystem-custody-closure-audit.json`.
+
+Verdict: **D074 is closed under exact repair candidate `4ad92f0bf0643a48bb90ab86ee3fe7f9fd31184b`, tree `064689e945889c1ee2d5b4a132d6c7a12cf2d706`. D075 OPERATE is next.**
+
+Closure evidence:
+
+- Exact native Windows Node `v25.2.1` literal `npm test`: 112 files, zero failures, exit 0, 190.5 seconds; tracked candidate worktree remained clean.
+- Only `CUSTODY_LIVE_DEVSPACE=1` was set for the live gate; generic and Fluxara flags were unset. The focused test exited 0 in 64.7 seconds and wrote retained closure evidence.
+- Authority came from an empty repository plus exact depth-one fetch of DevSpace commit `00952c05f01248773a90cd293aed528672eb6f1b`, tree `65e249664f7146e7bff6c36d530f3de1cd0068e4`. The primary clone finished clean at that base with one visible revision, matching shallow boundary, and no remote. The dirty operator checkout was not authority.
+- Process 1 exited normally after one authenticated Codex spawn (`0.144.1`, exit 0) and terminal `VERIFIED` / `IMPLEMENTATION_VERIFIED` at child commit `30ad240b0b709cd330132b978e096ccbc7620c1a`, tree `f7d7ff71c97a69046d3779a7bc8c32153bde506b`. Its exact parent is the pinned base and its sole changed path is `scripts/dev-server.mjs`.
+- Create-only durable ref `refs/meta-harness/attempts/babefc9946271112317c7119e5ae2d824a3b91fd5cb46bf5515c17eebbdb4680` targets the verified child. Terminal manifest digest is `sha256:ff8c695ecf57f94218f5c2c936ed2f4004c46b9117a6bc86a4de07804614ac7a`.
+- Process 2 used clock `2026-07-14T12:55:53.524Z`, exactly 60 seconds after authorization expiry, and unusable execution/validation tool paths. It exited normally with `REPLAY`, unchanged verified identity, and zero agent spawns.
+- Portable export digest is `sha256:ec4f1b5f3d11a02a7df14d1023a733a4289f8afca928149b6c2ddda81622a348`. Independent verification proved exact child/parent/path, reran `node --check` and the strengthened import/command/lifecycle validator with exit 0, and returned leakage PASS across 16 files.
+- Failed candidate `87472e1` and root `.meta-harness/local/custody/custody-devspace-87472e187a8d-5c3362472026` remain preserved. Successful root `.meta-harness/local/custody/custody-devspace-4ad92f0bf064-b2e76672f6b4` is retained. Neither candidate was amended or rerun after failure/success.
+
+Scope truth:
+
+- D074 proves reuse across Fluxara/Python and DevSpace/Node through one shared phase-neutral custody workflow.
+- No production abstraction, provider registry, second runtime, public command, compatibility layer, package, lockfile, contract-kernel, or production skill change was needed.
+- The evidence is structural semantic preservation plus import-time behavior and independent Node validation; it is not exhaustive certification of every DevSpace watcher/process transition or a hermetic third-party dependency environment.
+
+Binding next gate:
+
+D075 OPERATE must expose one minimal private example-driven seam over the proven custody core, use it repeatedly for real changes, and record actual operator friction. It does not authorize a public CLI, provider abstraction, compatibility, delivery semantics, concurrency framework, or broad deletion. DECIDE and DELETE remain blocked until repeated operator-use evidence exists.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:

@@ -43,68 +43,47 @@ function findRow(rows, pattern) {
   return row;
 }
 
-test("status records the failed first D074 candidate, bounded repair, and new immutable live-closure gate", () => {
+test("status records D074 closure and the D075 private-operator gate", () => {
   const status = read(".meta-harness/status.md");
   const goal = section(status, "Goal");
   const currentTruth = section(status, "Current truth");
   const lastVerified = section(status, "Last verified");
   const nextAction = section(status, "Next action");
 
-  assert.match(goal, /failed immutable D074 candidate `87472e1`/i);
-  assert.match(goal, /new immutable candidate/i);
-  assert.match(goal, /DevSpace-only authenticated gate/i);
-  assert.match(goal, /expired zero-spawn REPLAY/i);
-  assert.match(goal, /portable Node verification/i);
+  assert.match(goal, /D074 closed under candidate `4ad92f0`/i);
   assert.match(goal, /D075 OPERATE/i);
+  assert.match(goal, /minimal private example-driven seam/i);
+  assert.match(goal, /DECIDE and DELETE blocked/i);
+
   assert.match(currentTruth, /D073 closed under exact implementation candidate `87de018`/i);
-  assert.match(currentTruth, /111-file native Windows Node 25 suite passed/i);
-  assert.match(currentTruth, /Fluxara process 1.*once.*VERIFIED/i);
-  assert.match(currentTruth, /process 2.*REPLAY.*zero spawns/i);
-  assert.match(currentTruth, /leakage scanning across 16 files/i);
-  assert.match(currentTruth, /internal\/execution-custody/i);
-  assert.match(currentTruth, /production imports from `internal\/d069` are deleted/i);
-  assert.match(currentTruth, /d073-functional-custody-replacement-audit\.json/i);
-  assert.match(currentTruth, /d073-post-close-forward-audit\.json/i);
-  assert.match(currentTruth, /D074 implementation is now audit-accepted but not closed/i);
-  assert.match(currentTruth, /phase-neutral shared live workflow/i);
-  assert.match(currentTruth, /exact depth-one fetch/i);
-  assert.match(currentTruth, /under-validation defect/i);
-  assert.match(currentTruth, /lifecycle/i);
-  assert.match(currentTruth, /first immutable D074 candidate `87472e1`/i);
-  assert.match(currentTruth, /112 files, zero failures, exit 0/i);
-  assert.match(currentTruth, /child commit `b821c485`/i);
-  assert.match(currentTruth, /later-than-expiry zero-spawn replay assertions/i);
-  assert.match(currentTruth, /disconnected prerequisite/i);
-  assert.match(currentTruth, /refs\/verify\/base/i);
-  assert.match(currentTruth, /new immutable candidate/i);
-  assert.match(currentTruth, /d074-pre-candidate-functional-slice-audit\.json/i);
-  assert.match(currentTruth, /d074-candidate-87472e1-live-failure-audit\.json/i);
+  assert.match(currentTruth, /D074 is now closed under exact repair candidate `4ad92f0bf0643a48bb90ab86ee3fe7f9fd31184b`/i);
+  assert.match(currentTruth, /tree `064689e945889c1ee2d5b4a132d6c7a12cf2d706`/i);
+  assert.match(currentTruth, /112 files with zero failures/i);
+  assert.match(currentTruth, /terminal VERIFIED child `30ad240b`/i);
+  assert.match(currentTruth, /process-2 REPLAY exactly 60 seconds after receipt expiry/i);
+  assert.match(currentTruth, /unusable tools and zero spawns/i);
+  assert.match(currentTruth, /leakage PASS across 16 exported files/i);
+  assert.match(currentTruth, /one visible shallow revision and no remote/i);
+  assert.match(currentTruth, /d074-cross-ecosystem-custody-closure-audit\.json/i);
 
-  assert.match(lastVerified, /87de018b06cb788eedbc8d3cf9e0737989702471/i);
-  assert.match(lastVerified, /112 files, zero failures/i);
-  assert.match(lastVerified, /87472e187a8d228bbf0a5b51167bb5969aa4dfb5/i);
-  assert.match(lastVerified, /b821c48548a0ce7faeb1ccbdb97c85af0b44a270/i);
-  assert.match(lastVerified, /e19392949e88367145b300393988fdfe37d4ffef13d3b25113fbca620f865d95/i);
-  assert.match(lastVerified, /2f2e6156b5b89726e4047a1118e2aebac5c55f27/i);
+  assert.match(lastVerified, /4ad92f0bf0643a48bb90ab86ee3fe7f9fd31184b/i);
+  assert.match(lastVerified, /064689e945889c1ee2d5b4a132d6c7a12cf2d706/i);
+  assert.match(lastVerified, /30ad240b0b709cd330132b978e096ccbc7620c1a/i);
+  assert.match(lastVerified, /ff8c695ecf57f94218f5c2c936ed2f4004c46b9117a6bc86a4de07804614ac7a/i);
+  assert.match(lastVerified, /ec4f1b5f3d11a02a7df14d1023a733a4289f8afca928149b6c2ddda81622a348/i);
   assert.match(lastVerified, /REPLAY/i);
+  assert.match(lastVerified, /zero spawns/i);
   assert.match(lastVerified, /leakage PASS/i);
-  assert.match(lastVerified, /failed candidate roots/i);
+  assert.match(lastVerified, /primary child clone remained clean/i);
 
-  assert.match(nextAction, /two test-only changes/i);
-  assert.match(nextAction, /refs\/verify\/base/i);
-  assert.match(nextAction, /preserve failed candidate `87472e1`/i);
-  assert.match(nextAction, /one new immutable candidate/i);
-  assert.match(nextAction, /112 files, zero failures/i);
-  assert.match(nextAction, /only `tests\/runtime-execution-custody-devspace-live\.test\.js`/i);
-  assert.match(nextAction, /CUSTODY_LIVE_DEVSPACE=1/i);
-  assert.match(nextAction, /CUSTODY_LIVE_FLUXARA.*unset/i);
-  assert.match(nextAction, /VERIFIED/i);
-  assert.match(nextAction, /REPLAY.*zero spawns/i);
-  assert.match(nextAction, /leakage PASS/i);
-  assert.match(nextAction, /separate commit/i);
-  assert.match(nextAction, /no amend|do not amend/i);
   assert.match(nextAction, /D075 OPERATE/i);
-  assert.doesNotMatch(nextAction, /D073.*REPLACE\+CLOSE/i);
+  assert.match(nextAction, /minimal private example-driven seam/i);
+  assert.match(nextAction, /repeated real changes/i);
+  assert.match(nextAction, /record.*operator friction/i);
+  assert.match(nextAction, /do not add a public CLI/i);
+  assert.match(nextAction, /provider registry/i);
+  assert.match(nextAction, /DECIDE and DELETE remain blocked/i);
+  assert.doesNotMatch(nextAction, /new immutable candidate/i);
   assert.doesNotMatch(nextAction, /force(?:-|\s)?push/i);
 });
 
@@ -142,18 +121,18 @@ test("roadmap orders closed D073 before cross-ecosystem D074, D075 OPERATE, DECI
   assert.match(d073.detail, /d073-functional-custody-replacement-audit\.json/i);
 
   assert.match(d074.name, /Cross-Ecosystem Reuse Proof/i);
-  assert.match(d074.state, /first immutable candidate failed/i);
-  assert.match(d074.state, /new candidate pending/i);
-  assert.match(d074.detail, /candidate `87472e1`/i);
+  assert.match(d074.state, /closed under `4ad92f0`/i);
+  assert.match(d074.detail, /candidate `4ad92f0`/i);
+  assert.match(d074.detail, /tree `064689e9`/i);
   assert.match(d074.detail, /112 files with zero failures/i);
-  assert.match(d074.detail, /exact shallow authority/i);
-  assert.match(d074.detail, /child `b821c485`/i);
-  assert.match(d074.detail, /expired zero-spawn REPLAY assertions/i);
-  assert.match(d074.detail, /git bundle verify/i);
-  assert.match(d074.detail, /refs\/verify\/base/i);
+  assert.match(d074.detail, /one-revision shallow authority/i);
+  assert.match(d074.detail, /child `30ad240b`/i);
+  assert.match(d074.detail, /60 seconds after receipt expiry/i);
+  assert.match(d074.detail, /unusable tools and zero spawns/i);
   assert.match(d074.detail, /both Node validations exit 0/i);
-  assert.match(d074.detail, /leakage PASS/i);
-  assert.match(d074.detail, /d074-candidate-87472e1-live-failure-audit\.json/i);
+  assert.match(d074.detail, /leakage PASS across 16 files/i);
+  assert.match(d074.detail, /failed candidate `87472e1`/i);
+  assert.match(d074.detail, /d074-cross-ecosystem-custody-closure-audit\.json/i);
 
   assert.match(operate.name, /Private Operator Use Gate/i);
   assert.match(operate.state + operate.detail, /after D074/i);
@@ -189,6 +168,10 @@ test("product re-charter and D073 closure are explicit across primary surfaces",
   assert.match(decisionLog, /D073 post-close forward audit/i);
   assert.match(decisionLog, /D074 pre-candidate functional-slice audit/i);
   assert.match(decisionLog, /D074 first immutable candidate live-failure audit/i);
+  assert.match(decisionLog, /D074 cross-ecosystem custody closure/i);
+  assert.match(prd, /D074 closed under exact candidate `4ad92f0`/i);
+  assert.match(spec, /D074 closed under exact candidate `4ad92f0`/i);
+  assert.match(architecture, /D074 cross-ecosystem custody proof closed under `4ad92f0`/i);
 });
 
 test("D073 audit binds exact suite, live replay, export, and deletion truth", () => {
@@ -361,6 +344,101 @@ test("D074 first immutable candidate failure audit preserves evidence and author
   assert.equal(audit.decision.rerunFailedCandidateAuthorized, false);
   assert.equal(audit.decision.amendFailedCandidateAuthorized, false);
   assert.equal(audit.decision.afterClosure, "D075_OPERATE");
+});
+
+test("D074 closure audit binds the exact repair candidate, live replay, and portable evidence", () => {
+  const audit = JSON.parse(read("docs/ops/audits/d074-cross-ecosystem-custody-closure-audit.json"));
+  assert.equal(audit.kind, "d074-cross-ecosystem-custody-closure-audit");
+  assert.equal(audit.verdict, "CROSS_ECOSYSTEM_CUSTODY_PROOF_CLOSED");
+  assert.equal(audit.decision.id, "D074");
+  assert.equal(audit.decision.status, "closed");
+  assert.equal(
+    audit.decision.closedUnderCandidate,
+    "4ad92f0bf0643a48bb90ab86ee3fe7f9fd31184b",
+  );
+  assert.equal(audit.decision.candidateTree, "064689e945889c1ee2d5b4a132d6c7a12cf2d706");
+  assert.equal(audit.decision.next, "D075_OPERATE");
+  assert.equal(audit.decision.publicExecutionSurfaceAuthorized, false);
+  assert.equal(audit.decision.compatibilityAuthorized, false);
+  assert.equal(audit.decision.providerRegistryAuthorized, false);
+  assert.equal(audit.decision.broadDeletionAuthorized, false);
+
+  assert.equal(audit.failedCandidateHistory.candidate, "87472e187a8d228bbf0a5b51167bb5969aa4dfb5");
+  assert.equal(audit.failedCandidateHistory.immutable, true);
+  assert.equal(audit.failedCandidateHistory.rerun, false);
+  assert.equal(audit.failedCandidateHistory.amended, false);
+  assert.equal(audit.implementationCandidate.pathCount, 9);
+  assert.equal(audit.implementationCandidate.trackedWorktreeCleanAfterSuite, true);
+  assert.equal(audit.implementationCandidate.trackedWorktreeCleanAfterLiveGate, true);
+  assert.equal(audit.implementationCandidate.productionRuntimeChanged, false);
+  assert.equal(audit.implementationCandidate.publicSurfaceChanged, false);
+
+  assert.equal(audit.candidateSuite.nodeVersion, "v25.2.1");
+  assert.equal(audit.candidateSuite.testFiles, 112);
+  assert.equal(audit.candidateSuite.failed, 0);
+  assert.equal(audit.candidateSuite.exitCode, 0);
+  assert.equal(audit.liveGate.exitCode, 0);
+  assert.equal(audit.liveGate.environment.CUSTODY_LIVE, "unset");
+  assert.equal(audit.liveGate.environment.CUSTODY_LIVE_DEVSPACE, "1");
+  assert.equal(audit.liveGate.environment.CUSTODY_LIVE_FLUXARA, "unset");
+
+  assert.equal(audit.childAuthority.baseRevision, "00952c05f01248773a90cd293aed528672eb6f1b");
+  assert.equal(audit.childAuthority.baseTree, "65e249664f7146e7bff6c36d530f3de1cd0068e4");
+  assert.equal(audit.childAuthority.primaryCloneTrackedWorktreeClean, true);
+  assert.equal(audit.childAuthority.visibleRevisionCount, 1);
+  assert.equal(audit.childAuthority.remoteCount, 0);
+  assert.equal(audit.childAuthority.workingTreeBytesUsedAsAuthority, false);
+
+  assert.equal(audit.process1.processExitCode, 0);
+  assert.equal(audit.process1.controllerClosedAndProcessExited, true);
+  assert.equal(audit.process1.disposition, "VERIFIED");
+  assert.equal(audit.process1.verdict, "IMPLEMENTATION_VERIFIED");
+  assert.equal(audit.process1.agentSpawnCount, 1);
+  assert.equal(audit.process1.agentExitCode, 0);
+  assert.equal(audit.process1.agentTimedOut, false);
+  assert.equal(
+    audit.process1.verifiedHeadRevision,
+    "30ad240b0b709cd330132b978e096ccbc7620c1a",
+  );
+  assert.equal(audit.process1.resultParent, "00952c05f01248773a90cd293aed528672eb6f1b");
+  assert.deepEqual(audit.process1.changedPaths, ["scripts/dev-server.mjs"]);
+  assert.equal(
+    audit.process1.durableRefTarget,
+    "30ad240b0b709cd330132b978e096ccbc7620c1a",
+  );
+
+  assert.equal(audit.process2.secondsAfterAuthorizationExpiry, 60);
+  assert.equal(audit.process2.laterThanAuthorizationExpiry, true);
+  assert.equal(audit.process2.processExitCode, 0);
+  assert.equal(audit.process2.controllerClosedAndProcessExited, true);
+  assert.equal(audit.process2.disposition, "REPLAY");
+  assert.equal(audit.process2.agentSpawnCount, 0);
+  assert.equal(audit.process2.executionToolPathsUsable, false);
+  assert.equal(audit.process2.validationToolPathUsable, false);
+  assert.equal(audit.process2.verifiedHeadUnchanged, true);
+  assert.equal(audit.process2.terminalManifestUnchanged, true);
+
+  assert.equal(audit.portable.independentVerificationPassed, true);
+  assert.equal(audit.portable.independentResultCommit, "30ad240b0b709cd330132b978e096ccbc7620c1a");
+  assert.equal(audit.portable.independentParent, "00952c05f01248773a90cd293aed528672eb6f1b");
+  assert.deepEqual(audit.portable.independentChangedPaths, ["scripts/dev-server.mjs"]);
+  assert.deepEqual(audit.portable.validation.map((entry) => entry.exitCode), [0, 0]);
+  assert.equal(audit.portable.leakageScanPassed, true);
+  assert.equal(audit.portable.scannedFiles, 16);
+  assert.deepEqual(audit.portable.findings, []);
+
+  assert.equal(audit.repairConfirmation.shallowPrerequisiteAnchoredAt, "refs/verify/base");
+  assert.equal(audit.repairConfirmation.failedCandidateRetainedExportReverifiedBeforeNewCandidate, true);
+  assert.equal(audit.repairConfirmation.newCandidateIndependentVerificationPassed, true);
+  assert.equal(audit.repairConfirmation.sameFailureDidNotRecur, true);
+  assert.equal(audit.repairConfirmation.validatorWeakened, false);
+  assert.equal(audit.claims.crossEcosystemReuseProved, true);
+  assert.equal(audit.claims.expiredFreshProcessReplayProved, true);
+  assert.equal(audit.claims.zeroSpawnReplayProved, true);
+  assert.equal(audit.claims.portableNodeValidationProved, true);
+  assert.equal(audit.claims.leakagePassProved, true);
+  assert.equal(audit.claims.exhaustiveDevServerLifecycleCertification, false);
+  assert.equal(audit.claims.d074Closed, true);
 });
 
 test("D074 implementation slice uses one phase-neutral live harness and a Node example", () => {
