@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`: 111-file native suite PASS, live Fluxara VERIFIED with one spawn, normal fresh-process REPLAY with zero spawns and unusable tools, independent portable verification PASS, leakage PASS, and former ToolLauncher/Windows/phase-lineage runtime deleted. D074 PROVE closed under exact repair candidate `4ad92f0`: 112-file native suite PASS, exact shallow DevSpace authority, one authenticated spawn → VERIFIED child `30ad240b`, normal exit, fresh-process REPLAY 60 seconds after expiry with zero spawns and unusable tools, independent Node validation PASS, and leakage PASS.** Both D074 candidate roots remain retained. D075 private-operator implementation is audit-accepted: one production-owned orchestration path, one unregistered local request entrypoint, thin live-test adapters, exact request-byte and candidate clean-before/after binding, and 113-file baseline suite PASS. Next: immutable D075 candidate → exact suite → retained DevSpace/Node and Fluxara/Python operations → DECIDE → DELETE.
+**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`: 111-file native suite PASS, live Fluxara VERIFIED with one spawn, normal fresh-process REPLAY with zero spawns and unusable tools, independent portable verification PASS, leakage PASS, and former ToolLauncher/Windows/phase-lineage runtime deleted. D074 PROVE closed under exact repair candidate `4ad92f0`: 112-file native suite PASS, exact shallow DevSpace authority, one authenticated spawn → VERIFIED child `30ad240b`, normal exit, fresh-process REPLAY 60 seconds after expiry with zero spawns and unusable tools, independent Node validation PASS, and leakage PASS. D075 OPERATE closed under exact candidate `cd63e52`: 113-file native suite PASS plus distinct retained DevSpace/Node and Fluxara/Python operations through one production-owned private seam, each with one spawn → VERIFIED, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, unchanged source checkout, and create-only receipt.** Next: DECIDE one bounded public-surface outcome, then DELETE only if separately authorized.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -15,8 +15,8 @@
 | D072 | **Substrate implemented; legacy closure superseded** — receipt-first lookup, lazy tool binding, immutable terminal evidence, fresh-process replay, fail-closed conflicts, and portable verification pass offline. `5d677a8` live process 1 spawned AO once but failed trusted PowerShell optional-parameter validation before VERIFIED. Failed create-only root retained. |
 | D073 | **Closed under `87de018`** — Fluxara `8548fe5` → verified child `2f2e615`; live spawn one → VERIFIED; fresh process with unusable tools → REPLAY spawn zero; independent export and leakage PASS; former ToolLauncher/PowerShell/CheckShortcut/Windows/phase-lineage path deleted without compatibility. |
 | D074 | **Closed under `4ad92f0`** — exact candidate suite 112/112 PASS; DevSpace pinned base `00952c05` → verified child `30ad240b`; one authenticated spawn → terminal VERIFIED; normal process exit; fresh process after expiry → REPLAY spawn zero with unusable tools; independent export validation and leakage PASS; failed `87472e1` and both create-only roots retained. Production skill/runtime/kernel/CLI/package surfaces remained frozen. |
-| D075 | **Implementation audit accepted; immutable candidate and two operations pending** — one production-owned example-driven operator, one unregistered local request script, thin test adapters, exact request-byte digest, clean immutable candidate pre/post checks, shallow authority, VERIFIED → expiry+60s REPLAY → portable verifier/leakage receipt. Closure requires distinct DevSpace/Node and Fluxara/Python operations. No public CLI, compatibility, provider registry, delivery, concurrency, or workflow framework. |
-| DECIDE / DELETE | Decide a stable public execution surface from repeated D075 evidence, then delete unsupported surfaces only after replacement usability exists. |
+| D075 | **Closed under `cd63e52`** — exact 113-file candidate suite PASS; retained DevSpace/Node child `47c0d016` and Fluxara/Python child `c0032669`; each operation used exact one-revision shallow authority, one authenticated spawn → VERIFIED, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, unchanged source checkout, and create-only receipt. The seam remains private and unregistered. |
+| DECIDE / DELETE | DECIDE is next from retained D075 evidence: keep the seam private, authorize one narrow stable command, or reject a public surface for now. DELETE remains blocked until that decision and separate authorization. |
 
 ## Functional-first roadmap
 
@@ -70,19 +70,13 @@ REPAIR CANDIDATE 4ad92f0 → D074 CLOSED
 + normal exit → process 2 at expiry + 60s → REPLAY with unusable tools and zero spawns
 + independent two-command Node validation + leakage PASS across 16 files
         ↓
-D075 OPERATE IMPLEMENTATION ACCEPTED
-+ production-owned operator + fresh-process child + portable verifier
-+ unregistered ignored-local-request entrypoint; no bin/package/public contract
-+ tests delegate to the same workflow; 113-file baseline suite PASS
+D075 OPERATE CLOSED (cd63e52)
++ exact 113-file suite PASS
++ DevSpace/Node retained receipt: VERIFIED → expiry+60s REPLAY → Node validation/leakage PASS
++ Fluxara/Python retained receipt: VERIFIED → expiry+60s REPLAY → Python validation/leakage PASS
++ actual friction recorded; private entrypoint remains unregistered
         ↓
-IMMUTABLE D075 CANDIDATE + exact suite
-        ↓
-PRIVATE OPERATION 1: DevSpace/Node retained receipt
-        ↓
-PRIVATE OPERATION 2: Fluxara/Python retained receipt
-+ record friction; no public CLI or compatibility path
-        ↓
-DECIDE one stable public execution surface from actual use
+DECIDE one bounded public execution surface outcome from actual use
         ↓
 DELETE: preserve supported jobs (`init`, `record`, `status`, `check`, `sync`, and active `release check`)
 + delete everything without a current supported job or unique safety invariant

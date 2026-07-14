@@ -43,48 +43,50 @@ function findRow(rows, pattern) {
   return row;
 }
 
-test("status records D075 implementation acceptance and the immutable repeated-use gate", () => {
+test("status records D075 closure and the bounded DECIDE gate", () => {
   const status = read(".meta-harness/status.md");
   const goal = section(status, "Goal");
   const currentTruth = section(status, "Current truth");
   const lastVerified = section(status, "Last verified");
   const nextAction = section(status, "Next action");
 
-  assert.match(goal, /immutable D075 private-operator candidate/i);
+  assert.match(goal, /D075 private operator use is closed/i);
+  assert.match(goal, /candidate `cd63e52`/i);
   assert.match(goal, /113-file native suite/i);
   assert.match(goal, /DevSpace\/Node and Fluxara\/Python/i);
-  assert.match(goal, /clean-before\/after receipts/i);
   assert.match(goal, /expiry\+60s zero-spawn REPLAY/i);
-  assert.match(goal, /DECIDE and DELETE blocked/i);
+  assert.match(goal, /DECIDE/i);
+  assert.match(goal, /DELETE blocked/i);
 
-  assert.match(currentTruth, /D075 private-operator implementation is now audit-accepted but not closed/i);
+  assert.match(currentTruth, /D075 is closed under exact immutable candidate `cd63e5295b8bbde1afaf1ab5d991aadc13cc0442`/i);
+  assert.match(currentTruth, /tree `5b15623e7646da18e2417bd38767ff3f5be54547`/i);
   assert.match(currentTruth, /internal\/execution-custody\/operator\.js/i);
-  assert.match(currentTruth, /clean immutable Meta-Harness candidate before root creation/i);
   assert.match(currentTruth, /exact request bytes/i);
   assert.match(currentTruth, /create-only `operator-receipt\.json`/i);
   assert.match(currentTruth, /intentionally unregistered/i);
-  assert.match(currentTruth, /17 with two authenticated gates skipped/i);
   assert.match(currentTruth, /113 files with zero failures/i);
+  assert.match(currentTruth, /d075-devspace-01/i);
+  assert.match(currentTruth, /child `47c0d016`/i);
+  assert.match(currentTruth, /d075-fluxara-01/i);
+  assert.match(currentTruth, /child `c0032669`/i);
   assert.match(currentTruth, /Python 3\.14\.4/i);
-  assert.match(currentTruth, /d075-private-operator-functional-slice-audit\.json/i);
-  assert.match(currentTruth, /D074 is now closed under exact repair candidate `4ad92f0bf0643a48bb90ab86ee3fe7f9fd31184b`/i);
+  assert.match(currentTruth, /d075-private-operator-closure-audit\.json/i);
 
-  assert.match(lastVerified, /D075 focused operator\/custody coverage passes 17/i);
-  assert.match(lastVerified, /baseline native Windows Node `v25\.2\.1` suite passes 113 files/i);
-  assert.match(lastVerified, /baseline evidence only/i);
-  assert.match(lastVerified, /4ad92f0bf0643a48bb90ab86ee3fe7f9fd31184b/i);
+  assert.match(lastVerified, /Exact D075 candidate `cd63e5295/i);
+  assert.match(lastVerified, /113 files, zero failures, exit 0/i);
+  assert.match(lastVerified, /d075-devspace-01-cd63e52/i);
+  assert.match(lastVerified, /47c0d01671d6d69a9a9cc3f097f99ce9300fb74e/i);
+  assert.match(lastVerified, /a4a3b98545aaf9a96d0c59e9625bb51f7e6135b1c90394583873a5ad39d75e81/i);
+  assert.match(lastVerified, /d075-fluxara-01-cd63e52/i);
+  assert.match(lastVerified, /c00326698c19e7cc096f45eca78ea0b54bb8e535/i);
+  assert.match(lastVerified, /5c659e24181121e0af2a647b19e129ab2e3b7725f0d9ad365055b4de7d28b68d/i);
 
-  assert.match(nextAction, /final native 113-file pre-candidate suite/i);
-  assert.match(nextAction, /one immutable candidate without amend/i);
-  assert.match(nextAction, /d075-devspace-01/i);
-  assert.match(nextAction, /d075-fluxara-01/i);
-  assert.match(nextAction, /distinct create-only root/i);
-  assert.match(nextAction, /exact candidate identity and clean-before\/after/i);
-  assert.match(nextAction, /REPLAY and zero spawns/i);
-  assert.match(nextAction, /create-only operator receipt/i);
-  assert.match(nextAction, /never reuse an operation identity\/root/i);
-  assert.match(nextAction, /separate commit/i);
-  assert.match(nextAction, /DECIDE and DELETE remain blocked/i);
+  assert.match(nextAction, /DECIDE_PUBLIC_EXECUTION_SURFACE/i);
+  assert.match(nextAction, /keep the seam private/i);
+  assert.match(nextAction, /one narrow stable public command/i);
+  assert.match(nextAction, /reject a public surface/i);
+  assert.match(nextAction, /Do not implement the decision in the same step/i);
+  assert.match(nextAction, /DELETE remains blocked/i);
   assert.doesNotMatch(nextAction, /force(?:-|\s)?push/i);
 });
 
@@ -136,13 +138,17 @@ test("roadmap orders closed D073 before cross-ecosystem D074, D075 OPERATE, DECI
   assert.match(d074.detail, /d074-cross-ecosystem-custody-closure-audit\.json/i);
 
   assert.match(operate.name, /Private Operator Use Gate/i);
-  assert.match(operate.state, /implementation audit accepted/i);
-  assert.match(operate.state, /candidate and repeated use pending/i);
-  assert.match(operate.detail, /internal\/execution-custody\/operator\.js/i);
-  assert.match(operate.detail, /ignored absolute local request/i);
-  assert.match(operate.detail, /DevSpace\/Node and Fluxara\/Python/i);
-  assert.match(operate.detail, /d075-private-operator-functional-slice-audit\.json/i);
-  assert.match(decide.state + decide.detail, /after repeated D075 use/i);
+  assert.match(operate.state, /closed under `cd63e52`/i);
+  assert.match(operate.detail, /candidate `cd63e52`/i);
+  assert.match(operate.detail, /tree `5b15623e`/i);
+  assert.match(operate.detail, /113 files with zero failures/i);
+  assert.match(operate.detail, /d075-devspace-01/i);
+  assert.match(operate.detail, /d075-fluxara-01/i);
+  assert.match(operate.detail, /one authenticated spawn/i);
+  assert.match(operate.detail, /expiry\+60s zero-spawn REPLAY/i);
+  assert.match(operate.detail, /leakage PASS across 16 files/i);
+  assert.match(operate.detail, /d075-private-operator-closure-audit\.json/i);
+  assert.match(decide.state + decide.detail, /next after closed D075 evidence/i);
   assert.match(deletion.state + deletion.detail, /after OPERATE and DECIDE/i);
   assert.ok(rows.indexOf(d073) < rows.indexOf(d074));
   assert.ok(rows.indexOf(d074) < rows.indexOf(operate));
@@ -175,10 +181,11 @@ test("product re-charter and D073 closure are explicit across primary surfaces",
   assert.match(decisionLog, /D074 first immutable candidate live-failure audit/i);
   assert.match(decisionLog, /D074 cross-ecosystem custody closure/i);
   assert.match(decisionLog, /D075 private-operator functional-slice audit/i);
+  assert.match(decisionLog, /D075 private-operator repeated-use closure/i);
   assert.match(prd, /D074 closed under exact candidate `4ad92f0`/i);
   assert.match(spec, /D074 closed under exact candidate `4ad92f0`/i);
   assert.match(architecture, /D074 cross-ecosystem custody proof closed under `4ad92f0`/i);
-  assert.match(architecture, /D075 private-operator implementation audit accepted/i);
+  assert.match(architecture, /D075 private-operator use closed under `cd63e52`/i);
 });
 
 test("D073 audit binds exact suite, live replay, export, and deletion truth", () => {
@@ -522,6 +529,82 @@ test("D075 audit binds the private operator boundary and repeated-use closure ga
   assert.equal(audit.claims.publicExecutionSurfaceExists, false);
   assert.equal(audit.claims.repeatedRealOperatorUseProved, false);
   assert.equal(audit.claims.d075Closed, false);
+});
+
+test("D075 closure audit binds the exact candidate and both retained operator receipts", () => {
+  const audit = JSON.parse(read("docs/ops/audits/d075-private-operator-closure-audit.json"));
+  assert.equal(audit.kind, "d075-private-operator-closure-audit");
+  assert.equal(audit.verdict, "PRIVATE_OPERATOR_REPEATED_USE_CLOSED");
+  assert.equal(audit.decision.id, "D075");
+  assert.equal(audit.decision.status, "closed");
+  assert.equal(audit.decision.closedUnderCandidate, "cd63e5295b8bbde1afaf1ab5d991aadc13cc0442");
+  assert.equal(audit.decision.candidateTree, "5b15623e7646da18e2417bd38767ff3f5be54547");
+  assert.equal(audit.decision.next, "DECIDE_PUBLIC_EXECUTION_SURFACE");
+  assert.equal(audit.decision.publicExecutionSurfaceAuthorized, false);
+  assert.equal(audit.decision.broadDeletionAuthorized, false);
+  assert.equal(audit.decision.deleteBlockedUntilDecision, true);
+
+  assert.equal(audit.candidateSuite.nodeVersion, "v25.2.1");
+  assert.equal(audit.candidateSuite.testFiles, 113);
+  assert.equal(audit.candidateSuite.failed, 0);
+  assert.equal(audit.candidateSuite.exitCode, 0);
+  assert.equal(audit.closureVerification.focused.nodeVersion, "v25.2.1");
+  assert.equal(audit.closureVerification.focused.tests, 21);
+  assert.equal(audit.closureVerification.focused.passed, 19);
+  assert.equal(audit.closureVerification.focused.skipped, 2);
+  assert.equal(audit.closureVerification.focused.failed, 0);
+  assert.equal(audit.closureVerification.focused.eventsJsonlRecords, 59);
+  assert.equal(audit.closureVerification.focused.gitDiffCheck, "PASS");
+  assert.equal(audit.closureVerification.completeNativeSuite.testFiles, 113);
+  assert.equal(audit.closureVerification.completeNativeSuite.failed, 0);
+  assert.equal(audit.closureVerification.completeNativeSuite.exitCode, 0);
+  assert.equal(audit.closureVerification.completeNativeSuite.worktreeStatusUnchanged, true);
+  assert.equal(audit.closureVerification.completeNativeSuite.candidateIdentityUnchanged, true);
+  assert.equal(audit.closureVerification.finalDurableResultUsed, true);
+  assert.equal(audit.candidate.trackedWorktreeCleanBeforeBothOperations, true);
+  assert.equal(audit.candidate.trackedWorktreeCleanAfterBothOperations, true);
+  assert.equal(audit.candidate.identityUnchangedAcrossSuiteAndOperations, true);
+
+  assert.deepEqual(audit.operations.map((entry) => entry.operationId), [
+    "d075-devspace-01",
+    "d075-fluxara-01",
+  ]);
+  const [devspace, fluxara] = audit.operations;
+  assert.equal(devspace.ecosystem, "DevSpace/Node");
+  assert.equal(devspace.authority.visibleRevisionCount, 1);
+  assert.equal(devspace.authority.remoteCount, 0);
+  assert.equal(devspace.process1.disposition, "VERIFIED");
+  assert.equal(devspace.process1.agentSpawnCount, 1);
+  assert.equal(devspace.process1.verifiedHeadRevision, "47c0d01671d6d69a9a9cc3f097f99ce9300fb74e");
+  assert.equal(devspace.process2.disposition, "REPLAY");
+  assert.equal(devspace.process2.secondsAfterAuthorizationExpiry, 60);
+  assert.equal(devspace.process2.agentSpawnCount, 0);
+  assert.equal(devspace.portable.independentVerificationPassed, true);
+  assert.deepEqual(devspace.portable.validationExitCodes, [0, 0]);
+  assert.equal(devspace.portable.leakageScanPassed, true);
+  assert.equal(devspace.portable.scannedFiles, 16);
+
+  assert.equal(fluxara.ecosystem, "Fluxara/Python");
+  assert.equal(fluxara.authority.visibleRevisionCount, 1);
+  assert.equal(fluxara.authority.remoteCount, 0);
+  assert.equal(fluxara.process1.disposition, "VERIFIED");
+  assert.equal(fluxara.process1.agentSpawnCount, 1);
+  assert.equal(fluxara.process1.verifiedHeadRevision, "c00326698c19e7cc096f45eca78ea0b54bb8e535");
+  assert.equal(fluxara.process2.disposition, "REPLAY");
+  assert.equal(fluxara.process2.secondsAfterAuthorizationExpiry, 60);
+  assert.equal(fluxara.process2.agentSpawnCount, 0);
+  assert.equal(fluxara.portable.independentVerificationPassed, true);
+  assert.deepEqual(fluxara.portable.validationExitCodes, [0, 0]);
+  assert.equal(fluxara.portable.leakageScanPassed, true);
+  assert.equal(fluxara.portable.scannedFiles, 16);
+
+  assert.equal(audit.operatorFriction.every((entry) => entry.operatorSeamDefect === false), true);
+  assert.equal(audit.claims.repeatedRealOperatorUseProved, true);
+  assert.equal(audit.claims.twoValidationEcosystemsProved, true);
+  assert.equal(audit.claims.publicExecutionSurfaceExists, false);
+  assert.equal(audit.claims.providerRegistryExists, false);
+  assert.equal(audit.claims.compatibilityPathExists, false);
+  assert.equal(audit.claims.d075Closed, true);
 });
 
 test("D074 and D075 share one phase-neutral operator workflow and a Node example", () => {

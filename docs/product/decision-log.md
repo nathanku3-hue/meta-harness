@@ -2536,6 +2536,34 @@ Binding next gate:
 6. Preserve every root on failure and never reuse an operation identity/root. A demonstrated seam defect requires a new immutable candidate; model or local-binding failure does not authorize abstraction or public-surface expansion.
 7. Close D075 in a separate commit only after both operations pass and friction is recorded. Then proceed to DECIDE; DELETE remains blocked.
 
+### D075 private-operator repeated-use closure
+
+Audit: `docs/ops/audits/d075-private-operator-closure-audit.json`.
+
+Verdict: **D075 is closed under exact immutable candidate `cd63e5295b8bbde1afaf1ab5d991aadc13cc0442`, tree `5b15623e7646da18e2417bd38767ff3f5be54547`. DECIDE_PUBLIC_EXECUTION_SURFACE is next; no public command or deletion is authorized by this closure.**
+
+Closure evidence:
+
+- Native Windows Node `v25.2.1` literal `npm test` passed 113 files with zero failures and exit 0. The final durable runner duration was 195.2 seconds; candidate commit, tree, and tracked cleanliness were unchanged before and after.
+- `d075-devspace-01` used exact one-revision shallow DevSpace authority at base `00952c05` / tree `65e24966`, with no remote and no working-tree authority. One authenticated spawn produced terminal VERIFIED child `47c0d01671d6d69a9a9cc3f097f99ce9300fb74e`, durable ref `refs/meta-harness/attempts/de6c8718956fe5276466d8b77ae61de5a14668f3aa73e081e5764408e7b4d559`, and terminal manifest `sha256:6ff77c811ac5626d7ca075fb6fa93f38c7003cbf0025a0ba526e212072d62d64`.
+- DevSpace process 2 ran exactly 60 seconds after retained authorization expiry with unusable agent and validation paths, returned REPLAY with zero spawns, independently reran both Node validations with exit 0, and passed leakage scanning across 16 files. Export manifest: `sha256:a4a3b98545aaf9a96d0c59e9625bb51f7e6135b1c90394583873a5ad39d75e81`.
+- `d075-fluxara-01` used exact one-revision shallow Fluxara authority at base `8548fe5` / tree `c33ac3e`, again without working-tree authority. One authenticated spawn produced terminal VERIFIED child `c00326698c19e7cc096f45eca78ea0b54bb8e535`, durable ref `refs/meta-harness/attempts/d60da65c52fd6a4026fdd1672aafb41407def59104823df829588959d4260640`, and terminal manifest `sha256:4eda210e73ac9b9ba4053905bdad9e75e925f4a9214f7720d6bd868a3a2acb20`.
+- Fluxara process 2 ran exactly 60 seconds after retained authorization expiry with unusable tools, returned REPLAY with zero spawns, independently reran both sealed Python validations with exit 0 under Python 3.14.4, and passed leakage scanning across 16 files. Export manifest: `sha256:5c659e24181121e0af2a647b19e129ab2e3b7725f0d9ad365055b4de7d28b68d`.
+- Both source operator checkouts remained byte-for-byte status-equivalent before and after. The Meta-Harness candidate remained clean and unchanged across both operations. Both create-only roots and operator receipts are retained.
+
+Observed friction:
+
+- The private seam requires explicit local source, agent, validation, environment, operation-ID, and create-only-root bindings. A native preflight plus generated ignored requests made the setup deterministic.
+- DevSpace completed in 56.2 seconds; Fluxara completed in 114.7 seconds, dominated by its sealed Python suite. This does not demonstrate a concurrency framework need.
+- A Windows PowerShell 5.1 wrapper initially used unsupported `ProcessStartInfo.ArgumentList`; it failed before operator launch or root creation and was corrected only in ignored local wrapper code.
+- Connector detachment allowed duplicate candidate-suite wrappers to overlap. The final durable 113/0/exit-0 artifact is load-bearing; no candidate mutation occurred. Neither wrapper issue is an operator-seam defect.
+
+Scope truth:
+
+- Repeated private operator usability is now proved outside tests across Node and Python validation ecosystems through one production-owned host-neutral workflow.
+- `scripts/operate-execution-custody.js` remains unregistered and private. No `bin` mapping, package script, package export, public CLI, provider registry, compatibility path, delivery semantics, concurrency framework, workflow framework, or deletion was added.
+- DECIDE must use the retained setup and latency evidence to choose one bounded outcome: keep the seam private, authorize one narrow stable public command, or reject a public surface for now. Implementation and DELETE require separate authorization.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:
