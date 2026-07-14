@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "v": 1,
-  "generated_at": "2026-07-14T19:23:14.059Z",
+  "generated_at": "2026-07-14T20:08:12.877Z",
   "generated_by": "meta-harness quality baseline refresh",
-  "source_commit": "0a2647c9a70143ad8b564ec0995ea9fb2659c2d2",
+  "source_commit": "76080be1e72d1ac8097573ebe6f52fde34ebdb7c",
   "baseline_policy_hash": "acc33a3beb1c967c85c2229ab6e5d308900d1ac8e551bcd74926a7a5e6fd2ea6",
   "owners_hash": "5ab5a4c7a3679e2b5ead605ae516302cd7362dc48efd2f6cfd2e37e4301f0730",
-  "previous_baseline_hash": "4854a6a3ae90720f42250e0cdbf50668f4f3f6e50769278c8610c52109564daa",
+  "previous_baseline_hash": "78fdacf6d62165e0a8f200f78c9790feaa59fd3bdba062cb521da89a04c01327",
   "quality_summary_before": {
-    "source_files": 309,
+    "source_files": 310,
     "overbudget_files": 6,
     "complexity_findings": 1
   },
@@ -899,7 +899,7 @@
       "overbudget": false
     },
     "tests/contracts-execution-custody-truth.test.js": {
-      "lines": 1305,
+      "lines": 1391,
       "overbudget": true
     },
     "tests/decision-inbox-check.test.js": {
@@ -1003,7 +1003,7 @@
       "overbudget": false
     },
     "tests/installed-execution-custody.test.js": {
-      "lines": 451,
+      "lines": 476,
       "overbudget": false
     },
     "tests/judge-profile.test.js": {
@@ -2647,7 +2647,7 @@
         "budget_category": "test"
       },
       "tests/contracts-execution-custody-truth.test.js": {
-        "lines": 1305,
+        "lines": 1391,
         "overbudget": true,
         "max_lines": 300,
         "budget_category": "test"
@@ -2803,7 +2803,7 @@
         "budget_category": "test"
       },
       "tests/installed-execution-custody.test.js": {
-        "lines": 451,
+        "lines": 476,
         "overbudget": true,
         "max_lines": 300,
         "budget_category": "test"
@@ -3303,5 +3303,5 @@
       }
     }
   },
-  "new_baseline_hash": "78fdacf6d62165e0a8f200f78c9790feaa59fd3bdba062cb521da89a04c01327"
+  "new_baseline_hash": "67c036a43ec693ec5bf46ebaa025fb82ae8cf209b3ab0237c2fc6a6f1d5499e3"
 }
