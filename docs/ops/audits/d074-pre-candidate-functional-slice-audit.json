@@ -1,0 +1,261 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d074-pre-candidate-functional-slice-audit",
+  "auditedAt": "2026-07-14T18:51:05+08:00",
+  "verdict": "IMPLEMENTATION_AUDIT_ACCEPTED_CANDIDATE_AND_LIVE_PENDING",
+  "base": {
+    "commit": "7b487479da03d7add63b9568dba94aa4a35d8e88",
+    "tree": "21cb91f4b03ac46325f29400da8933f79702dd54",
+    "branch": "main",
+    "aheadOfOriginMain": 12,
+    "worktreeClean": false,
+    "reason": "The accepted D073 truth alignment and D074 implementation are intentionally uncommitted so this audit can precede immutable candidate creation."
+  },
+  "scope": {
+    "inheritedTruthAudit": "docs/ops/audits/d073-post-close-forward-audit.json",
+    "implementationFileHashes": [
+      {
+        "path": ".agents/skills/bounded-repository-change/examples/devspace-dev-server.json",
+        "sha256": "03657b1620cafd96d07f876507208df6b0970f0a3b72443b99edf2b7fc984438"
+      },
+      {
+        "path": "scripts/run-tests.js",
+        "sha256": "0d4e2fec3fb8fbfc47c1d21322f84ada9bf99985ea0232c15cbf5293110e5898"
+      },
+      {
+        "path": "tests/helpers/execution-custody-live.js",
+        "sha256": "4079574ca75f24d61fbd175ca802e54e90e8b9130384c5bf9a67b78039df4f0b"
+      },
+      {
+        "path": "tests/runtime-execution-custody-live.test.js",
+        "sha256": "3d0969b33a6c9623f90eb458b0461ea24c8d4aa88e35475ecba9188bf04263a9"
+      },
+      {
+        "path": "tests/runtime-execution-custody-devspace-live.test.js",
+        "sha256": "9de6d60753d623e9d88f48c34f0332677b7f69ff341eba92fee15c2504608e4e"
+      },
+      {
+        "path": "tests/runtime-execution-custody.test.js",
+        "sha256": "84d9dd1f58c0cebc3b80d99ec10fef548f963d3caf4805f8f46fbe5dcfc6151f"
+      }
+    ],
+    "truthAndGuardPaths": [
+      ".meta-harness/events.jsonl",
+      ".meta-harness/status.md",
+      "docs/ops/audits/d073-post-close-forward-audit.json",
+      "docs/product/decision-log.md",
+      "docs/product/phase-23a-execution-plan.md",
+      "docs/product/prd.md",
+      "docs/product/product-spec.md",
+      "docs/product/roadmap.md",
+      "docs/product/runtime-authority-architecture.md",
+      "tests/contracts-execution-custody-truth.test.js"
+    ],
+    "frozenProductionSurfacesChanged": false,
+    "frozenProductionSurfaces": [
+      ".agents/skills/bounded-repository-change/SKILL.md",
+      "internal/execution-custody/*",
+      "lib/contracts/*",
+      "bin/*",
+      "meta_harness.py",
+      "package.json",
+      "package-lock.json"
+    ]
+  },
+  "child": {
+    "repositoryId": "devspace",
+    "sourceCheckout": "E:\\Code\\devspace\\devspace-src",
+    "operatorCheckoutDirty": true,
+    "operatorCheckoutModifiedByAudit": false,
+    "workingTreeBytesAreAuthority": false,
+    "expectedBaseRevision": "00952c05f01248773a90cd293aed528672eb6f1b",
+    "expectedBaseTree": "65e249664f7146e7bff6c36d530f3de1cd0068e4",
+    "allowedPath": "scripts/dev-server.mjs",
+    "validationCommandName": "node"
+  },
+  "implementation": {
+    "example": {
+      "path": ".agents/skills/bounded-repository-change/examples/devspace-dev-server.json",
+      "singlePath": true,
+      "objective": "Make the DevSpace development-server launcher import-safe and prevent implicit npx package installation while preserving its restart, crash-delay, recursive watcher, and shutdown lifecycle.",
+      "exactCommand": [
+        "npx",
+        "--no-install",
+        "tsx",
+        "src/cli.ts",
+        "serve"
+      ],
+      "networkPolicy": "denied",
+      "networkPolicyEnforcement": "trust-based; npx --no-install additionally removes implicit package download from the requested launcher command"
+    },
+    "sharedLiveWorkflow": {
+      "path": "tests/helpers/execution-custody-live.js",
+      "phaseNeutral": true,
+      "containsFluxaraIdentity": false,
+      "containsPythonIdentity": false,
+      "containsD073Identity": false,
+      "usedBy": [
+        "tests/runtime-execution-custody-live.test.js",
+        "tests/runtime-execution-custody-devspace-live.test.js"
+      ],
+      "languageSpecificBindingLocation": "child test edge",
+      "recordsControllerClosedAndProcessExited": true,
+      "recordsProcessExitCodeZero": true
+    },
+    "expiredReplay": {
+      "genericRuntimeTestRestored": true,
+      "sharedLiveWorkflowRestored": true,
+      "receiptPath": "attempts/<authorization-request-digest>/evidence/authorization-receipt.json",
+      "clockRule": "process2 = receipt.expiresAt + 60 seconds",
+      "executionToolsUsable": false,
+      "requiredDisposition": "REPLAY",
+      "requiredAgentSpawns": 0
+    },
+    "authorityClone": {
+      "initialRepository": "empty git init",
+      "fetch": [
+        "fetch",
+        "--no-tags",
+        "--depth=1",
+        "<source checkout>",
+        "<exact pinned commit>"
+      ],
+      "checkout": "detached FETCH_HEAD",
+      "expectedVisibleRevisionCount": 1,
+      "expectedShallowBoundary": "00952c05f01248773a90cd293aed528672eb6f1b",
+      "remoteExpected": "none",
+      "exactCommitAndTreeRequired": true
+    },
+    "testRunner": {
+      "devspaceLiveClassifiedSerial": true,
+      "duplicatedCustodyWorkflow": false
+    }
+  },
+  "auditFinding": {
+    "id": "D074_VALIDATOR_LIFECYCLE_GAP",
+    "severity": "blocking_before_candidate",
+    "initialRisk": "The initial syntax/import/command capsule could accept a minimal module that exported buildServerCommand while deleting the actual restart, watcher, and shutdown behavior, producing false IMPLEMENTATION_VERIFIED.",
+    "repair": "Strengthen the sealed semantic validator with preservation landmarks for restart delay, crash delay, command-builder use by start, crash restart, restart timer, SIGTERM/SIGKILL fallback, recursive watching, shutdown, signal registration, watch registration, and startup logging.",
+    "validatorWeakeningAuthorized": false,
+    "representativeKnownGoodPass": {
+      "nodeVersion": "v25.2.1",
+      "platform": "win32",
+      "result": "PASS"
+    },
+    "resolved": true
+  },
+  "verification": {
+    "pinnedChildIdentity": "PASS",
+    "exactShallowAuthorityClone": {
+      "result": "PASS",
+      "head": "00952c05f01248773a90cd293aed528672eb6f1b",
+      "tree": "65e249664f7146e7bff6c36d530f3de1cd0068e4",
+      "revisionCount": 1,
+      "remoteCount": 0,
+      "shallowBoundaryMatches": true
+    },
+    "focusedNative": {
+      "platform": "win32",
+      "nodeVersion": "v25.2.1",
+      "passed": 9,
+      "skipped": 2,
+      "failed": 0,
+      "skippedTests": [
+        "authenticated DevSpace live gate",
+        "authenticated Fluxara live gate"
+      ],
+      "durationSeconds": 22.4
+    },
+    "implementationOnlyNativeSuite": {
+      "command": "npm test",
+      "platform": "win32",
+      "nodeVersion": "v25.2.1",
+      "testFiles": 112,
+      "failed": 0,
+      "exitCode": 0,
+      "durationSeconds": 210.0
+    },
+    "completeNativeSuite": {
+      "command": "npm test",
+      "platform": "win32",
+      "nodeVersion": "v25.2.1",
+      "testFiles": 112,
+      "failed": 0,
+      "exitCode": 0,
+      "durationSeconds": 256.8,
+      "resultPath": ".meta-harness/local/audit-full-suite-result.json"
+    },
+    "truthContractBeforeAuditUpdate": {
+      "passed": 7,
+      "failed": 0
+    },
+    "truthContractAfterAuditUpdate": {
+      "passed": 8,
+      "failed": 0
+    },
+    "jsonValidation": "PASS",
+    "eventsJsonlRecordsAfterAuditEvent": 55,
+    "gitDiffCheck": "PASS",
+    "authenticatedLive": {
+      "devspace": "SKIPPED_UNTIL_CLEAN_IMMUTABLE_META_HARNESS_CANDIDATE",
+      "fluxara": "NOT_REQUIRED_FOR_D074_AND_SKIPPED"
+    }
+  },
+  "claims": {
+    "implementationAuditAccepted": true,
+    "candidateCreated": false,
+    "d074Closed": false,
+    "devspaceAuthenticatedArtifactObserved": false,
+    "devspaceVerifiedChildCommitObserved": false,
+    "devspaceTerminalReplayObserved": false,
+    "devspacePortableExportObserved": false,
+    "remoteUbuntuCiObserved": false
+  },
+  "scores": {
+    "overallProductFlow": 8.4,
+    "meaningfulFunctionalExecution": 8.8,
+    "phase23AExecutionCustody": 8.9,
+    "trustedRuntimeCustodyImplementation": 8.7,
+    "liveClosureEvidence": 8.4,
+    "agentVerifiedIntegration": 9.0,
+    "durableChildResultCustody": 8.9,
+    "gracefulTerminalReplay": 8.8,
+    "independentlyPortableEvidence": 8.6,
+    "reusableMultiChildCore": 7.4,
+    "ciTestTruthIntegrity": 8.2,
+    "engineeringHealth": 8.7,
+    "roadmapHonesty": 9.7,
+    "continuityWithOriginalMvp": 3.4,
+    "alignmentWithRecharteredDirection": 9.4
+  },
+  "intentDeviation": {
+    "fromOriginalMvp": "major_and_explicit_unchanged",
+    "fromPriorRoadmap": "no_new_direction_change",
+    "auditDrivenSliceDeviation": "stricter_semantic_validation",
+    "detail": "D074 implements the already approved Node cross-ecosystem gate without production or public-surface expansion. The audit explicitly strengthened validation because the supplied capsule could have produced false functional closure. No compatibility is authorized."
+  },
+  "decision": {
+    "id": "D074",
+    "status": "implementation_audit_accepted_live_pending",
+    "next": "CREATE_IMMUTABLE_CANDIDATE",
+    "candidateRule": "One commit containing the accepted D073 truth alignment plus D074 example/test slice and no unrelated paths; do not amend.",
+    "suiteRule": "Run literal native npm test and require 112 files, zero failures, exit 0, no mutation.",
+    "liveRule": "Run only tests/runtime-execution-custody-devspace-live.test.js with CUSTODY_LIVE_DEVSPACE=1 while CUSTODY_LIVE and CUSTODY_LIVE_FLUXARA are unset.",
+    "acceptance": [
+      "exact shallow pinned authority",
+      "process 1 exits zero and spawns the authenticated agent once",
+      "VERIFIED with retained child commit, durable ref, and terminal manifest",
+      "normal controller close and process exit",
+      "process 2 clock later than receipt expiry",
+      "unusable agent and validation paths",
+      "REPLAY with zero spawns",
+      "independent portable Node validation",
+      "leakage PASS",
+      "primary child clone clean at pinned base"
+    ],
+    "failureRule": "Preserve the create-only root and create a new immutable candidate. No rerun of the same candidate, amend, compatibility, validator weakening, production-runtime edit, or Fluxara substitution.",
+    "closureTruthRule": "Record closure from retained evidence in a separate commit.",
+    "afterClosure": "D075_OPERATE"
+  },
+  "remoteStatus": "No commit, push, remote CI, or child mutation was performed during this audit."
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "bounded-repository-change-example/v1",
+  "exampleId": "devspace-dev-server",
+  "repository": {
+    "repositoryId": "devspace",
+    "objectFormat": "sha1",
+    "expectedBaseRevision": "00952c05f01248773a90cd293aed528672eb6f1b",
+    "expectedBaseTree": "65e249664f7146e7bff6c36d530f3de1cd0068e4"
+  },
+  "allowedPath": "scripts/dev-server.mjs",
+  "objective": "Make scripts/dev-server.mjs import-safe and network-safe while preserving its existing restart, crash-delay, recursive watcher, and shutdown behavior when run directly. Export a pure buildServerCommand() function that returns exactly { command: \"npx\", args: [\"--no-install\", \"tsx\", \"src/cli.ts\", \"serve\"] }, and use that returned command and arguments for the spawned child. Register signal handlers, create watchers, log startup, and start the child only when this module is invoked as the entry point; importing the module must not start watchers, spawn processes, or register signal handlers. Modify no other file and use no network access.",
+  "validationCapsule": {
+    "commandName": "node",
+    "commands": [
+      {
+        "argv": ["node", "--check", "scripts/dev-server.mjs"],
+        "cwdRelative": ".",
+        "timeoutSeconds": 30,
+        "networkPolicy": "denied",
+        "environmentPolicy": {
+          "allow": ["HOME", "PATH", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "TMPDIR", "USERPROFILE"]
+        }
+      },
+      {
+        "argv": [
+          "node",
+          "--input-type=module",
+          "-e",
+          "import assert from 'node:assert/strict'; import { readFileSync } from 'node:fs'; import { resolve } from 'node:path'; import { pathToFileURL } from 'node:url'; const file=resolve('scripts/dev-server.mjs'); const before={sigint:process.listenerCount('SIGINT'),sigterm:process.listenerCount('SIGTERM')}; const mod=await import(pathToFileURL(file).href); assert.equal(process.listenerCount('SIGINT'),before.sigint); assert.equal(process.listenerCount('SIGTERM'),before.sigterm); assert.equal(typeof mod.buildServerCommand,'function'); assert.deepEqual(mod.buildServerCommand(),{command:'npx',args:['--no-install','tsx','src/cli.ts','serve']}); const source=readFileSync(file,'utf8'); const checks=[['restart delay',/const\\s+restartDelayMs\\s*=\\s*750\\s*;/],['crash delay',/const\\s+crashDelayMs\\s*=\\s*1500\\s*;/],['start uses command builder',/function\\s+start\\s*\\(\\)\\s*\\{[\\s\\S]*?buildServerCommand\\s*\\(\\)[\\s\\S]*?\\bspawn\\s*\\(/],['crash restart',/child\\.on\\s*\\(\\s*['\"]exit['\"][\\s\\S]*?scheduleRestart\\s*\\(\\s*crashDelayMs\\s*\\)/],['restart timer',/function\\s+scheduleRestart[\\s\\S]*?setTimeout\\s*\\(\\s*restart\\s*,\\s*delayMs\\s*\\)/],['restart termination',/function\\s+restart[\\s\\S]*?child\\.kill\\s*\\(\\s*['\"]SIGTERM['\"]\\s*\\)[\\s\\S]*?child\\.kill\\s*\\(\\s*['\"]SIGKILL['\"]\\s*\\)/],['recursive watcher',/function\\s+watchDirectory[\\s\\S]*?\\bwatch\\s*\\([\\s\\S]*?scheduleRestart\\s*\\(\\s*\\)[\\s\\S]*?readdirSync\\s*\\(\\s*dir\\s*\\)[\\s\\S]*?maybeAddDirectory/],['shutdown',/function\\s+shutdown[\\s\\S]*?shuttingDown\\s*=\\s*true[\\s\\S]*?child\\.kill\\s*\\(\\s*['\"]SIGTERM['\"]\\s*\\)[\\s\\S]*?process\\.exit\\s*\\(\\s*1\\s*\\)/],['signal registration',/process\\.on\\s*\\(\\s*signal\\s*,\\s*shutdown\\s*\\)/],['watch registration',/watchDirectory\\s*\\(\\s*root\\s*\\)/],['startup log',/log\\s*\\(\\s*['\"]watching src; server restarts on changes and after crashes['\"]\\s*\\)/]]; for (const [label,pattern] of checks) assert.match(source,pattern,label);"
+        ],
+        "cwdRelative": ".",
+        "timeoutSeconds": 30,
+        "networkPolicy": "denied",
+        "environmentPolicy": {
+          "allow": ["HOME", "PATH", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "TMPDIR", "USERPROFILE"]
+        }
+      }
+    ]
+  }
+}

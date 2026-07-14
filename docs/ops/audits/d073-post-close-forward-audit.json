@@ -1,0 +1,198 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d073-post-close-forward-audit",
+  "auditedAt": "2026-07-14T17:20:26+08:00",
+  "verdict": "D073_CLOSED_D074_AMENDED",
+  "repository": {
+    "head": "7b487479da03d7add63b9568dba94aa4a35d8e88",
+    "tree": "21cb91f4b03ac46325f29400da8933f79702dd54",
+    "implementationCandidate": "87de018b06cb788eedbc8d3cf9e0737989702471",
+    "implementationTree": "1ecfc71dc28f67e62832aa594d4efe7a5c4548f1",
+    "branch": "main",
+    "aheadOfOriginMain": 12,
+    "trackedWorktreeCleanAtAuditStart": true
+  },
+  "closureConfirmation": {
+    "nativeCandidateSuite": {
+      "command": "npm test",
+      "platform": "win32",
+      "nodeVersion": "v25.2.1",
+      "testFiles": 111,
+      "failed": 0,
+      "exitCode": 0
+    },
+    "nativeClosureSuite": {
+      "command": "npm test",
+      "platform": "win32",
+      "nodeVersion": "v25.2.1",
+      "testFiles": 111,
+      "failed": 0,
+      "exitCode": 0,
+      "durationSeconds": 175.8
+    },
+    "live": {
+      "childRepositoryId": "fluxara",
+      "baseRevision": "8548fe5460511c86ed312284b3712e17622134d2",
+      "baseTree": "c33ac3efbb1587c1bb3693a641c5cac595fc830e",
+      "verifiedChildRevision": "2f2e6156b5b89726e4047a1118e2aebac5c55f27",
+      "process1Disposition": "VERIFIED",
+      "process1AgentSpawns": 1,
+      "process2Disposition": "REPLAY",
+      "process2AgentSpawns": 0,
+      "process2ExecutionToolsUsable": false,
+      "portableIndependentVerification": true,
+      "portableLeakageScan": "PASS",
+      "portableFilesScanned": 16,
+      "primaryCheckoutCleanAtPinnedBase": true
+    },
+    "replacement": {
+      "soleProductionRuntime": "internal/execution-custody",
+      "productionImportsFromInternalD069": 0,
+      "activeToolLauncherDeleted": true,
+      "activePowerShellDeleted": true,
+      "activeCheckShortcutDeleted": true,
+      "windowsClassifierDeleted": true,
+      "phaseNumberedRuntimeDeleted": true,
+      "compatibilityAdapter": false,
+      "dualRuntime": false,
+      "publicExecutionCli": false,
+      "providerRegistry": false,
+      "concurrencyFramework": false
+    },
+    "candidateSequence": [
+      {
+        "commit": "1fa3e0ebe3134ea2e6b2d33f37d87db09c91889c",
+        "result": "failed",
+        "finding": "validation environment omitted Python user packages"
+      },
+      {
+        "commit": "b61109ac2dd36914625e92634ea431b5ad24c621",
+        "result": "failed",
+        "finding": "partial dependency capsule omitted Fluxara scientific dependencies"
+      },
+      {
+        "commit": "f31b443abcb53f41062ebc93b2d9c6a5945b378c",
+        "result": "failed",
+        "finding": "VERIFIED and REPLAY passed but portable export correctly rejected absolute validation output"
+      },
+      {
+        "commit": "87de018b06cb788eedbc8d3cf9e0737989702471",
+        "result": "pass",
+        "finding": "portable validation output, VERIFIED, fresh-process REPLAY, and export passed"
+      }
+    ]
+  },
+  "maximalInsights": {
+    "productionRuntimeIsMeaningfullyGeneric": true,
+    "testIntegrationHarnessIsNotYetGeneric": true,
+    "testHarnessSpecialization": [
+      "tests/helpers/execution-custody-live.js hardcodes the Fluxara example path",
+      "tests/helpers/execution-custody-live.js hardcodes the Fluxara source path and D073 environment names",
+      "tests/helpers/execution-custody-live.js binds Python and probes Python-specific packages",
+      "tests/runtime-execution-custody-live.test.js hardcodes Fluxara and d073 custody-root identity"
+    ],
+    "expiredTerminalReplayEvidenceRegression": {
+      "present": true,
+      "runtimeBehaviorStillOrdersTerminalReplayBeforeExpiryCheck": true,
+      "replacementTestsUseSameClockForProcess1AndProcess2": true,
+      "liveProofUsesSameClockForProcess1AndProcess2": true,
+      "deletedD072LaterClockCoverageWasNotReplaced": true,
+      "impact": "D073 proves stored terminal replay in a fresh process with tool canaries, but does not independently prove that terminal replay survives authorization expiry after the replacement. This is an evidence regression, not observed runtime failure."
+    },
+    "portableClaimBoundary": {
+      "sameHostIndependentReconstruction": true,
+      "thirdPartyHermeticEnvironment": false,
+      "detail": "The export and result are independently reconstructed, but Fluxara validation is rebound to the same host Python user package base. Do not describe this as a self-contained third-party build environment."
+    },
+    "remainingExplicitNonClaims": [
+      "networkPolicy denied is trust-based rather than OS firewall isolation",
+      "abrupt termination recovery is not closed",
+      "stale-owner recovery is not closed",
+      "partial-publication crash recovery is not closed",
+      "filesystem-crash durability is not closed",
+      "remote Ubuntu CI is pending",
+      "the execution-custody path has no operator-facing invocation surface"
+    ]
+  },
+  "roadmapDecision": {
+    "d073Status": "closed",
+    "d074Status": "approved_with_binding_amendments",
+    "d074Name": "Cross-Ecosystem Reuse Proof",
+    "d074Purpose": "Prove that the example-driven production runtime works for a second validation executable family and restore the later-clock terminal replay invariant without changing production runtime semantics.",
+    "recommendedChild": {
+      "repositoryId": "devspace",
+      "sourcePath": "E:\\Code\\devspace\\devspace-src",
+      "baseRevision": "00952c05f01248773a90cd293aed528672eb6f1b",
+      "baseTree": "65e249664f7146e7bff6c36d530f3de1cd0068e4",
+      "allowedPath": "scripts/dev-server.mjs",
+      "validationCommandName": "node",
+      "objective": "Make the development server launcher import-safe and network-safe. Export a pure command builder whose npx arguments include --no-install before tsx, use that builder for the spawned child, and start watchers/processes only when the module is invoked as the entry point. Preserve restart, crash-delay, and shutdown behavior. Modify no other file and use no network access.",
+      "validation": [
+        "node --check scripts/dev-server.mjs",
+        "import the module without starting the server and assert the exported command is npx with --no-install, tsx, src/cli.ts, serve"
+      ],
+      "operatorCheckoutMayBeDirty": true,
+      "cloneMustUseOnlyPinnedCommitObjects": true
+    },
+    "allowedImplementationChanges": [
+      "one new bounded-repository-change example",
+      "one new real-child end-to-end test",
+      "minimal test-only helper parameterization needed to remove Fluxara/Python/D073 hardcoding",
+      "replacement of phase-specific live-test environment names with phase-neutral names",
+      "later-clock process-2 proof beyond authorization TTL"
+    ],
+    "forbiddenImplementationChanges": [
+      "generic SKILL.md changes",
+      "internal/execution-custody production changes unless the new proof demonstrates a concrete defect",
+      "lib/contracts changes",
+      "public CLI changes",
+      "provider registry",
+      "compatibility adapter",
+      "dual runtime",
+      "copy-pasted second live harness",
+      "same-Python-ecosystem child used merely to avoid generalizing test bindings"
+    ],
+    "acceptance": [
+      "clean immutable Meta-Harness candidate",
+      "exact native complete suite passes",
+      "DevSpace clone is independent, detached, clean, and pinned to revision and tree",
+      "one authenticated-agent spawn reaches VERIFIED",
+      "process 1 closes normally and exits",
+      "process 2 uses a time later than receipt expiry and unusable agent and validation paths",
+      "process 2 returns REPLAY with zero spawns",
+      "portable export reconstructs the result and reruns Node validation",
+      "leakage scan passes",
+      "primary child checkout remains clean at the pinned base",
+      "production runtime, skill, contracts, and CLI remain byte-identical unless a demonstrated defect requires a new immutable candidate"
+    ],
+    "afterD074": {
+      "next": "D075_OPERATE",
+      "reason": "The execution-custody product remains accessible only through test-specific harnesses. Broad deletion before a real operator-use seam would remove the shipped Markdown product before its replacement is usable.",
+      "d075Boundary": "Use the proven example contract through a minimal private operator seam for repeated real changes. No public CLI, compatibility path, provider abstraction, or broad automation. Record actual operator friction, then decide the public execution surface and only afterward perform consumer-led deletion."
+    }
+  },
+  "scores": {
+    "overallProductFlow": 8.2,
+    "meaningfulFunctionalExecution": 8.8,
+    "phase23AExecutionCustody": 8.8,
+    "trustedRuntimeCustodyImplementation": 8.7,
+    "liveClosureEvidence": 8.4,
+    "agentVerifiedIntegration": 9.0,
+    "durableChildResultCustody": 8.9,
+    "gracefulTerminalReplay": 8.2,
+    "independentlyPortableEvidence": 8.6,
+    "reusableMultiChildCore": 5.8,
+    "ciTestTruthIntegrity": 7.4,
+    "engineeringHealth": 8.5,
+    "roadmapHonesty": 9.6,
+    "continuityWithOriginalMvp": 3.5,
+    "alignmentWithRecharteredDirection": 9.2
+  },
+  "intentDeviation": {
+    "fromOriginalMvp": "major_and_explicit",
+    "detail": "The product now launches an authenticated networked agent, authorizes controller-owned mutation, validates and commits child changes, retains terminal Git/evidence custody, and replays results. The original Markdown-first no-agent/no-network MVP remains historical shipped scope rather than the governing end-state.",
+    "fromPriorRoadmap": "material_and_explicit",
+    "detail2": "D074 is amended from a literal one-example/one-test ceremony into a cross-ecosystem proof that may generalize test-only bindings and must restore expired terminal replay. D075 OPERATE is inserted before DELETE because the new product has no operator-facing seam; deleting first would be control-plane reduction ahead of replacement usability."
+  },
+  "remoteStatus": "No push or remote action performed. Ubuntu CI remains pending."
+}

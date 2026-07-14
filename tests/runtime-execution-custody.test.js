@@ -14,7 +14,6 @@ const {
   buildUnusableReplayConfig,
   createExecutionCustodyController,
   FIXTURE_ALLOWED_PATH,
-  FROZEN_NOW,
 } = require("./helpers/execution-custody-fixture");
 const { exportPortableCustody } = require("../internal/execution-custody/custody-export");
 const { digestHex } = require("../internal/execution-custody/support");
@@ -36,7 +35,7 @@ function runChild(scriptPath, inputPath, timeout = 180_000) {
   return JSON.parse(String(result.stdout || "").trim());
 }
 
-test("host-neutral custody reaches VERIFIED, fresh-process REPLAY, and portable verification", async () => {
+test("host-neutral custody reaches VERIFIED, expired fresh-process REPLAY, and portable verification", async () => {
   const layout = createFixtureLayout({ label: "custody-e2e" });
   let controller;
   try {
@@ -63,11 +62,21 @@ test("host-neutral custody reaches VERIFIED, fresh-process REPLAY, and portable 
     await controller.close();
     controller = null;
 
+    const authReqHex = digestHex(verified.authorizationRequestDigest);
+    const authorizationReceipt = JSON.parse(fs.readFileSync(
+      path.join(layout.stateRoot, "attempts", authReqHex, "evidence", "authorization-receipt.json"),
+      "utf8",
+    ));
+    const replayClock = new Date(
+      new Date(authorizationReceipt.expiresAt).getTime() + 60_000,
+    ).toISOString();
+    assert.ok(new Date(replayClock).getTime() > new Date(authorizationReceipt.expiresAt).getTime());
+
     const replayInputPath = path.join(layout.root, "replay-input.json");
     fs.writeFileSync(replayInputPath, `${JSON.stringify({
       config: buildUnusableReplayConfig(layout),
       request,
-      clock: FROZEN_NOW,
+      clock: replayClock,
     }, null, 2)}\n`, "utf8");
     const replay = runChild(
       path.resolve(__dirname, "helpers/execution-custody-process-child.js"),
@@ -81,7 +90,6 @@ test("host-neutral custody reaches VERIFIED, fresh-process REPLAY, and portable 
     assert.equal(replay.result.verifiedHeadRevision, verified.verifiedHeadRevision);
     assert.equal(replay.result.terminalManifestDigest, verified.terminalManifestDigest);
 
-    const authReqHex = digestHex(verified.authorizationRequestDigest);
     const portable = exportPortableCustody({
       repositoryPath: layout.repositoryPath,
       stateRoot: layout.stateRoot,

@@ -2258,12 +2258,14 @@ Forward rule:
 - In the same change, delete ToolLauncher, Windows PowerShell, CheckShortcut.ps1, the temporary Windows test classifier, phase-numbered production runtime identity, all production imports from `internal/d069`, and the former execution path. Historical audits may remain. No compatibility adapter, dual runtime, alias, or transition pair may remain.
 - Keep `lib/contracts/*` frozen unless the host-neutral slice proves a concrete authority-contract defect. A preference or naming cleanup is not sufficient.
 
-Revised order:
+D073 decision-time order, now superseded by the post-close forward audit:
 
 1. **D073 REPLACE+CLOSE:** host-neutral real child, sole runtime, live VERIFIED → normal exit → fresh-process zero-spawn REPLAY → independent portable verification; delete the former path in the same change.
-2. **D074 PROVE:** add a third child through one new example under the existing skill and one end-to-end test only; no generic skill, runtime, kernel, CLI, roadmap, or architecture edits.
-3. **DELETE:** remove every surface without a current supported user job or unique safety invariant; net active surface must decrease; no backward compatibility.
-4. **DECIDE:** consider a public execution surface only after repeated real operator use.
+2. **D074 PROVE:** originally constrained to one example and one test with no helper changes.
+3. **DELETE:** originally placed before the public-surface decision.
+4. **DECIDE:** originally deferred until repeated real operator use.
+
+The D073 post-close forward audit below replaces steps 2–4 with D074 cross-ecosystem proof → D075 private operator use → DECIDE → DELETE.
 
 Current score after the exact-commit audit:
 
@@ -2293,7 +2295,135 @@ D073 closed under exact implementation candidate `87de018b06cb788eedbc8d3cf9e073
 
 The active production runtime is now solely `internal/execution-custody`. ToolLauncher, Windows PowerShell, CheckShortcut, the Windows runtime classifier, phase-numbered production identity, production imports from `internal/d069`, and the former execution path are deleted. No compatibility adapter, dual runtime, public execution CLI, provider registry, or speculative concurrency framework was added. Failed candidate roots for `1fa3e0e`, `b61109a`, and `f31b443` remain retained and were not reused.
 
-D074 is next. It may add only one third-child example under the existing bounded-repository-change skill and one end-to-end test, plus a deterministic child fixture only if necessary. It may not change the generic skill, runtime, contracts kernel, CLI, roadmap, or architecture truth unless it proves a concrete defect.
+D074 is next, with binding amendments from the post-close forward audit below.
+
+### D073 post-close forward audit
+
+Audit: `docs/ops/audits/d073-post-close-forward-audit.json`.
+
+Verdict: **D073 remains closed; D074 is amended.** The exact D073 closure evidence is valid, but two forward proof gaps are now explicit:
+
+- The production runtime is example-driven and phase-neutral, while the shared live integration harness still hardcodes Fluxara, Python package probing, D073 environment names, and Fluxara custody-root identity.
+- Both the generic replacement test and the live Fluxara test pass the same clock to process 1 and process 2. The old D072 later-than-expiry replay test was deleted and not replaced. `internal/execution-custody/attempt.js` still classifies a valid terminal verified journal before authorization-window handling for nonterminal attempts, so this is an evidence regression rather than an observed runtime failure.
+
+D074 decision: **Cross-Ecosystem Reuse Proof**.
+
+Binding target:
+
+- Recommended child: DevSpace.
+- Source checkout: `E:\Code\devspace\devspace-src`.
+- Pinned commit: `00952c05f01248773a90cd293aed528672eb6f1b`.
+- Pinned tree: `65e249664f7146e7bff6c36d530f3de1cd0068e4`.
+- Allowed path: `scripts/dev-server.mjs`.
+- Validation executable family: symbolic `node`, locally bound to the trusted Node executable.
+- Objective: make the development server launcher import-safe and network-safe; export a pure command builder whose `npx` arguments contain `--no-install` before `tsx`, use that builder for the child spawn, and start watchers/processes only when the module is invoked as the entry point, while preserving restart, crash-delay, and shutdown behavior.
+
+Implementation boundary:
+
+- Add one new skill example and one real-child end-to-end test.
+- Permit the minimum test-only helper parameterization required to remove Fluxara/Python/D073 hardcoding.
+- Replace phase-specific live-test environment names with phase-neutral names; do not preserve aliases.
+- Do not copy-paste a second child-specific live harness.
+- Keep `.agents/skills/bounded-repository-change/SKILL.md`, `internal/execution-custody/*`, `lib/contracts/*`, and the public CLI byte-identical unless the proof demonstrates a concrete defect. A preference, naming cleanup, or convenience abstraction is insufficient.
+- Do not choose another Python child merely to avoid proving a second validation executable family.
+- The dirty DevSpace operator checkout is not authority input. Clone only pinned commit objects into an independent no-hardlink detached repository and verify exact revision, tree, and clean status before authorization.
+
+D074 acceptance:
+
+1. One immutable clean Meta-Harness candidate passes the exact native complete suite.
+2. Process 1 performs one authenticated-agent spawn and reaches `VERIFIED`.
+3. Process 1 closes normally and exits.
+4. Process 2 uses a clock later than authorization expiry plus unusable agent and validation paths, returns `REPLAY`, and reports zero spawns.
+5. Portable export independently reconstructs the result, proves exact parent/single-path/content equality, reruns both Node validation commands, and passes leakage scanning.
+6. The primary DevSpace child checkout remains clean at the pinned base.
+7. No production runtime, skill, kernel, CLI, compatibility, provider, delivery, concurrency, or dual-path expansion occurs unless a concrete defect forces a new immutable candidate.
+
+Roadmap shift after D074:
+
+Insert **D075 OPERATE** before DELETE. D073 and D074 are real child executions, but the execution-custody product remains reachable only through test-oriented plumbing. Broad deletion before replacement operator usability would remove the historical Markdown product before its successor can be used. D075 must use the proven example contract through one minimal private operator seam for repeated real changes and record actual friction. It is not a public CLI and does not authorize compatibility, provider abstraction, delivery, concurrency, recovery, or workflow frameworks. After repeated D075 use, DECIDE one stable public surface; only then perform consumer-led DELETE.
+
+Post-D073 scores:
+
+- overall product flow: **8.2/10**
+- meaningful functional execution: **8.8/10**
+- Phase 23A execution custody: **8.8/10**
+- trusted runtime custody implementation: **8.7/10**
+- live closure evidence: **8.4/10**
+- AO verified integration: **9.0/10**
+- durable child-result custody: **8.9/10**
+- graceful terminal replay: **8.2/10**
+- independently portable evidence: **8.6/10**
+- reusable multi-child core: **5.8/10**
+- CI/test truth integrity: **7.4/10**
+- engineering health: **8.5/10**
+- roadmap honesty: **9.6/10**
+- continuity with original MVP: **3.5/10**
+- alignment with re-chartered direction: **9.2/10**
+
+Deviation statement:
+
+The deviation from the original Markdown-first, no-agent, no-network MVP remains major and deliberate. The product now launches an authenticated networked agent, authorizes controller-owned mutation, commits and validates child changes, retains terminal Git/evidence custody, and replays results. The additional roadmap deviation is also explicit: D074 is no longer a literal one-example/one-test ceremony, because test-only parameterization and later-than-expiry proof are necessary to demonstrate reuse honestly; D075 OPERATE now precedes DELETE because replacement usability must come before removal of the shipped historical product. No compatibility is authorized.
+
+### D074 pre-candidate functional-slice audit
+
+Audit: `docs/ops/audits/d074-pre-candidate-functional-slice-audit.json`.
+
+Verdict: **implementation audit accepted; D074 remains open pending one immutable candidate and retained authenticated DevSpace closure evidence.**
+
+Accepted implementation:
+
+- `.agents/skills/bounded-repository-change/examples/devspace-dev-server.json` binds DevSpace commit `00952c05f01248773a90cd293aed528672eb6f1b`, tree `65e249664f7146e7bff6c36d530f3de1cd0068e4`, and only `scripts/dev-server.mjs`.
+- The Node objective makes the launcher import-safe and prevents implicit `npx` package installation through exact `npx --no-install tsx src/cli.ts serve` output.
+- `tests/helpers/execution-custody-live.js` is one phase-neutral live workflow used by both Fluxara and DevSpace. It contains no Fluxara, Python, or D073 identity. Python dependency discovery remains only in the Fluxara test edge.
+- Process 2 derives its clock from retained `authorization-receipt.json`, advances 60 seconds beyond `expiresAt`, binds unusable agent and validator paths, and requires terminal `REPLAY` with zero spawns.
+- Child authority starts from an empty Git repository and performs one exact `--depth=1` fetch of the pinned commit. Focused proof requires exact commit/tree, one visible revision, matching shallow boundary, and no remote; dirty operator working-tree bytes are never copied.
+- The DevSpace live test reuses the shared workflow and is classified serially; no second custody workflow, public CLI, provider registry, production adapter, package dependency, or lockfile change was added.
+
+Audit correction:
+
+The initial Node capsule proved syntax, import safety, signal-listener stability, and the exact command, but it could have accepted a minimal module that exported the command while deleting the actual development-server lifecycle. That would have produced a false `IMPLEMENTATION_VERIFIED`. The audit strengthened the sealed semantic validator to bind preservation landmarks for restart delay, crash restart, restart timer, SIGTERM/SIGKILL fallback, recursive watcher behavior, shutdown, signal registration, watch registration, and startup logging. A representative known-good import-safe implementation passes the strengthened capsule. Do not weaken these checks to improve model pass rate.
+
+Verification:
+
+- DevSpace pinned commit and tree: PASS.
+- Exact shallow authority clone: PASS; one revision, exact shallow boundary, no remote.
+- Generic expired terminal replay with unusable tools and zero spawns: PASS.
+- Focused native execution-custody set: 9 passed, 2 authenticated live gates deliberately skipped, 0 failed.
+- D074 truth contract: 7/7 PASS before this audit-truth update.
+- Final audit-aligned native Windows Node `v25.2.1` `npm test`: 112 files, 0 failures, exit 0, 256.8 seconds. The earlier implementation-only run also passed 112/112 in 210.0 seconds.
+- Audit/example JSON and events JSONL parse; `git diff --check` passes.
+- `.agents/skills/bounded-repository-change/SKILL.md`, `internal/execution-custody/*`, `lib/contracts/*`, CLI, `package.json`, and lockfile are byte-identical to HEAD.
+- Authenticated Fluxara and DevSpace live gates remain deliberately unrun because the Meta-Harness worktree is not a clean immutable candidate.
+
+Exact next gate:
+
+1. Create one implementation candidate commit containing the accepted D073 truth alignment plus D074 example/test slice and no unrelated paths. Do not amend it.
+2. Confirm a clean tracked tree and run literal native `npm test`; require all 112 files, zero failures, exit 0, and no mutation.
+3. Run only `tests/runtime-execution-custody-devspace-live.test.js` with `CUSTODY_LIVE_DEVSPACE=1`; leave `CUSTODY_LIVE` and `CUSTODY_LIVE_FLUXARA` unset.
+4. Require exact shallow authority, process-1 exit 0 and one authenticated spawn to `VERIFIED`, normal close and exit, process 2 after receipt expiry with unusable tools to `REPLAY` and zero spawns, independent Node validation, leakage PASS, and clean pinned-base primary clone.
+5. Retain the custody root and publish closure truth in a separate commit. If the gate fails, preserve the root and create a new immutable candidate. No rerun of the same candidate, amend, compatibility, validator weakening, production-runtime edit, or Fluxara substitution.
+
+Post-implementation scores:
+
+- overall product flow: **8.4/10**
+- meaningful functional execution: **8.8/10**
+- Phase 23A execution custody: **8.9/10**
+- trusted runtime custody implementation: **8.7/10**
+- live closure evidence: **8.4/10**
+- AO verified integration: **9.0/10**
+- durable child-result custody: **8.9/10**
+- graceful terminal replay: **8.8/10**
+- independently portable evidence: **8.6/10**
+- reusable multi-child core: **7.4/10**
+- CI/test truth integrity: **8.2/10**
+- engineering health: **8.7/10**
+- roadmap honesty: **9.7/10**
+- continuity with original MVP: **3.4/10**
+- alignment with re-chartered direction: **9.4/10**
+
+Intent statement:
+
+No new product-direction deviation is required beyond the already explicit re-charter and D075-before-DELETE shift. D074 implements the approved cross-ecosystem proof without expanding production or public surface. The only audit-driven deviation inside the slice is stricter semantic validation than originally supplied; it is explicit and necessary to prevent false functional closure. D074 is not closed from skipped live tests.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
