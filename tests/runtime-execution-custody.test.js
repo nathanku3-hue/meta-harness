@@ -15,8 +15,8 @@ const {
   createExecutionCustodyController,
   FIXTURE_ALLOWED_PATH,
 } = require("./helpers/execution-custody-fixture");
-const { exportPortableCustody } = require("../internal/execution-custody/custody-export");
-const { digestHex } = require("../internal/execution-custody/support");
+const { exportPortableCustody } = require("../lib/execution-custody/custody-export");
+const { digestHex } = require("../lib/execution-custody/support");
 const { runGit } = require("./helpers/execution-custody-git");
 
 function runChild(scriptPath, inputPath, timeout = 180_000) {
@@ -118,7 +118,9 @@ test("host-neutral custody reaches VERIFIED, expired fresh-process REPLAY, and p
       sourceRepositoryPath: layout.repositoryPath,
       verifierRepositoryPath,
       validationExecutablePath: process.execPath,
+      expectedValidationExecutableSha256: require("node:crypto").createHash("sha256").update(fs.readFileSync(process.execPath)).digest("hex"),
       validationCommands: example.validationCapsule.commands,
+      validationHostEnv: process.env,
       sensitiveValues: [layout.root],
     }, null, 2)}\n`, "utf8");
     const independent = runChild(

@@ -43,22 +43,21 @@ function findRow(rows, pattern) {
   return row;
 }
 
-test("status records D075 closure and the authorized D076 installed-package gate", () => {
+test("status records D076 installed implementation and the remaining immutable live gate", () => {
   const status = read(".meta-harness/status.md");
   const goal = section(status, "Goal");
   const currentTruth = section(status, "Current truth");
   const lastVerified = section(status, "Last verified");
   const nextAction = section(status, "Next action");
 
-  assert.match(goal, /D075 private operator use is closed/i);
-  assert.match(goal, /candidate `cd63e52`/i);
-  assert.match(goal, /113-file native suite/i);
-  assert.match(goal, /DevSpace\/Node and Fluxara\/Python/i);
-  assert.match(goal, /expiry\+60s zero-spawn REPLAY/i);
-  assert.match(goal, /D076/i);
+  assert.match(goal, /D076 implementation now ships/i);
   assert.match(goal, /meta-harness execute/i);
-  assert.match(goal, /isolated `npm pack` installation/i);
-  assert.match(goal, /source-checkout wrapper is not closure/i);
+  assert.match(goal, /sealed approval and executable hashes/i);
+  assert.match(goal, /exact one-revision custody authority/i);
+  assert.match(goal, /one authenticated spawn → VERIFIED/i);
+  assert.match(goal, /expiry\+60s fresh-process REPLAY/i);
+  assert.match(goal, /115-file native Windows suite pass/i);
+  assert.match(goal, /Authenticated immutable-candidate closure remains pending/i);
   assert.match(goal, /DELETE remains blocked/i);
 
   assert.match(currentTruth, /D075 is closed under exact immutable candidate `cd63e5295b8bbde1afaf1ab5d991aadc13cc0442`/i);
@@ -83,13 +82,16 @@ test("status records D075 closure and the authorized D076 installed-package gate
   assert.match(lastVerified, /d075-fluxara-01-cd63e52/i);
   assert.match(lastVerified, /c00326698c19e7cc096f45eca78ea0b54bb8e535/i);
   assert.match(lastVerified, /5c659e24181121e0af2a647b19e129ab2e3b7725f0d9ad365055b4de7d28b68d/i);
+  assert.match(lastVerified, /D076 pre-candidate worktree passed all 115/i);
+  assert.match(lastVerified, /meta-harness-0\.1\.0\.tgz/i);
+  assert.match(lastVerified, /234 entries/i);
 
-  assert.match(nextAction, /Implement D076/i);
-  assert.match(nextAction, /meta-harness execute/i);
-  assert.match(nextAction, /isolated `npm pack` installation/i);
-  assert.match(nextAction, /not present in the tracked DevSpace\/Fluxara fixtures/i);
-  assert.match(nextAction, /replace the private request\/script/i);
-  assert.match(nextAction, /Do not begin broad DELETE until D076 closes/i);
+  assert.match(nextAction, /Freeze the audited D076 implementation/i);
+  assert.match(nextAction, /create the immutable candidate once/i);
+  assert.match(nextAction, /exact tarball/i);
+  assert.match(nextAction, /authenticated novel installed-package operation/i);
+  assert.match(nextAction, /A defect creates a new candidate/i);
+  assert.match(nextAction, /Do not add features or begin DELETE/i);
   assert.doesNotMatch(nextAction, /force(?:-|\s)?push/i);
 });
 
@@ -100,9 +102,9 @@ test("CI and active runtime identities are phase-neutral", () => {
   assert.doesNotMatch(ci, /d0(?:69|70|71|72)-windows|D0(?:69|70|71|72) Windows/i);
   assert.doesNotMatch(read("scripts/run-tests.js"), /runtime-d0(?:70|71|72)/i);
 
-  const activeRuntime = fs.readdirSync(path.join(root, "internal/execution-custody"))
+  const activeRuntime = fs.readdirSync(path.join(root, "lib/execution-custody"))
     .filter((name) => name.endsWith(".js"))
-    .map((name) => read(`internal/execution-custody/${name}`))
+    .map((name) => read(`lib/execution-custody/${name}`))
     .join("\n");
   assert.doesNotMatch(activeRuntime, /internal\/d069|ToolLauncher|CheckShortcut|Windows PowerShell|powershell\.exe|validate-toollauncher/i);
   assert.doesNotMatch(activeRuntime, /D0(?:69|70|71|72)|d0(?:69|70|71|72)/);
@@ -196,7 +198,11 @@ test("product re-charter and D073 closure are explicit across primary surfaces",
   assert.match(spec, /D074 closed under exact candidate `4ad92f0`/i);
   assert.match(architecture, /D074 cross-ecosystem custody proof closed under `4ad92f0`/i);
   assert.match(architecture, /D075 private-operator use closed under `cd63e52`/i);
-  assert.match(architecture, /D076 installed-package execution authorized/i);
+  assert.match(architecture, /D076 installed-package execution implemented/i);
+  assert.match(architecture, /immutable candidate and authenticated closure pending/i);
+  assert.match(decisionLog, /Implementation checkpoint — 2026-07-15/i);
+  assert.match(decisionLog, /115 discovered native Windows Node/i);
+  assert.match(decisionLog, /234 entries with exact equality/i);
 });
 
 test("D073 audit binds exact suite, live replay, export, and deletion truth", () => {
@@ -249,7 +255,7 @@ test("D073 audit binds exact suite, live replay, export, and deletion truth", ()
   for (const active of [
     ".agents/skills/bounded-repository-change/SKILL.md",
     ".agents/skills/bounded-repository-change/examples/fluxara-demo-output.json",
-    "internal/execution-custody/controller.js",
+    "lib/execution-custody/controller.js",
     "tests/runtime-execution-custody.test.js",
     "tests/runtime-execution-custody-live.test.js",
   ]) {
@@ -655,13 +661,106 @@ test("D076 decision audit rejects wrapper-only closure and binds the installed-p
   assert.match(audit.nextAction, /Implement D076/i);
 });
 
-test("D074 and D075 share one phase-neutral operator workflow and a Node example", () => {
-  const operator = read("internal/execution-custody/operator.js");
+test("D076 installed functional-slice audit binds the candidate-ready package and remaining live gate", () => {
+  const audit = JSON.parse(read("docs/ops/audits/d076-installed-execution-functional-slice-audit.json"));
+  const events = read(".meta-harness/events.jsonl").trim().split(/\r?\n/).map(JSON.parse);
+  const lastEvent = events.at(-1);
+
+  assert.equal(audit.kind, "d076-installed-execution-functional-slice-audit");
+  assert.equal(
+    audit.verdict,
+    "IMPLEMENTATION_AUDIT_ACCEPTED_CANDIDATE_AND_AUTHENTICATED_CLOSURE_PENDING",
+  );
+  assert.equal(audit.decision.id, "D076");
+  assert.equal(audit.decision.authorizationCommit, "1c5f4fb5b2275f51fa9c84491f17b6bf539bdbb3");
+  assert.equal(audit.decision.authorizationTree, "82e18fd203d75624d11bee6f3efab2cf4029e69a");
+  assert.equal(audit.decision.publicCommand, "meta-harness execute --request <absolute-path> [--json]");
+  assert.equal(audit.decision.additionalTopLevelCommandsBeyondExecute, 0);
+  assert.deepEqual(audit.decision.aliases, []);
+  assert.equal(audit.decision.compatibilityAuthorized, false);
+  assert.equal(audit.decision.deleteAuthorized, false);
+  assert.equal(audit.decision.candidateCreated, false);
+  assert.equal(audit.decision.authenticatedClosureComplete, false);
+
+  assert.equal(audit.implementation.runtimeRoot, "lib/execution-custody");
+  assert.equal(audit.implementation.requestSchema, "meta-harness-execution-request/v1");
+  assert.equal(audit.implementation.receiptSchema, "meta-harness-execution-receipt/v1");
+  assert.equal(audit.implementation.resultSchema, "meta-harness-execute-result/v1");
+  assert.equal(audit.implementation.privateSchemasAccepted, false);
+  assert.equal(audit.implementation.forwardingModulesPresent, false);
+  assert.equal(audit.implementation.exampleAdaptersPresent, false);
+  assert.equal(audit.implementation.sourceCheckoutRuntimeDependency, false);
+  assert.equal(audit.implementation.metaHarnessGitDependency, false);
+  assert.equal(audit.implementation.requestBindings.expectedNodeSha256, true);
+  assert.equal(audit.implementation.requestBindings.expectedLauncherSha256, true);
+  assert.equal(audit.implementation.requestBindings.expectedNativeSha256, true);
+  assert.equal(audit.implementation.requestBindings.expectedValidationExecutableSha256, true);
+  assert.equal(audit.implementation.preMutationValidation.onlyFinalCustodyRootCreated, true);
+  assert.equal(audit.implementation.runtimeChain.independentVerifierRechecksValidationExecutableHash, true);
+  assert.equal(audit.implementation.runtimeChain.receiptPublicationNoReplace, true);
+
+  assert.equal(audit.installedFunctionalProof.result, "PASS");
+  assert.equal(audit.installedFunctionalProof.nodeVersion, "v25.2.1");
+  assert.equal(
+    audit.installedFunctionalProof.sourceRepository.baseRevision,
+    "50a43744eaeab5c911c7da64ca57be82467e4517",
+  );
+  assert.equal(
+    audit.installedFunctionalProof.sourceRepository.baseTree,
+    "3182da2658678d973bad253d3a95cdd66185e006",
+  );
+  assert.equal(audit.installedFunctionalProof.sourceRepository.allowedPath, "src/message.js");
+  assert.equal(audit.installedFunctionalProof.sourceRepository.workingTreeDirtyBeforeExecution, true);
+  assert.equal(audit.installedFunctionalProof.sourceRepository.headAndDirtyStatusUnchangedAfterExecution, true);
+  assert.equal(
+    audit.installedFunctionalProof.fakeToolIdentities.nodeSha256,
+    "91ec09dda8f20556f366110859f106ab189d45f8f6a2bd092e6785174ad4a0fa",
+  );
+  assert.equal(
+    audit.installedFunctionalProof.fakeToolIdentities.launcherSha256,
+    "38cad8e8c89aae8a4aace2fa7c5291975d2198c8b3e509665ed28e4079385d8d",
+  );
+  assert.equal(
+    audit.installedFunctionalProof.fakeToolIdentities.nativeSha256,
+    "8424ff7254f131dd085898e89ef9c8f09d033b48aee7d661fbbf87f9aeabc448",
+  );
+  assert.equal(audit.installedFunctionalProof.outcome.processOneDisposition, "VERIFIED");
+  assert.equal(audit.installedFunctionalProof.outcome.processOneAgentSpawnCount, 1);
+  assert.equal(audit.installedFunctionalProof.outcome.processTwoDisposition, "REPLAY");
+  assert.equal(audit.installedFunctionalProof.outcome.processTwoAgentSpawnCount, 0);
+  assert.equal(audit.installedFunctionalProof.outcome.processTwoSecondsAfterAuthorizationExpiry, 60);
+  assert.equal(audit.installedFunctionalProof.outcome.leakage, "PASS");
+
+  assert.equal(audit.testEvidence.discoveredTestFiles, 115);
+  assert.equal(audit.testEvidence.failedTestFiles, 0);
+  assert.equal(audit.testEvidence.exitCode, 0);
+  assert.equal(audit.packageEvidence.dryRunEntries, 234);
+  assert.equal(audit.packageEvidence.actualTarballEntries, 234);
+  assert.equal(audit.packageEvidence.dryRunActualEquality, true);
+  assert.equal(audit.packageEvidence.releasePackageChecks.tarballSmoke, "PASS");
+  assert.equal(audit.packageEvidence.releasePackageChecks.installedOnlyModuleResolution, "PASS");
+  assert.equal(audit.packageEvidence.releasePackageChecks.executeUsageCount, 1);
+  assert.equal(audit.remainingGate.immutableCandidateRequired, true);
+  assert.equal(audit.remainingGate.authenticatedNovelInstalledOperationRequired, true);
+  assert.equal(audit.remainingGate.separateClosureCommitRequired, true);
+  assert.equal(audit.remainingGate.featureExpansionAuthorized, false);
+  assert.equal(audit.remainingGate.deleteAuthorized, false);
+
+  assert.equal(events.length, 61);
+  assert.equal(lastEvent.ts, audit.auditedAt);
+  assert.equal(lastEvent.time, audit.auditedAt);
+  assert.equal(lastEvent.phase, "D076-installed-execution-functional-slice");
+  assert.equal(lastEvent.decision, "D076");
+  assert.match(lastEvent.next_action, /create the immutable candidate once/i);
+});
+
+test("historical D074/D075 examples remain test-only while D076 uses one packaged public runtime", () => {
+  const execute = read("lib/execution-custody/execute.js");
   const helper = read("tests/helpers/execution-custody-live.js");
-  const privateScript = read("scripts/operate-execution-custody.js");
   const fluxaraLive = read("tests/runtime-execution-custody-live.test.js");
   const devspaceLive = read("tests/runtime-execution-custody-devspace-live.test.js");
   const genericRuntime = read("tests/runtime-execution-custody.test.js");
+  const installedRuntime = read("tests/installed-execution-custody.test.js");
   const testRunner = read("scripts/run-tests.js");
   const packageJson = JSON.parse(read("package.json"));
   const example = JSON.parse(read(
@@ -677,38 +776,28 @@ test("D074 and D075 share one phase-neutral operator workflow and a Node example
   assert.deepEqual(example.validationCapsule.commands[0].argv, [
     "node", "--check", "scripts/dev-server.mjs",
   ]);
-  assert.match(example.objective, /--no-install/);
-  assert.match(example.objective, /import-safe/i);
-  assert.match(example.objective, /restart/i);
-  assert.match(example.objective, /recursive watcher/i);
-  assert.match(example.objective, /shutdown/i);
-  const semanticValidator = example.validationCapsule.commands[1].argv.join("\n");
-  assert.match(semanticValidator, /restartDelayMs/);
-  assert.match(semanticValidator, /crashDelayMs/);
-  assert.match(semanticValidator, /buildServerCommand/);
-  assert.match(semanticValidator, /SIGTERM/);
-  assert.match(semanticValidator, /SIGKILL/);
-  assert.match(semanticValidator, /watchDirectory/);
-  assert.match(semanticValidator, /shutdown/);
 
-  assert.match(operator, /function operateBoundedRepositoryChange/);
-  assert.match(operator, /"--depth=1"/);
-  assert.match(operator, /sourceRepositoryPath/);
-  assert.match(operator, /operator-process\.js/);
-  assert.match(operator, /portable-verifier\.js/);
-  assert.match(operator, /REPLAY_EXPIRY_MARGIN_MS = 60_000/);
-  assert.match(operator, /controllerClosedAndProcessExited: true/);
-  assert.match(operator, /processExitCode: 0/);
-  assert.match(operator, /OPERATOR_RECEIPT_SCHEMA/);
-  assert.doesNotMatch(operator, /Fluxara|Python|D073/i);
+  assert.equal(fs.existsSync(path.join(root, "internal/execution-custody/operator.js")), false);
+  assert.equal(fs.existsSync(path.join(root, "internal/execution-custody/example.js")), false);
+  assert.equal(fs.existsSync(path.join(root, "scripts/operate-execution-custody.js")), false);
+  assert.match(execute, /meta-harness-execution-request\/v1/);
+  assert.match(execute, /meta-harness-execution-receipt\/v1/);
+  assert.match(execute, /expectedNodeSha256/);
+  assert.match(execute, /expectedLauncherSha256/);
+  assert.match(execute, /expectedNativeSha256/);
+  assert.match(execute, /expectedExecutableSha256/);
+  assert.match(execute, /controller-process\.js/);
+  assert.match(execute, /portable-verifier\.js/);
+  assert.match(execute, /REPLAY_EXPIRY_MARGIN_MS = 60_000/);
+  assert.match(execute, /controllerClosedAndProcessExited: true/);
+  assert.match(execute, /processExitCode: 0/);
+  assert.doesNotMatch(execute, /bounded-repository-change-example|\.agents\/skills|Fluxara|Python|D073|D076/);
 
   assert.match(helper, /function runLiveCustodyProof/);
-  assert.match(helper, /operateBoundedRepositoryChange/);
-  assert.doesNotMatch(helper, /"--depth=1"/);
+  assert.match(helper, /executeRequest/);
+  assert.doesNotMatch(helper, /operateBoundedRepositoryChange/);
   assert.doesNotMatch(helper, /Fluxara|Python|D073/i);
-  assert.match(privateScript, /Private operator entrypoint/i);
-  assert.match(privateScript, /operateBoundedRepositoryChange/);
-  assert.doesNotMatch(privateScript, /commander|yargs|provider registry/i);
+  assert.equal(packageJson.bin["meta-harness"], "bin/meta-harness.js");
   assert.equal(
     Object.values(packageJson.bin || {}).some((value) => /operate|execution-custody/i.test(String(value))),
     false,
@@ -726,6 +815,12 @@ test("D074 and D075 share one phase-neutral operator workflow and a Node example
   assert.match(genericRuntime, /authorization-receipt\.json/);
   assert.match(genericRuntime, /expiresAt/);
   assert.match(genericRuntime, /60_000/);
+  assert.match(installedRuntime, /npmCliPath/);
+  assert.match(installedRuntime, /--ignore-scripts/);
+  assert.match(installedRuntime, /node_modules.*\.bin.*meta-harness\.cmd/);
+  assert.match(installedRuntime, /dirty source/i);
+  assert.match(installedRuntime, /REPLAY/);
+  assert.match(installedRuntime, /leakage/);
 });
 
 test("D074 pre-candidate audit accepts implementation without claiming live closure", () => {

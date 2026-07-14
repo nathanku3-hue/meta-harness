@@ -9,7 +9,7 @@ const test = require("node:test");
 const {
   spawnTrackedNodeProcess,
   processExists,
-} = require("../internal/execution-custody/agent-process");
+} = require("../lib/execution-custody/agent-process");
 
 const TREE_CHILD_LAUNCHER = path.resolve(
   __dirname,

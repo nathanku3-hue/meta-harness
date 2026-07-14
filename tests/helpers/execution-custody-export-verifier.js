@@ -5,7 +5,7 @@ const {
   prepareVerifierBase,
   verifyPortableCustody,
   runCli,
-} = require("../../internal/execution-custody/portable-verifier");
+} = require("../../lib/execution-custody/portable-verifier");
 
 if (require.main === module) {
   try {

@@ -13,6 +13,8 @@ const {
 test("command registry tracks canonical commands separately from aliases", () => {
   const names = commandNames();
   assert.deepEqual(new Set(names).size, names.length);
+  assert.equal(names.includes("execute"), true);
+  assert.equal(names.filter((name) => name === "execute").length, 1);
   assert.equal(names.includes("ready"), true);
   assert.equal(names.includes("sync"), true);
   assert.equal(names.includes("brief"), true);
@@ -60,6 +62,10 @@ test("public command and check registries are deterministic metadata surfaces", 
 test("help text is generated from registry usage lines", () => {
   const help = renderHelp();
   assert.match(help, /^meta-harness\n/);
+  assert.equal(
+    help.split("meta-harness execute --request <absolute-path> [--json]").length - 1,
+    1,
+  );
   assert.match(help, /meta-harness ready --target <repo>/);
   assert.match(help, /meta-harness merge check --pr <n> --scope <scope>/);
   assert.match(help, /meta-harness skill check --target <repo>/);

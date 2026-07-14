@@ -10,13 +10,11 @@ const {
   WORKER_PROFILE,
   MAX_VALIDATION_TIMEOUT_SECONDS,
   sha256File,
-} = require("../../internal/execution-custody/controller");
-const { absNorm } = require("../../internal/execution-custody/support");
-const {
-  validateExample,
-  buildRunRequest: buildExampleRunRequest,
-} = require("../../internal/execution-custody/example");
-const { AGENT_ENV_ALLOWLIST } = require("../../internal/execution-custody/constants");
+} = require("../../lib/execution-custody/controller");
+const { absNorm } = require("../../lib/execution-custody/support");
+const { AGENT_ENV_ALLOWLIST } = require("../../lib/execution-custody/constants");
+const { computeRunSpecDigest } = require("../../lib/contracts/run-spec");
+const { sealRunSpecApproval } = require("../../lib/contracts/run-spec-approval");
 const { resolveGit, runGit } = require("./execution-custody-git");
 
 const FROZEN_NOW = "2026-07-14T12:00:00.000Z";
@@ -167,33 +165,52 @@ function createFixtureLayout(options = {}) {
 }
 
 function buildExample(layout) {
-  return validateExample({
-    schemaVersion: "bounded-repository-change-example/v1",
-    exampleId: "host-neutral-message",
-    repository: {
+  return Object.freeze({
+    repository: Object.freeze({
       repositoryId: FIXTURE_REPOSITORY_ID,
       objectFormat: layout.objectFormat,
       expectedBaseRevision: layout.headRevision,
       expectedBaseTree: layout.expectedBaseTree,
-    },
+    }),
     allowedPath: FIXTURE_ALLOWED_PATH,
     objective: OBJECTIVE,
-    validationCapsule: {
+    validationCapsule: Object.freeze({
       commandName: "node",
       commands: validationCommands(),
-    },
+    }),
   });
 }
 
 function buildRunRequest(layout, options = {}) {
-  return buildExampleRunRequest(buildExample(layout), {
+  const example = buildExample(layout);
+  const runSpec = {
+    schemaVersion: "run-spec/v1",
     runId: options.runId || "RUN-CUSTODY-FIXTURE",
-    approvalId: options.approvalId || "APPROVAL-CUSTODY-FIXTURE",
-    authorizationId: options.authorizationId || "AUTH-CUSTODY-FIXTURE",
-    attemptId: options.attemptId || "ATTEMPT-CUSTODY-FIXTURE",
-    approvedAt: options.approvedAt || APPROVED_AT,
-    approvedBy: options.approvedBy || "test@meta-harness.local",
-  }).request;
+    repository: {
+      repositoryId: example.repository.repositoryId,
+      objectFormat: example.repository.objectFormat,
+      expectedBaseRevision: example.repository.expectedBaseRevision,
+    },
+    objective: example.objective,
+    scope: { allow: [example.allowedPath], deny: [] },
+    validation: { commands: example.validationCapsule.commands },
+    changePolicy: "forbid-noop",
+  };
+  const runSpecDigest = computeRunSpecDigest(runSpec);
+  return {
+    runSpecApproval: sealRunSpecApproval({
+      schemaVersion: "run-spec-approval/v1",
+      approvalId: options.approvalId || "APPROVAL-CUSTODY-FIXTURE",
+      approvedBy: options.approvedBy || "test@meta-harness.local",
+      approvedAt: options.approvedAt || APPROVED_AT,
+      runSpec,
+      runSpecDigest,
+    }),
+    authorizationRequest: {
+      authorizationId: options.authorizationId || "AUTH-CUSTODY-FIXTURE",
+      attemptId: options.attemptId || "ATTEMPT-CUSTODY-FIXTURE",
+    },
+  };
 }
 
 function buildControllerConfig(layout, options = {}) {
@@ -216,6 +233,7 @@ function buildControllerConfig(layout, options = {}) {
     agentProgram: {
       workerProfile: WORKER_PROFILE,
       nodeExecutablePath: absNorm(process.execPath),
+      expectedNodeSha256: sha256File(process.execPath),
       launcherScriptPath: layout.launcherScriptPath,
       expectedLauncherSha256: sha256File(layout.launcherScriptPath),
       nativeExecutablePath: layout.nativeExecutablePath,
@@ -245,10 +263,11 @@ function buildUnusableReplayConfig(layout) {
     agentProgram: {
       workerProfile: WORKER_PROFILE,
       nodeExecutablePath: absNorm(path.join(missingRoot, "node")),
+      expectedNodeSha256: "0".repeat(64),
       launcherScriptPath: absNorm(path.join(missingRoot, "agent.js")),
-      expectedLauncherSha256: "0".repeat(64),
+      expectedLauncherSha256: "1".repeat(64),
       nativeExecutablePath: absNorm(path.join(missingRoot, "native")),
-      expectedNativeSha256: "1".repeat(64),
+      expectedNativeSha256: "2".repeat(64),
       expectedVersion: "unusable",
       codexHome: absNorm(path.join(missingRoot, "home")),
       hostEnv: {},
@@ -256,7 +275,7 @@ function buildUnusableReplayConfig(layout) {
     validationProgram: {
       commandName: "node",
       executablePath: absNorm(path.join(missingRoot, "validator")),
-      expectedExecutableSha256: "2".repeat(64),
+      expectedExecutableSha256: "3".repeat(64),
       hostEnv: {},
       expectedCommands: commands,
     },

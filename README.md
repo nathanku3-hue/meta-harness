@@ -50,7 +50,7 @@ The harness should wrap existing agents and tools rather than becoming a new age
 
 The governing product direction has intentionally moved beyond the original no-launch, no-network MVP. Meta-Harness is now being developed as a **local authority-bound agent execution-custody harness**: sealed intent and scope authorize one isolated agent attempt; the controller owns mutation, validation, durable result custody, and replay. Markdown status remains a core product surface, but visibility alone is no longer the end-state.
 
-D071 proved one meaningful child-repository change but lost retained custody. D073 replaced that path with durable host-neutral execution custody; D074 proved cross-ecosystem reuse; D075 proved repeated private operator use across DevSpace/Node and Fluxara/Python. D076 now authorizes one installed-package command, `meta-harness execute --request <absolute-path> [--json]`, but closure requires a novel user-authored bounded change from an isolated `npm pack` installation. Registering the source-only D075 script is explicitly insufficient. No generic provider framework, compatibility layer, concurrency framework, or broad deletion is implied.
+D071 proved one meaningful child-repository change but lost retained custody. D073 replaced that path with durable host-neutral execution custody; D074 proved cross-ecosystem reuse; D075 proved repeated private operator use across DevSpace/Node and Fluxara/Python. D076 now implements one installed-package command, `meta-harness execute --request <absolute-path> [--json]`. Offline proof packs and installs the artifact with `--ignore-scripts`, then completes exact shallow authority, one authenticated spawn → VERIFIED, durable child/ref custody, expiry+60s fresh-process REPLAY with zero spawns and unusable tools, portable independent validation, leakage PASS, and a create-only public receipt. Authenticated immutable-candidate closure remains pending. No generic provider framework, compatibility layer, concurrency framework, or broad deletion is implied.
 
 ## Target MVP CLI
 
@@ -62,7 +62,10 @@ meta-harness init
 meta-harness status
 meta-harness templates install
 meta-harness expert-packet ROUND-001
+meta-harness execute --request C:\\absolute\\path\\execution-request.json
 ```
+
+`execute` accepts only `meta-harness-execution-request/v1`. The request must already bind the sealed approval and authorization identities, exact base tree, expected Node/launcher/native-agent/validation SHA-256 identities, an existing non-symlink custody parent, and an absent final custody root. The command does not accept the former private schema or tracked example adapters. Human output is a compact VERIFIED/REPLAY summary; `--json` emits one `meta-harness-execute-result/v1` document. The retained host-local receipt uses `meta-harness-execution-receipt/v1`.
 
 See [Product spec](docs/product/product-spec.md) for the intended MVP command surface.
 

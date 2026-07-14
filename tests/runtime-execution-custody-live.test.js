@@ -6,7 +6,7 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
-const { absNorm } = require("../internal/execution-custody/support");
+const { absNorm } = require("../lib/execution-custody/support");
 const {
   detectLiveTools,
   snapshotHostEnv,

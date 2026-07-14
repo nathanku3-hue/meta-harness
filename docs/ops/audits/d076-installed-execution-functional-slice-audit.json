@@ -1,0 +1,215 @@
+{
+  "kind": "d076-installed-execution-functional-slice-audit",
+  "auditedAt": "2026-07-15T00:15:42+08:00",
+  "verdict": "IMPLEMENTATION_AUDIT_ACCEPTED_CANDIDATE_AND_AUTHENTICATED_CLOSURE_PENDING",
+  "decision": {
+    "id": "D076",
+    "authorizationCommit": "1c5f4fb5b2275f51fa9c84491f17b6bf539bdbb3",
+    "authorizationTree": "82e18fd203d75624d11bee6f3efab2cf4029e69a",
+    "publicCommand": "meta-harness execute --request <absolute-path> [--json]",
+    "additionalTopLevelCommandsBeyondExecute": 0,
+    "aliases": [],
+    "compatibilityAuthorized": false,
+    "deleteAuthorized": false,
+    "candidateCreated": false,
+    "authenticatedClosureComplete": false
+  },
+  "implementation": {
+    "runtimeRoot": "lib/execution-custody",
+    "requestSchema": "meta-harness-execution-request/v1",
+    "receiptSchema": "meta-harness-execution-receipt/v1",
+    "resultSchema": "meta-harness-execute-result/v1",
+    "packageRelativeChildEntrypoints": [
+      "lib/execution-custody/controller-process.js",
+      "lib/execution-custody/portable-verifier.js"
+    ],
+    "privateProductionPathsDeleted": [
+      "internal/execution-custody/operator.js",
+      "internal/execution-custody/operator-process.js",
+      "internal/execution-custody/example.js",
+      "scripts/operate-execution-custody.js"
+    ],
+    "privateSchemasAccepted": false,
+    "forwardingModulesPresent": false,
+    "exampleAdaptersPresent": false,
+    "sourceCheckoutRuntimeDependency": false,
+    "metaHarnessGitDependency": false,
+    "requestBindings": {
+      "exactRequestBytesSha256": true,
+      "sealedRunSpecApproval": true,
+      "preAuthoredRunApprovalAuthorizationAttemptIdentities": true,
+      "expectedBaseTree": true,
+      "expectedNodeSha256": true,
+      "expectedLauncherSha256": true,
+      "expectedNativeSha256": true,
+      "expectedValidationExecutableSha256": true
+    },
+    "preMutationValidation": {
+      "requestRegularNonSymlinkFile": true,
+      "sourceRevisionTreeAndObjectFormat": true,
+      "allExecutableHashes": true,
+      "codexHomeNonSymlinkDirectory": true,
+      "custodyRootAbsent": true,
+      "custodyParentExistingNonSymlinkDirectory": true,
+      "sourceCustodyAndPackageCustodySeparation": true,
+      "onlyFinalCustodyRootCreated": true
+    },
+    "runtimeChain": {
+      "oneRevisionShallowAuthority": true,
+      "zeroRetainedRemotes": true,
+      "dirtySourceWorkingTreeIgnored": true,
+      "processOneRequiresVerifiedAndOneSpawn": true,
+      "processTwoUsesAuthorizationExpiryPlusSeconds": 60,
+      "processTwoRequiresReplayAndZeroSpawns": true,
+      "processTwoUsesUnusableToolCanary": true,
+      "portableIndependentValidation": true,
+      "independentVerifierRechecksValidationExecutableHash": true,
+      "leakagePassRequired": true,
+      "receiptPublicationNoReplace": true
+    }
+  },
+  "installedFunctionalProof": {
+    "test": "tests/installed-execution-custody.test.js",
+    "nodeVersion": "v25.2.1",
+    "result": "PASS",
+    "durationMilliseconds": 34442.2384,
+    "installation": {
+      "packCommand": "npm pack --json --ignore-scripts",
+      "installUsesIgnoreScripts": true,
+      "invokedSurface": "installed node_modules/.bin/meta-harness",
+      "installedGitDirectoryPresent": false,
+      "installedInternalRootPresent": false,
+      "installedScriptsRootPresent": false,
+      "installedAgentsRootPresent": false
+    },
+    "sourceRepository": {
+      "novelRelativeToTrackedDevSpaceAndFluxaraExamples": true,
+      "repositoryId": "installed-novel-repository",
+      "objectFormat": "sha1",
+      "baseRevision": "50a43744eaeab5c911c7da64ca57be82467e4517",
+      "baseTree": "3182da2658678d973bad253d3a95cdd66185e006",
+      "allowedPath": "src/message.js",
+      "workingTreeDirtyBeforeExecution": true,
+      "headAndDirtyStatusUnchangedAfterExecution": true
+    },
+    "fakeToolIdentities": {
+      "nodeSha256": "91ec09dda8f20556f366110859f106ab189d45f8f6a2bd092e6785174ad4a0fa",
+      "launcherSha256": "38cad8e8c89aae8a4aace2fa7c5291975d2198c8b3e509665ed28e4079385d8d",
+      "nativeSha256": "8424ff7254f131dd085898e89ef9c8f09d033b48aee7d661fbbf87f9aeabc448",
+      "expectedVersion": "0.144.1-test"
+    },
+    "outcome": {
+      "authorityVisibleRevisionCount": 1,
+      "authorityRemoteCount": 0,
+      "processOneDisposition": "VERIFIED",
+      "processOneAgentSpawnCount": 1,
+      "childCommitAndDurableRefRetained": true,
+      "processTwoDisposition": "REPLAY",
+      "processTwoAgentSpawnCount": 0,
+      "processTwoSecondsAfterAuthorizationExpiry": 60,
+      "unusableToolCanaryPassed": true,
+      "independentParentAndChangedPathVerified": true,
+      "allIndependentValidationExitCodesZero": true,
+      "leakage": "PASS",
+      "publicReceiptCreateOnly": true,
+      "sourceCheckoutSentinelAbsentFromCustodyOutputs": true
+    }
+  },
+  "testEvidence": {
+    "nativeNodeVersion": "v25.2.1",
+    "discoveredTestFiles": 115,
+    "failedTestFiles": 0,
+    "exitCode": 0,
+    "executionMode": "runner-equivalent file-isolated native commands in bounded ranges because the single long-lived connector call exceeded its transport window",
+    "boundedRanges": [
+      { "range": "1-25", "files": 25, "failed": 0, "durationSeconds": 75 },
+      { "range": "26-50", "files": 25, "failed": 0, "durationSeconds": 64 },
+      { "range": "51-65", "files": 15, "failed": 0, "durationSeconds": 97 },
+      { "range": "66-75", "files": 10, "failed": 0, "durationSeconds": 83 },
+      { "range": "76-100", "files": 25, "failed": 0, "durationSeconds": 25 },
+      { "range": "101-115", "files": 15, "failed": 0, "durationSeconds": 52 }
+    ],
+    "focused": {
+      "publicRequestAndCore": { "tests": 22, "failed": 0 },
+      "cliAndRegistryAndRequest": { "tests": 13, "failed": 0 },
+      "truthContractBeforeAuditAddition": { "tests": 13, "failed": 0 },
+      "releaseCheck": { "tests": 6, "failed": 0 }
+    }
+  },
+  "packageEvidence": {
+    "packageName": "meta-harness",
+    "recordedVersion": "0.1.0",
+    "dryRunEntries": 234,
+    "actualTarballEntries": 234,
+    "dryRunActualEquality": true,
+    "requiredExecutionRuntimePresent": true,
+    "sourceOnlyAndPrivateRootsAbsent": true,
+    "releasePackageChecks": {
+      "packDryRun": "PASS",
+      "canonicalPaths": "PASS",
+      "forbiddenPaths": "PASS",
+      "packEquivalence": "PASS",
+      "isolatedAuthStrippedNpmEnvironment": "PASS",
+      "installIgnoreScripts": "PASS",
+      "tarballSmoke": "PASS",
+      "installedOnlyModuleResolution": "PASS",
+      "executeUsageCount": 1
+    }
+  },
+  "fileHashesSha256": {
+    "lib/command-registry.js": "ff7f3be83ada20431e39dfa62cc4f7ef92e7447b2ff800271630d00afd9bfe03",
+    "lib/commands/execute.js": "1aebde74ca3a9624b5623dacbe048d715cc438268e01a68b89f99a6726c94586",
+    "lib/release-package-check.js": "711bad6839b8826cea6938dc28963eda0b947b9c592f58a5de87392483d37b43",
+    "lib/execution-custody/README.md": "897fe189a9a11ed8807fc148a82b98a15d0535429a49c236a4c7408ae16a7354",
+    "lib/execution-custody/agent-custody.js": "420f78cb63dc3dbfbc73f6d1817ee521f8be45db816fa87c908139f75674f746",
+    "lib/execution-custody/agent-process.js": "cc88d42db6ce931cb944eb60480792ee9ea1a9baee8138f24fc8999af4313cd8",
+    "lib/execution-custody/attempt.js": "88a91b904daa0de4bb677bef7e5fafc6c2622cb4cc2cad43e0a01a245ac076fb",
+    "lib/execution-custody/change-artifact.js": "ac2f377217738fbe02d56826789029c11cd2836c3fb5631e0c32b66a44f09f86",
+    "lib/execution-custody/constants.js": "6f96852f89960c312a2c5b4946d0b9bd6e4a6ff09444bddeed1586ad65f672a8",
+    "lib/execution-custody/controller-process.js": "8a9852e08a4517b7bfb3ee3ed9c2119d4e0a494aa8483939722fc300d2977708",
+    "lib/execution-custody/controller.js": "4e492e80e2c7a1fd281f7cf39bea2698abbfd18e42d5c21f71232dc28cf15e52",
+    "lib/execution-custody/custody-export.js": "9676a3819b071ab16089ec7049767e5a8999268073918b17d8261e9c3e342249",
+    "lib/execution-custody/custody-replay.js": "8964ef0aab0e7bda04612d22fd0383f315a31348f19aa4c247f9046081d21688",
+    "lib/execution-custody/execute.js": "b77c19e0d89e90286b90aa295a71a2c0b2a25f2199ae8f87686aa9a10db456d5",
+    "lib/execution-custody/execution-bindings.js": "ad50386a48fa741956346c7fa4575e5dc06965be878fecc718cf84e30e083f5e",
+    "lib/execution-custody/git-ops.js": "d007f5b0b3993feb0ded250642d0cc594bf870bbd0dd2739f6a6bc59a9635d49",
+    "lib/execution-custody/implement.js": "e0660d6bb137aac8944d7b2b4ab2b7d695a734c8880ca7e542bd0526fc0a77a1",
+    "lib/execution-custody/portable-verifier.js": "800574ca409376650d074727098e447df25d29f66aff772bd499be791f0025eb",
+    "lib/execution-custody/support.js": "d6784af2371cd74a7e18785717193d456cc33c5bd6d101d4fae268f4a672a2f6",
+    "lib/execution-custody/terminal-evidence.js": "bcb093554a50a31fad1696b9a4ddf4c9431474492217ee360bea853adca92af7",
+    "tests/cli-execute.test.js": "a70a1e440e383288019c91edf40cd3a53e41c3e95a263273516519f04e3f8d18",
+    "tests/command-registry.test.js": "c1b97027fb5e0d317b3763c382779700d2ff409f4a2392e81b240fa01d1d7f5d",
+    "tests/helpers/execution-custody-export-verifier.js": "06b55a9e0ae26c89895b100bbd34433ad928a7acc5b852f6d2c2c29de1632897",
+    "tests/helpers/execution-custody-fixture.js": "a4e58ed1684aa1682b936a256cb9561a73eb6f65b72f1b953941b722c2e7c2f6",
+    "tests/helpers/execution-custody-live.js": "0abaea4a9610e8628675d970fa74f5c43e3665b6e79072f84b7f4f9cdcb2b834",
+    "tests/helpers/execution-custody-process-child.js": "47ddb0f7a5f9f818a0cb0bdc8052b87327d5ffaee7974259a9ef2920cbba3305",
+    "tests/installed-execution-custody.test.js": "47a722fb78ee9ec891ee9de95eae4890760c172812fd32a62c552c919a4cddae",
+    "tests/runtime-execution-custody-artifact.test.js": "0a40c262d63762a4429c567f35d6703b8f24ede09ed12863944048ad80b45ff3",
+    "tests/runtime-execution-custody-live.test.js": "cb7e59915dac638e9c95d43a166e45c2209cd184a4762073170dd8ab0f27bb41",
+    "tests/runtime-execution-custody-process-tree.test.js": "d85e68b82535ea77ff79c267eb3d9477a8ef0dd95e6ed0b0c5d642cc449a303f",
+    "tests/runtime-execution-custody.test.js": "858267ddb5ddaec07d6016139ba687ec3e527cb3a17a1fd060ae2caeffc27c28",
+    "tests/runtime-execution-request.test.js": "5052b495b74ccaf39f24e206a3120345c75e5436c0496fe0d6726f59dc2ad883"
+  },
+  "scores": {
+    "overallProductFlow": 9.2,
+    "meaningfulFunctionalExecution": 9.4,
+    "executionCustody": 9.4,
+    "installedPublicExecutionUsability": 7.8,
+    "engineeringHealth": 9.0,
+    "roadmapHonesty": 9.9,
+    "reCharteredAlignment": 9.9,
+    "originalMvpContinuity": 3.0
+  },
+  "remainingGate": {
+    "immutableCandidateRequired": true,
+    "exactCandidateSuiteRequired": true,
+    "exactCandidateTarballRequired": true,
+    "authenticatedNovelInstalledOperationRequired": true,
+    "separateClosureCommitRequired": true,
+    "implementationBytesMayChangeInClosureCommit": false,
+    "defectRequiresNewCandidate": true,
+    "featureExpansionAuthorized": false,
+    "deleteAuthorized": false
+  },
+  "nextAction": "Create the immutable D076 candidate once, rerun exact candidate suite and package checks, then execute one authenticated novel request from that exact isolated tarball and retain the complete closure evidence. A defect creates a new candidate. After PASS, create a separate documentation-only closure commit."
+}

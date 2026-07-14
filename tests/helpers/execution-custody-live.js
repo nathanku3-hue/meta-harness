@@ -1,24 +1,48 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const { absNorm, digestHex } = require("../../internal/execution-custody/support");
-const { loadExample } = require("../../internal/execution-custody/example");
+const { computeRunSpecDigest } = require("../../lib/contracts/run-spec");
+const { sealRunSpecApproval } = require("../../lib/contracts/run-spec-approval");
 const {
   AUTHORIZATION_TTL_SECONDS,
-  snapshotHostEnv,
-  clonePinnedChild: cloneOperatorChild,
-  identityToken,
-  operateBoundedRepositoryChange,
+  executeRequest,
+} = require("../../lib/execution-custody/execute");
+const {
+  absNorm,
+  digestHex,
+  sha256File,
   sha256Utf8,
-} = require("../../internal/execution-custody/operator");
+} = require("../../lib/execution-custody/support");
 const { resolveGit, runGit } = require("./execution-custody-git");
 
 function enabled(value) {
   return /^(?:1|true)$/i.test(String(value || ""));
+}
+
+function snapshotHostEnv(keys) {
+  const result = {};
+  for (const key of keys) {
+    const value = process.env[key];
+    if (value !== undefined && value !== null && String(value).length > 0) {
+      result[key] = String(value);
+    }
+  }
+  return result;
+}
+
+function loadExample(examplePath) {
+  const value = JSON.parse(fs.readFileSync(examplePath, "utf8"));
+  assert.equal(value.schemaVersion, "bounded-repository-change-example/v1");
+  assert.ok(value.repository && typeof value.repository === "object");
+  assert.ok(typeof value.allowedPath === "string" && value.allowedPath.length > 0);
+  assert.ok(typeof value.objective === "string" && value.objective.length > 0);
+  assert.ok(value.validationCapsule && Array.isArray(value.validationCapsule.commands));
+  return value;
 }
 
 function validationEnvironmentKeys(example) {
@@ -94,11 +118,69 @@ function detectLiveTools({
 }
 
 function clonePinnedChild({ example, sourcePath, rootPath }) {
-  return cloneOperatorChild({
-    example,
-    sourceRepositoryPath: sourcePath,
-    custodyRoot: rootPath,
-  });
+  const root = absNorm(rootPath);
+  fs.mkdirSync(root, { recursive: false });
+  const repositoryPath = absNorm(path.join(root, "repository"));
+  fs.mkdirSync(repositoryPath, { recursive: false });
+  const gitExecutablePath = resolveGit();
+  runGit(gitExecutablePath, repositoryPath, ["init"]);
+  runGit(gitExecutablePath, repositoryPath, ["config", "core.autocrlf", "false"]);
+  runGit(gitExecutablePath, repositoryPath, [
+    "fetch", "--no-tags", "--depth=1", sourcePath, example.repository.expectedBaseRevision,
+  ]);
+  runGit(gitExecutablePath, repositoryPath, ["checkout", "--detach", "FETCH_HEAD"]);
+  runGit(gitExecutablePath, repositoryPath, ["reset", "--hard", "HEAD"]);
+  const headRevision = String(runGit(
+    gitExecutablePath,
+    repositoryPath,
+    ["rev-parse", "HEAD"],
+  ).stdout).trim();
+  const tree = String(runGit(
+    gitExecutablePath,
+    repositoryPath,
+    ["rev-parse", "HEAD^{tree}"],
+  ).stdout).trim();
+  return { root, repositoryPath, gitExecutablePath, headRevision, tree };
+}
+
+function identityToken(value) {
+  const token = String(value || "custody")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return token || "CUSTODY";
+}
+
+function buildPublicRunRequest(example, operationId, approvedBy) {
+  const token = identityToken(operationId);
+  const runSpec = {
+    schemaVersion: "run-spec/v1",
+    runId: `RUN-${token}`,
+    repository: {
+      repositoryId: example.repository.repositoryId,
+      objectFormat: example.repository.objectFormat,
+      expectedBaseRevision: example.repository.expectedBaseRevision,
+    },
+    objective: example.objective,
+    scope: { allow: [example.allowedPath], deny: [] },
+    validation: { commands: example.validationCapsule.commands },
+    changePolicy: "forbid-noop",
+  };
+  const runSpecDigest = computeRunSpecDigest(runSpec);
+  return {
+    runSpecApproval: sealRunSpecApproval({
+      schemaVersion: "run-spec-approval/v1",
+      approvalId: `APPROVAL-${token}`,
+      approvedBy,
+      approvedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      runSpec,
+      runSpecDigest,
+    }),
+    authorizationRequest: {
+      authorizationId: `AUTH-${token}`,
+      attemptId: `ATTEMPT-${token}`,
+    },
+  };
 }
 
 function runLiveCustodyProof({
@@ -117,36 +199,42 @@ function runLiveCustodyProof({
   const candidateCommit = String(
     runGit(gitExecutablePath, metaRoot, ["rev-parse", "HEAD"]).stdout,
   ).trim();
+  const candidateTree = String(
+    runGit(gitExecutablePath, metaRoot, ["rev-parse", "HEAD^{tree}"]).stdout,
+  ).trim();
   const candidateShort = candidateCommit.slice(0, 12);
   const example = loadExample(examplePath);
   const operationId = `${example.repository.repositoryId}-${candidateShort}`;
-  const authorizationId = `AUTH-${identityToken(operationId)}`;
-  const custodyRoot = path.resolve(
-    metaRoot,
-    ".meta-harness",
-    "local",
-    "custody",
-    `custody-${example.repository.repositoryId}-${candidateShort}-${sha256Utf8(authorizationId).slice(0, 12)}`,
-  );
   const validationBinding = buildValidationBinding(example, tools);
   const requestDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-live-request-"));
-  const operatorRequestPath = absNorm(path.join(requestDirectory, "operator-request.json"));
-  fs.writeFileSync(operatorRequestPath, `${JSON.stringify({
-    schemaVersion: "execution-custody-operator-request/v1",
-    operationId,
-    examplePath: absNorm(examplePath),
+  const custodyParent = fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-live-custody-parent-"));
+  const custodyRoot = absNorm(path.join(
+    custodyParent,
+    `custody-${example.repository.repositoryId}-${candidateShort}-${sha256Utf8(operationId).slice(0, 12)}`,
+  ));
+  const requestPath = absNorm(path.join(requestDirectory, "execution-request.json"));
+  const runRequest = buildPublicRunRequest(example, operationId, approvedBy);
+  fs.writeFileSync(requestPath, `${JSON.stringify({
+    schemaVersion: "meta-harness-execution-request/v1",
+    executionId: operationId,
     sourceRepositoryPath: tools.sourcePath,
-    custodyRoot: absNorm(custodyRoot),
-    approvedBy,
+    custodyRoot,
+    expectedBaseTree: example.repository.expectedBaseTree,
+    runRequest,
     agentProgram: {
       nodeExecutablePath: tools.nodePath,
+      expectedNodeSha256: sha256File(tools.nodePath),
       launcherScriptPath: tools.launcherPath,
+      expectedLauncherSha256: sha256File(tools.launcherPath),
       nativeExecutablePath: tools.nativePath,
+      expectedNativeSha256: sha256File(tools.nativePath),
       expectedVersion: tools.version,
       codexHome: tools.codexHome,
     },
     validationProgram: {
+      commandName: example.validationCapsule.commandName,
       executablePath: validationBinding.executablePath,
+      expectedExecutableSha256: sha256File(validationBinding.executablePath),
       hostEnv: validationBinding.hostEnv,
       sensitiveValues: Array.isArray(validationBinding.sensitiveValues)
         ? validationBinding.sensitiveValues
@@ -155,17 +243,21 @@ function runLiveCustodyProof({
   }, null, 2)}\n`, "utf8");
 
   try {
-    const operated = operateBoundedRepositoryChange({ operatorRequestPath, metaRoot });
-    const receipt = operated.receipt;
+    const result = executeRequest({ requestPath });
+    const receipt = JSON.parse(fs.readFileSync(result.receiptPath, "utf8"));
     const closure = {
       schemaVersion: "execution-custody-live-closure/v1",
-      candidate: receipt.candidate,
+      candidate: {
+        commit: candidateCommit,
+        tree: candidateTree,
+        trackedWorktreeClean: true,
+      },
       child: {
-        repositoryId: receipt.child.repositoryId,
-        baseRevision: receipt.child.baseRevision,
-        baseTree: receipt.child.baseTree,
-        allowedPath: receipt.child.allowedPath,
-        retainedCustodyRoot: receipt.child.retainedCustodyRoot,
+        repositoryId: receipt.repository.repositoryId,
+        baseRevision: receipt.repository.baseRevision,
+        baseTree: receipt.repository.baseTree,
+        allowedPath: receipt.repository.allowedPath,
+        retainedCustodyRoot: receipt.retained.custodyRoot,
       },
       process1: {
         clock: receipt.process1.clock,
@@ -187,13 +279,16 @@ function runLiveCustodyProof({
         disposition: receipt.process2.disposition,
         verdict: receipt.process2.verdict,
         aoSpawnCount: receipt.process2.agentSpawnCount,
-        executionToolPathsUsable: receipt.process2.executionToolPathsUsable,
+        executionToolPathsUsable: false,
       },
-      portable: receipt.portable,
+      portable: {
+        exportManifestDigest: receipt.portable.exportManifestDigest,
+        independentVerification: receipt.portable.independent,
+      },
     };
     fs.writeFileSync(
       path.join(
-        receipt.child.retainedCustodyRoot,
+        receipt.retained.custodyRoot,
         "exports",
         closureFileName || `${example.repository.repositoryId}-live-closure.json`,
       ),

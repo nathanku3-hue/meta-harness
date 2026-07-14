@@ -2623,9 +2623,34 @@ Current score after D075 and this decision:
 
 The dominant gap is no longer custody correctness. It is packaging and general user reach: the current working operator is absent from the npm artifact and accepts only source-owned fixtures. D076 is the smallest slice that converts the proven core into shipped product.
 
+Implementation checkpoint — 2026-07-15:
+
+D076 offline implementation is accepted for immutable-candidate creation, not closed.
+
+- The sole production runtime is now packaged under `lib/execution-custody/`.
+- The former private operator, example adapter, private request/receipt schemas, source-only process identity, and unregistered script are deleted without forwarding modules or compatibility.
+- The exact public request is `meta-harness-execution-request/v1`; it binds exact request bytes, sealed approval, pre-authored run/approval/authorization/attempt identities, base tree, and expected Node/launcher/native/validation SHA-256 identities.
+- All request, path, source-object, and tool-identity failures that can be known before mutation are checked before the final custody-root directory is created.
+- The one command is registered exactly once with no alias and exact CLI parsing.
+- The isolated installed-package test uses a novel dirty-source Git repository plus copied fake tools in an unrelated root, invokes only the installed `.bin/meta-harness`, and proves one authenticated fake-agent spawn → VERIFIED, retained child/ref, expiry+60s fresh-process REPLAY with unusable tools and zero spawns, portable independent validation, leakage PASS, unchanged source repository, and create-only receipt.
+- All 115 discovered native Windows Node `v25.2.1` test files pass with zero failures. The principal installed test is included.
+- `npm pack --dry-run --json --ignore-scripts` and the actual tarball each contain 234 entries with exact equality. The complete custody runtime and `lib/commands/execute.js` are present; `.git`, `internal/`, `scripts/`, `.agents/`, and stale private modules are absent.
+- Authenticated live closure remains pending and must use the exact tarball generated from the immutable candidate.
+
+Current checkpoint score:
+
+- overall product flow: **9.2/10**
+- meaningful functional execution: **9.4/10**
+- execution custody: **9.4/10**
+- installed public execution usability: **7.8/10**
+- engineering health: **9.0/10**
+- roadmap honesty: **9.9/10**
+- re-chartered alignment: **9.9/10**
+- original MVP continuity: **3.0/10**
+
 Next gate:
 
-Implement D076 only. DELETE remains blocked until D076 closes under an immutable candidate and retained isolated-package live evidence.
+Create the immutable D076 candidate once, rerun the exact candidate suite and package checks, then execute one authenticated novel request from that exact isolated tarball and retain all closure evidence. A defect creates a new candidate; do not amend or overwrite failed custody. After PASS, create a separate documentation-only closure commit. DELETE remains blocked.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

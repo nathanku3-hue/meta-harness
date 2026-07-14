@@ -14,11 +14,11 @@ const {
   validateChangeArtifact,
   materializeChangeArtifact,
   ARTIFACT_CONTENT_MAX_BYTES,
-} = require("../internal/execution-custody/change-artifact");
+} = require("../lib/execution-custody/change-artifact");
 const {
   buildObjectiveAgentPrompt,
   promptSha256,
-} = require("../internal/execution-custody/constants");
+} = require("../lib/execution-custody/constants");
 
 const ALLOWED = "src/message.js";
 const CONTENT = '"use strict";\nmodule.exports = { value: "ok" };\n';

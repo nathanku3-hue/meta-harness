@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`: 111-file native suite PASS, live Fluxara VERIFIED with one spawn, normal fresh-process REPLAY with zero spawns and unusable tools, independent portable verification PASS, leakage PASS, and former ToolLauncher/Windows/phase-lineage runtime deleted. D074 PROVE closed under exact repair candidate `4ad92f0`: 112-file native suite PASS, exact shallow DevSpace authority, one authenticated spawn → VERIFIED child `30ad240b`, normal exit, fresh-process REPLAY 60 seconds after expiry with zero spawns and unusable tools, independent Node validation PASS, and leakage PASS. D075 OPERATE closed under exact candidate `cd63e52`: 113-file native suite PASS plus distinct retained DevSpace/Node and Fluxara/Python operations through one production-owned private seam, each with one spawn → VERIFIED, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, unchanged source checkout, and create-only receipt. D076 now authorizes one installed-package execution surface and rejects source-checkout wrapper closure.** Next: implement `meta-harness execute --request <absolute-path> [--json]` from an isolated `npm pack` install on one novel user-authored bounded change; then DELETE only after D076 closure.
+**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`; D074 PROVE closed under exact repair candidate `4ad92f0`; D075 OPERATE closed under exact candidate `cd63e52`. D076 offline implementation is complete and candidate-ready: exactly one installed command, one strict public request/receipt boundary, packaged phase-neutral custody runtime, deleted private operator path, 115 native Windows test files with zero failures, and 234-entry dry-run/actual pack equality. The isolated installed-package proof completed one authenticated fake-agent spawn → VERIFIED, retained child/ref, expiry+60s zero-spawn REPLAY with unusable tools, portable independent validation, leakage PASS, and create-only receipt against a novel dirty-source repository.** Next: create the immutable candidate once, rerun exact candidate evidence, perform one authenticated novel operation from that exact tarball, then close separately. DELETE remains blocked.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -16,7 +16,7 @@
 | D073 | **Closed under `87de018`** — Fluxara `8548fe5` → verified child `2f2e615`; live spawn one → VERIFIED; fresh process with unusable tools → REPLAY spawn zero; independent export and leakage PASS; former ToolLauncher/PowerShell/CheckShortcut/Windows/phase-lineage path deleted without compatibility. |
 | D074 | **Closed under `4ad92f0`** — exact candidate suite 112/112 PASS; DevSpace pinned base `00952c05` → verified child `30ad240b`; one authenticated spawn → terminal VERIFIED; normal process exit; fresh process after expiry → REPLAY spawn zero with unusable tools; independent export validation and leakage PASS; failed `87472e1` and both create-only roots retained. Production skill/runtime/kernel/CLI/package surfaces remained frozen. |
 | D075 | **Closed under `cd63e52`** — exact 113-file candidate suite PASS; retained DevSpace/Node child `47c0d016` and Fluxara/Python child `c0032669`; each operation used exact one-revision shallow authority, one authenticated spawn → VERIFIED, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, unchanged source checkout, and create-only receipt. The seam remains private and unregistered. |
-| D076 / SHIP | **Authorized — Installed-Package Execution Surface.** Add exactly `meta-harness execute --request <absolute-path> [--json]`. Closure requires an isolated `npm pack` installation with no Meta-Harness `.git` or source-tree dependency, one novel user-authored bounded-change request, exact custody/VERIFIED/expired zero-spawn REPLAY/independent validation/leakage PASS, and a create-only public receipt. Replace the private request/script path; no aliases or compatibility. |
+| D076 / SHIP | **Implementation complete; immutable candidate and authenticated closure pending.** Exactly `meta-harness execute --request <absolute-path> [--json]` ships from `lib/`. Offline isolated-package proof passes the complete custody chain on a novel request; private request/script/example identities are deleted with no alias or compatibility. |
 | DELETE | **Blocked until D076 closes.** Reduce by supported user job and unique safety invariant only; no aliases, deprecation dispatch, compatibility path, or speculative framework. |
 
 ## Functional-first roadmap
@@ -77,13 +77,17 @@ D075 OPERATE CLOSED (cd63e52)
 + Fluxara/Python retained receipt: VERIFIED → expiry+60s REPLAY → Python validation/leakage PASS
 + actual friction recorded; private entrypoint remains unregistered
         ↓
-D076 SHIP INSTALLED-PACKAGE EXECUTION (authorized)
+D076 SHIP INSTALLED-PACKAGE EXECUTION (offline candidate ready)
 + exactly `meta-harness execute --request <absolute-path> [--json]`
++ packaged `lib/execution-custody`; old private runtime/script/schema/example path deleted
++ strict public request binds sealed intent, base tree, and all executable SHA-256 identities
 + isolated `npm pack` install; no source checkout or Meta-Harness `.git` dependency
-+ one novel user-authored bounded-change request, not either tracked fixture
-+ replace private request/script; no dual path or backward compatibility
-+ one authenticated spawn → VERIFIED → expiry+60s zero-spawn REPLAY
-+ portable independent validation + leakage PASS + create-only public receipt
++ novel dirty-source test repository; immutable object authority only
++ one authenticated fake-agent spawn → VERIFIED → expiry+60s zero-spawn REPLAY
++ portable independent validation rechecks validation executable hash
++ leakage PASS + create-only public receipt
++ 115 native test files PASS; 234-entry dry-run/actual pack equality
++ immutable candidate and authenticated exact-tarball closure remain pending
         ↓
 DELETE: preserve supported jobs (`init`, `record`, `status`, `check`, `sync`, and active `release check`)
 + delete everything without a current supported job or unique safety invariant
