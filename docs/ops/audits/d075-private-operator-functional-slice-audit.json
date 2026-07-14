@@ -1,0 +1,302 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d075-private-operator-functional-slice-audit",
+  "auditedAt": "2026-07-14T20:33:29+08:00",
+  "verdict": "IMPLEMENTATION_ACCEPTED_IMMUTABLE_CANDIDATE_AND_REPEATED_OPERATOR_USE_REQUIRED",
+  "decision": {
+    "id": "D075",
+    "status": "open_implementation_accepted",
+    "next": "CREATE_IMMUTABLE_OPERATOR_CANDIDATE",
+    "closureRequires": [
+      "exact candidate suite pass",
+      "one retained DevSpace Node operator operation",
+      "one retained Fluxara Python operator operation",
+      "actual operator-friction record",
+      "separate closure commit"
+    ],
+    "afterClosure": "DECIDE_PUBLIC_EXECUTION_SURFACE",
+    "deleteBlockedUntilDecision": true
+  },
+  "intent": {
+    "endState": "Make the proven execution-custody product usable through one minimal private operator seam before deciding any public execution command or deleting the historical product surface.",
+    "functionalSliceFirst": true,
+    "minimalGovernance": true,
+    "publicCliAuthorized": false,
+    "packageScriptAuthorized": false,
+    "providerRegistryAuthorized": false,
+    "compatibilityAuthorized": false,
+    "deliverySemanticsAuthorized": false,
+    "concurrencyFrameworkAuthorized": false,
+    "workflowFrameworkAuthorized": false,
+    "broadDeletionAuthorized": false
+  },
+  "base": {
+    "commit": "8d0ee959d4de8b70ffca86189db22e87f84e9947",
+    "tree": "faa7746f77facb90cc99f44b586b5478271bb794",
+    "d074Closed": true,
+    "mainAheadOfOriginBeforeCandidate": 15
+  },
+  "implementation": {
+    "pathCountBeforeTruthAlignment": 10,
+    "productionOwned": [
+      {
+        "path": "internal/execution-custody/operator.js",
+        "sha256": "10f9602a23054797b747e8fc4f5d29058f1056b120213b683a53d8dcb2ddf2db",
+        "role": "single private example-driven orchestration path",
+        "lines": 763
+      },
+      {
+        "path": "internal/execution-custody/operator-process.js",
+        "sha256": "a3d6d15f3e0dedbedcaa690d57024df08f57e1510033c2e48c8d03def22eeb03",
+        "role": "fresh-process controller entrypoint with guaranteed close",
+        "lines": 46
+      },
+      {
+        "path": "internal/execution-custody/portable-verifier.js",
+        "sha256": "f52bf1a1c94dd649be1314c627b6ae9b17fd954895187f23a4fab790a73564b5",
+        "role": "production-owned independent thin-bundle verifier",
+        "lines": 221
+      },
+      {
+        "path": "scripts/operate-execution-custody.js",
+        "sha256": "0b049930d90c4107557d5a83733ab424465958cb38ce80cf65f37be000a6b68d",
+        "role": "unregistered private local request entrypoint",
+        "lines": 39
+      }
+    ],
+    "testAdapters": [
+      {
+        "path": "tests/helpers/execution-custody-live.js",
+        "sha256": "5453ee82c87cce9db019e4611f85ef01eba20863aedc75d29b5c85096b111d24",
+        "role": "tool binding plus thin adapter to the production operator",
+        "linesBefore": 542,
+        "linesAfter": 220
+      },
+      {
+        "path": "tests/helpers/execution-custody-process-child.js",
+        "sha256": "741af7a3f0f309d223a514e558c223c911b2622ebd41d3c270bac2f0f32b3811",
+        "role": "compatibility wrapper over the production fresh-process entrypoint",
+        "linesBefore": 31,
+        "linesAfter": 9
+      },
+      {
+        "path": "tests/helpers/execution-custody-export-verifier.js",
+        "sha256": "82aff4ec3b60724ea4f91c3a2a66400c83fee5944da49f1dbd3212d198a5e62a",
+        "role": "compatibility wrapper over the production portable verifier",
+        "linesBefore": 208,
+        "linesAfter": 22
+      }
+    ],
+    "tests": [
+      {
+        "path": "tests/runtime-execution-custody-operator.test.js",
+        "sha256": "32bc8491eb291ae33e6a9ccd43a4da85d5be990ee7860854f95deb8983417b73",
+        "coverage": [
+          "exact local request shape",
+          "exact request-byte digest",
+          "deterministic operation identities",
+          "absolute private request entrypoint"
+        ]
+      },
+      {
+        "path": "tests/contracts-execution-custody-truth.test.js",
+        "sha256": "213d019ff707660792f2ba7995d64e5b4ecd8be7677d6a00a868298472ac3cba",
+        "coverage": [
+          "production owns clone/replay/export orchestration",
+          "tests delegate to the production operator",
+          "operator has no bin or package registration"
+        ]
+      }
+    ],
+    "documentation": {
+      "path": "internal/execution-custody/README.md",
+      "sha256": "20a636fe77dc6f1245f2dac62e00213ca7a6eda4030cace88f0f498edb5695e4",
+      "scope": "exact private request shape and non-public boundary"
+    }
+  },
+  "operatorContract": {
+    "requestSchema": "execution-custody-operator-request/v1",
+    "receiptSchema": "execution-custody-operator-receipt/v1",
+    "entrypoint": "node scripts/operate-execution-custody.js <absolute-local-request.json>",
+    "requestIsPortableAuthority": false,
+    "requestByteDigestBoundAtStart": true,
+    "acceptedExamples": "tracked .agents/skills/bounded-repository-change/examples/*.json only",
+    "custodyRootBoundary": "one create-only child directly under .meta-harness/local/custody",
+    "cleanImmutableCandidateRequiredBeforeRootCreation": true,
+    "candidateCommitTreeAndCleanlinessRecheckedAfterOperation": true,
+    "localToolAndSourcePathsAreHostBindings": true,
+    "registeredInBin": false,
+    "registeredInPackageScripts": false,
+    "exportedAsPackageApi": false
+  },
+  "workflow": {
+    "authority": [
+      "initialize empty repository",
+      "fetch only exact pinned commit with --depth=1",
+      "checkout detached FETCH_HEAD",
+      "verify exact commit and tree",
+      "require one visible revision and matching shallow boundary",
+      "require clean primary clone and no remote"
+    ],
+    "process1": [
+      "fresh process",
+      "one authenticated Codex spawn",
+      "controller-owned materialization, commit, and validation",
+      "terminal VERIFIED and create-only durable ref",
+      "normal controller close and process exit"
+    ],
+    "process2": [
+      "clock derived from retained authorization receipt expiry plus 60 seconds",
+      "unusable agent and validation tool paths",
+      "fresh process",
+      "REPLAY with zero spawns",
+      "unchanged verified head and terminal manifest"
+    ],
+    "portable": [
+      "create prerequisite thin bundle export",
+      "independent verifier anchors exact prerequisite at refs/verify/base",
+      "verify exact child parent and one allowed path",
+      "rerun sealed child-specific validation",
+      "require leakage PASS"
+    ],
+    "receipt": [
+      "exact request-byte digest",
+      "candidate commit tree and clean-before/after facts",
+      "authority facts",
+      "process clocks dispositions and spawn counts",
+      "portable manifest and independent verification result"
+    ]
+  },
+  "focusedVerification": {
+    "command": "node --test --test-reporter=spec --test-concurrency=1 tests/runtime-execution-custody-operator.test.js tests/runtime-execution-custody-devspace-live.test.js tests/runtime-execution-custody-live.test.js tests/runtime-execution-custody.test.js tests/contracts-execution-custody-truth.test.js",
+    "nodeVersion": "v25.2.1",
+    "passed": 17,
+    "skipped": 2,
+    "failed": 0,
+    "durationSeconds": 35.0,
+    "authenticatedLiveGatesSkipped": [
+      "DevSpace",
+      "Fluxara"
+    ]
+  },
+  "finalTruthAlignedFocusedVerification": {
+    "command": "node --test --test-reporter=spec --test-concurrency=1 tests/runtime-execution-custody-operator.test.js tests/runtime-execution-custody-devspace-live.test.js tests/runtime-execution-custody-live.test.js tests/runtime-execution-custody.test.js tests/contracts-execution-custody-truth.test.js",
+    "nodeVersion": "v25.2.1",
+    "passed": 18,
+    "skipped": 2,
+    "failed": 0,
+    "durationSeconds": 29.1,
+    "authenticatedLiveGatesSkipped": [
+      "DevSpace",
+      "Fluxara"
+    ],
+    "truthAligned": true
+  },
+  "baselineCompleteSuite": {
+    "status": "PASS_BEFORE_FINAL_EVIDENCE_HARDENING_EDIT",
+    "command": "npm test",
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "npmVersion": "11.16.0",
+    "testFiles": 113,
+    "failed": 0,
+    "exitCode": 0,
+    "runnerDurationSeconds": 186.1,
+    "wrapperDurationSeconds": 189.4,
+    "worktreeStatusUnchanged": true,
+    "resultPath": ".meta-harness/local/d075-implementation-suite.json",
+    "logPath": ".meta-harness/local/d075-implementation-suite.log",
+    "logSha256": "f3aa5c971e1f8ca7e08f1a65ad7c0a2b86235e0155521147a368459edac505c1",
+    "closureCredit": false,
+    "reason": "candidate identity was hardened with an after-operation commit/tree/clean recheck while this suite was in flight; a final truth-aligned suite is still required"
+  },
+  "bindingReadiness": {
+    "devspace": {
+      "sourceRepositoryPathExists": true,
+      "validationFamily": "Node",
+      "validationExecutable": "D:/nodejs/node.exe",
+      "readyForCandidateOperation": true
+    },
+    "fluxara": {
+      "sourceRepositoryPathExists": true,
+      "validationFamily": "Python",
+      "validationExecutable": "E:/Python/bin/python.exe",
+      "pythonVersion": "3.14.4",
+      "pythonUserBase": "C:/Users/Lenovo/AppData/Roaming/Python",
+      "sealedImportProbe": "PASS",
+      "readyForCandidateOperation": true
+    },
+    "authenticatedAgent": {
+      "nodePathExists": true,
+      "launcherPathExists": true,
+      "nativePathExists": true,
+      "codexHomeExists": true,
+      "expectedVersion": "0.144.1"
+    }
+  },
+  "operatorFrictionObservedBeforeCandidate": [
+    {
+      "finding": "The first Fluxara setup probe used the wrong dependency set (pydantic/sqlmodel/fluxara.settings) and falsely suggested the environment was unavailable.",
+      "classification": "operator_setup_probe_error",
+      "operatorSeamDefect": false,
+      "correction": "Use the exact sealed example binding: site.getuserbase(), set PYTHONUSERBASE, remove PYTHONPATH, and probe numpy/pandas/pygments/pytest/scipy/uuid.",
+      "correctedResult": "PASS"
+    },
+    {
+      "finding": "The private request must explicitly bind local source, agent, validation, and create-only custody paths.",
+      "classification": "expected_private_operator_setup_cost",
+      "operatorSeamDefect": false,
+      "measureDuringLiveUse": true
+    }
+  ],
+  "frozenSurfaces": {
+    "bin": true,
+    "packageJson": true,
+    "packageLock": true,
+    "contractKernel": true,
+    "skill": true,
+    "exampleSchemasAndExamples": true,
+    "publicProductCli": true,
+    "publicPackageApi": true
+  },
+  "remainingGate": {
+    "finalTruthAlignedSuiteRequired": true,
+    "immutableCandidateRequired": true,
+    "candidateMustNotBeAmended": true,
+    "candidateSuiteExpectedFiles": 113,
+    "candidateSuiteExpectedFailures": 0,
+    "candidateSuiteExpectedExitCode": 0,
+    "operations": [
+      {
+        "operationId": "d075-devspace-01",
+        "ecosystem": "DevSpace/Node",
+        "distinctCreateOnlyRootRequired": true
+      },
+      {
+        "operationId": "d075-fluxara-01",
+        "ecosystem": "Fluxara/Python",
+        "distinctCreateOnlyRootRequired": true
+      }
+    ],
+    "eachOperationRequires": [
+      "exact candidate identity and clean-before/after",
+      "exact shallow authority",
+      "one authenticated spawn and VERIFIED",
+      "normal close",
+      "receipt-expiry plus 60-second REPLAY with zero spawns and unusable tools",
+      "portable independent validation",
+      "leakage PASS",
+      "create-only operator receipt",
+      "unchanged source operator checkout"
+    ],
+    "failureRule": "Preserve every create-only root. Do not rerun the same operation identity/root. A demonstrated operator-seam defect requires a new immutable candidate; model or local-binding failure does not authorize abstraction or public-surface expansion."
+  },
+  "claims": {
+    "privateOperatorImplementationAccepted": true,
+    "operatorUsableOutsideTests": true,
+    "testsUseSameProductionOperatorWorkflow": true,
+    "publicExecutionSurfaceExists": false,
+    "repeatedRealOperatorUseProved": false,
+    "d075Closed": false
+  }
+}

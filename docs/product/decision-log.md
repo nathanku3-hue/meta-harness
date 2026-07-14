@@ -2499,6 +2499,43 @@ Binding next gate:
 
 D075 OPERATE must expose one minimal private example-driven seam over the proven custody core, use it repeatedly for real changes, and record actual operator friction. It does not authorize a public CLI, provider abstraction, compatibility, delivery semantics, concurrency framework, or broad deletion. DECIDE and DELETE remain blocked until repeated operator-use evidence exists.
 
+### D075 private-operator functional-slice audit
+
+Audit: `docs/ops/audits/d075-private-operator-functional-slice-audit.json`.
+
+Verdict: **implementation accepted; D075 remains open pending one immutable candidate and two retained private operations.**
+
+Accepted slice:
+
+- `internal/execution-custody/operator.js` owns the single example-driven orchestration path outside tests: exact depth-one authority, process-1 authenticated VERIFIED, normal close, retained-receipt expiry plus 60-second fresh-process REPLAY with unusable tools and zero spawns, portable export, independent verification, leakage PASS, and create-only operator receipt.
+- The exact local request bytes are hashed at start. Only tracked bounded-repository-change examples are accepted. Custody roots must be one create-only child directly under `.meta-harness/local/custody`.
+- A clean immutable Meta-Harness candidate is required before custody-root creation; commit, tree, and clean state are checked again after the operation.
+- `internal/execution-custody/operator-process.js` and `portable-verifier.js` promote the fresh-process child and independent verifier from test-owned plumbing into the private production root.
+- `scripts/operate-execution-custody.js` accepts one absolute ignored-local request path and is intentionally absent from `bin/`, package scripts, package exports, and public CLI documentation.
+- Existing DevSpace and Fluxara live tests now delegate to the same production-owned operator workflow. The former 542-line live helper is reduced to environment detection and a thin adapter; child and verifier helpers are compatibility wrappers only.
+- No contract kernel, skill/example, package, lockfile, public CLI, provider registry, compatibility path, delivery, concurrency, or workflow framework changed.
+
+Verification:
+
+- Focused operator/custody/truth suite: 17 passed, two authenticated live gates skipped, zero failed.
+- Baseline native Windows Node `v25.2.1` literal `npm test`: 113 files, zero failures, exit 0, 186.1 seconds, unchanged worktree path set. This is baseline only because the candidate-after-operation identity recheck landed while the suite was in flight; a final truth-aligned suite remains required.
+- DevSpace/Node source, validation, and authenticated-agent bindings exist.
+- Fluxara/Python binding is verified under Python 3.14.4 with user base `C:\Users\Lenovo\AppData\Roaming\Python`; the exact sealed import probe for numpy, pandas, pygments, pytest, scipy, and uuid passes.
+
+Observed friction before candidate:
+
+The first Fluxara setup probe used the wrong dependency set and falsely suggested the environment was unavailable. Correcting the probe to the exact sealed example contract produced PASS. This is an operator setup/probe error, not an execution-custody seam defect. The live rounds must also measure the expected private setup cost of explicitly binding source, agent, validation, operation identity, and create-only root paths.
+
+Binding next gate:
+
+1. Finish truth alignment and run the final native 113-file pre-candidate suite.
+2. Create one immutable D075 candidate; do not amend it.
+3. Rerun literal native `npm test`; require 113 files, zero failures, exit 0, and a clean tracked tree.
+4. Invoke only the private script with ignored local requests for `d075-devspace-01` and `d075-fluxara-01`, using distinct create-only roots.
+5. For each operation require exact candidate identity and clean-before/after, exact shallow pinned authority, one authenticated spawn → VERIFIED, normal close, expiry+60s REPLAY with unusable tools and zero spawns, independent child validation, leakage PASS, and create-only operator receipt.
+6. Preserve every root on failure and never reuse an operation identity/root. A demonstrated seam defect requires a new immutable candidate; model or local-binding failure does not authorize abstraction or public-surface expansion.
+7. Close D075 in a separate commit only after both operations pass and friction is recorded. Then proceed to DECIDE; DELETE remains blocked.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:
