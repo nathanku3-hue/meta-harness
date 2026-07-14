@@ -2564,6 +2564,69 @@ Scope truth:
 - `scripts/operate-execution-custody.js` remains unregistered and private. No `bin` mapping, package script, package export, public CLI, provider registry, compatibility path, delivery semantics, concurrency framework, workflow framework, or deletion was added.
 - DECIDE must use the retained setup and latency evidence to choose one bounded outcome: keep the seam private, authorize one narrow stable public command, or reject a public surface for now. Implementation and DELETE require separate authorization.
 
+## D076: Authorize One Installed-Package Execution Surface
+
+Audit: `docs/ops/audits/d076-public-execution-surface-decision-audit.json`.
+
+Decision:
+
+Authorize exactly one stable public execution command:
+
+```text
+meta-harness execute --request <absolute-path> [--json]
+```
+
+The decision is **GO for an installed-package functional slice**, not GO for registering the existing private script. D075 closure remains valid, but the forward audit found three product boundaries that the generic DECIDE wording did not expose:
+
+1. `internal/execution-custody/operator.js` accepts only examples tracked below `.agents/skills/bounded-repository-change/examples`; the proved DevSpace and Fluxara operations therefore remain fixture-driven.
+2. The private operator resolves runtime/process/verifier code from `internal/` and `scripts/`, requires Meta-Harness repository Git metadata, and refuses a dirty Meta-Harness candidate.
+3. `package.json` publishes only `bin/`, `lib/`, product/SOP docs, templates, and README. The required `internal/`, `scripts/`, and `.agents/` roots are absent from the package.
+
+Therefore a source-checkout wrapper would increase the public command count without shipping the re-chartered product. D076 closes only when the global npm artifact itself performs one real bounded repository change.
+
+Authorized slice:
+
+- add one top-level command and no alias;
+- run from an isolated installation produced by `npm pack`, with no Meta-Harness `.git` directory or source-checkout dependency;
+- accept one versioned public execution request that contains or binds a sealed approved bounded-change specification;
+- do not require either tracked DevSpace/Fluxara example, and use one real request not present in those fixtures for the closure operation;
+- preserve exact one-revision shallow authority, no retained remote, no working-tree authority, one authenticated spawn → VERIFIED, durable child/ref custody, normal close, expiry+60s fresh-process REPLAY with unusable tools and zero spawns, portable export, independent validation, leakage PASS, and a create-only public execution receipt;
+- expose machine-readable output and stable exit behavior through the packaged CLI;
+- replace the private operator request/schema and unregistered script rather than maintaining private/public dual paths;
+- create one immutable implementation candidate, rerun the exact complete suite, execute the isolated-package live gate once, preserve all evidence, and close separately.
+
+Explicitly rejected:
+
+- treating `scripts/operate-execution-custody.js` registration as closure;
+- preserving `execution-custody-operator-request/v1` for backward compatibility;
+- bundling the two example fixtures as the public request contract;
+- a generic provider registry, compatibility adapter, concurrency framework, delivery/recovery/workflow framework, daemon, queue, dashboard, or broad DELETE;
+- source-checkout-only support presented as installed CLI support.
+
+Roadmap change:
+
+The prior sequence `D075 OPERATE → DECIDE → DELETE` is replaced by `D075 OPERATE → D076 SHIP installed-package execution → DELETE`. This is an aggressive but directionally consistent scope sharpening. The re-chartered end-state already requires a shipped local authority-bound execution-custody harness; the audit prevents a false-positive CLI-wrapper closure. No backward compatibility is authorized.
+
+Current score after D075 and this decision:
+
+- overall product flow: **8.8/10**
+- meaningful functional execution: **9.2/10**
+- Phase 23A execution custody: **9.3/10**
+- private operator usability: **8.7/10**
+- installed public execution usability: **2.0/10**
+- reusable multi-child core: **8.8/10**
+- CI/test truth integrity: **8.8/10**
+- engineering health: **8.9/10**
+- roadmap honesty: **9.9/10**
+- continuity with original MVP: **3.1/10**
+- alignment with re-chartered direction: **9.8/10**
+
+The dominant gap is no longer custody correctness. It is packaging and general user reach: the current working operator is absent from the npm artifact and accepts only source-owned fixtures. D076 is the smallest slice that converts the proven core into shipped product.
+
+Next gate:
+
+Implement D076 only. DELETE remains blocked until D076 closes under an immutable candidate and retained isolated-package live evidence.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:

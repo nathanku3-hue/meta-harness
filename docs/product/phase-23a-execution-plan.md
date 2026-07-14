@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`: 111-file native suite PASS, live Fluxara VERIFIED with one spawn, normal fresh-process REPLAY with zero spawns and unusable tools, independent portable verification PASS, leakage PASS, and former ToolLauncher/Windows/phase-lineage runtime deleted. D074 PROVE closed under exact repair candidate `4ad92f0`: 112-file native suite PASS, exact shallow DevSpace authority, one authenticated spawn → VERIFIED child `30ad240b`, normal exit, fresh-process REPLAY 60 seconds after expiry with zero spawns and unusable tools, independent Node validation PASS, and leakage PASS. D075 OPERATE closed under exact candidate `cd63e52`: 113-file native suite PASS plus distinct retained DevSpace/Node and Fluxara/Python operations through one production-owned private seam, each with one spawn → VERIFIED, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, unchanged source checkout, and create-only receipt.** Next: DECIDE one bounded public-surface outcome, then DELETE only if separately authorized.
+**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`: 111-file native suite PASS, live Fluxara VERIFIED with one spawn, normal fresh-process REPLAY with zero spawns and unusable tools, independent portable verification PASS, leakage PASS, and former ToolLauncher/Windows/phase-lineage runtime deleted. D074 PROVE closed under exact repair candidate `4ad92f0`: 112-file native suite PASS, exact shallow DevSpace authority, one authenticated spawn → VERIFIED child `30ad240b`, normal exit, fresh-process REPLAY 60 seconds after expiry with zero spawns and unusable tools, independent Node validation PASS, and leakage PASS. D075 OPERATE closed under exact candidate `cd63e52`: 113-file native suite PASS plus distinct retained DevSpace/Node and Fluxara/Python operations through one production-owned private seam, each with one spawn → VERIFIED, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, unchanged source checkout, and create-only receipt. D076 now authorizes one installed-package execution surface and rejects source-checkout wrapper closure.** Next: implement `meta-harness execute --request <absolute-path> [--json]` from an isolated `npm pack` install on one novel user-authored bounded change; then DELETE only after D076 closure.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -16,7 +16,8 @@
 | D073 | **Closed under `87de018`** — Fluxara `8548fe5` → verified child `2f2e615`; live spawn one → VERIFIED; fresh process with unusable tools → REPLAY spawn zero; independent export and leakage PASS; former ToolLauncher/PowerShell/CheckShortcut/Windows/phase-lineage path deleted without compatibility. |
 | D074 | **Closed under `4ad92f0`** — exact candidate suite 112/112 PASS; DevSpace pinned base `00952c05` → verified child `30ad240b`; one authenticated spawn → terminal VERIFIED; normal process exit; fresh process after expiry → REPLAY spawn zero with unusable tools; independent export validation and leakage PASS; failed `87472e1` and both create-only roots retained. Production skill/runtime/kernel/CLI/package surfaces remained frozen. |
 | D075 | **Closed under `cd63e52`** — exact 113-file candidate suite PASS; retained DevSpace/Node child `47c0d016` and Fluxara/Python child `c0032669`; each operation used exact one-revision shallow authority, one authenticated spawn → VERIFIED, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, unchanged source checkout, and create-only receipt. The seam remains private and unregistered. |
-| DECIDE / DELETE | DECIDE is next from retained D075 evidence: keep the seam private, authorize one narrow stable command, or reject a public surface for now. DELETE remains blocked until that decision and separate authorization. |
+| D076 / SHIP | **Authorized — Installed-Package Execution Surface.** Add exactly `meta-harness execute --request <absolute-path> [--json]`. Closure requires an isolated `npm pack` installation with no Meta-Harness `.git` or source-tree dependency, one novel user-authored bounded-change request, exact custody/VERIFIED/expired zero-spawn REPLAY/independent validation/leakage PASS, and a create-only public receipt. Replace the private request/script path; no aliases or compatibility. |
+| DELETE | **Blocked until D076 closes.** Reduce by supported user job and unique safety invariant only; no aliases, deprecation dispatch, compatibility path, or speculative framework. |
 
 ## Functional-first roadmap
 
@@ -76,7 +77,13 @@ D075 OPERATE CLOSED (cd63e52)
 + Fluxara/Python retained receipt: VERIFIED → expiry+60s REPLAY → Python validation/leakage PASS
 + actual friction recorded; private entrypoint remains unregistered
         ↓
-DECIDE one bounded public execution surface outcome from actual use
+D076 SHIP INSTALLED-PACKAGE EXECUTION (authorized)
++ exactly `meta-harness execute --request <absolute-path> [--json]`
++ isolated `npm pack` install; no source checkout or Meta-Harness `.git` dependency
++ one novel user-authored bounded-change request, not either tracked fixture
++ replace private request/script; no dual path or backward compatibility
++ one authenticated spawn → VERIFIED → expiry+60s zero-spawn REPLAY
++ portable independent validation + leakage PASS + create-only public receipt
         ↓
 DELETE: preserve supported jobs (`init`, `record`, `status`, `check`, `sync`, and active `release check`)
 + delete everything without a current supported job or unique safety invariant

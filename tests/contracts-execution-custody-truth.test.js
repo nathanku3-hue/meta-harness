@@ -43,7 +43,7 @@ function findRow(rows, pattern) {
   return row;
 }
 
-test("status records D075 closure and the bounded DECIDE gate", () => {
+test("status records D075 closure and the authorized D076 installed-package gate", () => {
   const status = read(".meta-harness/status.md");
   const goal = section(status, "Goal");
   const currentTruth = section(status, "Current truth");
@@ -55,8 +55,11 @@ test("status records D075 closure and the bounded DECIDE gate", () => {
   assert.match(goal, /113-file native suite/i);
   assert.match(goal, /DevSpace\/Node and Fluxara\/Python/i);
   assert.match(goal, /expiry\+60s zero-spawn REPLAY/i);
-  assert.match(goal, /DECIDE/i);
-  assert.match(goal, /DELETE blocked/i);
+  assert.match(goal, /D076/i);
+  assert.match(goal, /meta-harness execute/i);
+  assert.match(goal, /isolated `npm pack` installation/i);
+  assert.match(goal, /source-checkout wrapper is not closure/i);
+  assert.match(goal, /DELETE remains blocked/i);
 
   assert.match(currentTruth, /D075 is closed under exact immutable candidate `cd63e5295b8bbde1afaf1ab5d991aadc13cc0442`/i);
   assert.match(currentTruth, /tree `5b15623e7646da18e2417bd38767ff3f5be54547`/i);
@@ -81,12 +84,12 @@ test("status records D075 closure and the bounded DECIDE gate", () => {
   assert.match(lastVerified, /c00326698c19e7cc096f45eca78ea0b54bb8e535/i);
   assert.match(lastVerified, /5c659e24181121e0af2a647b19e129ab2e3b7725f0d9ad365055b4de7d28b68d/i);
 
-  assert.match(nextAction, /DECIDE_PUBLIC_EXECUTION_SURFACE/i);
-  assert.match(nextAction, /keep the seam private/i);
-  assert.match(nextAction, /one narrow stable public command/i);
-  assert.match(nextAction, /reject a public surface/i);
-  assert.match(nextAction, /Do not implement the decision in the same step/i);
-  assert.match(nextAction, /DELETE remains blocked/i);
+  assert.match(nextAction, /Implement D076/i);
+  assert.match(nextAction, /meta-harness execute/i);
+  assert.match(nextAction, /isolated `npm pack` installation/i);
+  assert.match(nextAction, /not present in the tracked DevSpace\/Fluxara fixtures/i);
+  assert.match(nextAction, /replace the private request\/script/i);
+  assert.match(nextAction, /Do not begin broad DELETE until D076 closes/i);
   assert.doesNotMatch(nextAction, /force(?:-|\s)?push/i);
 });
 
@@ -105,12 +108,12 @@ test("CI and active runtime identities are phase-neutral", () => {
   assert.doesNotMatch(activeRuntime, /D0(?:69|70|71|72)|d0(?:69|70|71|72)/);
 });
 
-test("roadmap orders closed D073 before cross-ecosystem D074, D075 OPERATE, DECIDE, and DELETE", () => {
+test("roadmap orders closed D073 before D074, D075, authorized D076 SHIP, and DELETE", () => {
   const rows = roadmapRows();
   const d073 = findRow(rows, /D073|REPLACE\+CLOSE/);
   const d074 = findRow(rows, /D074|PROVE/);
   const operate = findRow(rows, /D075|OPERATE/);
-  const decide = findRow(rows, /^DECIDE$/);
+  const ship = findRow(rows, /D076|SHIP/);
   const deletion = findRow(rows, /^DELETE$/);
 
   assert.match(d073.name, /Functional Custody Replacement Slice/i);
@@ -148,12 +151,17 @@ test("roadmap orders closed D073 before cross-ecosystem D074, D075 OPERATE, DECI
   assert.match(operate.detail, /expiry\+60s zero-spawn REPLAY/i);
   assert.match(operate.detail, /leakage PASS across 16 files/i);
   assert.match(operate.detail, /d075-private-operator-closure-audit\.json/i);
-  assert.match(decide.state + decide.detail, /next after closed D075 evidence/i);
-  assert.match(deletion.state + deletion.detail, /after OPERATE and DECIDE/i);
+  assert.match(ship.name, /Installed-Package Execution Surface/i);
+  assert.match(ship.state, /authorized/i);
+  assert.match(ship.detail, /meta-harness execute/i);
+  assert.match(ship.detail, /isolated `npm pack` install/i);
+  assert.match(ship.detail, /not present in the tracked DevSpace\/Fluxara fixtures/i);
+  assert.match(ship.detail, /Replace the private request\/script/i);
+  assert.match(deletion.state + deletion.detail, /after D076 closure/i);
   assert.ok(rows.indexOf(d073) < rows.indexOf(d074));
   assert.ok(rows.indexOf(d074) < rows.indexOf(operate));
-  assert.ok(rows.indexOf(operate) < rows.indexOf(decide));
-  assert.ok(rows.indexOf(decide) < rows.indexOf(deletion));
+  assert.ok(rows.indexOf(operate) < rows.indexOf(ship));
+  assert.ok(rows.indexOf(ship) < rows.indexOf(deletion));
 });
 
 test("product re-charter and D073 closure are explicit across primary surfaces", () => {
@@ -172,6 +180,7 @@ test("product re-charter and D073 closure are explicit across primary surfaces",
     assert.match(text, /87de018/i);
     assert.match(text, /D074/i);
     assert.match(text, /D075/i);
+    assert.match(text, /D076/i);
   }
   assert.match(spec, /internal\/execution-custody/i);
   assert.match(architecture, /D073 REPLACE\+CLOSE closed/i);
@@ -182,10 +191,12 @@ test("product re-charter and D073 closure are explicit across primary surfaces",
   assert.match(decisionLog, /D074 cross-ecosystem custody closure/i);
   assert.match(decisionLog, /D075 private-operator functional-slice audit/i);
   assert.match(decisionLog, /D075 private-operator repeated-use closure/i);
+  assert.match(decisionLog, /D076: Authorize One Installed-Package Execution Surface/i);
   assert.match(prd, /D074 closed under exact candidate `4ad92f0`/i);
   assert.match(spec, /D074 closed under exact candidate `4ad92f0`/i);
   assert.match(architecture, /D074 cross-ecosystem custody proof closed under `4ad92f0`/i);
   assert.match(architecture, /D075 private-operator use closed under `cd63e52`/i);
+  assert.match(architecture, /D076 installed-package execution authorized/i);
 });
 
 test("D073 audit binds exact suite, live replay, export, and deletion truth", () => {
@@ -605,6 +616,43 @@ test("D075 closure audit binds the exact candidate and both retained operator re
   assert.equal(audit.claims.providerRegistryExists, false);
   assert.equal(audit.claims.compatibilityPathExists, false);
   assert.equal(audit.claims.d075Closed, true);
+});
+
+test("D076 decision audit rejects wrapper-only closure and binds the installed-package slice", () => {
+  const audit = JSON.parse(read("docs/ops/audits/d076-public-execution-surface-decision-audit.json"));
+  assert.equal(audit.kind, "d076-public-execution-surface-decision-audit");
+  assert.equal(audit.verdict, "AUTHORIZE_INSTALLED_PACKAGE_EXECUTION_SLICE");
+  assert.equal(audit.decision.id, "D076");
+  assert.equal(audit.decision.status, "authorized");
+  assert.equal(audit.decision.replacesGate, "DECIDE_PUBLIC_EXECUTION_SURFACE");
+  assert.equal(audit.decision.publicCommand, "meta-harness execute --request <absolute-path> [--json]");
+  assert.equal(audit.decision.sourceCheckoutWrapperAcceptedAsClosure, false);
+  assert.equal(audit.decision.installedPackageFunctionalSliceRequired, true);
+  assert.equal(audit.decision.publicImplementationAuthorized, true);
+  assert.equal(audit.decision.broadDeletionAuthorized, false);
+  assert.equal(audit.decision.compatibilityAuthorized, false);
+  assert.equal(audit.decision.providerRegistryAuthorized, false);
+  assert.equal(audit.closureAudit.d075ClosureValid, true);
+  assert.equal(audit.closureAudit.closureCommit, "9e42b750fdac11f2747a5e81749056db5bae65ed");
+  assert.equal(audit.closureAudit.candidate, "cd63e5295b8bbde1afaf1ab5d991aadc13cc0442");
+  assert.equal(audit.closureAudit.operatorReceiptHashesMatch, true);
+  assert.equal(audit.forwardAudit.publicCommandCountBeforeD076, 27);
+  assert.equal(audit.forwardAudit.fixtureOnlyBoundary.present, true);
+  assert.equal(audit.forwardAudit.sourceCheckoutBoundary.present, true);
+  assert.equal(audit.forwardAudit.packageBoundary.present, true);
+  assert.deepEqual(audit.forwardAudit.packageBoundary.excludedRequiredRoots, [
+    "internal/", "scripts/", ".agents/",
+  ]);
+  assert.equal(audit.d076FunctionalSlice.publicSurface.additionalTopLevelCommandsBeyondExecute, 0);
+  assert.equal(audit.d076FunctionalSlice.publicSurface.aliases.length, 0);
+  assert.equal(audit.d076FunctionalSlice.closureGate.isolatedPackInstallRequired, true);
+  assert.equal(audit.d076FunctionalSlice.closureGate.authenticatedLiveOperationRequired, true);
+  assert.equal(audit.d076FunctionalSlice.closureGate.novelRequestRequired, true);
+  assert.equal(audit.d076FunctionalSlice.closureGate.separateClosureCommitRequired, true);
+  assert.equal(audit.roadmapDecision.aggressiveChange, true);
+  assert.equal(audit.currentScore.installedPublicExecutionUsability, 2.0);
+  assert.equal(audit.intentDeviation.silentDrift, false);
+  assert.match(audit.nextAction, /Implement D076/i);
 });
 
 test("D074 and D075 share one phase-neutral operator workflow and a Node example", () => {

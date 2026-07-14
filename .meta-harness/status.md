@@ -1,13 +1,15 @@
 # Status
 
 Goal:
-D075 private operator use is closed under immutable candidate `cd63e52`: the exact 113-file native suite and distinct retained DevSpace/Node and Fluxara/Python operations passed with clean-before/after candidate identity, VERIFIED → expiry+60s zero-spawn REPLAY → independent validation/leakage PASS, and create-only receipts. Use that evidence to DECIDE whether one stable public execution surface is warranted. Keep DELETE blocked until the decision is explicit.
+D075 private operator use is closed under immutable candidate `cd63e52` after the exact 113-file native suite and retained DevSpace/Node and Fluxara/Python operations passed. D076 now authorizes one installed-package execution vertical slice: `meta-harness execute --request <absolute-path> [--json]`. Closure must run from an isolated `npm pack` installation, accept a novel user-authored bounded-change request rather than a tracked fixture, and retain VERIFIED → expiry+60s zero-spawn REPLAY → independent validation/leakage PASS evidence. A source-checkout wrapper is not closure. DELETE remains blocked until D076 closes.
 
 Phase:
 in_progress
 
 Current truth:
 Phases 16–21E remain closed as previously recorded through D063. Phase 21F closed under D064 (`2fedfd4`). Phase 22A-H closed under D065 (`02d9c59`). Phase 22B closed under D066 (`f926868`). Phase 23A-PR1 (D067) is superseded and archived at `fb40d18` on `archive/23a-pr1-d067-fb40d18`. **D068 closed under squash `be82763` (PR #23; reviewed head `4b259c9`; base `f926868`; tree-object equality PASS; ancestry PASS).** **D069 closed under squash `e8e7713` (PR #24; reviewed head `245fa3d`; base `5afe075`; tree-object equality PASS; ancestry PASS).** D070-A0.1 NO-GO / A0.2 GO remain binding. **D070-A1 transport/custody slice closed** under audit-hardening commit `8ebe690`. **D071 functional execution passed under `74f8ac1`, but its closure claim remains superseded by the post-close custody audit:** sealed objective → authenticated Codex `:read-only` → controller commit → Windows PowerShell 5.1 validator (missing+valid+corrupt) → live `IMPLEMENTATION_VERIFIED` + in-process replay against isolated ToolLauncher `7fab419f20ba` / `scripts/utils/CheckShortcut.ps1`. That historical live test deleted both the isolated child repository and its state root in `finally`; the claimed child commit `9f41bbbb…`, create-only ref, AO metadata, change artifact, schema, terminal journal, assessment, and receipt are not retained. The audit also traced restart failure to authorization-before-lookup combined with a time-varying readiness digest. Audit evidence: `docs/ops/audits/d071-post-close-custody-audit.json`. **D072 custody mechanics are implemented offline, but the ToolLauncher-specific closure procedure is superseded:** exact candidate `5d677a8` passed native Windows Node 25 `npm test` across 116 files with zero failures, then its retained live root failed in process 1 after one successful AO spawn because the generated PowerShell artifact mishandled an omitted string parameter and failed trusted validation before terminal publication. This neither closes nor disproves the custody protocol; it proves the gate still conflates model output quality, legacy Windows semantics, and custody. Audit: `docs/ops/audits/d072-exact-commit-live-gate-audit.json`. **D073 closed under exact implementation candidate `87de018`:** the 111-file native Windows Node 25 suite passed with zero failures; live Fluxara process 1 spawned the authenticated agent once and reached `VERIFIED` at child commit `2f2e6156`; after normal exit, process 2 used unusable execution-tool paths and returned `REPLAY` with zero spawns; portable export independently reconstructed the result, reran both sealed validation commands, and passed leakage scanning across 16 files. The sole production runtime is `internal/execution-custody`; the active ToolLauncher/PowerShell/CheckShortcut path, Windows classifier, phase-numbered production identity, and production imports from `internal/d069` are deleted with no compatibility or dual runtime. Closure audit: `docs/ops/audits/d073-functional-custody-replacement-audit.json`. **Post-close audit found two bounded forward gaps, not a D073 closure reversal:** the production runtime was example-driven, but the live integration plumbing remained Fluxara/Python/D073-specific, and replacement tests had lost later-than-expiry replay coverage. Post-close audit: `docs/ops/audits/d073-post-close-forward-audit.json`. **D075 is closed under exact immutable candidate `cd63e5295b8bbde1afaf1ab5d991aadc13cc0442` / tree `5b15623e7646da18e2417bd38767ff3f5be54547`:** `internal/execution-custody/operator.js` owns the single example-driven orchestration path outside tests. It requires a clean immutable Meta-Harness candidate before root creation; accepts only tracked bounded-repository-change examples and create-only roots directly under `.meta-harness/local/custody`; binds the exact request bytes; performs exact depth-one authority preparation, fresh-process VERIFIED, receipt-derived expiry+60s REPLAY with unusable tools and zero spawns, portable export, independent validation, leakage verification, and a create-only `operator-receipt.json`; then rechecks candidate commit/tree/cleanliness. `scripts/operate-execution-custody.js` is intentionally unregistered in `bin/`, package scripts, and exports. The former test-owned orchestration, child, and verifier are now thin adapters over the production-owned path. Focused coverage passes 18 with two authenticated gates skipped; the exact candidate native suite passed 113 files with zero failures and exit 0 while commit, tree, and tracked cleanliness remained unchanged. Distinct retained operations now prove repeated use: `d075-devspace-01` produced VERIFIED child `47c0d016`, expiry+60s zero-spawn REPLAY, independent Node validation, and leakage PASS; `d075-fluxara-01` produced VERIFIED child `c0032669`, the same replay properties, independent Python validation under Python 3.14.4, and leakage PASS. Both dirty source operator checkouts were unchanged because working-tree bytes were never authority. Observed friction was explicit local binding, synchronous latency, one pre-launch PowerShell-wrapper correction, and a connector duplicate-suite-wrapper race; none was an operator-seam defect or candidate mutation. Audits: `docs/ops/audits/d075-private-operator-functional-slice-audit.json` and `docs/ops/audits/d075-private-operator-closure-audit.json`.
+
+**D076 is authorized as the installed-package execution surface:** audit found that the D075 seam is reusable custody machinery but still a source-checkout fixture runner. It accepts only examples tracked below `.agents/skills/bounded-repository-change/examples`, resolves production code from `internal/` and `scripts/`, requires Meta-Harness Git metadata and a clean candidate, while `package.json` publishes only `bin/`, `lib/`, product/SOP docs, templates, and README. Merely registering the private script would therefore expose an internal ceremony without shipping the re-chartered product. D076 must provide exactly one public command, `meta-harness execute --request <absolute-path> [--json]`, from an isolated packed installation with no source checkout or `.git` dependency; consume one versioned public request that binds a sealed approved bounded change not present in the two tracked fixtures; prove exact shallow authority, one authenticated spawn → VERIFIED, retained custody, expiry+60s zero-spawn REPLAY, portable independent validation, leakage PASS, and a create-only public receipt; and replace rather than preserve the private request/script path. No alias, backward compatibility, provider registry, concurrency, delivery, workflow, daemon, queue, dashboard, or broad DELETE is authorized. Audit: `docs/ops/audits/d076-public-execution-surface-decision-audit.json`.
 
 **D074 implementation was audit-accepted before candidate execution:** the DevSpace Node example binds commit `00952c05f01248773a90cd293aed528672eb6f1b`, tree `65e249664f7146e7bff6c36d530f3de1cd0068e4`, and only `scripts/dev-server.mjs`; one phase-neutral shared live workflow now serves Fluxara and DevSpace; Python dependency binding remains only at the Fluxara edge; both generic and live process-2 clocks derive from the stored receipt and advance beyond expiry; child authority uses an empty repository plus exact depth-one fetch of the pinned commit, with no remote and one visible revision. Audit found and repaired an under-validation defect: the initial DevSpace capsule could have accepted a command-exporting stub that deleted the restart/watcher/shutdown lifecycle, so the sealed validator now also binds preservation landmarks for restart delay, crash restart, termination fallback, recursive watching, and shutdown. The exact shallow clone, focused expired replay, strengthened validator, 8-test truth contract, and complete 112-file native Windows Node 25 suite passed before candidate creation. **First immutable D074 candidate `87472e1` / tree `7a447d81` then passed the exact native suite again: 112 files, zero failures, exit 0. Its single DevSpace-only live attempt spawned the authenticated agent once, produced terminal `IMPLEMENTATION_VERIFIED` at child commit `b821c485`, retained the create-only durable ref, passed the receipt-derived later-than-expiry zero-spawn replay assertions, produced a leakage-clean portable export, and left the primary shallow clone clean at the pinned base. The end-to-end test still failed after export because the independent verifier fetched the shallow prerequisite object without anchoring it to a local ref before `git bundle verify`; Git reported a disconnected prerequisite. Candidate `87472e1` and root `.meta-harness/local/custody/custody-devspace-87472e187a8d-5c3362472026` are preserved and must not be rerun or amended. A two-file test-only repair anchors `refs/verify/base`, passes a real shallow thin-bundle regression, and independently re-verifies the retained export with both Node commands exit 0 and leakage PASS. **D074 is now closed under exact repair candidate `4ad92f0bf0643a48bb90ab86ee3fe7f9fd31184b` / tree `064689e945889c1ee2d5b4a132d6c7a12cf2d706`: native Windows Node `v25.2.1` `npm test` passed 112 files with zero failures; the one DevSpace-only live gate exited 0 after one authenticated spawn produced terminal VERIFIED child `30ad240b`, a create-only durable ref, normal controller close, process-2 REPLAY exactly 60 seconds after receipt expiry with unusable tools and zero spawns, independent two-command Node validation, and leakage PASS across 16 exported files. The clean primary child clone remained at pinned base `00952c05` with one visible shallow revision and no remote.** Audits: `docs/ops/audits/d074-pre-candidate-functional-slice-audit.json`, `docs/ops/audits/d074-candidate-87472e1-live-failure-audit.json`, and `docs/ops/audits/d074-cross-ecosystem-custody-closure-audit.json`. Marker path remains deleted. Quant remains excluded. `lib/contracts/*` remains frozen.
 
@@ -206,10 +208,10 @@ Superseded/deferred truth:
 - Phase 21A–21F, 22A, and 22B are closed. D067 superseded. **D068 closed under `be82763`** (PR #23 squash; reviewed head `4b259c9`). Slice 0B.1 repaired stale active pre-merge wording; historical events unchanged.
 
 Active streams:
-- coding: D075 private operator use is closed under `cd63e52`; the active gate is DECIDE from retained repeated-use evidence, with no implementation pre-authorized.
+- coding: D076 installed-package execution is authorized; implementation has not started. The slice must ship one `execute` command from `npm pack`, not register the source-only D075 script.
 - research: closed; direct write remains NO-GO and controller-materialized artifact execution remains the selected seam.
-- writing: D075 closure identities, two retained receipts, and friction record; D074 closure and failed-candidate history remain preserved.
-- review: exact request binding, clean immutable candidate checks, two authenticated operator receipts, shallow authority, replay, independent validation, and leakage PASS are retained; public-surface value remains undecided.
+- writing: D076 decision audit, installed-package closure boundary, updated scores, and explicit roadmap deviation; all D075 retained evidence remains preserved.
+- review: D075 closure remains valid. D076 must prove one novel public request from an isolated package, exact custody/replay/verification, no dual private/public path, and no speculative framework growth.
 
 Scope boundary:
 - D068 public contract kernel is frozen on main under `be82763` (no delivery actor, no public run CLI).
@@ -221,7 +223,7 @@ Scope boundary:
 - Process-tree timeout custody shipped in A1; broader concurrency/cancellation remains deferred because no real overlap/cancellation need has been observed.
 - D074 must use a different validation executable family from Fluxara. Another Python child would not prove the example/adapter seam.
 - Test-only helper parameterization is allowed in D074; copy-pasting a second child-specific live harness is rejected.
-- D075 OPERATE is complete through the unregistered private seam. DECIDE must now determine whether a stable public execution surface is warranted before any broad DELETE.
+- D075 OPERATE is complete through the unregistered private seam. D076 explicitly authorizes a stable public execution surface only as an installed-package functional slice; source-checkout command registration is rejected. DELETE remains after D076 closure.
 
 Relevant decisions:
 - D046 (2026-06-30): Phase 18 read-only response handoff closure.
@@ -255,8 +257,8 @@ Relevant decisions:
 - D073: **closed under `87de018` — Functional Custody Replacement Slice**. Fluxara live process 1 reached VERIFIED with one spawn; fresh process 2 replayed with unusable tool paths and zero spawns; independent portable verification and leakage scanning passed; the former Windows/ToolLauncher/phase-lineage path was deleted without compatibility.
 - D074: **closed under `4ad92f0` — Cross-Ecosystem Reuse Proof**. DevSpace pinned base `00952c05` / tree `65e24966` produced verified child `30ad240b` through one authenticated spawn; exact depth-one authority remained clean with one revision and no remote; process 2 replayed 60 seconds after expiry with unusable tools and zero spawns; independent Node validation and leakage scanning passed. Failed candidate `87472e1` and both create-only roots remain retained. Production runtime, skill, kernel, CLI, package, and lockfile were unchanged.
 - D075: **closed under `cd63e52` — Private Operator Use Gate**. The exact 113-file suite passed; distinct retained DevSpace/Node and Fluxara/Python operations each used exact shallow authority, one authenticated spawn → VERIFIED, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, unchanged source checkout, and a create-only operator receipt. Public CLI/package/contracts/examples remain frozen.
-- DECIDE: **next — Public Execution Surface**. Use the retained D075 evidence and measured friction to decide whether to keep the private seam only or authorize one narrow stable command. No public CLI, compatibility path, or deletion is pre-authorized.
-- Product re-charter: **decided now**, not deferred. Meta-Harness post-MVP direction is a local authority-bound agent execution-custody harness; the lightweight Markdown-only MVP remains historical and supported as the shipped surface until a replacement operator seam is proven.
+- D076: **authorized — Installed-Package Execution Surface**. Add exactly one command, `meta-harness execute --request <absolute-path> [--json]`, and close only from an isolated `npm pack` installation performing one novel user-authored bounded change with retained custody/replay/independent-verification evidence. Replace the private request/script path; no compatibility or dual surface.
+- Product re-charter: **decided now**, not deferred. Meta-Harness post-MVP direction is a local authority-bound agent execution-custody harness; the lightweight Markdown-only MVP remains historical shipped scope until D076 proves the replacement from the installed package.
 
 Pre-D072 audit score baseline (2026-07-12; historical, before the current implementation):
 - overall product flow: **7.6/10**
@@ -274,31 +276,34 @@ Pre-D072 audit score baseline (2026-07-12; historical, before the current implem
 - continuity with original MVP: **4.0/10**
 - alignment with re-chartered direction: **8.8/10**
 
-Current audit score (2026-07-14; D074 cross-ecosystem custody proof closed under `4ad92f0`):
-- overall product flow: **8.6/10**
-- meaningful functional execution: **8.9/10**
-- Phase 23A execution custody: **9.1/10**
-- trusted runtime custody implementation: **8.8/10**
-- live closure evidence: **9.1/10**
-- AO verified integration: **9.1/10**
-- durable child-result custody: **9.0/10**
-- graceful terminal replay: **9.0/10**
-- independently portable evidence: **8.9/10**
-- reusable multi-child core: **8.2/10**
-- CI/test truth integrity: **8.5/10**
-- engineering health: **8.8/10**
-- roadmap honesty after this audit: **9.8/10**
-- continuity with original MVP: **3.3/10**
-- alignment with re-chartered direction: **9.6/10**
+Current audit score (2026-07-14; D075 closed and D076 installed-package execution authorized):
+- overall product flow: **8.8/10**
+- meaningful functional execution: **9.2/10**
+- Phase 23A execution custody: **9.3/10**
+- trusted runtime custody implementation: **9.0/10**
+- live closure evidence: **9.4/10**
+- AO verified integration: **9.2/10**
+- durable child-result custody: **9.2/10**
+- graceful terminal replay: **9.2/10**
+- independently portable evidence: **9.0/10**
+- reusable multi-child core: **8.8/10**
+- private operator usability: **8.7/10**
+- installed public execution usability: **2.0/10**
+- CI/test truth integrity: **8.8/10**
+- engineering health: **8.9/10**
+- roadmap honesty after this audit: **9.9/10**
+- continuity with original MVP: **3.1/10**
+- alignment with re-chartered direction: **9.8/10**
 
 Score interpretation:
-- D074 raises reuse materially because Fluxara and DevSpace now share one phase-neutral custody workflow while language-specific validation binding stays at each child edge.
-- Graceful replay rises because both the deterministic runtime test and shared live workflow derive process 2 from the actual stored receipt expiry and require zero-spawn terminal replay afterward.
-- CI/test truth rises because all 112 discovered files pass on the exact closure candidate, the first live failure remains preserved, and the repaired shallow-prerequisite path is covered by both a deterministic thin-bundle regression and authenticated end-to-end PASS; remote Ubuntu evidence remains absent.
-- Live closure is now retained and complete for D074: one authenticated spawn → VERIFIED child/durable ref, normal process exit, process 2 after expiry → REPLAY with zero spawns and unusable tools, portable export, independent validation, and leakage PASS.
-- Reusable multi-child structure rises because Fluxara/Python and DevSpace/Node now close through one shared phase-neutral custody workflow without a provider registry or second runtime.
-- Portable evidence still means same-host independent reconstruction and validation, not a self-contained third-party dependency environment or exhaustive DevSpace lifecycle simulation.
-- Roadmap honesty improves because D075 closes only from an exact candidate plus two retained real operator receipts; DECIDE now precedes any public-surface implementation or deletion.
+- D075 materially raises functional execution and operator usability because the same production-owned path completed retained DevSpace/Node and Fluxara/Python operations outside tests.
+- Custody, replay, and live evidence are now strong: both operations retained exact shallow authority, one-spawn VERIFIED children, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, and create-only receipts.
+- Reuse rises because one host-neutral workflow spans two language/validation ecosystems without a provider registry or copied runtime.
+- Installed public execution remains **2.0/10** because the working seam is not in the npm package, depends on source-tree-only roots and Meta-Harness Git metadata, and accepts only two tracked fixture examples. This is the dominant remaining product gap.
+- Portable evidence still means same-host independent reconstruction and validation, not a self-contained third-party dependency environment.
+- CI/test truth rises from the exact 113-file candidate suite, separate closure worktree suite, retained receipt hash checks, and explicit preservation of failed/successful roots; remote CI remains absent.
+- Roadmap honesty rises because the prior generic DECIDE gate is sharpened aggressively: a source-only wrapper cannot close D076; only an isolated installed-package operation on a novel request can.
+- Original-MVP continuity declines slightly because the product is explicitly moving from Markdown visibility to a shipped mutative agent-execution command. This remains deliberate, not silent drift.
 
 Blockers:
 - D073 has no remaining local closure blocker.
@@ -306,7 +311,8 @@ Blockers:
 - The DevSpace operator checkout remains dirty by design; D074 authority came only from the exact shallow fetch of pinned commit `00952c05...`, never working-tree bytes.
 - Ubuntu CI and remote publication remain pending because no push or remote action was authorized.
 - Direct Codex workspace writes remain NO-GO on this host.
-- D075 has no remaining local blocker. Repeated private operator usability is proved across DevSpace/Node and Fluxara/Python. DECIDE is now the active gate; DELETE remains blocked.
+- D075 has no remaining local blocker. Repeated private operator usability is proved across DevSpace/Node and Fluxara/Python.
+- D076 is the active gate. Its blockers are product boundaries, not custody mechanics: the current operator is fixture-only, source-checkout-only, excluded from the npm package, and coupled to Meta-Harness Git cleanliness. DELETE remains blocked until D076 closes.
 
 Last verified:
 - Historical D071 implementation commit `74f8ac17e66aafb86546227ec8ec93f1f48f6f17` reported live `IMPLEMENTATION_VERIFIED`, AO count one, and in-process replay, but child commit `9f41bbbb28d89301223292bc5aea11039fba47bb` and its claimed ref remain absent after historical cleanup.
@@ -332,7 +338,7 @@ Last verified:
 - `networkPolicy: denied` remains trust-based, not OS firewall isolation.
 
 Next action:
-Execute DECIDE_PUBLIC_EXECUTION_SURFACE from the retained D075 evidence. Compare the proven private seam, explicit local-binding cost, 56.2-second DevSpace operation, 114.7-second Fluxara operation, and absence of any demonstrated provider/concurrency need. Decide one bounded outcome: keep the seam private, authorize one narrow stable public command, or reject a public surface for now. Do not implement the decision in the same step without separate authorization. Do not add a provider registry, compatibility path, delivery semantics, concurrency framework, or broad deletion. DELETE remains blocked until DECIDE is explicit.
+Implement D076 as one installed-package execution vertical slice. Add exactly `meta-harness execute --request <absolute-path> [--json]`; replace the private request/script rather than preserving compatibility; package the required runtime; run from an isolated `npm pack` installation with no Meta-Harness `.git` or source-tree dependency; accept one versioned public request for a real bounded change not present in the tracked DevSpace/Fluxara fixtures; require exact shallow authority, one authenticated spawn → VERIFIED, retained child/ref, normal close, expiry+60s zero-spawn REPLAY with unusable tools, portable independent validation, leakage PASS, and a create-only public receipt. Create an immutable candidate and close separately. Do not add aliases, provider, compatibility, concurrency, delivery, recovery, daemon, queue, dashboard, or workflow frameworks. Do not begin broad DELETE until D076 closes.
 
 Updated:
 2026-07-14

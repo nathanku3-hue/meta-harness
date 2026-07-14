@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d076-public-execution-surface-decision-audit",
+  "auditedAt": "2026-07-14T22:06:46+08:00",
+  "verdict": "AUTHORIZE_INSTALLED_PACKAGE_EXECUTION_SLICE",
+  "decision": {
+    "id": "D076",
+    "status": "authorized",
+    "replacesGate": "DECIDE_PUBLIC_EXECUTION_SURFACE",
+    "outcome": "authorize_one_narrow_stable_public_command",
+    "publicCommand": "meta-harness execute --request <absolute-path> [--json]",
+    "sourceCheckoutWrapperAcceptedAsClosure": false,
+    "installedPackageFunctionalSliceRequired": true,
+    "publicImplementationAuthorized": true,
+    "broadDeletionAuthorized": false,
+    "deleteAfterD076Closure": true,
+    "aliasesAuthorized": false,
+    "compatibilityAuthorized": false,
+    "providerRegistryAuthorized": false,
+    "concurrencyFrameworkAuthorized": false,
+    "deliveryFrameworkAuthorized": false,
+    "workflowFrameworkAuthorized": false
+  },
+  "closureAudit": {
+    "d075ClosureValid": true,
+    "closureCommit": "9e42b750fdac11f2747a5e81749056db5bae65ed",
+    "closureTree": "434bdf71834c5ad29b80844824ff4aa836a7bf4f",
+    "candidate": "cd63e5295b8bbde1afaf1ab5d991aadc13cc0442",
+    "candidateTree": "5b15623e7646da18e2417bd38767ff3f5be54547",
+    "closureParentMatchesCandidate": true,
+    "worktreeCleanAtAuditStart": true,
+    "retainedRootsPresent": true,
+    "operatorReceiptHashesMatch": true,
+    "eventsJsonlRecords": 59,
+    "closureAuditJsonParses": true,
+    "gitDiffCheck": "PASS"
+  },
+  "evidence": {
+    "candidateSuite": {
+      "testFiles": 113,
+      "failed": 0,
+      "exitCode": 0
+    },
+    "retainedOperations": [
+      {
+        "operationId": "d075-devspace-01",
+        "ecosystem": "DevSpace/Node",
+        "durationSeconds": 56.2,
+        "verifiedChild": "47c0d01671d6d69a9a9cc3f097f99ce9300fb74e",
+        "operatorReceiptSha256": "17650283ae6b279af9af2149c8d0ff873368116c9a5fff7c1668e9bbaebdba27"
+      },
+      {
+        "operationId": "d075-fluxara-01",
+        "ecosystem": "Fluxara/Python",
+        "durationSeconds": 114.7,
+        "verifiedChild": "c00326698c19e7cc096f45eca78ea0b54bb8e535",
+        "operatorReceiptSha256": "99ea7b970f37702e0d2326dcf6f033fb56b7e821f704939e9e0cb5c4af48e05a"
+      }
+    ],
+    "privateOperatorProved": true,
+    "crossEcosystemReuseProved": true,
+    "providerOrConcurrencyNeedDemonstrated": false
+  },
+  "forwardAudit": {
+    "publicCommandCountBeforeD076": 27,
+    "fixtureOnlyBoundary": {
+      "present": true,
+      "detail": "The private operator accepts only tracked JSON examples below .agents/skills/bounded-repository-change/examples. The two proved operations therefore establish reusable custody mechanics but not a general user-authored execution request."
+    },
+    "sourceCheckoutBoundary": {
+      "present": true,
+      "detail": "The private operator resolves internal helpers and examples from the Meta-Harness source tree, requires repository Git metadata, and refuses a dirty Meta-Harness candidate."
+    },
+    "packageBoundary": {
+      "present": true,
+      "packageFiles": [
+        "bin/",
+        "lib/",
+        "docs/product/",
+        "docs/sop/",
+        "templates/",
+        "README.md"
+      ],
+      "excludedRequiredRoots": [
+        "internal/",
+        "scripts/",
+        ".agents/"
+      ],
+      "detail": "The currently published package shape cannot contain or run the D075 operator. Registering scripts/operate-execution-custody.js would be source-checkout exposure, not shipped product closure."
+    },
+    "decisionConclusion": "A public surface is warranted, but only if the next gate proves the installed npm artifact can execute one novel user-authored bounded change without source-tree fixtures or Meta-Harness Git metadata."
+  },
+  "d076FunctionalSlice": {
+    "name": "Installed-Package Execution Surface",
+    "productOutcome": "A user can install the package, invoke one supported execution command, and receive a durable independently verifiable custody receipt for a real bounded repository change.",
+    "publicSurface": {
+      "command": "meta-harness execute --request <absolute-path> [--json]",
+      "aliases": [],
+      "additionalTopLevelCommandsBeyondExecute": 0,
+      "machineReadableOutputRequired": true,
+      "stableExitCodesRequired": true
+    },
+    "requiredBehavior": [
+      "Run from an isolated npm-pack installation with no Meta-Harness .git directory and no source checkout dependency.",
+      "Accept one public versioned execution request containing or binding a sealed approved bounded-change specification; do not require a bundled tracked example.",
+      "Execute one real bounded change not present in the two D074/D075 tracked example fixtures.",
+      "Prepare exact one-revision shallow authority with no retained remote and no working-tree authority.",
+      "Spawn the authenticated agent once, reach VERIFIED, retain the child commit and durable ref, and close normally.",
+      "Replay from a fresh process after authorization expiry with unusable execution tools and zero spawns.",
+      "Export portable evidence, independently rerun sealed validation, pass leakage scanning, and emit a create-only public execution receipt.",
+      "Prove package contents, help text, JSON output, and release checks include the supported command and runtime."
+    ],
+    "replacementRules": [
+      "Replace the private operator request/schema and unregistered script rather than retaining dual private/public paths.",
+      "Do not preserve compatibility with execution-custody-operator-request/v1.",
+      "Do not treat the two tracked DevSpace/Fluxara examples as the public request contract.",
+      "Do not add provider, compatibility, concurrency, delivery, recovery, daemon, queue, dashboard, or workflow frameworks."
+    ],
+    "closureGate": {
+      "immutableCandidateRequired": true,
+      "exactNativeSuiteRequired": true,
+      "isolatedPackInstallRequired": true,
+      "authenticatedLiveOperationRequired": true,
+      "novelRequestRequired": true,
+      "retainedEvidenceRequired": true,
+      "separateClosureCommitRequired": true
+    }
+  },
+  "roadmapDecision": {
+    "before": "D075 OPERATE -> DECIDE -> DELETE",
+    "after": "D075 OPERATE -> D076 SHIP installed-package execution -> DELETE consumer-led reduction",
+    "aggressiveChange": true,
+    "reason": "The old DECIDE wording allowed a false-positive source-only wrapper. D076 binds closure to the global npm CLI end-state and one novel user-authored functional operation."
+  },
+  "currentScore": {
+    "overallProductFlow": 8.8,
+    "meaningfulFunctionalExecution": 9.2,
+    "phase23AExecutionCustody": 9.3,
+    "trustedRuntimeCustodyImplementation": 9.0,
+    "liveClosureEvidence": 9.4,
+    "aoVerifiedIntegration": 9.2,
+    "durableChildResultCustody": 9.2,
+    "gracefulTerminalReplay": 9.2,
+    "independentlyPortableEvidence": 9.0,
+    "reusableMultiChildCore": 8.8,
+    "privateOperatorUsability": 8.7,
+    "installedPublicExecutionUsability": 2.0,
+    "ciTestTruthIntegrity": 8.8,
+    "engineeringHealth": 8.9,
+    "roadmapHonesty": 9.9,
+    "continuityWithOriginalMvp": 3.1,
+    "alignmentWithRecharteredDirection": 9.8
+  },
+  "intentDeviation": {
+    "fromOriginalMvp": "major_deliberate_and_explicit",
+    "fromPriorRoadmap": "material_scope_sharpening",
+    "silentDrift": false,
+    "detail": "The direction remains authority-bound execution custody. The aggressive deviation is that public closure now requires installed-package execution and a novel user-authored request; exposing the existing source-checkout fixture runner is explicitly rejected. No backward compatibility is authorized."
+  },
+  "nextAction": "Implement D076 as one installed-package execution vertical slice. Do not begin broad DELETE until D076 closes under an immutable candidate and retained isolated-package live evidence."
+}
