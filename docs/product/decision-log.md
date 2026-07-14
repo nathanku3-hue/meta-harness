@@ -2425,6 +2425,53 @@ Intent statement:
 
 No new product-direction deviation is required beyond the already explicit re-charter and D075-before-DELETE shift. D074 implements the approved cross-ecosystem proof without expanding production or public surface. The only audit-driven deviation inside the slice is stricter semantic validation than originally supplied; it is explicit and necessary to prevent false functional closure. D074 is not closed from skipped live tests.
 
+### D074 first immutable candidate live-failure audit
+
+Audit: `docs/ops/audits/d074-candidate-87472e1-live-failure-audit.json`.
+
+Verdict: **candidate `87472e1` remains immutable and failed; a bounded test-verifier repair is authorized; D074 remains open.**
+
+Observed candidate evidence:
+
+- Candidate commit `87472e187a8d228bbf0a5b51167bb5969aa4dfb5`, tree `7a447d810905f1ff28b6bf676c602f8b4d3c1cc8`, contains exactly the accepted 17 paths and was not amended.
+- Native Windows Node `v25.2.1` literal `npm test` passed 112 files, zero failures, exit 0; runner duration 191.0 seconds.
+- The one authorized live attempt set only `CUSTODY_LIVE_DEVSPACE=1`; both generic and Fluxara live flags were unset.
+- Exact shallow authority remained at DevSpace commit `00952c05f01248773a90cd293aed528672eb6f1b`, tree `65e249664f7146e7bff6c36d530f3de1cd0068e4`, one visible revision, matching shallow boundary, no remote, clean primary clone.
+- Process 1 spawned the authenticated agent once and exited cleanly. Terminal custody is `verified` / `IMPLEMENTATION_VERIFIED` at child commit `b821c48548a0ce7faeb1ccbdb97c85af0b44a270`; the durable create-only ref targets that commit, whose parent is the exact pinned base and whose only changed path is `scripts/dev-server.mjs`.
+- Process 2 used clock `2026-07-14T12:29:22.121Z`, exactly 60 seconds after retained receipt expiry, and unusable agent/validator paths. The shared workflow reached export only after asserting `REPLAY`, zero process-2 spawns, and unchanged terminal identity.
+- Portable export manifest digest is `sha256:e19392949e88367145b300393988fdfe37d4ffef13d3b25113fbca620f865d95`; leakage scanning passed across 16 files.
+
+Failure and correction:
+
+The end-to-end test exited 1 only inside `tests/helpers/execution-custody-export-verifier.js`. The verifier fetched the exact prerequisite commit from the shallow authority source and proved the object existed, but left the commit reachable only through `FETCH_HEAD`. `git bundle verify` therefore reported that the prerequisite object existed but was disconnected from repository history.
+
+A direct diagnostic against the retained bundle reproduced exit 1 before a local base ref and exit 0 after:
+
+`git update-ref refs/verify/base 00952c05f01248773a90cd293aed528672eb6f1b`
+
+The bounded repair:
+
+- anchors the fetched prerequisite at `refs/verify/base` and verifies exact ref equality;
+- adds one deterministic regression using a real shallow source and prerequisite thin bundle;
+- changes no production runtime, example, validator, agent prompt, package, lockfile, contract kernel, CLI, or public surface.
+
+Repair proof before a new candidate:
+
+- Focused DevSpace test file: pinned shallow clone PASS; new shallow thin-bundle regression PASS; authenticated gate skipped; zero failures.
+- The repaired independent verifier consumed the exact retained failed-candidate export without rerunning the agent or controller and returned exact child/parent equality, one changed path, both Node validation commands exit 0, and leakage PASS.
+- Final audit-aligned native Windows Node `v25.2.1` literal `npm test`: 112 files, zero failures, exit 0, 188.8 seconds; the nine-path worktree status was unchanged.
+
+Binding next gate:
+
+1. Preserve candidate `87472e1` and root `.meta-harness/local/custody/custody-devspace-87472e187a8d-5c3362472026`; do not rerun or amend either identity.
+2. The repair audit and exact native suite are complete and passing.
+3. Create one new immutable candidate containing only the two-file verifier repair plus load-bearing failure truth.
+4. Run literal native `npm test`; require 112 files, zero failures, exit 0, and no tracked mutation.
+5. Run exactly one DevSpace-only authenticated gate for the new candidate. Require retained VERIFIED, later-than-expiry zero-spawn REPLAY, independent Node verification, leakage PASS, and clean pinned-base authority.
+6. Record closure in a separate commit, then proceed to D075 OPERATE.
+
+No retry of `87472e1`, amend, validator weakening, production-runtime change, compatibility, Fluxara substitution, remote push, or public-surface expansion is authorized.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:

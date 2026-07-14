@@ -86,6 +86,22 @@ function assertNoLeakage(input, manifest) {
   assert.deepEqual(findings, []);
 }
 
+function prepareVerifierBase(input) {
+  fs.mkdirSync(input.verifierRepositoryPath, { recursive: false });
+  git(input, input.verifierRepositoryPath, ["init"]);
+  git(input, input.verifierRepositoryPath, [
+    "fetch", "--no-tags", input.sourceRepositoryPath, input.baseRevision,
+  ]);
+  git(input, input.verifierRepositoryPath, ["cat-file", "-e", `${input.baseRevision}^{commit}`]);
+  git(input, input.verifierRepositoryPath, [
+    "update-ref", "refs/verify/base", input.baseRevision,
+  ]);
+  const anchoredBase = String(
+    git(input, input.verifierRepositoryPath, ["rev-parse", "refs/verify/base"]).stdout,
+  ).trim();
+  assert.equal(anchoredBase, input.baseRevision);
+}
+
 function main() {
   const inputPath = process.argv[2];
   assert.ok(inputPath, "input JSON path required");
@@ -110,12 +126,7 @@ function main() {
   }
   assertNoLeakage(input, manifest);
 
-  fs.mkdirSync(input.verifierRepositoryPath, { recursive: false });
-  git(input, input.verifierRepositoryPath, ["init"]);
-  git(input, input.verifierRepositoryPath, [
-    "fetch", "--no-tags", input.sourceRepositoryPath, input.baseRevision,
-  ]);
-  git(input, input.verifierRepositoryPath, ["cat-file", "-e", `${input.baseRevision}^{commit}`]);
+  prepareVerifierBase(input);
 
   const bundlePath = path.join(input.exportDir, manifest.thinBundle.path);
   const bundleHeader = fs.readFileSync(bundlePath).subarray(0, 4096).toString("utf8");
@@ -185,9 +196,13 @@ function main() {
   })}\n`);
 }
 
-try {
-  main();
-} catch (err) {
-  process.stderr.write(`${err.stack || err.message}\n`);
-  process.exitCode = 1;
+if (require.main === module) {
+  try {
+    main();
+  } catch (err) {
+    process.stderr.write(`${err.stack || err.message}\n`);
+    process.exitCode = 1;
+  }
 }
+
+module.exports = { prepareVerifierBase };

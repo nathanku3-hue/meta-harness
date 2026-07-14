@@ -1,0 +1,204 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d074-candidate-live-failure-audit",
+  "auditedAt": "2026-07-14T19:37:32+08:00",
+  "completedAt": "2026-07-14T19:46:59+08:00",
+  "verdict": "IMMUTABLE_CANDIDATE_FAILED_PORTABLE_VERIFIER_REPAIR_AUTHORIZED",
+  "decision": {
+    "id": "D074",
+    "status": "open_new_candidate_required",
+    "failedCandidateMustRemainImmutable": true,
+    "rerunFailedCandidateAuthorized": false,
+    "amendFailedCandidateAuthorized": false,
+    "next": "CREATE_NEW_IMMUTABLE_CANDIDATE_AFTER_BOUNDED_REPAIR",
+    "afterClosure": "D075_OPERATE"
+  },
+  "candidate": {
+    "commit": "87472e187a8d228bbf0a5b51167bb5969aa4dfb5",
+    "tree": "7a447d810905f1ff28b6bf676c602f8b4d3c1cc8",
+    "parent": "7b487479da03d7add63b9568dba94aa4a35d8e88",
+    "message": "test: add D074 cross-ecosystem custody slice",
+    "pathCount": 17,
+    "trackedWorktreeCleanBeforeSuite": true,
+    "trackedWorktreeCleanAfterSuite": true,
+    "trackedWorktreeCleanAfterLiveGate": true
+  },
+  "nativeSuite": {
+    "command": "npm test",
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "npmVersion": "11.16.0",
+    "testFiles": 112,
+    "failed": 0,
+    "exitCode": 0,
+    "runnerDurationSeconds": 191.0,
+    "wrapperDurationSeconds": 193.2,
+    "resultPath": ".meta-harness/local/d074-candidate-suite-87472e1.json",
+    "resultSha256": "36fb1d4a9624ab8635d9977deffc394e8d9fcd05ba3fd339aa2df9666e1f0ee3",
+    "logPath": ".meta-harness/local/d074-candidate-suite-87472e1.log",
+    "logSha256": "7271b995ef29c74e8d94c9100edcea67f2339196d8d794b58924d05e355b2d63"
+  },
+  "liveGate": {
+    "command": "node --test --test-reporter=dot --test-concurrency=1 tests/runtime-execution-custody-devspace-live.test.js",
+    "environment": {
+      "CUSTODY_LIVE": "unset",
+      "CUSTODY_LIVE_DEVSPACE": "1",
+      "CUSTODY_LIVE_FLUXARA": "unset"
+    },
+    "nodeVersion": "v25.2.1",
+    "startedAt": "2026-07-14T19:28:17.7327426+08:00",
+    "endedAt": "2026-07-14T19:29:29.9492317+08:00",
+    "durationSeconds": 72.2,
+    "exitCode": 1,
+    "retainedCustodyRoot": ".meta-harness/local/custody/custody-devspace-87472e187a8d-5c3362472026",
+    "logPath": ".meta-harness/local/d074-devspace-live-87472e1.log",
+    "logSha256": "80e2e629b037227a61ee9eaaf388b63e57ac082557297d153ae969bf85a0967d",
+    "closureFileWritten": false,
+    "failureStage": "independent_portable_verifier_bundle_verify",
+    "failureMessage": "some prerequisite commits exist in the object store, but are not connected to the repository's history"
+  },
+  "retainedEvidence": {
+    "childAuthority": {
+      "repositoryId": "devspace",
+      "baseRevision": "00952c05f01248773a90cd293aed528672eb6f1b",
+      "baseTree": "65e249664f7146e7bff6c36d530f3de1cd0068e4",
+      "headAtPinnedBase": true,
+      "trackedWorktreeClean": true,
+      "visibleRevisionCount": 1,
+      "shallowBoundaryMatchesBase": true,
+      "remoteCount": 0
+    },
+    "process1": {
+      "agentSpawnOrdinal": 1,
+      "agentExitCode": 0,
+      "timedOut": false,
+      "terminalState": "verified",
+      "verdict": "IMPLEMENTATION_VERIFIED",
+      "verifiedHeadRevision": "b821c48548a0ce7faeb1ccbdb97c85af0b44a270",
+      "durableRef": "refs/meta-harness/attempts/4fa101470f79398df6a8896759c2c428e6d6d744064bc96105104a23cb8876a9",
+      "durableRefTarget": "b821c48548a0ce7faeb1ccbdb97c85af0b44a270",
+      "resultParent": "00952c05f01248773a90cd293aed528672eb6f1b",
+      "changedPaths": [
+        "scripts/dev-server.mjs"
+      ],
+      "terminalManifestDigest": "sha256:44b08ee94884f1d059066b480eb00a8f3c3a42875d58d0f799a9c65a43777730"
+    },
+    "process2": {
+      "authorizationExpiresAt": "2026-07-14T12:28:22.121Z",
+      "clock": "2026-07-14T12:29:22.121Z",
+      "laterThanAuthorizationExpiry": true,
+      "executionToolPathsUsable": false,
+      "requiredDisposition": "REPLAY",
+      "requiredAgentSpawns": 0,
+      "assertionsPassedBeforeFailure": true,
+      "evidenceBasis": "runLiveCustodyProof reaches exportPortableCustody only after asserting process-2 REPLAY, zero spawns, unchanged verified head, and unchanged terminal manifest; the observed failure occurred later in runIndependentVerifier"
+    },
+    "portableExport": {
+      "exportName": "custody-b821c48548a0-4fa101470f79",
+      "exportManifestDigest": "sha256:e19392949e88367145b300393988fdfe37d4ffef13d3b25113fbca620f865d95",
+      "exportManifestFileSha256": "0249a2f0149073fcfd8d589890f47a5e58342df76f7a6eafe9fa64d7c14a0d8d",
+      "bundleSha256": "63f130aeb623974827746cbe89f79b76789a785685ff0b7e2161449bafaea44e",
+      "containsBaseObject": false,
+      "prerequisiteBaseRevision": "00952c05f01248773a90cd293aed528672eb6f1b",
+      "leakageScanPassed": true,
+      "scannedFiles": 16,
+      "findings": []
+    }
+  },
+  "rootCause": {
+    "classification": "test_verifier_portability_defect",
+    "productionRuntimeDefect": false,
+    "modelOutputDefect": false,
+    "validationCapsuleDefect": false,
+    "publicSurfaceDefect": false,
+    "detail": "The verifier fetched the prerequisite base object from an exact shallow source and proved the object existed, but did not anchor that commit to a local ref. Git therefore treated the prerequisite as disconnected during bundle verify even though the exact object was present."
+  },
+  "diagnostic": {
+    "sameRetainedBundleBeforeBaseRef": {
+      "bundleVerifyExitCode": 1,
+      "result": "DISCONNECTED_PREREQUISITE"
+    },
+    "repairOperation": [
+      "git update-ref refs/verify/base <exact pinned base>",
+      "git rev-parse refs/verify/base and require exact equality"
+    ],
+    "sameRetainedBundleAfterBaseRef": {
+      "bundleVerifyExitCode": 0,
+      "result": "PASS"
+    }
+  },
+  "boundedRepair": {
+    "files": [
+      {
+        "path": "tests/helpers/execution-custody-export-verifier.js",
+        "sha256": "c646628f6c74919f1fbac0cef91c5e47b026aab62e71522bb7b5653234aab9fb",
+        "change": "Anchor the fetched prerequisite at refs/verify/base before bundle verification and expose the preparation helper for deterministic testing."
+      },
+      {
+        "path": "tests/runtime-execution-custody-devspace-live.test.js",
+        "sha256": "9dc91c55066249bdf900a3ccf0df387b8c0764264c12673976510132fb79ebde",
+        "change": "Add a real shallow-source thin-bundle regression proving prerequisite anchoring before bundle verification."
+      }
+    ],
+    "productionFilesChanged": false,
+    "exampleChanged": false,
+    "validatorChanged": false,
+    "agentPromptChanged": false,
+    "packageOrLockfileChanged": false,
+    "compatibilityAdded": false
+  },
+  "repairVerification": {
+    "focusedRegression": {
+      "command": "node --test --test-reporter=spec --test-concurrency=1 tests/runtime-execution-custody-devspace-live.test.js",
+      "nodeVersion": "v25.2.1",
+      "passed": 2,
+      "skipped": 1,
+      "failed": 0,
+      "result": "PASS"
+    },
+    "retainedExportReverification": {
+      "agentRerun": false,
+      "controllerRerun": false,
+      "exitCode": 0,
+      "resultCommit": "b821c48548a0ce7faeb1ccbdb97c85af0b44a270",
+      "parent": "00952c05f01248773a90cd293aed528672eb6f1b",
+      "changedPaths": [
+        "scripts/dev-server.mjs"
+      ],
+      "validationExitCodes": [
+        0,
+        0
+      ],
+      "leakage": "PASS",
+      "exportManifestDigest": "sha256:e19392949e88367145b300393988fdfe37d4ffef13d3b25113fbca620f865d95"
+    },
+    "completeNativeSuite": {
+      "status": "PASS",
+      "command": "npm test",
+      "platform": "win32",
+      "nodeVersion": "v25.2.1",
+      "npmVersion": "11.16.0",
+      "testFiles": 112,
+      "failed": 0,
+      "exitCode": 0,
+      "runnerDurationSeconds": 188.8,
+      "wrapperDurationSeconds": 190.1,
+      "worktreeStatusUnchanged": true,
+      "resultPath": ".meta-harness/local/d074-repair-pre-candidate-suite.json",
+      "logPath": ".meta-harness/local/d074-repair-pre-candidate-suite.log",
+      "logSha256": "2ea9c576aa297f2c9d1bf6edb1d7e077eb9be628fedcd54880fc477a3b821d6b"
+    }
+  },
+  "claims": {
+    "candidateSuitePassed": true,
+    "authenticatedAgentSpawnObserved": true,
+    "verifiedDevSpaceChildCommitObserved": true,
+    "expiredReplayAssertionsPassed": true,
+    "portableExportObserved": true,
+    "leakagePassObserved": true,
+    "endToEndLiveGatePassed": false,
+    "d074Closed": false,
+    "newCandidateRequired": true
+  },
+  "failureRule": "Preserve candidate 87472e1 and its create-only custody root. Do not rerun or amend it. Land only the demonstrated test-verifier repair and load-bearing truth, audit the resulting worktree, create a new immutable candidate, rerun the exact native suite, and then run one DevSpace-only authenticated gate for that new identity."
+}

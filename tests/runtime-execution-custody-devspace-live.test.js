@@ -13,7 +13,8 @@ const {
   clonePinnedChild,
   runLiveCustodyProof,
 } = require("./helpers/execution-custody-live");
-const { runGit } = require("./helpers/execution-custody-git");
+const { prepareVerifierBase } = require("./helpers/execution-custody-export-verifier");
+const { resolveGit, runGit } = require("./helpers/execution-custody-git");
 
 const EXAMPLE_PATH = path.resolve(
   __dirname,
@@ -60,6 +61,63 @@ test("DevSpace pinned clone contains only the exact shallow authority commit", {
     assert.equal(shallowBoundary, example.repository.expectedBaseRevision);
     assert.equal(clone.headRevision, example.repository.expectedBaseRevision);
     assert.equal(clone.tree, example.repository.expectedBaseTree);
+  } finally {
+    fs.rmSync(temporaryParent, { recursive: true, force: true });
+  }
+});
+
+test("portable verifier anchors a shallow prerequisite before thin-bundle verification", () => {
+  const temporaryParent = fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-shallow-bundle-"));
+  try {
+    const gitExecutablePath = resolveGit();
+    const originPath = path.join(temporaryParent, "origin");
+    const shallowSourcePath = path.join(temporaryParent, "shallow-source");
+    const verifierRepositoryPath = path.join(temporaryParent, "verifier");
+    const bundlePath = path.join(temporaryParent, "result.bundle");
+    fs.mkdirSync(originPath);
+    runGit(gitExecutablePath, originPath, ["init"]);
+    runGit(gitExecutablePath, originPath, ["config", "core.autocrlf", "false"]);
+    fs.writeFileSync(path.join(originPath, "result.txt"), "base\n", "utf8");
+    runGit(gitExecutablePath, originPath, ["add", "result.txt"]);
+    runGit(gitExecutablePath, originPath, ["commit", "-m", "base"]);
+    const baseRevision = String(
+      runGit(gitExecutablePath, originPath, ["rev-parse", "HEAD"]).stdout,
+    ).trim();
+
+    runGit(gitExecutablePath, temporaryParent, [
+      "clone", "--no-local", "--depth=1", originPath, shallowSourcePath,
+    ]);
+    assert.ok(fs.existsSync(path.join(shallowSourcePath, ".git", "shallow")));
+    runGit(gitExecutablePath, shallowSourcePath, ["config", "core.autocrlf", "false"]);
+    fs.writeFileSync(path.join(shallowSourcePath, "result.txt"), "verified\n", "utf8");
+    runGit(gitExecutablePath, shallowSourcePath, ["add", "result.txt"]);
+    runGit(gitExecutablePath, shallowSourcePath, ["commit", "-m", "verified result"]);
+    const resultRevision = String(
+      runGit(gitExecutablePath, shallowSourcePath, ["rev-parse", "HEAD"]).stdout,
+    ).trim();
+    const durableRef = "refs/meta-harness/attempts/test-shallow-bundle";
+    runGit(gitExecutablePath, shallowSourcePath, ["update-ref", durableRef, resultRevision]);
+    runGit(gitExecutablePath, shallowSourcePath, [
+      "bundle", "create", bundlePath, durableRef, `^${baseRevision}`,
+    ]);
+
+    prepareVerifierBase({
+      gitExecutablePath,
+      sourceRepositoryPath: shallowSourcePath,
+      verifierRepositoryPath,
+      baseRevision,
+    });
+    const verify = runGit(gitExecutablePath, verifierRepositoryPath, [
+      "bundle", "verify", bundlePath,
+    ]);
+    const verifyText = `${String(verify.stdout || "")}\n${String(verify.stderr || "")}`;
+    assert.match(verifyText, new RegExp(baseRevision));
+    assert.equal(
+      String(runGit(gitExecutablePath, verifierRepositoryPath, [
+        "rev-parse", "refs/verify/base",
+      ]).stdout).trim(),
+      baseRevision,
+    );
   } finally {
     fs.rmSync(temporaryParent, { recursive: true, force: true });
   }
