@@ -1,0 +1,231 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d076-installed-package-execution-closure-audit",
+  "auditedAt": "2026-07-15T01:33:36+08:00",
+  "verdict": "D076_INSTALLED_PACKAGE_EXECUTION_CLOSED",
+  "decision": {
+    "id": "D076",
+    "status": "closed",
+    "closedUnderCandidate": "ce02548b9db9ed6fea904e0e146906fab6cba773",
+    "candidateTree": "9dbd5dd7d8075ce1b037171ea886c722b013fbc7",
+    "publicCommand": "meta-harness execute --request <absolute-path> [--json]",
+    "featureDevelopmentFrozenAfterClosure": true,
+    "publishBeforeDelete": true,
+    "deleteAuthorized": false,
+    "compatibilityAuthorized": false,
+    "providerOrWorkflowFrameworkAuthorized": false,
+    "next": "SATISFY_EXACT_CLOSURE_COMMIT_RELEASE_SECURITY_EVIDENCE_AND_PUBLISH"
+  },
+  "candidateHistory": {
+    "authorizationCommit": "1c5f4fb5b2275f51fa9c84491f17b6bf539bdbb3",
+    "authorizationTree": "82e18fd203d75624d11bee6f3efab2cf4029e69a",
+    "firstImplementationCandidate": {
+      "commit": "5a41b52a114a47cf1269ae274ab55688ac81fc05",
+      "tree": "d8840242b3cedc700af413ce232f53d892eda3f8",
+      "immutable": true,
+      "liveGatePassed": false,
+      "failure": "Windows Git could not materialize committed long paths without core.longpaths=true",
+      "failedRootPreserved": true,
+      "failureAudit": "docs/ops/audits/d076-candidate-5a41b52-live-failure-audit.json"
+    },
+    "repairCandidate": {
+      "commit": "ce02548b9db9ed6fea904e0e146906fab6cba773",
+      "tree": "9dbd5dd7d8075ce1b037171ea886c722b013fbc7",
+      "parent": "5a41b52a114a47cf1269ae274ab55688ac81fc05",
+      "message": "fix: repair D076 Windows long-path custody",
+      "immutable": true,
+      "trackedWorktreeCleanBeforeAndAfterValidation": true,
+      "repairScope": [
+        "force core.longpaths=true for packaged custody Git on Windows",
+        "force core.longpaths=true for portable verifier Git on Windows",
+        "prove authority and independent reconstruction with a committed path longer than 260 characters"
+      ]
+    }
+  },
+  "candidateValidation": {
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "npmVersion": "11.16.0",
+    "gitVersion": "git version 2.50.0.windows.1",
+    "testFiles": 115,
+    "failedTestFiles": 0,
+    "exitCode": 0,
+    "execution": "runner-equivalent file-isolated native ranges after a connector transport loss; every discovered file was rerun and attributed",
+    "installedLongPathRegressionPassed": true,
+    "gitDiffCheck": "PASS"
+  },
+  "packageEvidence": {
+    "packageName": "meta-harness",
+    "packageVersion": "0.1.0",
+    "tarballName": "meta-harness-0.1.0.tgz",
+    "tarballSha256": "3f54e3ec4c5aabfd494d5c999de02087a26ce8c4fe2e49a6067416167d6c6b95",
+    "tarballBytes": 476616,
+    "dryRunEntries": 234,
+    "actualTarballEntries": 234,
+    "dryRunActualEquality": true,
+    "dryRunJsonSha256": "06e13919d3d3490a2f70bf42c29230f5afc97273c57cab82635fdebae505ce91",
+    "actualJsonSha256": "06e13919d3d3490a2f70bf42c29230f5afc97273c57cab82635fdebae505ce91",
+    "installedWithIgnoreScripts": true,
+    "installedGitDirectoryPresent": false,
+    "installedInternalRootPresent": false,
+    "installedScriptsRootPresent": false,
+    "installedAgentsRootPresent": false,
+    "executeUsageCount": 1,
+    "runtimeResolvedFromInstalledPackage": true,
+    "metaHarnessCheckoutPathObservedInCustodyEvidence": false
+  },
+  "liveRequest": {
+    "executionId": "d076-leningrad-ce02548-live",
+    "requestSchema": "meta-harness-execution-request/v1",
+    "requestSha256": "aa98fdf14f5800e7413e2094d6767421db62af76fbc700526b6060f0b7091073",
+    "requestBytes": 3403,
+    "runSpecDigest": "sha256:a9b961c2009ac3e6ef0a69ce2aa7567b76256f871da2d63e456344b012fe6397",
+    "repository": {
+      "repositoryId": "leningrad-d076-installed-live",
+      "objectFormat": "sha1",
+      "baseRevision": "56797f45367b7b8fa115f1e874c5d618edaf9226",
+      "baseTree": "f4108436d2be59383efb216777afe3b92cbf375d",
+      "allowedPath": "README.md",
+      "objectiveWasNotADevSpaceOrFluxaraFixture": true,
+      "workingTreeDirtyBeforeExecution": true,
+      "dirtyStatusLinesBeforeAndAfter": 141,
+      "dirtyStatusSha256Before": "7155f4bf7e0dfd1049be9052f3b8e831dab1ddca665aca47b930202acb4fb554",
+      "dirtyStatusSha256After": "7155f4bf7e0dfd1049be9052f3b8e831dab1ddca665aca47b930202acb4fb554",
+      "headTreeAndDirtyStatusUnchanged": true
+    },
+    "toolIdentities": {
+      "nodeSha256": "91ec09dda8f20556f366110859f106ab189d45f8f6a2bd092e6785174ad4a0fa",
+      "launcherSha256": "134063e133f0b4244fa3b251acf973d4fe4b4aeeacbdc135211bf480f59f1477",
+      "nativeAgentSha256": "cbacbb9726262ef558b4af0438a1b2a5bba9076132401d947b5b4d2bf92ab0e4",
+      "validationExecutableSha256": "91ec09dda8f20556f366110859f106ab189d45f8f6a2bd092e6785174ad4a0fa",
+      "observedAgentVersion": "0.144.1"
+    }
+  },
+  "liveOutcome": {
+    "resultSchema": "meta-harness-execute-result/v1",
+    "resultSha256": "214c9fae2245629287673d0231317ddbf7257eed9831e8985e742d9d4c6881c2",
+    "resultBytes": 1502,
+    "receiptSchema": "meta-harness-execution-receipt/v1",
+    "receiptSha256": "2687b4ef286827defe4899c67ab35e0b814d77e3ef4b2c22c1450ea0827c1c07",
+    "receiptBytes": 3980,
+    "authority": {
+      "headRevision": "56797f45367b7b8fa115f1e874c5d618edaf9226",
+      "tree": "f4108436d2be59383efb216777afe3b92cbf375d",
+      "trackedWorktreeClean": true,
+      "visibleRevisionCount": 1,
+      "shallowBoundary": "56797f45367b7b8fa115f1e874c5d618edaf9226",
+      "remoteCount": 0
+    },
+    "process1": {
+      "exitCode": 0,
+      "disposition": "VERIFIED",
+      "verdict": "IMPLEMENTATION_VERIFIED",
+      "agentSpawnCount": 1,
+      "verifiedHeadRevision": "350bf8559beaf2639d2941072569d6fe54e94c26",
+      "resultParent": "56797f45367b7b8fa115f1e874c5d618edaf9226",
+      "changedPaths": [
+        "README.md"
+      ],
+      "durableRef": "refs/meta-harness/attempts/da028f52454322e3ee2538031eba4ae1adc69715fa64529d5fa693af0f2d7646",
+      "durableRefTargetMatchesVerifiedHead": true,
+      "objectiveContentVerified": true
+    },
+    "process2": {
+      "exitCode": 0,
+      "disposition": "REPLAY",
+      "agentSpawnCount": 0,
+      "secondsAfterAuthorizationExpiry": 60,
+      "unusableToolCanaryPassed": true,
+      "verifiedHeadAndTerminalEvidenceUnchanged": true
+    },
+    "portable": {
+      "exportManifestDigest": "sha256:4961d4937699be204987540a852542090cda60fe46e9eea50d91629408902d23",
+      "exportManifestSha256": "8779d216dbd5995650e149762adafff6af382a5a304fbc753f81bdca762390ca",
+      "exportedFiles": 18,
+      "bundleSha256": "955e02630373cd14e1eed04a7bece48ca4ceb39d58f18b5d3b44a784f9624872",
+      "independentResultCommit": "350bf8559beaf2639d2941072569d6fe54e94c26",
+      "independentParent": "56797f45367b7b8fa115f1e874c5d618edaf9226",
+      "independentChangedPaths": [
+        "README.md"
+      ],
+      "validationExitCodes": [
+        0
+      ],
+      "leakage": "PASS"
+    }
+  },
+  "retainedEvidenceHashes": {
+    "process1InputSha256": "56b9b0c3f2279def792bc5311319e3c319f02545dd4b1efef98f732066f622e1",
+    "process2InputSha256": "99f203268d01fac247b4162a1d601cc905e55ff5249b97cc72fc39c1cb16c40b",
+    "independentVerifierInputSha256": "495cba0fcfab478ea5e737723c3a9c721046effe2dea1318999ee22b2fe049a6",
+    "authorizationReceiptSha256": "41e87ed5a435d531847111412792238044062285b72ab63a1ed9d78e0f787bda",
+    "agentProcessMetaSha256": "59cd8e4f5198d6f94f5b6b5bc49f5639e8c09768fbc3ecb8898104733b931e06",
+    "changeArtifactSha256": "a64d1d66cc5023a78d11de21bb28953841d059499f4cf5d8da9c062330328ffd",
+    "terminalManifestFileSha256": "0f141ca4b43f009a4bc09fe9bf22c086830b0d9e2ffb543dd5701bec619f62bc"
+  },
+  "leakageAudit": {
+    "publicReceiptForbiddenValueFindings": 0,
+    "portableExportFilesScanned": 18,
+    "portableExportForbiddenValueFindings": 0,
+    "metaHarnessCheckoutFindingsAcrossCustodyFiles": 0,
+    "metaHarnessCheckoutFindingsInRequest": 0,
+    "runtimeLeakageBoundaryPassed": true,
+    "verifierWorkspaceDiagnostic": {
+      "findings": 3,
+      "blocking": false,
+      "detail": "A broad scan of the host-local reconstructed verifier checkout found its .git/FETCH_HEAD custody location and two pre-existing source-owned documents that already contain the source repository path. Neither appears in the portable export, independent verifier result, public receipt, request checkout boundary, or Meta-Harness checkout scan. Arbitrary source-owned bytes cannot be reclassified as runtime leakage; the load-bearing portable/result boundary remains zero-findings and PASS."
+    }
+  },
+  "operationalFriction": {
+    "connectorDuplicateInvocationObserved": true,
+    "duplicateRejectedByCreateOnlyRoot": true,
+    "duplicateAgentSpawnObserved": false,
+    "originalInvocationCompleted": true,
+    "candidateMutationObserved": false,
+    "detail": "Connector detachment/retry exposed one duplicate invocation while the original installed command was still running. The duplicate failed closed on the existing create-only root before execution. The original process completed VERIFIED and wrote the final durable result and receipt."
+  },
+  "releaseBoundary": {
+    "productCodingStopsAtD076Closure": true,
+    "versionRecommendation": "0.2.0 after registry and version-policy confirmation",
+    "currentPackageVersion": "0.1.0",
+    "releasePolicySatisfied": false,
+    "releaseEvidenceBoundToCandidate": false,
+    "currentEvidenceCommit": "dc7480cdb96fd021e5f5ef0d4316117bfd009e12",
+    "branchProtectionEnabled": false,
+    "codeScanningEnabled": false,
+    "secretScanningEnabled": false,
+    "nextAllowedWork": [
+      "defects exposed by the exact release candidate",
+      "release metadata and versioning",
+      "repository security settings",
+      "exact-closure-commit CI and release evidence",
+      "tag and package dry-run validation",
+      "documentation required to operate execute"
+    ],
+    "nextFunctionalPhaseAuthorized": false
+  },
+  "scores": {
+    "overallProductFlow": 9.5,
+    "meaningfulFunctionalExecution": 9.6,
+    "executionCustody": 9.6,
+    "installedPublicExecutionUsability": 9.0,
+    "engineeringHealth": 9.1,
+    "roadmapHonesty": 9.9,
+    "alignmentWithRecharteredDirection": 9.9,
+    "continuityWithOriginalMvp": 3.0
+  },
+  "claims": {
+    "exactCandidateSuitePassed": true,
+    "exactCandidateTarballInstalled": true,
+    "authenticatedAgentSpawnObserved": true,
+    "verifiedChildAndDurableRefRetained": true,
+    "expiredFreshProcessReplayZeroSpawn": true,
+    "independentValidationPassed": true,
+    "portableLeakagePassed": true,
+    "publicReceiptPublishedCreateOnly": true,
+    "sourceRepositoryUnchanged": true,
+    "d076Closed": true,
+    "deleteAuthorized": false,
+    "publishAuthorizedBeforeReleasePolicyPass": false
+  }
+}

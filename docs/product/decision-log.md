@@ -2648,9 +2648,35 @@ Current checkpoint score:
 - re-chartered alignment: **9.9/10**
 - original MVP continuity: **3.0/10**
 
-Next gate:
+Closure checkpoint — 2026-07-15:
 
-Create the immutable D076 candidate once, rerun the exact candidate suite and package checks, then execute one authenticated novel request from that exact isolated tarball and retain all closure evidence. A defect creates a new candidate; do not amend or overwrite failed custody. After PASS, create a separate documentation-only closure commit. DELETE remains blocked.
+D076 is closed under exact repair candidate `ce02548b9db9ed6fea904e0e146906fab6cba773` / tree `9dbd5dd7d8075ce1b037171ea886c722b013fbc7`.
+
+- First implementation candidate `5a41b52` passed the exact suite and package boundary but failed its first authenticated gate before spawn because Windows Git could not materialize committed long paths. That candidate, exact tarball, request, failure result, and create-only root remain preserved and were not amended or reused.
+- The bounded repair forced `core.longpaths=true` for packaged custody Git and independent-verifier Git on Windows and added an installed regression that requires both retained authority and independent reconstruction to materialize a committed path longer than 260 characters.
+- Repair candidate `ce02548` passed all 115 native Windows Node `v25.2.1` test files with zero failures. Dry-run and actual packlists matched at 234 entries. The exact tarball SHA-256 is `3f54e3ec4c5aabfd494d5c999de02087a26ce8c4fe2e49a6067416167d6c6b95`; isolated `--ignore-scripts` installation contained no `.git`, `internal/`, `scripts/`, or `.agents/`.
+- A novel pre-sealed Leningrad request bound base `56797f45` / tree `f4108436`, one allowed path `README.md`, Node/launcher/native/validation SHA-256 identities, and Codex `0.144.1`. The exact request SHA-256 is `aa98fdf14f5800e7413e2094d6767421db62af76fbc700526b6060f0b7091073`.
+- The installed command spawned the authenticated agent once, reached `IMPLEMENTATION_VERIFIED`, retained child `350bf8559beaf2639d2941072569d6fe54e94c26` and durable ref `refs/meta-harness/attempts/da028f52454322e3ee2538031eba4ae1adc69715fa64529d5fa693af0f2d7646`, then replayed from a fresh process exactly 60 seconds after authorization expiry with unusable tools and zero spawns.
+- Independent reconstruction proved exact parent `56797f45`, one changed path `README.md`, validation exit 0, export manifest `sha256:4961d4937699be204987540a852542090cda60fe46e9eea50d91629408902d23`, and leakage PASS across 18 portable files. Public receipt SHA-256 is `2687b4ef286827defe4899c67ab35e0b814d77e3ef4b2c22c1450ea0827c1c07`.
+- Leningrad source HEAD, tree, and its 141-line dirty-status digest remained unchanged. No Meta-Harness checkout path appeared in the request or custody evidence, and no forbidden value appeared in the public receipt or portable export.
+- A connector detachment/retry exposed a duplicate invocation while the original command was active. Create-only root enforcement rejected the duplicate before spawn; the original process completed and wrote the final durable result and receipt. This is recorded operational friction, not candidate mutation or a product-seam defect.
+
+Closure audit: `docs/ops/audits/d076-installed-package-execution-closure-audit.json`.
+
+Score after closure:
+
+- overall product flow: **9.5/10**
+- meaningful functional execution: **9.6/10**
+- execution custody: **9.6/10**
+- installed public execution usability: **9.0/10**
+- engineering health: **9.1/10**
+- roadmap honesty: **9.9/10**
+- re-chartered alignment: **9.9/10**
+- original MVP continuity: **3.0/10**
+
+Release boundary:
+
+Feature development stops at D076 closure. The next allowed work is exact-closure-commit release metadata, repository security settings, CI/release evidence, tag/package dry-run validation, user-operating documentation, and defects exposed by the release candidate. Current release evidence remains blocked and stale under `dc7480c`: branch protection is disabled, code scanning is disabled, and secret scanning is disabled or unavailable. Publish only after the fail-closed release policy passes. DELETE is not a publication prerequisite and remains unauthorized until real installed-package use supports a separate consumer-led decision.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 

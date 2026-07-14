@@ -1,6 +1,6 @@
 # Phase 23A — Active Execution Plan (short)
 
-**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`; D074 PROVE closed under exact repair candidate `4ad92f0`; D075 OPERATE closed under exact candidate `cd63e52`. D076 offline implementation is complete and candidate-ready: exactly one installed command, one strict public request/receipt boundary, packaged phase-neutral custody runtime, deleted private operator path, 115 native Windows test files with zero failures, and 234-entry dry-run/actual pack equality. The isolated installed-package proof completed one authenticated fake-agent spawn → VERIFIED, retained child/ref, expiry+60s zero-spawn REPLAY with unusable tools, portable independent validation, leakage PASS, and create-only receipt against a novel dirty-source repository.** Next: create the immutable candidate once, rerun exact candidate evidence, perform one authenticated novel operation from that exact tarball, then close separately. DELETE remains blocked.
+**Status:** D069 closed under `e8e7713`. D070-A1 closed under `8ebe690`. D071 functional execution passed but custody closure was superseded. D072 implemented the custody substrate and its ToolLauncher closure gate failed. **D073 REPLACE+CLOSE closed under exact implementation candidate `87de018`; D074 PROVE closed under exact repair candidate `4ad92f0`; D075 OPERATE closed under exact candidate `cd63e52`; D076 SHIP closed under exact repair candidate `ce02548`. Candidate one `5a41b52` remains preserved after its Windows long-path failure. Candidate `ce02548` passed 115 native Windows files, exact 234-entry pack equality, isolated installation, and one retained authenticated Leningrad operation: one spawn → VERIFIED child/ref, expiry+60s zero-spawn REPLAY with unusable tools, portable independent validation, leakage PASS, create-only public receipt, and unchanged dirty source checkout.** Feature development is frozen. Next: exact-closure-commit release/security evidence and publication. DELETE remains unauthorized and is not a publication prerequisite.
 
 **Supersedes:** long historical vertical-slice plan (deleted from active tree)
 
@@ -16,8 +16,9 @@
 | D073 | **Closed under `87de018`** — Fluxara `8548fe5` → verified child `2f2e615`; live spawn one → VERIFIED; fresh process with unusable tools → REPLAY spawn zero; independent export and leakage PASS; former ToolLauncher/PowerShell/CheckShortcut/Windows/phase-lineage path deleted without compatibility. |
 | D074 | **Closed under `4ad92f0`** — exact candidate suite 112/112 PASS; DevSpace pinned base `00952c05` → verified child `30ad240b`; one authenticated spawn → terminal VERIFIED; normal process exit; fresh process after expiry → REPLAY spawn zero with unusable tools; independent export validation and leakage PASS; failed `87472e1` and both create-only roots retained. Production skill/runtime/kernel/CLI/package surfaces remained frozen. |
 | D075 | **Closed under `cd63e52`** — exact 113-file candidate suite PASS; retained DevSpace/Node child `47c0d016` and Fluxara/Python child `c0032669`; each operation used exact one-revision shallow authority, one authenticated spawn → VERIFIED, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, unchanged source checkout, and create-only receipt. The seam remains private and unregistered. |
-| D076 / SHIP | **Implementation complete; immutable candidate and authenticated closure pending.** Exactly `meta-harness execute --request <absolute-path> [--json]` ships from `lib/`. Offline isolated-package proof passes the complete custody chain on a novel request; private request/script/example identities are deleted with no alias or compatibility. |
-| DELETE | **Blocked until D076 closes.** Reduce by supported user job and unique safety invariant only; no aliases, deprecation dispatch, compatibility path, or speculative framework. |
+| D076 / SHIP | **Closed under `ce02548`.** Exactly `meta-harness execute --request <absolute-path> [--json]` ships from `lib/`. Exact candidate suite/package/install/live evidence retains VERIFIED, durable child/ref, expiry+60s zero-spawn REPLAY, independent validation, leakage PASS, create-only receipt, and unchanged dirty source authority. Failed candidate `5a41b52` remains immutable and retained. |
+| RELEASE | **Active non-functional gate.** Freeze product coding; satisfy exact-closure-commit repository security, CI, package, tag, and release evidence, then publish. Current evidence is stale/blocked. |
+| DELETE | **Unauthorized until post-release consumer evidence.** Reduce only by supported user job and unique safety invariant; no aliases, deprecation dispatch, compatibility path, or speculative framework. |
 
 ## Functional-first roadmap
 
@@ -77,20 +78,26 @@ D075 OPERATE CLOSED (cd63e52)
 + Fluxara/Python retained receipt: VERIFIED → expiry+60s REPLAY → Python validation/leakage PASS
 + actual friction recorded; private entrypoint remains unregistered
         ↓
-D076 SHIP INSTALLED-PACKAGE EXECUTION (offline candidate ready)
+D076 SHIP INSTALLED-PACKAGE EXECUTION CLOSED (ce02548)
 + exactly `meta-harness execute --request <absolute-path> [--json]`
 + packaged `lib/execution-custody`; old private runtime/script/schema/example path deleted
 + strict public request binds sealed intent, base tree, and all executable SHA-256 identities
-+ isolated `npm pack` install; no source checkout or Meta-Harness `.git` dependency
-+ novel dirty-source test repository; immutable object authority only
-+ one authenticated fake-agent spawn → VERIFIED → expiry+60s zero-spawn REPLAY
-+ portable independent validation rechecks validation executable hash
-+ leakage PASS + create-only public receipt
-+ 115 native test files PASS; 234-entry dry-run/actual pack equality
-+ immutable candidate and authenticated exact-tarball closure remain pending
++ first candidate 5a41b52 preserved after Windows committed-long-path failure before spawn
++ repair candidate ce02548 binds core.longpaths and passes installed >260-character regression
++ exact isolated `npm pack` install; no source checkout or Meta-Harness `.git` dependency
++ novel dirty Leningrad source; immutable object authority only; source unchanged
++ one authenticated Codex spawn → VERIFIED child 350bf855 + durable ref
++ receipt-derived expiry+60s fresh-process REPLAY with unusable tools and zero spawns
++ portable independent validation exit 0 + leakage PASS across 18 files
++ create-only public receipt; 115 native files PASS; 234-entry pack equality
         ↓
-DELETE: preserve supported jobs (`init`, `record`, `status`, `check`, `sync`, and active `release check`)
-+ delete everything without a current supported job or unique safety invariant
+RELEASE EXACT CLOSURE COMMIT
++ repository security settings and exact-commit CI/release evidence
++ version/registry confirmation, tag and package dry-run validation, then publish
++ no feature phase while release policy is blocked
+        ↓
+DELETE (consumer-led, separately authorized after real installed use)
++ preserve supported jobs and unique safety invariants
 + no compatibility path
 ```
 
