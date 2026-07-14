@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d076-release-candidate-windows-ci-failure-audit",
+  "auditedAt": "2026-07-15T04:00:50+08:00",
+  "verdict": "IMMUTABLE_RELEASE_CANDIDATE_FAILED_WINDOWS_TEST_BOUNDARY_REPAIR_AUTHORIZED",
+  "decision": {
+    "id": "D076",
+    "d076Status": "closed",
+    "failedCandidateMustRemainImmutable": true,
+    "amendFailedCandidateAuthorized": false,
+    "newReleaseCandidateRequired": true,
+    "featureExpansionAuthorized": false,
+    "deleteAuthorized": false,
+    "tagAuthorizedForFailedCandidate": false,
+    "publishAuthorizedForFailedCandidate": false
+  },
+  "candidate": {
+    "commit": "8676afdbfdcab867957ef54cd0c4d5589566aa5a",
+    "tree": "930b0ecc32d0888a9a656045fcc8d8aed17d60e9",
+    "parent": "0a2647c9a70143ad8b564ec0995ea9fb2659c2d2",
+    "message": "chore: freeze repaired 0.2.0 release baseline",
+    "packageVersion": "0.2.0",
+    "pushedToMain": true,
+    "tagged": false,
+    "published": false
+  },
+  "localValidation": {
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "discoveredTestFiles": 116,
+    "failedTestFiles": 0,
+    "rangeEvidence": ["1-20", "21-40", "41-60", "61-80", "81-100", "101-116"],
+    "package": {
+      "version": "0.2.0",
+      "tarballSha256": "98da57b61c0f19d7cd1911ef0c334923b0bbf556d5eca1bbaf2f023cfd410b65",
+      "tarballBytes": 479818,
+      "dryRunEntries": 234,
+      "actualEntries": 234,
+      "dryRunActualEquality": true,
+      "isolatedIgnoreScriptsInstall": true,
+      "forbiddenInstalledRoots": [],
+      "executeUsageCount": 1
+    }
+  },
+  "remoteEvidence": {
+    "repository": "nathanku3-hue/meta-harness",
+    "headSha": "8676afdbfdcab867957ef54cd0c4d5589566aa5a",
+    "semgrep": {
+      "runId": 29363367535,
+      "conclusion": "success"
+    },
+    "codeQl": {
+      "runId": 29363366888,
+      "conclusion": "success"
+    },
+    "ci": {
+      "runId": 29363368012,
+      "conclusion": "failure",
+      "nodeTestsJobId": 87188764746,
+      "nodeTestsConclusion": "success",
+      "windowsCompleteSuiteJobId": 87188764743,
+      "windowsCompleteSuiteConclusion": "failure",
+      "discoveredTestFiles": 116,
+      "failedTestFiles": 2,
+      "failedFiles": [
+        "tests/judge.test.js",
+        "tests/installed-execution-custody.test.js"
+      ]
+    }
+  },
+  "rootCause": {
+    "classification": "windows_test_boundary_defects",
+    "productionExecutionRuntimeDefect": false,
+    "packageBoundaryDefect": false,
+    "publicRequestContractDefect": false,
+    "judge": {
+      "cause": "The Git-heavy judge test file was not in the runner serial set, so its top-level tests ran concurrently on the loaded Windows runner and transient Git calls failed closed as target-not-git.",
+      "repair": "Add judge.test.js to the existing serial classification in scripts/run-tests.js."
+    },
+    "installedExecution": {
+      "cause": "npm test prepended the source checkout node_modules/.bin path to PATH. The installed test launched the packed CLI with that source-owned ambient environment, which correctly appeared in independent-verifier-input.json and violated the test's source-checkout leakage sentinel.",
+      "repair": "Author the request and launch the installed CLI from one consumer-only environment that removes checkout-owned PATH entries. Keep the leakage assertion unchanged."
+    }
+  },
+  "boundedRepair": {
+    "files": [
+      "scripts/run-tests.js",
+      "tests/installed-execution-custody.test.js"
+    ],
+    "productionRuntimeChanged": false,
+    "packageMetadataChanged": false,
+    "publicSurfaceChanged": false,
+    "compatibilityAdded": false,
+    "leakageAssertionWeakened": false
+  },
+  "repairVerification": {
+    "environment": "native Windows Node v25.2.1 with source-checkout node_modules/.bin explicitly prepended to PATH",
+    "testsPassed": 9,
+    "testsFailed": 0,
+    "installedVerifiedReplayPortableReceiptChainPassed": true,
+    "judgeSerialTestsPassed": 8,
+    "gitDiffCheck": "PASS"
+  },
+  "remainingGate": {
+    "repairCommitRequired": true,
+    "qualityBaselineRefreshRequired": true,
+    "newImmutableCandidateRequired": true,
+    "completeNativeNpmTestRequired": true,
+    "exactPackageProofRequired": true,
+    "pushRequired": true,
+    "remoteCiSemgrepCodeQlRequired": true,
+    "branchProtectionRequired": true,
+    "tagRequired": true,
+    "publishModeCheckRequired": true,
+    "npmPublicationRequired": true
+  },
+  "nextAction": "Bank the two-file Windows test-boundary repair and failure truth, refresh the D076 baseline, create a new immutable 0.2.0 release candidate, run literal native Windows npm test and exact package proof, then push and require CI, Semgrep, and CodeQL success before branch protection, tag, evidence, or publication."
+}

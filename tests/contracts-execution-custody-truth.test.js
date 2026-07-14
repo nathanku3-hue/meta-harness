@@ -86,13 +86,11 @@ test("status records D076 installed-package closure and the frozen release gate"
   assert.match(currentTruth, /7a28690d7227d669178f939eb87f1de0754f2d70e450a490873f6b528d4bd9d0/i);
   assert.match(currentTruth, /release version `0\.2\.0` is selected/i);
   assert.match(currentTruth, /Release mechanics commit `eaf7ed9`/i);
-  assert.match(currentTruth, /Baseline commit `4fedec9`/i);
-  assert.match(currentTruth, /CodeQL setup run `29359631210`/i);
-  assert.match(currentTruth, /fixed locally in `2fc3206`/i);
-  assert.match(currentTruth, /First exact release candidate `2a190dd` is preserved as failed/i);
-  assert.match(currentTruth, /fixtures hardcoded `0\.1\.0`/i);
-  assert.match(currentTruth, /derives current\/next package versions from `package\.json`/i);
-  assert.match(currentTruth, /d076-release-preparation-audit\.json/i);
+  assert.match(currentTruth, /First release candidate `2a190dd` is preserved as failed/i);
+  assert.match(currentTruth, /Replacement candidate `8676afd` passed 116 local native files/i);
+  assert.match(currentTruth, /remote Node, Semgrep, and CodeQL passed/i);
+  assert.match(currentTruth, /Windows CI failed only `judge\.test\.js` and `installed-execution-custody\.test\.js`/i);
+  assert.match(currentTruth, /consumer-only environment without weakening leakage checks/i);
 
   assert.match(lastVerified, /Exact D075 candidate `cd63e5295/i);
   assert.match(lastVerified, /113 files, zero failures, exit 0/i);
@@ -118,11 +116,15 @@ test("status records D076 installed-package closure and the frozen release gate"
   assert.match(lastVerified, /failed range 1–25/i);
   assert.match(lastVerified, /seven-file test-only repair/i);
   assert.match(lastVerified, /passes 26 focused tests/i);
+  assert.match(lastVerified, /Pushed replacement candidate `8676afdbfdcab867957ef54cd0c4d5589566aa5a`/i);
+  assert.match(lastVerified, /98da57b61c0f19d7cd1911ef0c334923b0bbf556d5eca1bbaf2f023cfd410b65/i);
+  assert.match(lastVerified, /Windows job `87188764743` failed only/i);
+  assert.match(lastVerified, /two-file test-boundary repair passes 9\/9/i);
 
   assert.match(nextAction, /Keep feature development frozen/i);
-  assert.match(nextAction, /Bank the test-only stale-version fixture repair and failure truth/i);
-  assert.match(nextAction, /create a new exact `0\.2\.0` release candidate/i);
-  assert.match(nextAction, /successful CI\/Semgrep\/CodeQL/i);
+  assert.match(nextAction, /Bank the two-file Windows test-boundary repair and failure truth/i);
+  assert.match(nextAction, /create a new exact `0\.2\.0` candidate/i);
+  assert.match(nextAction, /CI\/Semgrep\/CodeQL success/i);
   assert.match(nextAction, /enable branch protection/i);
   assert.match(nextAction, /create and verify `v0\.2\.0`/i);
   assert.match(nextAction, /release check --publish/i);
@@ -198,13 +200,12 @@ test("roadmap orders closed D073 before D074, D075, closed D076 SHIP, release, a
   assert.match(ship.detail, /leakage PASS across 18 portable files/i);
   assert.match(ship.detail, /d076-installed-package-execution-closure-audit\.json/i);
   assert.match(release.name, /Exact-Commit `0\.2\.0` Publication/i);
-  assert.match(release.state, /release candidate repair active; remote evidence pending/i);
+  assert.match(release.state, /Windows CI repair active; new candidate required/i);
   assert.match(release.detail, /D076 closure commit `6893280`/i);
-  assert.match(release.detail, /`eaf7ed9`, `4fedec9`, and `2fc3206`/i);
-  assert.match(release.detail, /First release candidate `2a190dd` is preserved as failed/i);
-  assert.match(release.detail, /passes 26 focused tests/i);
-  assert.match(release.detail, /all 116 native files/i);
-  assert.match(release.detail, /Secret scanning, push protection, and CodeQL default setup are enabled/i);
+  assert.match(release.detail, /Failed candidates `2a190dd` and pushed `8676afd` remain immutable/i);
+  assert.match(release.detail, /all 116 local native files/i);
+  assert.match(release.detail, /remote Node tests, Semgrep, and CodeQL/i);
+  assert.match(release.detail, /two-file repair preserves production\/package\/public contracts/i);
   assert.match(release.detail, /branch protection/i);
   assert.match(deletion.state + deletion.detail, /unauthorized until post-release consumer evidence/i);
   assert.ok(rows.indexOf(d073) < rows.indexOf(d074));
@@ -805,7 +806,7 @@ test("D076 installed functional-slice audit binds the candidate-ready package an
   assert.equal(audit.remainingGate.featureExpansionAuthorized, false);
   assert.equal(audit.remainingGate.deleteAuthorized, false);
 
-  assert.equal(events.length, 64);
+  assert.equal(events.length, 65);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1031,7 +1032,7 @@ test("D076 closure audit binds the repaired candidate, installed live chain, and
   assert.equal(audit.claims.deleteAuthorized, false);
   assert.equal(audit.claims.publishAuthorizedBeforeReleasePolicyPass, false);
 
-  assert.equal(events.length, 64);
+  assert.equal(events.length, 65);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1111,7 +1112,7 @@ test("D076 release-preparation audit binds 0.2.0, security hardening, and the re
   assert.equal(audit.remainingGate.featureExpansionAuthorized, false);
   assert.equal(audit.remainingGate.deleteAuthorized, false);
 
-  assert.equal(events.length, 64);
+  assert.equal(events.length, 65);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1181,13 +1182,98 @@ test("D076 failed release candidate preserves immutable evidence and authorizes 
   assert.equal(audit.remainingGate.branchProtectionRequired, true);
   assert.equal(audit.remainingGate.tagAndPublishRequired, true);
 
-  assert.equal(events.length, 64);
+  assert.equal(events.length, 65);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
   assert.match(event.next_action, /test-only fixture repair/i);
   assert.match(event.next_action, /all 116 native Windows files/i);
   assert.match(event.next_action, /no feature phase or DELETE/i);
+});
+
+test("D076 pushed release candidate preserves Windows CI failure and authorizes only test-boundary repair", () => {
+  const audit = JSON.parse(read(
+    "docs/ops/audits/d076-release-candidate-8676afd-windows-ci-failure-audit.json",
+  ));
+  const events = read(".meta-harness/events.jsonl").trim().split(/\r?\n/).map(JSON.parse);
+  const event = events.find((entry) => entry.phase === "D076-release-candidate-windows-ci-failure");
+  const runner = read("scripts/run-tests.js");
+  const installedTest = read("tests/installed-execution-custody.test.js");
+  assert.ok(event);
+
+  assert.equal(audit.kind, "d076-release-candidate-windows-ci-failure-audit");
+  assert.equal(
+    audit.verdict,
+    "IMMUTABLE_RELEASE_CANDIDATE_FAILED_WINDOWS_TEST_BOUNDARY_REPAIR_AUTHORIZED",
+  );
+  assert.equal(audit.decision.id, "D076");
+  assert.equal(audit.decision.d076Status, "closed");
+  assert.equal(audit.decision.failedCandidateMustRemainImmutable, true);
+  assert.equal(audit.decision.amendFailedCandidateAuthorized, false);
+  assert.equal(audit.decision.newReleaseCandidateRequired, true);
+  assert.equal(audit.decision.featureExpansionAuthorized, false);
+  assert.equal(audit.decision.deleteAuthorized, false);
+  assert.equal(audit.decision.tagAuthorizedForFailedCandidate, false);
+  assert.equal(audit.decision.publishAuthorizedForFailedCandidate, false);
+
+  assert.equal(audit.candidate.commit, "8676afdbfdcab867957ef54cd0c4d5589566aa5a");
+  assert.equal(audit.candidate.tree, "930b0ecc32d0888a9a656045fcc8d8aed17d60e9");
+  assert.equal(audit.candidate.parent, "0a2647c9a70143ad8b564ec0995ea9fb2659c2d2");
+  assert.equal(audit.candidate.packageVersion, "0.2.0");
+  assert.equal(audit.candidate.pushedToMain, true);
+  assert.equal(audit.candidate.tagged, false);
+  assert.equal(audit.candidate.published, false);
+
+  assert.equal(audit.localValidation.discoveredTestFiles, 116);
+  assert.equal(audit.localValidation.failedTestFiles, 0);
+  assert.equal(
+    audit.localValidation.package.tarballSha256,
+    "98da57b61c0f19d7cd1911ef0c334923b0bbf556d5eca1bbaf2f023cfd410b65",
+  );
+  assert.equal(audit.localValidation.package.dryRunEntries, 234);
+  assert.equal(audit.localValidation.package.actualEntries, 234);
+  assert.equal(audit.localValidation.package.dryRunActualEquality, true);
+  assert.equal(audit.localValidation.package.executeUsageCount, 1);
+
+  assert.equal(audit.remoteEvidence.semgrep.runId, 29363367535);
+  assert.equal(audit.remoteEvidence.semgrep.conclusion, "success");
+  assert.equal(audit.remoteEvidence.codeQl.runId, 29363366888);
+  assert.equal(audit.remoteEvidence.codeQl.conclusion, "success");
+  assert.equal(audit.remoteEvidence.ci.runId, 29363368012);
+  assert.equal(audit.remoteEvidence.ci.nodeTestsConclusion, "success");
+  assert.equal(audit.remoteEvidence.ci.windowsCompleteSuiteConclusion, "failure");
+  assert.equal(audit.remoteEvidence.ci.failedTestFiles, 2);
+  assert.deepEqual(audit.remoteEvidence.ci.failedFiles, [
+    "tests/judge.test.js",
+    "tests/installed-execution-custody.test.js",
+  ]);
+
+  assert.equal(audit.rootCause.productionExecutionRuntimeDefect, false);
+  assert.equal(audit.rootCause.packageBoundaryDefect, false);
+  assert.equal(audit.rootCause.publicRequestContractDefect, false);
+  assert.equal(audit.boundedRepair.files.length, 2);
+  assert.equal(audit.boundedRepair.productionRuntimeChanged, false);
+  assert.equal(audit.boundedRepair.packageMetadataChanged, false);
+  assert.equal(audit.boundedRepair.publicSurfaceChanged, false);
+  assert.equal(audit.boundedRepair.compatibilityAdded, false);
+  assert.equal(audit.boundedRepair.leakageAssertionWeakened, false);
+  assert.equal(audit.repairVerification.testsPassed, 9);
+  assert.equal(audit.repairVerification.testsFailed, 0);
+  assert.equal(audit.repairVerification.installedVerifiedReplayPortableReceiptChainPassed, true);
+  assert.equal(audit.repairVerification.judgeSerialTestsPassed, 8);
+
+  assert.match(runner, /cli-ready-repro\|judge\|release-check/);
+  assert.match(installedTest, /function consumerEnvironment/);
+  assert.match(installedTest, /sourceCheckoutSentinel/);
+  assert.match(installedTest, /assertTextAbsent/);
+
+  assert.equal(events.length, 65);
+  assert.equal(event.ts, audit.auditedAt);
+  assert.equal(event.time, audit.auditedAt);
+  assert.equal(event.decision, "D076");
+  assert.match(event.next_action, /two-file Windows test-boundary repair/i);
+  assert.match(event.next_action, /literal native Windows npm test/i);
+  assert.match(event.next_action, /all remote checks green/i);
 });
 
 test("historical D074/D075 examples remain test-only while D076 uses one packaged public runtime", () => {

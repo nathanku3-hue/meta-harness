@@ -24,11 +24,29 @@ function sha256File(filePath) {
   return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
 }
 
-function snapshotEnv(keys) {
+function snapshotEnv(keys, environment = process.env) {
   const result = {};
   for (const key of keys) {
-    const value = process.env[key];
+    const value = environment[key];
     if (value !== undefined && value !== null && String(value).length > 0) result[key] = String(value);
+  }
+  return result;
+}
+
+function isInsidePath(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
+
+function consumerEnvironment(overrides = {}) {
+  const result = { ...process.env, ...overrides };
+  for (const [key, value] of Object.entries(result)) {
+    if (key.toUpperCase() !== "PATH" || typeof value !== "string") continue;
+    result[key] = value
+      .split(path.delimiter)
+      .filter(Boolean)
+      .filter((entry) => !isInsidePath(ROOT, path.resolve(entry)))
+      .join(path.delimiter);
   }
   return result;
 }
@@ -188,7 +206,7 @@ function validationCommands() {
   ];
 }
 
-function writePublicRequest(root, source, tools, custodyRoot) {
+function writePublicRequest(root, source, tools, custodyRoot, environment) {
   const runSpec = {
     schemaVersion: "run-spec/v1",
     runId: "RUN-INSTALLED-EXECUTION-001",
@@ -242,7 +260,7 @@ function writePublicRequest(root, source, tools, custodyRoot) {
       commandName: "node",
       executablePath: tools.nodePath,
       expectedExecutableSha256: sha256File(tools.nodePath),
-      hostEnv: snapshotEnv(VALIDATION_ALLOW),
+      hostEnv: snapshotEnv(VALIDATION_ALLOW, environment),
       sensitiveValues: ["CALLER-SUPPLIED-SECRET-SENTINEL"],
     },
   };
@@ -351,14 +369,21 @@ test("packed isolated installation executes VERIFIED, expired zero-spawn REPLAY,
     fs.mkdirSync(requestRoot);
     fs.mkdirSync(custodyParent);
     const custodyRoot = path.join(custodyParent, "custody");
-    const { request, requestPath } = writePublicRequest(requestRoot, source, tools, custodyRoot);
+    const executionEnv = consumerEnvironment({ META_HARNESS_DEBUG: "1" });
+    const { request, requestPath } = writePublicRequest(
+      requestRoot,
+      source,
+      tools,
+      custodyRoot,
+      executionEnv,
+    );
     const execution = runCommandScript(
       installedBin,
       ["execute", "--request", requestPath, "--json"],
       {
         cwd: installRoot,
         timeout: 420_000,
-        env: { ...process.env, META_HARNESS_DEBUG: "1" },
+        env: executionEnv,
       },
     );
     const result = JSON.parse(execution.stdout);
