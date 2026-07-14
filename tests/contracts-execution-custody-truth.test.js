@@ -754,6 +754,82 @@ test("D076 installed functional-slice audit binds the candidate-ready package an
   assert.match(lastEvent.next_action, /create the immutable candidate once/i);
 });
 
+test("D076 first immutable candidate failure preserves exact evidence and authorizes only Windows long-path repair", () => {
+  const audit = JSON.parse(read("docs/ops/audits/d076-candidate-5a41b52-live-failure-audit.json"));
+  assert.equal(audit.kind, "d076-candidate-live-failure-audit");
+  assert.equal(audit.verdict, "IMMUTABLE_CANDIDATE_FAILED_WINDOWS_LONG_PATH_REPAIR_AUTHORIZED");
+  assert.equal(audit.decision.id, "D076");
+  assert.equal(audit.decision.status, "open_new_candidate_required");
+  assert.equal(audit.decision.failedCandidateMustRemainImmutable, true);
+  assert.equal(audit.decision.rerunFailedCustodyRootAuthorized, false);
+  assert.equal(audit.decision.amendFailedCandidateAuthorized, false);
+  assert.equal(audit.decision.featureExpansionAuthorized, false);
+  assert.equal(audit.decision.deleteAuthorized, false);
+
+  assert.equal(audit.candidate.commit, "5a41b52a114a47cf1269ae274ab55688ac81fc05");
+  assert.equal(audit.candidate.tree, "d8840242b3cedc700af413ce232f53d892eda3f8");
+  assert.equal(audit.candidate.trackedWorktreeCleanBeforeValidation, true);
+  assert.equal(audit.candidate.trackedWorktreeCleanAfterFailure, true);
+  assert.equal(audit.candidateValidation.testFiles, 115);
+  assert.equal(audit.candidateValidation.failedTestFiles, 0);
+  assert.equal(audit.candidateValidation.packlistsEqual, true);
+  assert.equal(
+    audit.candidateValidation.tarballSha256,
+    "8dd768c797349b1fec20cdf54ca823f733e7d2e2c6fb59c28d18be8895521d92",
+  );
+
+  assert.equal(
+    audit.liveGate.requestSha256,
+    "ecb57575ba1eb548f917f973bc9a2837cb1d803303ab5f3d26d2d4e89bb0a72a",
+  );
+  assert.equal(audit.liveGate.sourceRepository.repositoryId, "leningrad-d076-installed-live");
+  assert.equal(
+    audit.liveGate.sourceRepository.baseRevision,
+    "56797f45367b7b8fa115f1e874c5d618edaf9226",
+  );
+  assert.equal(
+    audit.liveGate.sourceRepository.baseTree,
+    "f4108436d2be59383efb216777afe3b92cbf375d",
+  );
+  assert.equal(audit.liveGate.sourceRepository.allowedPath, "README.md");
+  assert.equal(
+    audit.liveGate.sourceRepository.statusSha256After,
+    audit.liveGate.sourceRepository.statusSha256Before,
+  );
+  assert.equal(audit.liveGate.sourceRepository.headUnchanged, true);
+  assert.equal(audit.liveGate.sourceRepository.treeUnchanged, true);
+  assert.equal(audit.liveGate.failure.exitCode, 1);
+  assert.equal(audit.liveGate.failure.errorCode, "CUSTODY_GIT_FAILED");
+  assert.equal(audit.liveGate.failure.stage, "create_custody_authority_reset_hard");
+  assert.equal(
+    audit.liveGate.failure.classification,
+    "windows_committed_long_path_materialization_failure",
+  );
+  assert.equal(audit.liveGate.retainedFailureEvidence.failedCustodyRootExists, true);
+  assert.equal(audit.liveGate.retainedFailureEvidence.publicReceiptExists, false);
+  assert.equal(audit.liveGate.retainedFailureEvidence.rootMustNotBeReused, true);
+
+  assert.equal(audit.rootCause.classification, "packaged_runtime_windows_git_configuration_defect");
+  assert.equal(audit.rootCause.productionRuntimeDefect, true);
+  assert.equal(audit.rootCause.modelOutputDefect, false);
+  assert.equal(audit.rootCause.requestDefect, false);
+  assert.equal(audit.boundedRepair.files.length, 3);
+  assert.equal(audit.boundedRepair.requestContractChanged, false);
+  assert.equal(audit.boundedRepair.receiptContractChanged, false);
+  assert.equal(audit.boundedRepair.publicCliChanged, false);
+  assert.equal(audit.boundedRepair.compatibilityAdded, false);
+  assert.equal(audit.repairVerification.installedLongPathRegression.failed, 0);
+  assert.equal(audit.repairVerification.installedLongPathRegression.authorityLongPathMaterialized, true);
+  assert.equal(audit.repairVerification.installedLongPathRegression.independentVerifierLongPathMaterialized, true);
+  assert.equal(audit.repairVerification.completeNativeSuite.testFiles, 115);
+  assert.equal(audit.repairVerification.completeNativeSuite.failedTestFiles, 0);
+  assert.equal(audit.claims.candidateOneLiveGatePassed, false);
+  assert.equal(audit.claims.sourceRepositoryMutated, false);
+  assert.equal(audit.claims.failedRootPreserved, true);
+  assert.equal(audit.claims.newCandidateRequired, true);
+  assert.equal(audit.claims.d076Closed, false);
+});
+
 test("historical D074/D075 examples remain test-only while D076 uses one packaged public runtime", () => {
   const execute = read("lib/execution-custody/execute.js");
   const helper = read("tests/helpers/execution-custody-live.js");

@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d076-candidate-live-failure-audit",
+  "auditedAt": "2026-07-15T01:07:04+08:00",
+  "verdict": "IMMUTABLE_CANDIDATE_FAILED_WINDOWS_LONG_PATH_REPAIR_AUTHORIZED",
+  "decision": {
+    "id": "D076",
+    "status": "open_new_candidate_required",
+    "failedCandidateMustRemainImmutable": true,
+    "rerunFailedCustodyRootAuthorized": false,
+    "amendFailedCandidateAuthorized": false,
+    "featureExpansionAuthorized": false,
+    "deleteAuthorized": false,
+    "next": "CREATE_NEW_IMMUTABLE_CANDIDATE_AFTER_BOUNDED_LONG_PATH_REPAIR"
+  },
+  "candidate": {
+    "commit": "5a41b52a114a47cf1269ae274ab55688ac81fc05",
+    "tree": "d8840242b3cedc700af413ce232f53d892eda3f8",
+    "parent": "1c5f4fb5b2275f51fa9c84491f17b6bf539bdbb3",
+    "message": "feat: ship D076 installed package execution",
+    "trackedWorktreeCleanBeforeValidation": true,
+    "trackedWorktreeCleanAfterFailure": true
+  },
+  "candidateValidation": {
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "npmVersion": "11.16.0",
+    "testFiles": 115,
+    "failedTestFiles": 0,
+    "packDryRunEntries": 234,
+    "actualTarballEntries": 234,
+    "packlistsEqual": true,
+    "tarballSha256": "8dd768c797349b1fec20cdf54ca823f733e7d2e2c6fb59c28d18be8895521d92",
+    "tarballBytes": 476575,
+    "isolatedInstallIgnoreScripts": true,
+    "installedGitDirectoryPresent": false,
+    "installedPrivateRootsPresent": false,
+    "executeUsageCount": 1
+  },
+  "liveGate": {
+    "requestSha256": "ecb57575ba1eb548f917f973bc9a2837cb1d803303ab5f3d26d2d4e89bb0a72a",
+    "requestBytes": 3403,
+    "runSpecDigest": "sha256:01bb36757f3fd4facbcb8b9a85e99c6ee1ce17155090921de7ab67dd9e5a7f1d",
+    "executionId": "d076-leningrad-5a41b52-live",
+    "sourceRepository": {
+      "repositoryId": "leningrad-d076-installed-live",
+      "objectFormat": "sha1",
+      "baseRevision": "56797f45367b7b8fa115f1e874c5d618edaf9226",
+      "baseTree": "f4108436d2be59383efb216777afe3b92cbf375d",
+      "allowedPath": "README.md",
+      "dirtyStatusLineCount": 141,
+      "statusSha256Before": "7155f4bf7e0dfd1049be9052f3b8e831dab1ddca665aca47b930202acb4fb554",
+      "statusSha256After": "7155f4bf7e0dfd1049be9052f3b8e831dab1ddca665aca47b930202acb4fb554",
+      "headUnchanged": true,
+      "treeUnchanged": true
+    },
+    "failure": {
+      "exitCode": 1,
+      "errorCode": "CUSTODY_GIT_FAILED",
+      "stage": "create_custody_authority_reset_hard",
+      "operation": "git reset --hard HEAD",
+      "classification": "windows_committed_long_path_materialization_failure",
+      "messageSummary": "Windows Git rejected committed Leningrad paths longer than the default path limit while materializing the exact shallow authority.",
+      "resultFileSha256": "c9f0aaf048cc72ce3751d9515fdf3ccdeebd398c9bb05d56f8ac532d558f1241",
+      "resultFileBytes": 25504
+    },
+    "retainedFailureEvidence": {
+      "failedCustodyRootName": "leningrad-d076-live-5a41b52",
+      "failedCustodyRootExists": true,
+      "repositoryGitDirectoryExists": true,
+      "publicReceiptExists": false,
+      "rootMustNotBeReused": true,
+      "exactTarballPreserved": true,
+      "exactRequestPreserved": true
+    }
+  },
+  "rootCause": {
+    "classification": "packaged_runtime_windows_git_configuration_defect",
+    "productionRuntimeDefect": true,
+    "modelOutputDefect": false,
+    "requestDefect": false,
+    "sourceRepositoryDefect": false,
+    "validationDefect": false,
+    "detail": "The custody Git wrapper disabled hooks and line-ending conversion but did not force core.longpaths=true on Windows. The authority checkout therefore failed before any authenticated spawn. The independent verifier used a separate Git wrapper with the same omission and required the same bounded correction."
+  },
+  "boundedRepair": {
+    "files": [
+      {
+        "path": "lib/execution-custody/git-ops.js",
+        "sha256": "53be9632cf3cecff14b4b719c63aeb38718a9ac0d7358a67e3b0833ae7106ce9",
+        "change": "Add core.longpaths=true to every packaged custody Git invocation on Windows."
+      },
+      {
+        "path": "lib/execution-custody/portable-verifier.js",
+        "sha256": "1b986fcb3dd6541423f3e185414665a0ebf60aa3b517cc27c12a4f549037e371",
+        "change": "Add the same Windows long-path binding to independent portable reconstruction."
+      },
+      {
+        "path": "tests/installed-execution-custody.test.js",
+        "sha256": "f5288bfd85dc59c41719c7c6e548eb9aad62241b9014b4c64a42d24e200382cd",
+        "change": "Track a path longer than 260 characters and require both retained authority and independent verifier to materialize it during the installed end-to-end proof."
+      }
+    ],
+    "requestContractChanged": false,
+    "receiptContractChanged": false,
+    "publicCliChanged": false,
+    "agentPromptChanged": false,
+    "packageMetadataChanged": false,
+    "compatibilityAdded": false
+  },
+  "repairVerification": {
+    "installedLongPathRegression": {
+      "command": "node --test --test-concurrency=1 tests/installed-execution-custody.test.js",
+      "platform": "win32",
+      "nodeVersion": "v25.2.1",
+      "passed": 1,
+      "failed": 0,
+      "durationMilliseconds": 37351.0973,
+      "authorityLongPathMaterialized": true,
+      "independentVerifierLongPathMaterialized": true
+    },
+    "focusedSuite": {
+      "tests": 14,
+      "passed": 13,
+      "skipped": 1,
+      "failed": 0,
+      "durationMilliseconds": 61216.9491
+    },
+    "completeNativeSuite": {
+      "testFiles": 115,
+      "failedTestFiles": 0,
+      "durationSeconds": 227.3,
+      "logSha256": "c5212d7ae6ac6b6707a380a5c3aab9e994a6c8b2485dd0255a8a1448dd8aa932"
+    }
+  },
+  "claims": {
+    "candidateOneSuitePassed": true,
+    "candidateOnePackAndInstallPassed": true,
+    "candidateOneAuthenticatedSpawnObserved": false,
+    "candidateOneLiveGatePassed": false,
+    "sourceRepositoryMutated": false,
+    "failedRootPreserved": true,
+    "boundedRepairDemonstrated": true,
+    "newCandidateRequired": true,
+    "d076Closed": false
+  },
+  "failureRule": "Preserve candidate 5a41b52, its exact tarball, request, failure result, and create-only custody root. Do not amend or reuse them. Land only the demonstrated Windows long-path repair and regression, create a new immutable candidate, rerun exact candidate validation, and execute a new authenticated request with a new create-only custody root."
+}

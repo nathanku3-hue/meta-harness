@@ -14,6 +14,7 @@ const { resolveGit, gitEnv, runGit } = require("./helpers/execution-custody-git"
 
 const ROOT = path.resolve(__dirname, "..");
 const ALLOWED_PATH = "src/message.js";
+const LONG_PATH_SEGMENT = "committed-long-path-regression-segment-xxxxxxxx";
 const TEST_AGENT_VERSION = "0.144.1-test";
 const VALIDATION_ALLOW = [
   "HOME", "PATH", "PATHEXT", "SYSTEMROOT", "SystemRoot", "TEMP", "TMP", "TMPDIR", "USERPROFILE",
@@ -78,10 +79,26 @@ function writeSourceRepository(root) {
     `${JSON.stringify({ private: true, scripts: { test: "node --test" } }, null, 2)}\n`,
     "utf8",
   );
+  const longTrackedRelativePath = path.join(
+    "data",
+    `${LONG_PATH_SEGMENT}-01`,
+    `${LONG_PATH_SEGMENT}-02`,
+    `${LONG_PATH_SEGMENT}-03`,
+    `${LONG_PATH_SEGMENT}-04`,
+    `${LONG_PATH_SEGMENT}-05`,
+    "sentinel.txt",
+  );
+  const longTrackedPath = path.join(repositoryPath, longTrackedRelativePath);
+  assert.ok(longTrackedPath.length > 260, `expected Windows long path, got ${longTrackedPath.length}`);
+  fs.mkdirSync(path.dirname(longTrackedPath), { recursive: true });
+  fs.writeFileSync(longTrackedPath, "committed long-path sentinel\n", "utf8");
 
   const gitExecutablePath = resolveGit();
   runGit(gitExecutablePath, repositoryPath, ["init"]);
   runGit(gitExecutablePath, repositoryPath, ["config", "core.autocrlf", "false"]);
+  if (process.platform === "win32") {
+    runGit(gitExecutablePath, repositoryPath, ["config", "core.longpaths", "true"]);
+  }
   runGit(gitExecutablePath, repositoryPath, ["add", "--all"]);
   runGit(
     gitExecutablePath,
@@ -115,7 +132,14 @@ function writeSourceRepository(root) {
     "utf8",
   );
   fs.writeFileSync(path.join(repositoryPath, "untracked-source-sentinel.txt"), "dirty\n", "utf8");
-  return { repositoryPath, gitExecutablePath, baseRevision, baseTree, objectFormat };
+  return {
+    repositoryPath,
+    gitExecutablePath,
+    baseRevision,
+    baseTree,
+    objectFormat,
+    longTrackedRelativePath,
+  };
 }
 
 function writeToolRoot(root) {
@@ -375,6 +399,17 @@ test("packed isolated installation executes VERIFIED, expired zero-spawn REPLAY,
     assert.equal(receipt.executableIdentities.nativeAgent.expectedSha256, sha256File(tools.nativePath));
     assert.equal(receipt.executableIdentities.validation.expectedSha256, sha256File(tools.nodePath));
     assert.equal(receipt.executableIdentities.observedAgentVersion, TEST_AGENT_VERSION);
+    assert.equal(
+      fs.readFileSync(path.join(custodyRoot, "repository", source.longTrackedRelativePath), "utf8"),
+      "committed long-path sentinel\n",
+    );
+    assert.equal(
+      fs.readFileSync(
+        path.join(custodyRoot, "exports", "independent-verifier", source.longTrackedRelativePath),
+        "utf8",
+      ),
+      "committed long-path sentinel\n",
+    );
 
     const sourceHeadAfter = String(
       runGit(source.gitExecutablePath, source.repositoryPath, ["rev-parse", "HEAD"]).stdout,
