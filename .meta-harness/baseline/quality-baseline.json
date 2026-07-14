@@ -1,19 +1,19 @@
 {
   "schema_version": "1.0.0",
   "v": 1,
-  "generated_at": "2026-07-14T18:56:58.873Z",
+  "generated_at": "2026-07-14T19:11:47.265Z",
   "generated_by": "meta-harness quality baseline refresh",
-  "source_commit": "eaf7ed9409e11662f1f4c3cced8a37ae4d251038",
+  "source_commit": "996c06a129f551b0e25449e45ed2f3c29bb28730",
   "baseline_policy_hash": "acc33a3beb1c967c85c2229ab6e5d308900d1ac8e551bcd74926a7a5e6fd2ea6",
   "owners_hash": "5ab5a4c7a3679e2b5ead605ae516302cd7362dc48efd2f6cfd2e37e4301f0730",
-  "previous_baseline_hash": "138acbc4eed3dff720d0f11046aca6956ecd30aa135a37749711bf0bbdff66bb",
+  "previous_baseline_hash": "3548332e82a38b068b8fd331c03e85b43cbf23552ad8ff99834e70d30c10a98b",
   "quality_summary_before": {
-    "source_files": 249,
-    "overbudget_files": 1,
+    "source_files": 308,
+    "overbudget_files": 6,
     "complexity_findings": 1
   },
   "quality_summary_after": {
-    "source_files": 308,
+    "source_files": 309,
     "overbudget_files": 6,
     "complexity_findings": 1
   },
@@ -255,7 +255,7 @@
       "overbudget": false
     },
     "lib/context-status-fields.js": {
-      "lines": 99,
+      "lines": 112,
       "overbudget": false
     },
     "lib/contracts/attempt-authorization.js": {
@@ -862,6 +862,10 @@
       "lines": 111,
       "overbudget": false
     },
+    "tests/context-status-fields.test.js": {
+      "lines": 23,
+      "overbudget": false
+    },
     "tests/contracts-authority-authorization.test.js": {
       "lines": 279,
       "overbudget": false
@@ -895,7 +899,7 @@
       "overbudget": false
     },
     "tests/contracts-execution-custody-truth.test.js": {
-      "lines": 1115,
+      "lines": 1223,
       "overbudget": true
     },
     "tests/decision-inbox-check.test.js": {
@@ -1673,7 +1677,7 @@
         "budget_category": "implementation"
       },
       "lib/context-status-fields.js": {
-        "lines": 99,
+        "lines": 112,
         "overbudget": false,
         "max_lines": 400,
         "budget_category": "implementation"
@@ -2584,6 +2588,12 @@
         "max_lines": 300,
         "budget_category": "test"
       },
+      "tests/context-status-fields.test.js": {
+        "lines": 23,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
       "tests/contracts-authority-authorization.test.js": {
         "lines": 279,
         "overbudget": false,
@@ -2633,7 +2643,7 @@
         "budget_category": "test"
       },
       "tests/contracts-execution-custody-truth.test.js": {
-        "lines": 1115,
+        "lines": 1223,
         "overbudget": true,
         "max_lines": 300,
         "budget_category": "test"
@@ -3283,5 +3293,5 @@
       }
     }
   },
-  "new_baseline_hash": "3548332e82a38b068b8fd331c03e85b43cbf23552ad8ff99834e70d30c10a98b"
+  "new_baseline_hash": "4854a6a3ae90720f42250e0cdbf50668f4f3f6e50769278c8610c52109564daa"
 }
