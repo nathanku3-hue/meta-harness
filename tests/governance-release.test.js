@@ -19,6 +19,10 @@ const {
   validateReleaseManifest,
   verifyProvenanceChain,
 } = require("../lib/governance-release");
+const {
+  CURRENT_PACKAGE_VERSION,
+  NEXT_MINOR_VERSION,
+} = require("./helpers/package-version");
 
 function beforeSnapshot() {
   return buildLiveGovernance({ generatedAt: "2026-06-13T00:00:00.000Z" });
@@ -28,8 +32,8 @@ function migrationSpec(overrides = {}) {
   return {
     schema_version: "1",
     migration_id: "release-test-migration",
-    version_source: "0.1.0",
-    version_target: "0.2.0",
+    version_source: CURRENT_PACKAGE_VERSION,
+    version_target: NEXT_MINOR_VERSION,
     expected_change_level: "PATCH",
     actions: [],
     ...overrides,

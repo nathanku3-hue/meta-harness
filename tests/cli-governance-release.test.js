@@ -9,6 +9,10 @@ const { applyMigrationToSnapshot, verifyMigration } = require("../lib/governance
 const { analyzeMigrationImpact } = require("../lib/governance-migration-impact");
 const { classifyGovernanceChanges } = require("../lib/governance-compatibility");
 const { createRelease, promoteRelease } = require("../lib/governance-release");
+const {
+  CURRENT_PACKAGE_VERSION,
+  NEXT_MINOR_VERSION,
+} = require("./helpers/package-version");
 
 function writeJson(filePath, value) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -23,8 +27,8 @@ function writeReleaseFixture(root) {
   const migration = {
     schema_version: "1",
     migration_id: "cli-release-migration",
-    version_source: "0.1.0",
-    version_target: "0.2.0",
+    version_source: CURRENT_PACKAGE_VERSION,
+    version_target: NEXT_MINOR_VERSION,
     expected_change_level: "PATCH",
     actions: [],
   };
@@ -97,7 +101,7 @@ test("governance release report writes Markdown", () => {
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /wrote .*release-report\.md/);
-  assert.match(report, /# Governance Release 0\.2\.0/);
+  assert.ok(report.includes(`# Governance Release ${NEXT_MINOR_VERSION}`));
   assert.match(report, /migration_verification_hash/);
   assert.match(report, /Version-only CLI release/);
 });

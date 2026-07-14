@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d076-release-candidate-failure-audit",
+  "auditedAt": "2026-07-15T03:17:59+08:00",
+  "verdict": "IMMUTABLE_RELEASE_CANDIDATE_FAILED_STALE_VERSION_FIXTURE_REPAIR_AUTHORIZED",
+  "decision": {
+    "id": "D076",
+    "d076Status": "closed",
+    "failedCandidateMustRemainImmutable": true,
+    "amendFailedCandidateAuthorized": false,
+    "newReleaseCandidateRequired": true,
+    "featureExpansionAuthorized": false,
+    "deleteAuthorized": false
+  },
+  "candidate": {
+    "commit": "2a190dd60a3db87660dbaf5b54cbbece5a3121ed",
+    "tree": "a851cb806f390b324b420c78760babe09c7fc2c2",
+    "parent": "996c06a129f551b0e25449e45ed2f3c29bb28730",
+    "message": "chore: freeze D076 0.2.0 release baseline",
+    "packageVersion": "0.2.0",
+    "pushed": false,
+    "tagged": false,
+    "published": false
+  },
+  "suiteFailure": {
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "discoveredTestFiles": 116,
+    "completedRange": "1-25",
+    "failedTestFiles": 2,
+    "failedFiles": [
+      "tests/cli-governance-migration.test.js",
+      "tests/cli-governance-release.test.js"
+    ],
+    "failure": "Governance fixtures hardcoded version_source 0.1.0 and version_target 0.2.0 after the live package and generated snapshot moved to 0.2.0.",
+    "runtimeOrPackageDefect": false,
+    "testFixtureDefect": true
+  },
+  "boundedRepair": {
+    "scope": "tests only",
+    "rule": "derive the current package version from package.json and derive the next minor target; do not hardcode the live package version",
+    "files": [
+      "tests/helpers/package-version.js",
+      "tests/cli-governance-migration.test.js",
+      "tests/cli-governance-release.test.js",
+      "tests/governance-migration-impact.test.js",
+      "tests/governance-migration.test.js",
+      "tests/governance-release-check.test.js",
+      "tests/governance-release.test.js"
+    ],
+    "productionRuntimeChanged": false,
+    "packageMetadataChanged": false,
+    "publicSurfaceChanged": false,
+    "compatibilityAdded": false
+  },
+  "repairVerification": {
+    "focusedTestFiles": 6,
+    "testsPassed": 26,
+    "testsFailed": 0,
+    "result": "PASS"
+  },
+  "remainingGate": {
+    "newCandidateCommitRequired": true,
+    "finalQualityBaselineRefreshRequired": true,
+    "completeNativeSuiteRequired": true,
+    "exactPackageProofRequired": true,
+    "pushRequired": true,
+    "remoteCiAndSecurityRequired": true,
+    "branchProtectionRequired": true,
+    "tagAndPublishRequired": true
+  },
+  "nextAction": "Bank the test-only repair and failure truth, refresh the D076 baseline on the clean repair commit, create a new immutable release candidate, and rerun all 116 native Windows files before package, push, tag, or publication."
+}

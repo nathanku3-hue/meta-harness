@@ -6,6 +6,10 @@ const path = require("node:path");
 const test = require("node:test");
 const { assertCliError, runRaw, snapshotTree, tempDir } = require("./helpers/cli");
 const { governanceHash } = require("../lib/context-gate-governance");
+const {
+  CURRENT_PACKAGE_VERSION,
+  NEXT_MINOR_VERSION,
+} = require("./helpers/package-version");
 
 function writeJson(filePath, value) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -47,8 +51,8 @@ test("governance migration plans, applies, and verifies a snapshot-only migratio
   writeJson(specPath, {
     schema_version: "1",
     migration_id: "cli-valid-verdict",
-    version_source: "0.1.0",
-    version_target: "0.2.0",
+    version_source: CURRENT_PACKAGE_VERSION,
+    version_target: NEXT_MINOR_VERSION,
     expected_change_level: "MINOR",
     actions: [{ type: "add_to_set", field: "valid_verdicts", value: "deferred" }],
   });
@@ -74,8 +78,8 @@ test("governance migration plans, applies, and verifies a snapshot-only migratio
   assert.equal(applied.ok, true);
   assert.equal(applied.action, "migration_apply");
   assert.equal(applied.path, outPath.split(path.sep).join("/"));
-  assert.equal(originalSnapshot.version, "0.1.0");
-  assert.equal(migratedSnapshot.version, "0.2.0");
+  assert.equal(originalSnapshot.version, CURRENT_PACKAGE_VERSION);
+  assert.equal(migratedSnapshot.version, NEXT_MINOR_VERSION);
   assert.equal(migratedSnapshot.valid_verdicts.includes("deferred"), true);
 
   const verifyResult = runRaw(root, ["governance", "migration", "verify", "--spec", specPath, "--before", snapshotPath, "--after", outPath, "--json"]);
@@ -95,7 +99,7 @@ test("governance migration impact emits SAFE JSON for an empty artifacts directo
   const specPath = path.join(root, "migration.json");
   const artifactsDir = path.join(root, "artifacts");
   fs.mkdirSync(artifactsDir, { recursive: true });
-  writeJson(specPath, { schema_version: "1", migration_id: "cli-impact-empty", version_source: "0.1.0", version_target: "0.2.0", expected_change_level: "PATCH", actions: [] });
+  writeJson(specPath, { schema_version: "1", migration_id: "cli-impact-empty", version_source: CURRENT_PACKAGE_VERSION, version_target: NEXT_MINOR_VERSION, expected_change_level: "PATCH", actions: [] });
 
   const result = runRaw(root, ["governance", "migration", "impact", "--spec", specPath, "--snapshot", snapshotPath, "--artifacts-dir", artifactsDir, "--json"]);
   const data = JSON.parse(result.stdout);
@@ -114,7 +118,7 @@ test("governance migration impact keeps non-safe JSON parseable and exits nonzer
   const snapshot = JSON.parse(fs.readFileSync(snapshotPath, "utf8"));
   const specPath = path.join(root, "migration.json");
   const artifactsDir = path.join(root, "artifacts");
-  writeJson(specPath, { schema_version: "1", migration_id: "cli-impact-stale", version_source: "0.1.0", version_target: "0.2.0", expected_change_level: "PATCH", actions: [] });
+  writeJson(specPath, { schema_version: "1", migration_id: "cli-impact-stale", version_source: CURRENT_PACKAGE_VERSION, version_target: NEXT_MINOR_VERSION, expected_change_level: "PATCH", actions: [] });
   writeJson(path.join(artifactsDir, "ROUND-001.json"), contextArtifact(snapshot));
 
   const result = runRaw(root, ["governance", "migration", "impact", "--spec", specPath, "--snapshot", snapshotPath, "--artifacts-dir", artifactsDir, "--json"]);

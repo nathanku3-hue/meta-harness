@@ -2686,11 +2686,12 @@ Release-preparation checkpoint — 2026-07-15:
 - Quality-baseline commit `4fedec9dd728114018a6518356833537cfc128bc` refreshes the ratchet under existing decision D076. The new baseline hash is `3548332e82a38b068b8fd331c03e85b43cbf23552ad8ff99834e70d30c10a98b`; quality passes with only the explicit 28-command warning.
 - GitHub secret scanning and push protection are enabled. Dependabot security updates remain enabled, with zero open Dependabot and secret-scanning alerts observed. GitHub default CodeQL setup run `29359631210` completed successfully.
 - CodeQL exposed one high alert, `js/incomplete-multi-character-sanitization`, in `lib/context-status-fields.js`. Commit `2fc3206628500383d8a61d01b58f8d52fd07f184` repairs the one-pass sanitizer and adds a direct nested-comment regression; 35 focused tests pass with zero failures. The remote alert remains open until the repair is pushed and rescanned.
+- First exact release candidate `2a190dd60a3db87660dbaf5b54cbbece5a3121ed` / tree `a851cb806f390b324b420c78760babe09c7fc2c2` discovered 116 native Windows files but failed two governance CLI fixture files in range 1–25. Those fixtures hardcoded `version_source: 0.1.0` after the package and generated governance snapshot moved to `0.2.0`. The candidate remains immutable and was not pushed, tagged, or published. The authorized repair is test-only: one shared helper derives the current package version and next minor target, and all six affected fixture families pass 26 focused tests.
 - Branch protection is still disabled, local `main` is ahead of `origin/main`, exact remote CI/security evidence does not yet exist, `v0.2.0` is not created, and publication is not authorized.
 
-Audit: `docs/ops/audits/d076-release-preparation-audit.json`.
+Audits: `docs/ops/audits/d076-release-preparation-audit.json` and `docs/ops/audits/d076-release-candidate-2a190dd-failure-audit.json`.
 
-Next: create one exact release commit after final truth and baseline refresh, rerun the full native suite and exact package proof, push, require CI/Semgrep/CodeQL success and alert closure, enable branch protection, create and verify `v0.2.0`, write ignored exact-commit release evidence, pass `release check --publish`, then publish. No feature phase or DELETE is authorized.
+Next: bank the fixture repair and failure truth, refresh the D076 baseline, create a new exact release candidate, rerun all 116 native files and the exact package proof, push, require CI/Semgrep/CodeQL success and alert closure, enable branch protection, create and verify `v0.2.0`, write ignored exact-commit release evidence, pass `release check --publish`, then publish. No feature phase or DELETE is authorized.
 
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
