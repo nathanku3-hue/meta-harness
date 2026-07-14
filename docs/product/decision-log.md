@@ -2678,6 +2678,20 @@ Release boundary:
 
 Feature development stops at D076 closure. The next allowed work is exact-closure-commit release metadata, repository security settings, CI/release evidence, tag/package dry-run validation, user-operating documentation, and defects exposed by the release candidate. Current release evidence remains blocked and stale under `dc7480c`: branch protection is disabled, code scanning is disabled, and secret scanning is disabled or unavailable. Publish only after the fail-closed release policy passes. DELETE is not a publication prerequisite and remains unauthorized until real installed-package use supports a separate consumer-led decision.
 
+Release-preparation checkpoint — 2026-07-15:
+
+- Separate D076 closure commit `68932804fb2563dc849d701aca44f8988385c2bb` / tree `4d94eaa82a652e37e6fe4601c47a256d1615c7a6` passed all 115 native Windows Node `v25.2.1` test files with zero failures. Its exact historical closure tarball contains 234 entries, is 478138 bytes, and has SHA-256 `7a28690d7227d669178f939eb87f1de0754f2d70e450a490873f6b528d4bd9d0`.
+- npm registry lookup returned E404 with no public `meta-harness` record observed. This does not guarantee name availability, but it confirms no published version conflict was visible. The selected pre-1.0 release version is `0.2.0`, matching the first supported installed execution-custody capability.
+- Release mechanics commit `eaf7ed9409e11662f1f4c3cced8a37ae4d251038` synchronizes package, lockfile, and MCP metadata at `0.2.0`, updates the package description to the execution-custody product, and replaces the stale 120-second release-test timeout with the shared 300-second `MH_TEST_001` budget.
+- Quality-baseline commit `4fedec9dd728114018a6518356833537cfc128bc` refreshes the ratchet under existing decision D076. The new baseline hash is `3548332e82a38b068b8fd331c03e85b43cbf23552ad8ff99834e70d30c10a98b`; quality passes with only the explicit 28-command warning.
+- GitHub secret scanning and push protection are enabled. Dependabot security updates remain enabled, with zero open Dependabot and secret-scanning alerts observed. GitHub default CodeQL setup run `29359631210` completed successfully.
+- CodeQL exposed one high alert, `js/incomplete-multi-character-sanitization`, in `lib/context-status-fields.js`. Commit `2fc3206628500383d8a61d01b58f8d52fd07f184` repairs the one-pass sanitizer and adds a direct nested-comment regression; 35 focused tests pass with zero failures. The remote alert remains open until the repair is pushed and rescanned.
+- Branch protection is still disabled, local `main` is ahead of `origin/main`, exact remote CI/security evidence does not yet exist, `v0.2.0` is not created, and publication is not authorized.
+
+Audit: `docs/ops/audits/d076-release-preparation-audit.json`.
+
+Next: create one exact release commit after final truth and baseline refresh, rerun the full native suite and exact package proof, push, require CI/Semgrep/CodeQL success and alert closure, enable branch protection, create and verify `v0.2.0`, write ignored exact-commit release evidence, pass `release check --publish`, then publish. No feature phase or DELETE is authorized.
+
 ## D055: Close Phase 20F Read-Only Proposal Review Decision Receipt Template
 
 Decision:

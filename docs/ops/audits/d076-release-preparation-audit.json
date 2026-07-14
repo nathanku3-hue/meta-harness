@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d076-release-preparation-audit",
+  "auditedAt": "2026-07-15T03:01:49+08:00",
+  "verdict": "RELEASE_PREPARATION_ACCEPTED_REMOTE_EVIDENCE_PENDING",
+  "decision": {
+    "id": "D076",
+    "d076Status": "closed",
+    "featureDevelopmentFrozen": true,
+    "releasePreparationAuthorized": true,
+    "deleteAuthorized": false,
+    "publishAuthorizedNow": false
+  },
+  "closure": {
+    "commit": "68932804fb2563dc849d701aca44f8988385c2bb",
+    "tree": "4d94eaa82a652e37e6fe4601c47a256d1615c7a6",
+    "candidate": "ce02548b9db9ed6fea904e0e146906fab6cba773",
+    "candidateTree": "9dbd5dd7d8075ce1b037171ea886c722b013fbc7",
+    "testFiles": 115,
+    "failedTestFiles": 0,
+    "tarballSha256": "7a28690d7227d669178f939eb87f1de0754f2d70e450a490873f6b528d4bd9d0",
+    "tarballBytes": 478138,
+    "packageEntries": 234
+  },
+  "version": {
+    "registryResult": "E404_NO_PUBLIC_RECORD_OBSERVED",
+    "nameAvailabilityGuaranteed": false,
+    "previous": "0.1.0",
+    "selected": "0.2.0"
+  },
+  "releaseCommits": {
+    "mechanics": {
+      "commit": "eaf7ed9409e11662f1f4c3cced8a37ae4d251038",
+      "tree": "d039949aad6a7bf2cd2c402bf8d051f2be5ebd35",
+      "testTimeoutSeconds": 300
+    },
+    "qualityBaseline": {
+      "commit": "4fedec9dd728114018a6518356833537cfc128bc",
+      "tree": "7bdd42e3c71616904e8bcceb270df12409431251",
+      "decision": "D076",
+      "baselineHash": "3548332e82a38b068b8fd331c03e85b43cbf23552ad8ff99834e70d30c10a98b",
+      "qualityPass": true
+    },
+    "codeScanningRepair": {
+      "commit": "2fc3206628500383d8a61d01b58f8d52fd07f184",
+      "tree": "cfbcd66f9145754a6ddb0aa9ab498218bc50feab",
+      "alert": "js/incomplete-multi-character-sanitization",
+      "focusedTestsPassed": 35,
+      "focusedTestsFailed": 0,
+      "remoteClosurePending": true
+    }
+  },
+  "githubSecurity": {
+    "visibility": "public",
+    "remoteMain": "8b9853fcb1980824952dc1514eb7e572525c573c",
+    "localCommitsAhead": 24,
+    "secretScanning": "enabled",
+    "pushProtection": "enabled",
+    "openSecretAlerts": 0,
+    "dependabotSecurityUpdates": "enabled",
+    "openDependabotAlerts": 0,
+    "codeQlSetupRunId": 29359631210,
+    "codeQlSetupConclusion": "success",
+    "openCodeScanningAlerts": 1,
+    "branchProtectionEnabled": false
+  },
+  "remainingGate": {
+    "exactReleaseCommitCreated": false,
+    "completeSuiteRequired": true,
+    "exactTarballRequired": true,
+    "pushRequired": true,
+    "remoteCiRequired": true,
+    "codeScanningAlertClosureRequired": true,
+    "branchProtectionRequired": true,
+    "exactCommitEvidenceRequired": true,
+    "tagRequired": true,
+    "publishModeCheckRequired": true,
+    "npmPublicationRequired": true,
+    "featureExpansionAuthorized": false,
+    "deleteAuthorized": false
+  },
+  "scores": {
+    "overallProductFlow": 9.5,
+    "installedPublicExecutionUsability": 9.1,
+    "localReleaseReadiness": 8.2,
+    "remoteReleaseReadiness": 5.8,
+    "engineeringHealth": 9.2,
+    "roadmapHonesty": 9.9
+  },
+  "nextAction": "Create the exact release commit, rerun suite and package proof, push, require successful CI and CodeQL with the alert closed, enable branch protection, create v0.2.0, write exact-commit release evidence, pass publish-mode release check, then publish."
+}

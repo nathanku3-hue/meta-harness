@@ -1,6 +1,6 @@
 # Meta Harness
 
-Markdown-first workflow harness for making agent-assisted work visible, durable, restartable, and reviewable.
+Authority-bound execution-custody harness for approved one-shot repository changes, with durable workflow visibility and independently verifiable evidence.
 
 ## Current Artifacts
 
@@ -50,7 +50,7 @@ The harness should wrap existing agents and tools rather than becoming a new age
 
 The governing product direction has intentionally moved beyond the original no-launch, no-network MVP. Meta-Harness is now being developed as a **local authority-bound agent execution-custody harness**: sealed intent and scope authorize one isolated agent attempt; the controller owns mutation, validation, durable result custody, and replay. Markdown status remains a core product surface, but visibility alone is no longer the end-state.
 
-D071 proved one meaningful child-repository change but lost retained custody. D073 replaced that path with durable host-neutral execution custody; D074 proved cross-ecosystem reuse; D075 proved repeated private operator use across DevSpace/Node and Fluxara/Python. D076 is now closed under exact immutable repair candidate `ce02548`: the isolated packed artifact exposes one installed-package command, `meta-harness execute --request <absolute-path> [--json]`, and a retained novel Leningrad operation completed exact one-revision authority, one authenticated spawn → VERIFIED, durable child/ref custody, expiry+60s fresh-process REPLAY with zero spawns and unusable tools, portable independent validation, leakage PASS, and a create-only public receipt while leaving the dirty source checkout unchanged. Feature development is frozen pending exact-closure-commit release/security evidence and publication. No generic provider framework, compatibility layer, concurrency framework, broad deletion, or DELETE prerequisite is implied.
+D071 proved one meaningful child-repository change but lost retained custody. D073 replaced that path with durable host-neutral execution custody; D074 proved cross-ecosystem reuse; D075 proved repeated private operator use across DevSpace/Node and Fluxara/Python. D076 is closed under exact immutable repair candidate `ce02548`: the isolated packed artifact exposes one installed-package command, `meta-harness execute --request <absolute-path> [--json]`, and a retained novel Leningrad operation completed exact one-revision authority, one authenticated spawn → VERIFIED, durable child/ref custody, expiry+60s fresh-process REPLAY with zero spawns and unusable tools, portable independent validation, leakage PASS, and a create-only public receipt while leaving the dirty source checkout unchanged. Release preparation selects `0.2.0`, keeps feature development frozen, and requires exact-commit CI, CodeQL closure, branch protection, release evidence, tag validation, and the fail-closed publish gate before publication. No generic provider framework, compatibility layer, concurrency framework, broad deletion, or DELETE prerequisite is implied.
 
 ## Target MVP CLI
 

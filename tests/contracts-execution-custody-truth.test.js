@@ -52,12 +52,13 @@ test("status records D076 installed-package closure and the frozen release gate"
 
   assert.match(goal, /D076 is closed under immutable repair candidate `ce02548/i);
   assert.match(goal, /tree `9dbd5dd7/i);
-  assert.match(goal, /meta-harness execute/i);
-  assert.match(goal, /authenticated Leningrad operation/i);
-  assert.match(goal, /one-spawn VERIFIED/i);
-  assert.match(goal, /expiry\+60s fresh-process REPLAY/i);
-  assert.match(goal, /Feature development is frozen/i);
-  assert.match(goal, /exact-closure-commit release\/security evidence/i);
+  assert.match(goal, /closure commit `68932804/i);
+  assert.match(goal, /Release preparation is now bounded to `0\.2\.0`/i);
+  assert.match(goal, /secret scanning and push protection are enabled/i);
+  assert.match(goal, /CodeQL default setup passed/i);
+  assert.match(goal, /sole high alert is fixed locally under `2fc3206`/i);
+  assert.match(goal, /Feature development remains frozen/i);
+  assert.match(goal, /branch protection/i);
   assert.match(goal, /DELETE remains unauthorized/i);
 
   assert.match(currentTruth, /D075 is closed under exact immutable candidate `cd63e5295b8bbde1afaf1ab5d991aadc13cc0442`/i);
@@ -81,6 +82,14 @@ test("status records D076 installed-package closure and the frozen release gate"
   assert.match(currentTruth, /VERIFIED child `350bf855`/i);
   assert.match(currentTruth, /2687b4ef286827defe4899c67ab35e0b814d77e3ef4b2c22c1450ea0827c1c07/i);
   assert.match(currentTruth, /d076-installed-package-execution-closure-audit\.json/i);
+  assert.match(currentTruth, /D076 release preparation is active without feature expansion/i);
+  assert.match(currentTruth, /7a28690d7227d669178f939eb87f1de0754f2d70e450a490873f6b528d4bd9d0/i);
+  assert.match(currentTruth, /release version `0\.2\.0` is selected/i);
+  assert.match(currentTruth, /Release mechanics commit `eaf7ed9`/i);
+  assert.match(currentTruth, /Baseline commit `4fedec9`/i);
+  assert.match(currentTruth, /CodeQL setup run `29359631210`/i);
+  assert.match(currentTruth, /fixed locally in `2fc3206`/i);
+  assert.match(currentTruth, /d076-release-preparation-audit\.json/i);
 
   assert.match(lastVerified, /Exact D075 candidate `cd63e5295/i);
   assert.match(lastVerified, /113 files, zero failures, exit 0/i);
@@ -97,11 +106,18 @@ test("status records D076 installed-package closure and the frozen release gate"
   assert.match(lastVerified, /request SHA-256 `aa98fdf/i);
   assert.match(lastVerified, /VERIFIED child `350bf855/i);
   assert.match(lastVerified, /source HEAD, tree, and 141-line dirty status digest remained unchanged/i);
+  assert.match(lastVerified, /Exact closure commit `68932804/i);
+  assert.match(lastVerified, /7a28690d7227d669178f939eb87f1de0754f2d70e450a490873f6b528d4bd9d0/i);
+  assert.match(lastVerified, /`eaf7ed9` selected `0\.2\.0`/i);
+  assert.match(lastVerified, /`4fedec9` refreshed the D076 quality baseline/i);
+  assert.match(lastVerified, /`2fc3206` fixed the sole CodeQL high alert locally/i);
 
   assert.match(nextAction, /Keep feature development frozen/i);
-  assert.match(nextAction, /separate D076 closure commit/i);
-  assert.match(nextAction, /exact-closure-commit Phase 10 release\/security evidence/i);
-  assert.match(nextAction, /publish only after the fail-closed release policy passes/i);
+  assert.match(nextAction, /exact `0\.2\.0` release commit/i);
+  assert.match(nextAction, /successful CI\/Semgrep\/CodeQL/i);
+  assert.match(nextAction, /enable branch protection/i);
+  assert.match(nextAction, /create and verify `v0\.2\.0`/i);
+  assert.match(nextAction, /release check --publish/i);
   assert.match(nextAction, /Do not start DELETE or another functional phase/i);
   assert.doesNotMatch(nextAction, /force(?:-|\s)?push/i);
 });
@@ -173,7 +189,12 @@ test("roadmap orders closed D073 before D074, D075, closed D076 SHIP, release, a
   assert.match(ship.detail, /VERIFIED child `350bf855`/i);
   assert.match(ship.detail, /leakage PASS across 18 portable files/i);
   assert.match(ship.detail, /d076-installed-package-execution-closure-audit\.json/i);
-  assert.match(release.state + release.detail, /blocked on repository security\/full-release evidence/i);
+  assert.match(release.name, /Exact-Commit `0\.2\.0` Publication/i);
+  assert.match(release.state, /release preparation active; remote evidence pending/i);
+  assert.match(release.detail, /D076 closure commit `6893280`/i);
+  assert.match(release.detail, /`eaf7ed9`, `4fedec9`, and `2fc3206`/i);
+  assert.match(release.detail, /Secret scanning, push protection, and CodeQL default setup are enabled/i);
+  assert.match(release.detail, /branch protection/i);
   assert.match(deletion.state + deletion.detail, /unauthorized until post-release consumer evidence/i);
   assert.ok(rows.indexOf(d073) < rows.indexOf(d074));
   assert.ok(rows.indexOf(d074) < rows.indexOf(operate));
@@ -222,6 +243,13 @@ test("product re-charter and D073 closure are explicit across primary surfaces",
   assert.match(decisionLog, /D076 is closed under exact repair candidate `ce02548/i);
   assert.match(decisionLog, /3f54e3ec4c5aabfd494d5c999de02087a26ce8c4fe2e49a6067416167d6c6b95/i);
   assert.match(decisionLog, /Feature development stops at D076 closure/i);
+  assert.match(decisionLog, /Release-preparation checkpoint — 2026-07-15/i);
+  assert.match(decisionLog, /68932804fb2563dc849d701aca44f8988385c2bb/i);
+  assert.match(decisionLog, /selected pre-1\.0 release version is `0\.2\.0`/i);
+  assert.match(decisionLog, /eaf7ed9409e11662f1f4c3cced8a37ae4d251038/i);
+  assert.match(decisionLog, /4fedec9dd728114018a6518356833537cfc128bc/i);
+  assert.match(decisionLog, /2fc3206628500383d8a61d01b58f8d52fd07f184/i);
+  assert.match(decisionLog, /d076-release-preparation-audit\.json/i);
 });
 
 test("D073 audit binds exact suite, live replay, export, and deletion truth", () => {
@@ -766,7 +794,7 @@ test("D076 installed functional-slice audit binds the candidate-ready package an
   assert.equal(audit.remainingGate.featureExpansionAuthorized, false);
   assert.equal(audit.remainingGate.deleteAuthorized, false);
 
-  assert.equal(events.length, 62);
+  assert.equal(events.length, 63);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -852,7 +880,8 @@ test("D076 first immutable candidate failure preserves exact evidence and author
 test("D076 closure audit binds the repaired candidate, installed live chain, and release freeze", () => {
   const audit = JSON.parse(read("docs/ops/audits/d076-installed-package-execution-closure-audit.json"));
   const events = read(".meta-harness/events.jsonl").trim().split(/\r?\n/).map(JSON.parse);
-  const lastEvent = events.at(-1);
+  const event = events.find((entry) => entry.phase === "D076-installed-package-execution-closure");
+  assert.ok(event);
 
   assert.equal(audit.kind, "d076-installed-package-execution-closure-audit");
   assert.equal(audit.verdict, "D076_INSTALLED_PACKAGE_EXECUTION_CLOSED");
@@ -991,13 +1020,92 @@ test("D076 closure audit binds the repaired candidate, installed live chain, and
   assert.equal(audit.claims.deleteAuthorized, false);
   assert.equal(audit.claims.publishAuthorizedBeforeReleasePolicyPass, false);
 
-  assert.equal(events.length, 62);
-  assert.equal(lastEvent.ts, audit.auditedAt);
-  assert.equal(lastEvent.time, audit.auditedAt);
-  assert.equal(lastEvent.phase, "D076-installed-package-execution-closure");
-  assert.equal(lastEvent.decision, "D076");
-  assert.match(lastEvent.next_action, /exact-closure-commit repository security/i);
-  assert.match(lastEvent.next_action, /no feature phase or DELETE/i);
+  assert.equal(events.length, 63);
+  assert.equal(event.ts, audit.auditedAt);
+  assert.equal(event.time, audit.auditedAt);
+  assert.equal(event.decision, "D076");
+  assert.match(event.next_action, /exact-closure-commit repository security/i);
+  assert.match(event.next_action, /no feature phase or DELETE/i);
+});
+
+test("D076 release-preparation audit binds 0.2.0, security hardening, and the remaining remote gate", () => {
+  const audit = JSON.parse(read("docs/ops/audits/d076-release-preparation-audit.json"));
+  const events = read(".meta-harness/events.jsonl").trim().split(/\r?\n/).map(JSON.parse);
+  const event = events.find((entry) => entry.phase === "D076-release-preparation");
+  assert.ok(event);
+
+  assert.equal(audit.kind, "d076-release-preparation-audit");
+  assert.equal(audit.verdict, "RELEASE_PREPARATION_ACCEPTED_REMOTE_EVIDENCE_PENDING");
+  assert.equal(audit.decision.id, "D076");
+  assert.equal(audit.decision.d076Status, "closed");
+  assert.equal(audit.decision.featureDevelopmentFrozen, true);
+  assert.equal(audit.decision.releasePreparationAuthorized, true);
+  assert.equal(audit.decision.deleteAuthorized, false);
+  assert.equal(audit.decision.publishAuthorizedNow, false);
+
+  assert.equal(audit.closure.commit, "68932804fb2563dc849d701aca44f8988385c2bb");
+  assert.equal(audit.closure.tree, "4d94eaa82a652e37e6fe4601c47a256d1615c7a6");
+  assert.equal(audit.closure.candidate, "ce02548b9db9ed6fea904e0e146906fab6cba773");
+  assert.equal(audit.closure.testFiles, 115);
+  assert.equal(audit.closure.failedTestFiles, 0);
+  assert.equal(
+    audit.closure.tarballSha256,
+    "7a28690d7227d669178f939eb87f1de0754f2d70e450a490873f6b528d4bd9d0",
+  );
+  assert.equal(audit.closure.tarballBytes, 478138);
+  assert.equal(audit.closure.packageEntries, 234);
+
+  assert.equal(audit.version.registryResult, "E404_NO_PUBLIC_RECORD_OBSERVED");
+  assert.equal(audit.version.nameAvailabilityGuaranteed, false);
+  assert.equal(audit.version.previous, "0.1.0");
+  assert.equal(audit.version.selected, "0.2.0");
+
+  assert.equal(
+    audit.releaseCommits.mechanics.commit,
+    "eaf7ed9409e11662f1f4c3cced8a37ae4d251038",
+  );
+  assert.equal(audit.releaseCommits.mechanics.testTimeoutSeconds, 300);
+  assert.equal(
+    audit.releaseCommits.qualityBaseline.commit,
+    "4fedec9dd728114018a6518356833537cfc128bc",
+  );
+  assert.equal(audit.releaseCommits.qualityBaseline.decision, "D076");
+  assert.equal(audit.releaseCommits.qualityBaseline.qualityPass, true);
+  assert.equal(
+    audit.releaseCommits.codeScanningRepair.commit,
+    "2fc3206628500383d8a61d01b58f8d52fd07f184",
+  );
+  assert.equal(audit.releaseCommits.codeScanningRepair.focusedTestsPassed, 35);
+  assert.equal(audit.releaseCommits.codeScanningRepair.focusedTestsFailed, 0);
+  assert.equal(audit.releaseCommits.codeScanningRepair.remoteClosurePending, true);
+
+  assert.equal(audit.githubSecurity.visibility, "public");
+  assert.equal(audit.githubSecurity.secretScanning, "enabled");
+  assert.equal(audit.githubSecurity.pushProtection, "enabled");
+  assert.equal(audit.githubSecurity.openSecretAlerts, 0);
+  assert.equal(audit.githubSecurity.openDependabotAlerts, 0);
+  assert.equal(audit.githubSecurity.codeQlSetupRunId, 29359631210);
+  assert.equal(audit.githubSecurity.codeQlSetupConclusion, "success");
+  assert.equal(audit.githubSecurity.openCodeScanningAlerts, 1);
+  assert.equal(audit.githubSecurity.branchProtectionEnabled, false);
+
+  assert.equal(audit.remainingGate.exactReleaseCommitCreated, false);
+  assert.equal(audit.remainingGate.pushRequired, true);
+  assert.equal(audit.remainingGate.remoteCiRequired, true);
+  assert.equal(audit.remainingGate.codeScanningAlertClosureRequired, true);
+  assert.equal(audit.remainingGate.branchProtectionRequired, true);
+  assert.equal(audit.remainingGate.tagRequired, true);
+  assert.equal(audit.remainingGate.publishModeCheckRequired, true);
+  assert.equal(audit.remainingGate.npmPublicationRequired, true);
+  assert.equal(audit.remainingGate.featureExpansionAuthorized, false);
+  assert.equal(audit.remainingGate.deleteAuthorized, false);
+
+  assert.equal(events.length, 63);
+  assert.equal(event.ts, audit.auditedAt);
+  assert.equal(event.time, audit.auditedAt);
+  assert.equal(event.decision, "D076");
+  assert.match(event.next_action, /exact 0\.2\.0 release commit/i);
+  assert.match(event.next_action, /no feature phase or DELETE/i);
 });
 
 test("historical D074/D075 examples remain test-only while D076 uses one packaged public runtime", () => {
