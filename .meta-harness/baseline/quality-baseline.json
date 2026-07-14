@@ -1,19 +1,19 @@
 {
   "schema_version": "1.0.0",
   "v": 1,
-  "generated_at": "2026-07-14T19:11:47.265Z",
+  "generated_at": "2026-07-14T19:23:14.059Z",
   "generated_by": "meta-harness quality baseline refresh",
-  "source_commit": "996c06a129f551b0e25449e45ed2f3c29bb28730",
+  "source_commit": "0a2647c9a70143ad8b564ec0995ea9fb2659c2d2",
   "baseline_policy_hash": "acc33a3beb1c967c85c2229ab6e5d308900d1ac8e551bcd74926a7a5e6fd2ea6",
   "owners_hash": "5ab5a4c7a3679e2b5ead605ae516302cd7362dc48efd2f6cfd2e37e4301f0730",
-  "previous_baseline_hash": "3548332e82a38b068b8fd331c03e85b43cbf23552ad8ff99834e70d30c10a98b",
+  "previous_baseline_hash": "4854a6a3ae90720f42250e0cdbf50668f4f3f6e50769278c8610c52109564daa",
   "quality_summary_before": {
-    "source_files": 308,
+    "source_files": 309,
     "overbudget_files": 6,
     "complexity_findings": 1
   },
   "quality_summary_after": {
-    "source_files": 309,
+    "source_files": 310,
     "overbudget_files": 6,
     "complexity_findings": 1
   },
@@ -783,11 +783,11 @@
       "overbudget": false
     },
     "tests/cli-governance-migration.test.js": {
-      "lines": 133,
+      "lines": 137,
       "overbudget": false
     },
     "tests/cli-governance-release.test.js": {
-      "lines": 109,
+      "lines": 113,
       "overbudget": false
     },
     "tests/cli-governance.test.js": {
@@ -899,7 +899,7 @@
       "overbudget": false
     },
     "tests/contracts-execution-custody-truth.test.js": {
-      "lines": 1223,
+      "lines": 1305,
       "overbudget": true
     },
     "tests/decision-inbox-check.test.js": {
@@ -931,19 +931,19 @@
       "overbudget": false
     },
     "tests/governance-migration-impact.test.js": {
-      "lines": 193,
+      "lines": 197,
       "overbudget": false
     },
     "tests/governance-migration.test.js": {
-      "lines": 147,
+      "lines": 151,
       "overbudget": false
     },
     "tests/governance-release-check.test.js": {
-      "lines": 86,
+      "lines": 90,
       "overbudget": false
     },
     "tests/governance-release.test.js": {
-      "lines": 153,
+      "lines": 157,
       "overbudget": false
     },
     "tests/governance-replay.test.js": {
@@ -988,6 +988,10 @@
     },
     "tests/helpers/execution-custody-process-child.js": {
       "lines": 9,
+      "overbudget": false
+    },
+    "tests/helpers/package-version.js": {
+      "lines": 19,
       "overbudget": false
     },
     "tests/helpers/security-fixture.js": {
@@ -2469,13 +2473,13 @@
         "budget_category": "test"
       },
       "tests/cli-governance-migration.test.js": {
-        "lines": 133,
+        "lines": 137,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
       },
       "tests/cli-governance-release.test.js": {
-        "lines": 109,
+        "lines": 113,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
@@ -2643,7 +2647,7 @@
         "budget_category": "test"
       },
       "tests/contracts-execution-custody-truth.test.js": {
-        "lines": 1223,
+        "lines": 1305,
         "overbudget": true,
         "max_lines": 300,
         "budget_category": "test"
@@ -2691,25 +2695,25 @@
         "budget_category": "test"
       },
       "tests/governance-migration-impact.test.js": {
-        "lines": 193,
+        "lines": 197,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
       },
       "tests/governance-migration.test.js": {
-        "lines": 147,
+        "lines": 151,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
       },
       "tests/governance-release-check.test.js": {
-        "lines": 86,
+        "lines": 90,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
       },
       "tests/governance-release.test.js": {
-        "lines": 153,
+        "lines": 157,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
@@ -2776,6 +2780,12 @@
       },
       "tests/helpers/execution-custody-process-child.js": {
         "lines": 9,
+        "overbudget": false,
+        "max_lines": 300,
+        "budget_category": "test"
+      },
+      "tests/helpers/package-version.js": {
+        "lines": 19,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
@@ -3293,5 +3303,5 @@
       }
     }
   },
-  "new_baseline_hash": "4854a6a3ae90720f42250e0cdbf50668f4f3f6e50769278c8610c52109564daa"
+  "new_baseline_hash": "78fdacf6d62165e0a8f200f78c9790feaa59fd3bdba062cb521da89a04c01327"
 }
