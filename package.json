@@ -1,7 +1,7 @@
 {
   "name": "meta-harness",
-  "version": "0.1.0",
-  "description": "Markdown-first Codex-native workflow visibility harness.",
+  "version": "0.2.0",
+  "description": "Authority-bound installed execution custody for approved one-shot repository changes.",
   "license": "MIT",
   "type": "commonjs",
   "repository": {
