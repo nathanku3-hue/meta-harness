@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d076-release-candidate-windows-ci-failure-audit",
+  "auditedAt": "2026-07-15T14:21:22+08:00",
+  "verdict": "IMMUTABLE_RELEASE_CANDIDATE_FAILED_HOSTED_WINDOWS_ALIAS_CONTAINMENT_REPAIR_AUTHORIZED",
+  "decision": {
+    "id": "D076",
+    "d076Status": "closed",
+    "failedCandidateMustRemainImmutable": true,
+    "amendFailedCandidateAuthorized": false,
+    "newReleaseCandidateRequired": true,
+    "featureExpansionAuthorized": false,
+    "deleteAuthorized": false,
+    "tagAuthorizedForFailedCandidate": false,
+    "publishAuthorizedForFailedCandidate": false
+  },
+  "candidate": {
+    "commit": "3482db00186e85fa9508668d19a27888b53a3c4b",
+    "tree": "a7db207cd0ca972b64df4b804b21d5310cc8b680",
+    "parent": "c5ef282b7d1df12b0cd377b72c9be54ddf24f48b",
+    "message": "chore: freeze path-alias-repaired 0.2.0 baseline",
+    "packageVersion": "0.2.0",
+    "pushedToMain": true,
+    "tagged": false,
+    "published": false
+  },
+  "localValidation": {
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "discoveredTestFiles": 116,
+    "failedTestFiles": 0,
+    "durationSeconds": 224.9,
+    "package": {
+      "version": "0.2.0",
+      "tarballSha256": "acdb0577c114045623845ab1ab6f7fb717c47041558c2474fbc19035bf7ac9f3",
+      "tarballBytes": 481252,
+      "dryRunEntries": 234,
+      "actualEntries": 234,
+      "dryRunActualEquality": true,
+      "isolatedIgnoreScriptsInstall": true,
+      "forbiddenInstalledRoots": [],
+      "executeUsageCount": 1,
+      "candidateCleanAfter": true
+    }
+  },
+  "remoteEvidence": {
+    "repository": "nathanku3-hue/meta-harness",
+    "headSha": "3482db00186e85fa9508668d19a27888b53a3c4b",
+    "semgrep": {
+      "runId": 29393721755,
+      "conclusion": "success"
+    },
+    "codeQl": {
+      "runId": 29393721231,
+      "conclusion": "success"
+    },
+    "ci": {
+      "runId": 29393721701,
+      "conclusion": "failure",
+      "nodeTestsJobId": 87282458156,
+      "nodeTestsConclusion": "success",
+      "windowsCompleteSuiteJobId": 87282458170,
+      "windowsCompleteSuiteConclusion": "failure",
+      "discoveredTestFiles": 116,
+      "failedTestFiles": 1,
+      "failedFiles": [
+        "tests/judge.test.js"
+      ],
+      "installedExecutionCustodyConclusion": "pass",
+      "judgeProductionPathReached": true,
+      "failureCode": "JUDGE_INPUT_TARGET_NOT_GIT",
+      "failureMessage": "target is not inside the resolved git repository",
+      "failurePattern": "Git repository discovery succeeded through the 8.3 target path. The subsequent containment comparison treated the Git long-path root and the equivalent 8.3 target path as unrelated."
+    }
+  },
+  "rootCause": {
+    "classification": "hosted_windows_alias_sensitive_repository_containment",
+    "productionExecutionRuntimeDefect": false,
+    "packageBoundaryDefect": false,
+    "publicRequestContractDefect": false,
+    "judgeProductionDefect": true,
+    "diagnosis": "gitContext retained an alias-sensitive path.relative containment check after repository discovery. On hosted Windows, fs.realpathSync did not normalize both spellings to one textual path, so the same directory expressed as runneradmin and RUNNER~1 failed containment.",
+    "repair": "For existing repository directories only, walk the target's ancestor chain and compare bigint filesystem dev and ino identity to the Git root. Keep lexical containment for untrusted relative input paths and keep fail-closed behavior."
+  },
+  "boundedRepair": {
+    "files": [
+      "lib/judge.js",
+      "tests/judge.test.js"
+    ],
+    "productionExecutionRuntimeChanged": false,
+    "judgeProductionCodeChanged": true,
+    "packageMetadataChanged": false,
+    "publicSurfaceChanged": false,
+    "compatibilityAdded": false,
+    "inputPathLexicalContainmentChanged": false,
+    "securityContainmentWeakened": false
+  },
+  "repairVerification": {
+    "focusedNativeWindows": {
+      "testsPassed": 9,
+      "testsFailed": 0
+    },
+    "focusedLinux": {
+      "testsPassed": 9,
+      "testsFailed": 0
+    },
+    "identityContainmentRegression": {
+      "sameDirectory": true,
+      "descendantDirectory": true,
+      "unrelatedDirectory": false,
+      "comparison": "bigint stat dev and ino across ancestors"
+    },
+    "completeNativeWindowsWorktree": {
+      "command": "npm test",
+      "discoveredTestFiles": 116,
+      "failedTestFiles": 0,
+      "durationSeconds": 212.5,
+      "exitCode": 0
+    },
+    "gitDiffCheck": "PASS"
+  },
+  "remainingGate": {
+    "completeNativeWindowsWorktreeRequired": false,
+    "repairCommitRequired": true,
+    "qualityBaselineRefreshRequired": true,
+    "newImmutableCandidateRequired": true,
+    "completeNativeNpmTestRequiredOnCandidate": true,
+    "exactPackageProofRequired": true,
+    "pushRequired": true,
+    "remoteCiSemgrepCodeQlRequired": true,
+    "branchProtectionRequired": true,
+    "tagRequired": true,
+    "publishModeCheckRequired": true,
+    "npmPublicationRequired": true
+  },
+  "nextAction": "Bank the alias-safe repository-containment repair and this failure truth, refresh the D076 baseline, create a new immutable 0.2.0 release candidate, rerun literal native Windows npm test and exact package proof, then push and require CI, Semgrep, and CodeQL success before branch protection, tag, evidence, or publication."
+}

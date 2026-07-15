@@ -86,12 +86,13 @@ test("status records D076 installed-package closure and the frozen release gate"
   assert.match(currentTruth, /7a28690d7227d669178f939eb87f1de0754f2d70e450a490873f6b528d4bd9d0/i);
   assert.match(currentTruth, /release version `0\.2\.0` is selected/i);
   assert.match(currentTruth, /Release mechanics commit `eaf7ed9`/i);
-  assert.match(currentTruth, /Failed immutable candidates `2a190dd`, `8676afd`, pushed `be6eb58`, and pushed `a05fcc5` remain preserved/i);
-  assert.match(currentTruth, /`a05fcc5` passed all 116 local native files in 208\.4 seconds/i);
+  assert.match(currentTruth, /Failed immutable candidates `2a190dd`, `8676afd`, pushed `be6eb58`, pushed `a05fcc5`, and pushed `3482db0` remain preserved/i);
+  assert.match(currentTruth, /`3482db0` passed all 116 local native files in 224\.9 seconds/i);
   assert.match(currentTruth, /remote Linux Node tests, Semgrep, CodeQL/i);
-  assert.match(currentTruth, /Hosted Windows failed only `judge\.test\.js` before `judge\.check` ran/i);
-  assert.match(currentTruth, /long `runneradmin` and 8\.3 `RUNNER~1`/i);
-  assert.match(currentTruth, /bigint `dev` and `ino`/i);
+  assert.match(currentTruth, /Hosted Windows reached production judge Git discovery/i);
+  assert.match(currentTruth, /long `runneradmin` Git root and equivalent 8\.3 `RUNNER~1` target/i);
+  assert.match(currentTruth, /existing-directory ancestors for repository containment/i);
+  assert.match(currentTruth, /complete 116-file native Windows worktree suite in 212\.5 seconds/i);
 
   assert.match(lastVerified, /Exact D075 candidate `cd63e5295/i);
   assert.match(lastVerified, /113 files, zero failures, exit 0/i);
@@ -132,9 +133,15 @@ test("status records D076 installed-package closure and the frozen release gate"
   assert.match(lastVerified, /before production judge execution/i);
   assert.match(lastVerified, /8\.3 spelling `C:\\Users\\RUNNER~1/i);
   assert.match(lastVerified, /test-only filesystem-identity repair passes 8 focused tests on native Windows and 8 on Linux/i);
+  assert.match(lastVerified, /Pushed candidate `3482db00186e85fa9508668d19a27888b53a3c4b`/i);
+  assert.match(lastVerified, /acdb0577c114045623845ab1ab6f7fb717c47041558c2474fbc19035bf7ac9f3/i);
+  assert.match(lastVerified, /Windows job `87282458170` failed only `judge\.test\.js`/i);
+  assert.match(lastVerified, /after Git discovery succeeded/i);
+  assert.match(lastVerified, /alias-safe existing-directory containment repair passes 9 focused tests/i);
+  assert.match(lastVerified, /zero failures in 212\.5 seconds/i);
 
   assert.match(nextAction, /Keep feature development frozen/i);
-  assert.match(nextAction, /Bank the test-only hosted-Windows path-alias identity repair and `a05fcc5` failure truth/i);
+  assert.match(nextAction, /Bank the alias-safe repository-containment repair and `3482db0` failure truth/i);
   assert.match(nextAction, /create a new exact `0\.2\.0` candidate/i);
   assert.match(nextAction, /CI\/Semgrep\/CodeQL success/i);
   assert.match(nextAction, /enable branch protection/i);
@@ -212,16 +219,17 @@ test("roadmap orders closed D073 before D074, D075, closed D076 SHIP, release, a
   assert.match(ship.detail, /leakage PASS across 18 portable files/i);
   assert.match(ship.detail, /d076-installed-package-execution-closure-audit\.json/i);
   assert.match(release.name, /Exact-Commit `0\.2\.0` Publication/i);
-  assert.match(release.state, /Hosted-Windows path-alias test repair active; new candidate required/i);
+  assert.match(release.state, /Hosted-Windows repository-containment repair active; new candidate required/i);
   assert.match(release.detail, /D076 closure commit `6893280`/i);
-  assert.match(release.detail, /Failed immutable candidates `2a190dd`, `8676afd`, pushed `be6eb58`, and pushed `a05fcc5` remain preserved/i);
+  assert.match(release.detail, /Failed immutable candidates `2a190dd`, `8676afd`, pushed `be6eb58`, pushed `a05fcc5`, and pushed `3482db0` remain preserved/i);
   assert.match(release.detail, /all 116 local native files/i);
   assert.match(release.detail, /remote Linux Node tests, Semgrep, CodeQL/i);
   assert.match(release.detail, /hosted-Windows installed execution custody/i);
-  assert.match(release.detail, /before production judge execution/i);
+  assert.match(release.detail, /reached production judge Git discovery/i);
   assert.match(release.detail, /long `runneradmin` and 8\.3 `RUNNER~1`/i);
-  assert.match(release.detail, /bigint filesystem `dev` and `ino`/i);
-  assert.match(release.detail, /8 focused tests on Windows and Linux/i);
+  assert.match(release.detail, /existing-directory ancestors for repository containment/i);
+  assert.match(release.detail, /9 focused tests on Windows and Linux/i);
+  assert.match(release.detail, /116-file native Windows worktree suite in 212\.5 seconds/i);
   assert.match(release.detail, /branch protection/i);
   assert.match(deletion.state + deletion.detail, /unauthorized until post-release consumer evidence/i);
   assert.ok(rows.indexOf(d073) < rows.indexOf(d074));
@@ -822,7 +830,7 @@ test("D076 installed functional-slice audit binds the candidate-ready package an
   assert.equal(audit.remainingGate.featureExpansionAuthorized, false);
   assert.equal(audit.remainingGate.deleteAuthorized, false);
 
-  assert.equal(events.length, 67);
+  assert.equal(events.length, 68);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1048,7 +1056,7 @@ test("D076 closure audit binds the repaired candidate, installed live chain, and
   assert.equal(audit.claims.deleteAuthorized, false);
   assert.equal(audit.claims.publishAuthorizedBeforeReleasePolicyPass, false);
 
-  assert.equal(events.length, 67);
+  assert.equal(events.length, 68);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1128,7 +1136,7 @@ test("D076 release-preparation audit binds 0.2.0, security hardening, and the re
   assert.equal(audit.remainingGate.featureExpansionAuthorized, false);
   assert.equal(audit.remainingGate.deleteAuthorized, false);
 
-  assert.equal(events.length, 67);
+  assert.equal(events.length, 68);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1198,7 +1206,7 @@ test("D076 failed release candidate preserves immutable evidence and authorizes 
   assert.equal(audit.remainingGate.branchProtectionRequired, true);
   assert.equal(audit.remainingGate.tagAndPublishRequired, true);
 
-  assert.equal(events.length, 67);
+  assert.equal(events.length, 68);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1283,7 +1291,7 @@ test("D076 pushed release candidate preserves Windows CI failure and authorizes 
   assert.match(installedTest, /sourceCheckoutSentinel/);
   assert.match(installedTest, /assertTextAbsent/);
 
-  assert.equal(events.length, 67);
+  assert.equal(events.length, 68);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1382,7 +1390,7 @@ test("D076 be6eb58 candidate preserves hosted-Windows Git discovery failure and 
   assert.match(judgeTest, /const discovered = run\(root, "git", \["rev-parse", "--show-toplevel"\]\)/);
   assert.match(judgeTest, /JSON\.stringify\(result, null, 2\)/);
 
-  assert.equal(events.length, 67);
+  assert.equal(events.length, 68);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1481,11 +1489,116 @@ test("D076 a05fcc5 candidate preserves hosted-Windows path-alias failure and aut
   assert.match(judgeTest, /assert\.equal\(discoveredStat\.ino, rootStat\.ino\)/);
   assert.doesNotMatch(judgeTest, /assert\.equal\(fs\.realpathSync\(discovered\), fs\.realpathSync\(root\)\)/);
 
-  assert.equal(events.length, 67);
+  assert.equal(events.length, 68);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
   assert.match(event.next_action, /test-only path-alias identity repair/i);
+  assert.match(event.next_action, /literal native Windows npm test/i);
+  assert.match(event.next_action, /all remote checks green/i);
+});
+
+test("D076 3482db0 candidate preserves hosted-Windows alias-containment failure and authorizes only the bounded repair", () => {
+  const audit = JSON.parse(read(
+    "docs/ops/audits/d076-release-candidate-3482db0-windows-ci-failure-audit.json",
+  ));
+  const events = read(".meta-harness/events.jsonl").trim().split(/\r?\n/).map(JSON.parse);
+  const event = events.find((entry) => (
+    entry.phase === "D076-release-candidate-hosted-windows-alias-containment-failure"
+  ));
+  const judge = read("lib/judge.js");
+  const judgeTest = read("tests/judge.test.js");
+  assert.ok(event);
+
+  assert.equal(audit.kind, "d076-release-candidate-windows-ci-failure-audit");
+  assert.equal(
+    audit.verdict,
+    "IMMUTABLE_RELEASE_CANDIDATE_FAILED_HOSTED_WINDOWS_ALIAS_CONTAINMENT_REPAIR_AUTHORIZED",
+  );
+  assert.equal(audit.decision.id, "D076");
+  assert.equal(audit.decision.d076Status, "closed");
+  assert.equal(audit.decision.failedCandidateMustRemainImmutable, true);
+  assert.equal(audit.decision.amendFailedCandidateAuthorized, false);
+  assert.equal(audit.decision.newReleaseCandidateRequired, true);
+  assert.equal(audit.decision.featureExpansionAuthorized, false);
+  assert.equal(audit.decision.deleteAuthorized, false);
+  assert.equal(audit.decision.tagAuthorizedForFailedCandidate, false);
+  assert.equal(audit.decision.publishAuthorizedForFailedCandidate, false);
+
+  assert.equal(audit.candidate.commit, "3482db00186e85fa9508668d19a27888b53a3c4b");
+  assert.equal(audit.candidate.tree, "a7db207cd0ca972b64df4b804b21d5310cc8b680");
+  assert.equal(audit.candidate.parent, "c5ef282b7d1df12b0cd377b72c9be54ddf24f48b");
+  assert.equal(audit.candidate.packageVersion, "0.2.0");
+  assert.equal(audit.candidate.pushedToMain, true);
+  assert.equal(audit.candidate.tagged, false);
+  assert.equal(audit.candidate.published, false);
+
+  assert.equal(audit.localValidation.discoveredTestFiles, 116);
+  assert.equal(audit.localValidation.failedTestFiles, 0);
+  assert.equal(audit.localValidation.durationSeconds, 224.9);
+  assert.equal(
+    audit.localValidation.package.tarballSha256,
+    "acdb0577c114045623845ab1ab6f7fb717c47041558c2474fbc19035bf7ac9f3",
+  );
+  assert.equal(audit.localValidation.package.tarballBytes, 481252);
+  assert.equal(audit.localValidation.package.dryRunEntries, 234);
+  assert.equal(audit.localValidation.package.actualEntries, 234);
+  assert.equal(audit.localValidation.package.dryRunActualEquality, true);
+  assert.equal(audit.localValidation.package.executeUsageCount, 1);
+  assert.equal(audit.localValidation.package.candidateCleanAfter, true);
+
+  assert.equal(audit.remoteEvidence.semgrep.runId, 29393721755);
+  assert.equal(audit.remoteEvidence.semgrep.conclusion, "success");
+  assert.equal(audit.remoteEvidence.codeQl.runId, 29393721231);
+  assert.equal(audit.remoteEvidence.codeQl.conclusion, "success");
+  assert.equal(audit.remoteEvidence.ci.runId, 29393721701);
+  assert.equal(audit.remoteEvidence.ci.nodeTestsJobId, 87282458156);
+  assert.equal(audit.remoteEvidence.ci.nodeTestsConclusion, "success");
+  assert.equal(audit.remoteEvidence.ci.windowsCompleteSuiteJobId, 87282458170);
+  assert.equal(audit.remoteEvidence.ci.windowsCompleteSuiteConclusion, "failure");
+  assert.equal(audit.remoteEvidence.ci.failedTestFiles, 1);
+  assert.deepEqual(audit.remoteEvidence.ci.failedFiles, ["tests/judge.test.js"]);
+  assert.equal(audit.remoteEvidence.ci.installedExecutionCustodyConclusion, "pass");
+  assert.equal(audit.remoteEvidence.ci.judgeProductionPathReached, true);
+  assert.equal(audit.remoteEvidence.ci.failureCode, "JUDGE_INPUT_TARGET_NOT_GIT");
+
+  assert.equal(audit.rootCause.classification, "hosted_windows_alias_sensitive_repository_containment");
+  assert.equal(audit.rootCause.productionExecutionRuntimeDefect, false);
+  assert.equal(audit.rootCause.packageBoundaryDefect, false);
+  assert.equal(audit.rootCause.publicRequestContractDefect, false);
+  assert.equal(audit.rootCause.judgeProductionDefect, true);
+  assert.match(audit.rootCause.diagnosis, /path\.relative containment check/i);
+  assert.match(audit.rootCause.repair, /ancestor chain/i);
+
+  assert.deepEqual(audit.boundedRepair.files, ["lib/judge.js", "tests/judge.test.js"]);
+  assert.equal(audit.boundedRepair.productionExecutionRuntimeChanged, false);
+  assert.equal(audit.boundedRepair.judgeProductionCodeChanged, true);
+  assert.equal(audit.boundedRepair.packageMetadataChanged, false);
+  assert.equal(audit.boundedRepair.publicSurfaceChanged, false);
+  assert.equal(audit.boundedRepair.compatibilityAdded, false);
+  assert.equal(audit.boundedRepair.inputPathLexicalContainmentChanged, false);
+  assert.equal(audit.boundedRepair.securityContainmentWeakened, false);
+  assert.equal(audit.repairVerification.focusedNativeWindows.testsPassed, 9);
+  assert.equal(audit.repairVerification.focusedNativeWindows.testsFailed, 0);
+  assert.equal(audit.repairVerification.focusedLinux.testsPassed, 9);
+  assert.equal(audit.repairVerification.focusedLinux.testsFailed, 0);
+  assert.equal(audit.repairVerification.completeNativeWindowsWorktree.discoveredTestFiles, 116);
+  assert.equal(audit.repairVerification.completeNativeWindowsWorktree.failedTestFiles, 0);
+  assert.equal(audit.repairVerification.completeNativeWindowsWorktree.durationSeconds, 212.5);
+  assert.equal(audit.repairVerification.completeNativeWindowsWorktree.exitCode, 0);
+
+  assert.match(judge, /function isInsideExistingDirectory\(root, child\)/);
+  assert.match(judge, /fs\.statSync\(root, \{ bigint: true \}\)/);
+  assert.match(judge, /currentStat\.dev === rootStat\.dev/);
+  assert.match(judge, /isInsideExistingDirectory\(gitRoot, canonicalTargetRoot\)/);
+  assert.match(judgeTest, /existing-directory containment uses filesystem identity across ancestors/);
+  assert.match(judgeTest, /isInsideExistingDirectory\(root, outside\), false/);
+
+  assert.equal(events.length, 68);
+  assert.equal(event.ts, audit.auditedAt);
+  assert.equal(event.time, audit.auditedAt);
+  assert.equal(event.decision, "D076");
+  assert.match(event.next_action, /alias-safe repository-containment repair/i);
   assert.match(event.next_action, /literal native Windows npm test/i);
   assert.match(event.next_action, /all remote checks green/i);
 });

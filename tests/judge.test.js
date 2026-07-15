@@ -79,6 +79,17 @@ function byId(result, id) {
   return result.checks.find((check) => check.check_id === id);
 }
 
+test("existing-directory containment uses filesystem identity across ancestors", () => {
+  const root = tempDir();
+  const child = path.join(root, "nested", "target");
+  const outside = tempDir();
+  fs.mkdirSync(child, { recursive: true });
+
+  assert.equal(judge._test.isInsideExistingDirectory(root, root), true);
+  assert.equal(judge._test.isInsideExistingDirectory(root, child), true);
+  assert.equal(judge._test.isInsideExistingDirectory(root, outside), false);
+});
+
 test("judge passes for scoped local changes and emits stable envelope", async () => {
   const root = initRepo();
   writeFile(root, "lib/feature.js", "function kept() { return true; }\nfunction localThing() { return kept(); }\nmodule.exports = { kept, localThing };\n");
