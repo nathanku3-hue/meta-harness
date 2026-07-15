@@ -51,7 +51,10 @@ function initRepo() {
   run(root, "git", ["add", "."]);
   run(root, "git", ["commit", "-m", "base"]);
   const discovered = run(root, "git", ["rev-parse", "--show-toplevel"]).trim();
-  assert.equal(fs.realpathSync(discovered), fs.realpathSync(root));
+  const discoveredStat = fs.statSync(discovered, { bigint: true });
+  const rootStat = fs.statSync(root, { bigint: true });
+  assert.equal(discoveredStat.dev, rootStat.dev);
+  assert.equal(discoveredStat.ino, rootStat.ino);
   return root;
 }
 

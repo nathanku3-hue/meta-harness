@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d076-release-candidate-windows-ci-failure-audit",
+  "auditedAt": "2026-07-15T14:02:04+08:00",
+  "verdict": "IMMUTABLE_RELEASE_CANDIDATE_FAILED_HOSTED_WINDOWS_PATH_ALIAS_ASSERTION_REPAIR_AUTHORIZED",
+  "decision": {
+    "id": "D076",
+    "d076Status": "closed",
+    "failedCandidateMustRemainImmutable": true,
+    "amendFailedCandidateAuthorized": false,
+    "newReleaseCandidateRequired": true,
+    "featureExpansionAuthorized": false,
+    "deleteAuthorized": false,
+    "tagAuthorizedForFailedCandidate": false,
+    "publishAuthorizedForFailedCandidate": false
+  },
+  "candidate": {
+    "commit": "a05fcc5336dfcc16375f09d6d419de7c2ea3816b",
+    "tree": "73d9b8fc0da8201100125f2fd0ce49d473a430b8",
+    "parent": "d320e4d6cf397659879f19f14f5ba2fd8cce7b77",
+    "message": "chore: freeze hosted-Windows-repaired 0.2.0 baseline",
+    "packageVersion": "0.2.0",
+    "pushedToMain": true,
+    "tagged": false,
+    "published": false
+  },
+  "localValidation": {
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "discoveredTestFiles": 116,
+    "failedTestFiles": 0,
+    "durationSeconds": 208.4,
+    "package": {
+      "version": "0.2.0",
+      "tarballSha256": "0bffbdc980c373ae037729b46aece3202d2d861964b081b7bf0ee03f7ad6d946",
+      "tarballBytes": 480929,
+      "dryRunEntries": 234,
+      "actualEntries": 234,
+      "dryRunActualEquality": true,
+      "isolatedIgnoreScriptsInstall": true,
+      "forbiddenInstalledRoots": [],
+      "executeUsageCount": 1,
+      "candidateCleanAfter": true
+    }
+  },
+  "remoteEvidence": {
+    "repository": "nathanku3-hue/meta-harness",
+    "headSha": "a05fcc5336dfcc16375f09d6d419de7c2ea3816b",
+    "semgrep": {
+      "runId": 29392819532,
+      "conclusion": "success"
+    },
+    "codeQl": {
+      "runId": 29392819021,
+      "conclusion": "success"
+    },
+    "ci": {
+      "runId": 29392819570,
+      "conclusion": "failure",
+      "nodeTestsJobId": 87279783156,
+      "nodeTestsConclusion": "success",
+      "windowsCompleteSuiteJobId": 87279783131,
+      "windowsCompleteSuiteConclusion": "failure",
+      "discoveredTestFiles": 116,
+      "failedTestFiles": 1,
+      "failedFiles": [
+        "tests/judge.test.js"
+      ],
+      "installedExecutionCustodyConclusion": "pass",
+      "judgeProductionPathReached": false,
+      "failurePattern": "All eight judge tests failed in initRepo before judge.check because one test assertion compared two valid spellings of the same Windows temporary directory. Git returned C:\\Users\\runneradmin while os.tmpdir supplied C:\\Users\\RUNNER~1."
+    }
+  },
+  "rootCause": {
+    "classification": "hosted_windows_test_path_alias_identity_assertion",
+    "productionExecutionRuntimeDefect": false,
+    "packageBoundaryDefect": false,
+    "publicRequestContractDefect": false,
+    "judgeProductionRepairDisproved": false,
+    "judgeProductionRepairExercisedRemotely": false,
+    "diagnosis": "The new fixture precondition used string equality after fs.realpathSync. On the hosted Windows image, Node preserved the 8.3 RUNNER~1 spelling for one input while Git returned the long runneradmin spelling for the same directory. The assertion rejected equivalent paths before the judge executed.",
+    "repair": "Compare the discovered repository root and fixture root by filesystem object identity using bigint stat dev and ino fields, not by path spelling."
+  },
+  "boundedRepair": {
+    "files": [
+      "tests/judge.test.js"
+    ],
+    "productionRuntimeChanged": false,
+    "judgeProductionCodeChanged": false,
+    "packageMetadataChanged": false,
+    "publicSurfaceChanged": false,
+    "compatibilityAdded": false,
+    "securityContainmentWeakened": false
+  },
+  "repairVerification": {
+    "focusedNativeWindows": {
+      "testsPassed": 8,
+      "testsFailed": 0
+    },
+    "focusedLinux": {
+      "testsPassed": 8,
+      "testsFailed": 0
+    },
+    "filesystemIdentity": {
+      "comparison": "fs.statSync(path, { bigint: true }).dev and .ino",
+      "pathStringEqualityRequired": false
+    },
+    "gitDiffCheck": "PASS"
+  },
+  "remainingGate": {
+    "repairCommitRequired": true,
+    "qualityBaselineRefreshRequired": true,
+    "newImmutableCandidateRequired": true,
+    "completeNativeNpmTestRequiredOnCandidate": true,
+    "exactPackageProofRequired": true,
+    "pushRequired": true,
+    "remoteCiSemgrepCodeQlRequired": true,
+    "branchProtectionRequired": true,
+    "tagRequired": true,
+    "publishModeCheckRequired": true,
+    "npmPublicationRequired": true
+  },
+  "nextAction": "Bank the test-only hosted-Windows path-alias identity repair and this failure truth, refresh the D076 baseline, create a new immutable 0.2.0 release candidate, rerun literal native Windows npm test and exact package proof, then push and require CI, Semgrep, and CodeQL success before branch protection, tag, evidence, or publication."
+}
