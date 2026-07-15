@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "meta-harness-audit/v1",
+  "kind": "d076-release-candidate-windows-ci-failure-audit",
+  "auditedAt": "2026-07-15T13:38:19+08:00",
+  "verdict": "IMMUTABLE_RELEASE_CANDIDATE_FAILED_HOSTED_WINDOWS_GIT_DISCOVERY_REPAIR_AUTHORIZED",
+  "decision": {
+    "id": "D076",
+    "d076Status": "closed",
+    "failedCandidateMustRemainImmutable": true,
+    "amendFailedCandidateAuthorized": false,
+    "newReleaseCandidateRequired": true,
+    "featureExpansionAuthorized": false,
+    "deleteAuthorized": false,
+    "tagAuthorizedForFailedCandidate": false,
+    "publishAuthorizedForFailedCandidate": false
+  },
+  "candidate": {
+    "commit": "be6eb5801a802564b856b01dcd0d6d2b4ac10bce",
+    "tree": "0639cc64cd020a3c950e68dac82f61cc3161dd24",
+    "parent": "76080be1e72d1ac8097573ebe6f52fde34ebdb7c",
+    "message": "chore: freeze Windows-repaired 0.2.0 baseline",
+    "packageVersion": "0.2.0",
+    "pushedToMain": true,
+    "tagged": false,
+    "published": false
+  },
+  "localValidation": {
+    "platform": "win32",
+    "nodeVersion": "v25.2.1",
+    "discoveredTestFiles": 116,
+    "failedTestFiles": 0,
+    "durationSeconds": 207.8,
+    "package": {
+      "version": "0.2.0",
+      "tarballSha256": "53cca518b6268335ce37ff374af52afc467ddc79c87c321fb0119a0011caaa5d",
+      "dryRunEntries": 234,
+      "actualEntries": 234,
+      "dryRunActualEquality": true,
+      "isolatedIgnoreScriptsInstall": true,
+      "forbiddenInstalledRoots": [],
+      "executeUsageCount": 1
+    }
+  },
+  "remoteEvidence": {
+    "repository": "nathanku3-hue/meta-harness",
+    "headSha": "be6eb5801a802564b856b01dcd0d6d2b4ac10bce",
+    "semgrep": {
+      "runId": 29365479555,
+      "conclusion": "success"
+    },
+    "codeQl": {
+      "runId": 29365479099,
+      "conclusion": "success"
+    },
+    "ci": {
+      "runId": 29365479563,
+      "conclusion": "failure",
+      "nodeTestsJobId": 87195842394,
+      "nodeTestsConclusion": "success",
+      "windowsCompleteSuiteJobId": 87195842327,
+      "windowsCompleteSuiteConclusion": "failure",
+      "discoveredTestFiles": 116,
+      "failedTestFiles": 1,
+      "failedFiles": [
+        "tests/judge.test.js"
+      ],
+      "installedExecutionCustodyConclusion": "pass",
+      "judgeObservedPattern": "Every repository-dependent judge case failed closed as JUDGE_INPUT_TARGET_NOT_GIT while fixture git init, add, commit, and caller-path discovery completed successfully."
+    }
+  },
+  "rootCause": {
+    "classification": "hosted_windows_git_repository_discovery_path_boundary",
+    "productionExecutionRuntimeDefect": false,
+    "packageBoundaryDefect": false,
+    "publicRequestContractDefect": false,
+    "concurrencyDefect": false,
+    "diagnosis": "The judge converted the caller target through fs.realpathSync before using it as the cwd for every Git command. On the hosted Windows image, fixture creation and Git discovery succeeded through the original resolved temporary path, but repository discovery failed through the canonicalized path. Serialization therefore could not repair the failure.",
+    "repair": "Preserve the caller-resolved target path for Git cwd and file operations, retain the canonical real path only for containment and stable reporting, assert fixture repository discovery immediately after setup, and include a bounded Git failure summary in fail-closed target-not-git errors."
+  },
+  "boundedRepair": {
+    "files": [
+      "lib/judge.js",
+      "tests/judge.test.js"
+    ],
+    "productionExecutionRuntimeChanged": false,
+    "packageMetadataChanged": false,
+    "publicSurfaceChanged": false,
+    "compatibilityAdded": false,
+    "securityContainmentWeakened": false,
+    "judgeSemanticsChanged": "Only the path used as Git cwd changes; canonical containment checks and fail-closed behavior remain."
+  },
+  "repairVerification": {
+    "focusedNativeWindows": {
+      "testsPassed": 8,
+      "testsFailed": 0
+    },
+    "focusedLinux": {
+      "testsPassed": 8,
+      "testsFailed": 0
+    },
+    "completeNativeWindowsWorktree": {
+      "command": "npm test",
+      "discoveredTestFiles": 116,
+      "failedTestFiles": 0,
+      "durationSeconds": 204.5,
+      "exitCode": 0
+    },
+    "gitDiffCheck": "PASS"
+  },
+  "remainingGate": {
+    "repairCommitRequired": true,
+    "qualityBaselineRefreshRequired": true,
+    "newImmutableCandidateRequired": true,
+    "completeNativeNpmTestRequiredOnCandidate": true,
+    "exactPackageProofRequired": true,
+    "pushRequired": true,
+    "remoteCiSemgrepCodeQlRequired": true,
+    "branchProtectionRequired": true,
+    "tagRequired": true,
+    "publishModeCheckRequired": true,
+    "npmPublicationRequired": true
+  },
+  "nextAction": "Bank the two-file hosted-Windows Git-discovery repair and this failure truth, refresh the D076 baseline, create a new immutable 0.2.0 release candidate, rerun literal native Windows npm test and exact package proof, then push and require CI, Semgrep, and CodeQL success before branch protection, tag, evidence, or publication."
+}

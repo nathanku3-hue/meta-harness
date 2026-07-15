@@ -50,6 +50,8 @@ function initRepo() {
   writeFile(root, "lib/feature.js", "function kept() { return true; }\nmodule.exports = { kept };\n");
   run(root, "git", ["add", "."]);
   run(root, "git", ["commit", "-m", "base"]);
+  const discovered = run(root, "git", ["rev-parse", "--show-toplevel"]).trim();
+  assert.equal(fs.realpathSync(discovered), fs.realpathSync(root));
   return root;
 }
 
@@ -82,7 +84,7 @@ test("judge passes for scoped local changes and emits stable envelope", async ()
 
   assert.equal(result.schema_version, "1.0.0");
   assert.equal(result.tool, "meta-harness-judge");
-  assert.equal(result.ok, true);
+  assert.equal(result.ok, true, JSON.stringify(result, null, 2));
   assert.equal(result.status, "pass");
   assert.deepEqual(result.errors, []);
   assert.equal(byId(result, "JUDGE_SCOPE_001").status, "pass");
