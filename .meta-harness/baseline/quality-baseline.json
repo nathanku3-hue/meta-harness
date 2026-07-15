@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0.0",
   "v": 1,
-  "generated_at": "2026-07-14T20:08:12.877Z",
+  "generated_at": "2026-07-15T05:44:25.142Z",
   "generated_by": "meta-harness quality baseline refresh",
-  "source_commit": "76080be1e72d1ac8097573ebe6f52fde34ebdb7c",
+  "source_commit": "d320e4d6cf397659879f19f14f5ba2fd8cce7b77",
   "baseline_policy_hash": "acc33a3beb1c967c85c2229ab6e5d308900d1ac8e551bcd74926a7a5e6fd2ea6",
   "owners_hash": "5ab5a4c7a3679e2b5ead605ae516302cd7362dc48efd2f6cfd2e37e4301f0730",
-  "previous_baseline_hash": "78fdacf6d62165e0a8f200f78c9790feaa59fd3bdba062cb521da89a04c01327",
+  "previous_baseline_hash": "67c036a43ec693ec5bf46ebaa025fb82ae8cf209b3ab0237c2fc6a6f1d5499e3",
   "quality_summary_before": {
     "source_files": 310,
     "overbudget_files": 6,
@@ -479,7 +479,7 @@
       "overbudget": false
     },
     "lib/judge.js": {
-      "lines": 321,
+      "lines": 331,
       "overbudget": false
     },
     "lib/manual-work-packet-artifact-io.js": {
@@ -899,7 +899,7 @@
       "overbudget": false
     },
     "tests/contracts-execution-custody-truth.test.js": {
-      "lines": 1391,
+      "lines": 1499,
       "overbudget": true
     },
     "tests/decision-inbox-check.test.js": {
@@ -1011,7 +1011,7 @@
       "overbudget": false
     },
     "tests/judge.test.js": {
-      "lines": 244,
+      "lines": 246,
       "overbudget": false
     },
     "tests/mcp-cli.test.js": {
@@ -2017,7 +2017,7 @@
         "budget_category": "implementation"
       },
       "lib/judge.js": {
-        "lines": 321,
+        "lines": 331,
         "overbudget": false,
         "max_lines": 400,
         "budget_category": "implementation"
@@ -2647,7 +2647,7 @@
         "budget_category": "test"
       },
       "tests/contracts-execution-custody-truth.test.js": {
-        "lines": 1391,
+        "lines": 1499,
         "overbudget": true,
         "max_lines": 300,
         "budget_category": "test"
@@ -2815,7 +2815,7 @@
         "budget_category": "test"
       },
       "tests/judge.test.js": {
-        "lines": 244,
+        "lines": 246,
         "overbudget": false,
         "max_lines": 300,
         "budget_category": "test"
@@ -3303,5 +3303,5 @@
       }
     }
   },
-  "new_baseline_hash": "67c036a43ec693ec5bf46ebaa025fb82ae8cf209b3ab0237c2fc6a6f1d5499e3"
+  "new_baseline_hash": "322509b09b4b7d92edf824f030d661a741d58706076f8cc61a19cc84aa27eb24"
 }
