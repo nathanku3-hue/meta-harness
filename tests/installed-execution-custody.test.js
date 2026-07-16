@@ -342,7 +342,8 @@ test("packed isolated installation executes VERIFIED, expired zero-spawn REPLAY,
       npmCliPath(), "install", "--ignore-scripts", "--no-audit", "--no-fund", "--package-lock=false", tarballPath,
     ], { cwd: installRoot, timeout: 240_000 });
 
-    const installedPackage = path.join(installRoot, "node_modules", "meta-harness");
+    const packageSegments = String(require(path.join(ROOT, "package.json")).name).split("/");
+    const installedPackage = path.join(installRoot, "node_modules", ...packageSegments);
     assert.equal(fs.existsSync(path.join(installedPackage, ".git")), false);
     assert.equal(fs.existsSync(path.join(installedPackage, "internal")), false);
     assert.equal(fs.existsSync(path.join(installedPackage, "scripts")), false);
