@@ -2,7 +2,52 @@
 
 Status: append-only
 Started: 2026-05-02
-Current direction locked: 2026-07-18
+Current direction locked: 2026-07-19
+
+## D084: Close S001R5F Direction Surfaces, Permit Candidate Push, and Require Honest Node Evidence
+
+Decision:
+
+Retain `REPAIR_CURRENT_SLICE` only for direction and evidence-contract closure—not another runtime architecture cycle. Exact commit `88e17bf465ac1bd660121331b6b54c4a9d00fc0f` closes the two D083 runtime defects: unsafe move-aside fallback deleted; direct rename failure preserves the old ledger; Windows Node 25 suite, truth/quality readiness, and package boundary pass. The candidate is still not shippable because active ordinary product surfaces still described R5F as undone, package identity remains reused `0.2.1`, remote custody was missing, and declared Node `>=20` was evidenced only on Node 25.
+
+Authorized immediate work is exactly `S001R5F-CLOSE`:
+
+1. mark completed `88e17bf` work complete in `task.md` and active product surfaces;
+2. instruct fresh workers to audit the candidate, not re-implement R5F;
+3. keep `engines.node` at `>=20` and require CI evidence on Node 20 and Node 25 for Linux and Windows;
+4. permit non-force push of the exact candidate branch for remote custody and hosted CI only;
+5. keep G-001, merge, tag, and publication blocked;
+6. reserve package identity `0.3.0` for `INTEGRATE-S001` after acceptance (no compatibility shims);
+7. add no runtime framework, vault, signer daemon, authority system, or governance layer.
+
+Forward path after the close commit:
+
+```text
+exact candidate audit + hosted CI
+→ G-001
+→ INTEGRATE-S001 as 0.3.0
+→ S-006M real product loop
+```
+
+Rationale:
+
+Stale active instructions violate continuity and no-silent-drift. Forbidding reversible candidate publication blocked the evidence needed for acceptance. The Node floor claim must match tests. Materially changed package bytes must not share tagged `0.2.1` identity. The roadmap must get narrower, not broader.
+
+Evidence:
+
+Post-`88e17bf` independent audit revision (score 6.9/10; verdict `REPAIR_CURRENT_SLICE` for custody/direction, runtime PASS).
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Canonical-state note:
+
+The signed canonical status remains at D078/S-001R verify. D084 is ordinary non-canonical audit evidence because no valid external receipt was supplied. That status staleness remains disclosed and intentional until G-001.
+
+Supersession:
+
+D084 preserves D083's runtime finalization on `88e17bf`, verifier-only authority, controller-owned mutation, and candidate-before-G-001 order. It supersedes active instructions that still authorize R5F re-implementation, the stop rule that forbade non-force candidate push before exact acceptance, and the claim that Node 25-only evidence completes a `>=20` support contract.
 
 ## D083: Keep S001R5 Open, Delete the Unsafe Replacement Fallback, and Synchronize Candidate Authority
 

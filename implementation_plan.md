@@ -1,57 +1,56 @@
-# Active Implementation Plan: CANDIDATE-S001R5F Fail-Preserving Finalization
+# Active Implementation Plan: S001R5F-CLOSE Direction Alignment
 
-Status: **authorized after D083; exact clean candidate `a0e4835` is preserved but not accepted, integrated, canonicalized, pushed, merged, or shipped**.
+Status: **authorized after D084; runtime finalization `88e17bf` is implemented; exact audit and hosted CI are next. Not accepted, integrated, merged, tagged, or shipped.**
 
 ## Endgame intent
 
 Ship a local authority-bound execution harness that moves from frozen human intent to merged and packaged outcomes while the controller owns canonical mutation and a failed write never displaces valid truth. The shortest remaining path is:
 
 ```text
-CANDIDATE-S001R5F one bounded finalization commit on a0e4835
-→ independent exact-commit final audit
+S001R5F-CLOSE one bounded docs/metadata commit on 88e17bf
+→ independent exact-commit audit + hosted CI (Node 20 + Node 25, Linux + Windows)
 → G-001 external authority continuity proof
-→ INTEGRATE-S001 merge and package
+→ INTEGRATE-S001 as package 0.3.0
 → S-006M first real non-fixture coding loop, merged and packaged
 ```
 
 ## First-principle constraints
 
 1. **Verifier-only runtime:** production and package verify receipts only; no private key, key generation, signer, or compatibility fallback.
-2. **Fail-preserving replacement:** one direct rename installs the flushed complete ledger. Any rename failure leaves the prior ledger byte-identical at `events.jsonl`; no backup/move-aside fallback exists.
+2. **Fail-preserving replacement:** already implemented on `88e17bf`—one direct rename; rename failure leaves the prior ledger byte-identical at `events.jsonl`.
 3. **No multiply linked canonical files:** authority, ledger, status, and lock files fail closed when `nlink != 1`.
-4. **Controller custody:** canonical mutation runs only in a controller-owned checkout outside worker write scope. Path checks are defense in depth, not an OS principal boundary.
-5. **Direction-complete checkout:** the clean candidate carries the D082 audit authority and current active R5 plan; a fresh operator does not depend on chat or dirty-main state.
-6. **Preserve accepted behavior:** one-shot bootstrap, static symlink/junction/reparse rejection, stale-lock recovery, Ed25519, receipt v2, 300-second lifetime, D078 read compatibility, replay, exact projection, reconciliation, and verifier-only packaging remain green.
-7. **Minimal machinery:** no vault, signer daemon, keychain adapter, database, generic filesystem layer, or unrelated governance program.
+4. **Controller custody:** canonical mutation runs only in a controller-owned checkout outside worker write scope.
+5. **Direction-complete checkout:** active surfaces must describe the real candidate state; workers audit, they do not re-implement closed work.
+6. **Honest package identity:** materially changed package bytes ship as `0.3.0`, never as reused `0.2.1`.
+7. **Evidence matches claims:** declared `engines.node >=20` is proven on Node 20 and Node 25, not Node 25 alone.
+8. **Minimal machinery:** no vault, signer daemon, keychain adapter, database, generic filesystem layer, or unrelated governance program.
 
-## Functional slice
+## Functional slice (authorized now)
 
 ```text
-clean exact candidate a0e4835
-→ delete move-aside fallback
-→ direct flushed-temp-to-ledger rename only
-→ forced rename failure preserves old ledger and leaves no backup residue
-→ actual rename-boundary alias regression on Linux and Windows
-→ synchronize minimal D082 authority chain into the clean checkout
-→ one named clean finalization commit
+clean exact candidate 88e17bf
+→ mark R5F complete in task and active product surfaces
+→ permit non-force candidate push for remote custody and hosted CI
+→ keep G-001 / merge / tag / publication blocked
+→ align CI matrix to Node 20 + Node 25
+→ one named clean close commit
 → independent exact-commit audit
 ```
 
 ## Authorized work
 
-1. Work only on the clean `codex/candidate-s001r5` lineage; do not return implementation work to the dirty main checkout.
-2. Delete the EEXIST/EPERM/EACCES move-aside fallback from `lib/events.js`.
-3. On direct rename failure, remove only the temporary file and preserve the existing canonical ledger exactly.
-4. Add deterministic fault injection proving `events.jsonl` remains byte-identical and no `.bak.events.*` residue exists.
-5. Replace the committed pre-operation alias test with the real rename-boundary swap probe independently proven on Linux and Windows Node 25.
-6. Bring the minimal D082 authority chain and active product surfaces into the candidate: S001R4 audit, D082 decision, roadmap, implementation plan, task, README, PRD, product specification, and SOP.
-7. Preserve replay and same-receipt concurrency: exactly one valid logical append remains accepted.
-8. Pass the complete Windows Node 25 suite, focused Linux/Windows custody probes, quality ratchet, package boundary, readiness, JSON validation, and diff checks.
-9. Create one named finalization commit and stop for independent audit.
+1. Work only on the clean `codex/candidate-s001r5` lineage; do not use the dirty main checkout.
+2. Mark completed `88e17bf` work complete in `task.md`.
+3. Change active product surfaces from “implement R5F” to “R5F implemented; exact audit is next.”
+4. Keep `engines.node` at `>=20` and test Node 20 and Node 25 on Linux and Windows.
+5. Permit non-force push of the exact candidate branch for CI and remote custody.
+6. State that G-001, merge, tag, and publication remain blocked; integrated package identity is `0.3.0`.
+7. Add no runtime framework, compatibility path, authority system, or governance layer.
+8. Stop for independent exact-commit audit after the close commit.
 
 ## Stop rule
 
-Do not use the external private capability, append a G-001 canonical event, integrate, push, merge, publish, or begin S-006M before the exact S001R5F commit passes independent audit.
+Non-force push of this exact candidate branch is allowed for remote custody and hosted CI. Do not use the external private capability, append a G-001 canonical event, merge, tag, publish, reuse package identity `0.2.1` for changed bytes, or begin S-006M before the exact close commit passes independent audit.
 
 ---
 
