@@ -1,23 +1,26 @@
-# Active Task: CANDIDATE-S001R4 Link-Confined Clean Candidate
+# Active Task: CANDIDATE-S001R5F Fail-Preserving Finalization
 
-- [x] Create an isolated worktree from `origin/main` at `0791efa`; do not merge upstream into the dirty checkout.
-- [x] Transplant only accepted S-001 implementation, tests, authority contract, legacy-readable event/status, and current direction artifacts.
-- [x] Require absent `.meta-harness` for new bootstrap.
-- [x] Delete recursive partial-harness copying, backup replacement, and mutating re-init without compatibility.
-- [x] Reject symlinks, Windows junctions, reparse points, and externally resolved ancestors for authority, ledger, status-parent, and lock paths.
-- [x] Prove bootstrap, canonical append, and status refresh cannot write through linked paths on Linux or Windows.
-- [x] Add bounded stale-lock recovery that preserves live lock ownership.
-- [x] Use exact schema terms: public authority contract v1 and repository-bound receipt v2.
-- [x] Preserve D078 legacy receipt v1 as read-only evidence.
-- [x] Pass the literal Windows Node 25 suite, `MH_TRUTH_001`, `MH_QUALITY_001`, package and signer scans, and `git diff --check`.
-- [x] Produce one named reviewable commit and stop for independent exact-commit audit.
+- [x] Preserve clean exact candidate `a0e4835` and independently verify direct hard-link and true rename-boundary replacement safety on Linux and Windows Node 25.
+- [x] Verify focused truth/custody suites, `MH_TRUTH_001`, `MH_QUALITY_001`, package boundary, signer scan, readiness, and diff cleanliness.
+- [x] Reproduce move-aside fallback failure removing `events.jsonl` while the prior ledger survives only under an unrecognized backup name.
+- [x] Confirm native Windows Node 25 directly renames over an existing regular file.
+- [x] Confirm the exact candidate lacks D082/S001R4 audit authority and still advertises R4/D081.
+- [ ] Add one bounded finalization commit on the clean candidate lineage; do not implement in the dirty main checkout.
+- [ ] Delete the move-aside backup fallback from `lib/events.js`.
+- [ ] Prove forced direct rename failure leaves the prior ledger byte-identical at `events.jsonl` and creates no backup residue.
+- [ ] Replace the weak pre-operation alias test with an actual rename-boundary swap regression on Linux and Windows.
+- [ ] Synchronize the minimal D082 authority chain and active R5 product surfaces into the clean candidate.
+- [ ] Preserve exactly-one replay/concurrency behavior, multiply linked file rejection, and all S001R4 bootstrap/static-link protections.
+- [ ] Preserve D078 legacy receipt v1 as read-only evidence and receipt v2 as the only new mutation format.
+- [ ] Pass the complete Windows Node 25 suite, Linux focused suite, `MH_TRUTH_001`, `MH_QUALITY_001`, package and signer scans, readiness, JSON validation, and `git diff --check`.
+- [ ] Produce one named clean finalization commit and stop for independent exact-commit audit.
 - [ ] Only after acceptance: execute `G-001` → `INTEGRATE-S001` → `S-006M`.
 
-Stop rule: no external authority use, new canonical event, integration, push, merge, package claim, or S-006M work before exact-commit independent acceptance.
+Stop rule: no external authority use, new G-001 canonical event, integration, push, merge, publication, or S-006M work before exact-commit independent acceptance.
 
 ---
 
-> **Historical task record:** retained as completed phase-era evidence. D081 rejected S-001R3 path confinement and authorized repair directly in the clean candidate.
+> **Historical task record:** retained as completed phase-era evidence. D082 rejects S001R4 ledger custody but preserves its clean candidate and authorizes one atomic shared-ledger repair.
 
 - [x] Prepare Git branches for Phase 11 and Phase 12
     - [x] Extract zip files and verify contents

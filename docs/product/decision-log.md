@@ -4,6 +4,89 @@ Status: append-only
 Started: 2026-05-02
 Current direction locked: 2026-07-18
 
+## D083: Keep S001R5 Open, Delete the Unsafe Replacement Fallback, and Synchronize Candidate Authority
+
+Decision:
+
+Retain `REPAIR_CURRENT_SLICE`. Exact commit `a0e4835a4bcc9dea1f688689b4bf70575b12423d` materially advances the clean candidate: multiply linked canonical files fail closed, runtime ledger mutation no longer uses `appendFileSync`, and direct complete-ledger replacement independently preserves external aliases and installs a unique local ledger on Linux and Windows Node 25.
+
+The candidate is not accepted for two load-bearing reasons. First, `lib/events.js` adds a move-aside compatibility fallback after rename errors. A deterministic fault probe forced initial replacement failure, successful movement of the old ledger, failed installation, and failed restoration; `events.jsonl` disappeared and only an unrecognized backup retained the prior bytes. Native Windows Node 25 in the audit environment replaces an existing file directly, so the fallback is both unnecessary for the supported runtime and weaker than fail-closed direct replacement. Second, the exact candidate omits `docs/ops/audits/s001r4-independent-audit.json` and D082 and still advertises the superseded R4/D081 roadmap, plan, and task. A fresh checkout is code-reviewable but not direction-complete.
+
+The accepted score is raised from `6.3/10` to `6.6/10`. Direct atomic ledger replacement, hard-link rejection, clean lineage, focused cross-platform verification, quality, readiness, and package posture are credible. Acceptance remains blocked by fallback failure preservation, missing candidate authority custody, unproven G-001 continuity, and the absence of integration or shipment.
+
+The immediate order is revised without opening another architecture phase:
+
+1. `CANDIDATE-S001R5F` — preserve `a0e4835`, delete the move-aside backup fallback, use one direct temp-to-ledger rename, and prove any rename failure leaves the prior ledger byte-identical at `events.jsonl` with no backup residue;
+2. replace the overstated pre-operation alias test with a real rename-boundary path-swap regression on Linux and Windows;
+3. synchronize the minimal D082 authority chain into the clean candidate: the S001R4 independent audit, D082 decision, active roadmap, implementation plan, task, and aligned primary product surfaces;
+4. create one clean finalization commit and stop for exact-commit independent audit;
+5. only after acceptance run `G-001`, integrate and package S-001, then immediately execute `S-006M` to merged and packaged state.
+
+No database, daemon, vault, keychain adapter, generic filesystem framework, new authority schema, or broad governance program is authorized. The authority synchronization is repository custody, not a documentation phase.
+
+Rationale:
+
+The shortest trustworthy path is deletion, not another compatibility layer. The supported Windows runtime already provides direct replacement semantics. If direct rename fails, preserving the old canonical ledger is safer than moving it aside and attempting rollback. The clean candidate must also carry the authority that authorized it so a fresh operator does not depend on chat or the dirty main checkout.
+
+Evidence:
+
+`docs/ops/audits/s001r5-independent-audit.json`
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Canonical-state note:
+
+The signed canonical status remains at D078/S-001R verify. D083 is ordinary non-canonical audit evidence because no valid external receipt was supplied.
+
+Supersession:
+
+D083 preserves D082's controller-owned mutation boundary, clean candidate lineage, verifier-only authority, and candidate-before-G-001 order. It supersedes the speculative move-aside compatibility fallback and the assumption that an exact code candidate may omit the decision authority that authorized its current gate.
+
+## D082: Reject CANDIDATE-S001R4 Ledger Custody and Restore Controller-Owned Mutation
+
+Decision:
+
+Retain `REPAIR_CURRENT_SLICE`. Exact commit `3cfe00c9bbeca707f3ea549b19e8c2cbf05d1360` is a clean, upstream-based, check-outable candidate and independently passes the literal Windows Node 25 suite, Linux truth suite, quality ratchet, quick readiness, package inspection, verifier-only boundary, legacy D078 verification, one-shot bootstrap, static symlink/junction rejection, replay, and projection checks.
+
+The candidate is not accepted because canonical event storage still mutates `events.jsonl` in place after pathname checks. A regular hard-linked ledger passes `lstat` and `realpath` confinement on both Linux and Windows, after which `event --canonical` exits zero and appends the signed receipt to an external file. A deterministic probe also replaced the ledger after the final confinement check and before `fs.appendFileSync`; the external file received the canonical append with no error. Pathname hygiene therefore does not establish controller custody against a same-user mutable filesystem.
+
+The accepted score is raised from `5.8/10` to `6.3/10`. Repository custody, supported-runtime evidence, package posture, and reviewability are now materially stronger. Acceptance remains blocked by the load-bearing ledger-write invariant, unproven external capability continuity, and the absence of integration or a shipped product outcome.
+
+The immediate order is revised:
+
+1. `CANDIDATE-S001R5` — preserve `3cfe00c9` and add one bounded repair commit: reject hard-linked canonical files, replace in-place event append with complete-ledger atomic replacement under the existing event lock, and use that event-store primitive for both ordinary and canonical events;
+2. add Linux and Windows hard-link probes and a deterministic post-check path-swap probe; preserve all existing static link, bootstrap, replay, legacy, quality, package, and complete Windows Node 25 evidence;
+3. state the boundary truthfully: canonical mutation runs only in a controller-owned checkout with no worker write scope or concurrent untrusted same-user filesystem writer. Path checks are defense in depth, not an OS principal boundary;
+4. independently audit the exact S001R5 commit, then run `G-001`, integrate and package S-001, and move immediately to `S-006M`.
+
+Do not open a generic secure-filesystem program, database, signer daemon, vault, keychain adapter, contract-kernel refactor, or new governance phase. An arbitrary hostile same-user process cannot be isolated by additional pathname checks alone; OS-principal separation would be a different product and requires an explicit future authority decision if ever needed.
+
+Rationale:
+
+The locked intent already assigns canonical state, custody, and mutation to the controller while workers execute bounded changes. The correct correction is not endless path-variant detection. It is one atomic shared-ledger repair plus an explicit controller-owned mutation boundary. This closes the demonstrated non-racy hard-link escape, removes in-place inode mutation, and keeps the path to G-001 and the first real shipped slice short.
+
+Evidence:
+
+`docs/ops/audits/s001r4-independent-audit.json`
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Authority:
+
+The human requested independent audit, maximal decision-relevant insight, aggressive roadmap revision, no backward compatibility, no silent drift, functional-slice-first movement, and shipped-endgame orientation in the 2026-07-18 audit round.
+
+Canonical-state note:
+
+The signed canonical status remains at D078/S-001R verify. D082 is non-canonical audit and roadmap evidence because no valid external receipt was supplied. The exact candidate commit was not modified during audit.
+
+Supersession:
+
+D082 preserves D081's clean candidate, verifier-only authority, one-shot bootstrap, static link defenses, candidate-before-G-001 order, and schema terminology. It supersedes the claim that component `lstat` plus `realpath` establishes complete repository-local mutation custody and supersedes in-place append as the canonical ledger write strategy.
+
 ## D081: Reject S-001R3 Path Confinement and Repair in the Clean Candidate
 
 Decision:

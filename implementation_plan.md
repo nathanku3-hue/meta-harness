@@ -1,14 +1,14 @@
-# Active Implementation Plan: CANDIDATE-S001R4 Link-Confined Truth Candidate
+# Active Implementation Plan: CANDIDATE-S001R5F Fail-Preserving Finalization
 
-Status: **implemented and locally verified in the clean upstream-based candidate; pending independent exact-commit audit; not accepted, canonical, integrated, pushed, or shipped**.
+Status: **authorized after D083; exact clean candidate `a0e4835` is preserved but not accepted, integrated, canonicalized, pushed, merged, or shipped**.
 
 ## Endgame intent
 
-Ship a local authority-bound execution harness that moves from frozen human intent to merged and packaged product outcomes without contradictory or externally redirected canonical state. The shortest remaining path is:
+Ship a local authority-bound execution harness that moves from frozen human intent to merged and packaged outcomes while the controller owns canonical mutation and a failed write never displaces valid truth. The shortest remaining path is:
 
 ```text
-CANDIDATE-S001R4 clean upstream-based repair commit
-→ independent exact-commit audit
+CANDIDATE-S001R5F one bounded finalization commit on a0e4835
+→ independent exact-commit final audit
 → G-001 external authority continuity proof
 → INTEGRATE-S001 merge and package
 → S-006M first real non-fixture coding loop, merged and packaged
@@ -17,40 +17,41 @@ CANDIDATE-S001R4 clean upstream-based repair commit
 ## First-principle constraints
 
 1. **Verifier-only runtime:** production and package verify receipts only; no private key, key generation, signer, or compatibility fallback.
-2. **Target-bound truth:** canonical authority, ledger, status-parent, and lock paths must be regular non-link/reparse surfaces contained by the target.
-3. **One-shot bootstrap:** new bootstrap requires absent `.meta-harness`, builds one fresh staged harness, and promotes it with one rename. No recursive copy, backup replacement, or mutating re-init.
-4. **Exact schemas:** tracked public authority contract is `meta-harness-truth-authority-public/v1`; repository-bound mutation receipt is `meta-harness-truth-authority-receipt/v2`.
-5. **Historical evidence only:** D078 legacy receipt v1 remains read-only verifiable; no new v1 mutation is accepted.
-6. **Minimal machinery:** no vault, signer daemon, keychain adapter, database, authority recovery framework, broad path framework, or unrelated decomposition.
+2. **Fail-preserving replacement:** one direct rename installs the flushed complete ledger. Any rename failure leaves the prior ledger byte-identical at `events.jsonl`; no backup/move-aside fallback exists.
+3. **No multiply linked canonical files:** authority, ledger, status, and lock files fail closed when `nlink != 1`.
+4. **Controller custody:** canonical mutation runs only in a controller-owned checkout outside worker write scope. Path checks are defense in depth, not an OS principal boundary.
+5. **Direction-complete checkout:** the clean candidate carries the D082 audit authority and current active R5 plan; a fresh operator does not depend on chat or dirty-main state.
+6. **Preserve accepted behavior:** one-shot bootstrap, static symlink/junction/reparse rejection, stale-lock recovery, Ed25519, receipt v2, 300-second lifetime, D078 read compatibility, replay, exact projection, reconciliation, and verifier-only packaging remain green.
+7. **Minimal machinery:** no vault, signer daemon, keychain adapter, database, generic filesystem layer, or unrelated governance program.
 
 ## Functional slice
 
 ```text
-origin/main 0791efa isolated worktree
-→ transplant accepted S-001 paths only
-→ link-intolerant preflight and canonical path checks
-→ fresh one-shot staged bootstrap
-→ bounded recoverable bootstrap lock
-→ structured authority v1 + receipt v2 tests
-→ named reviewable commit
+clean exact candidate a0e4835
+→ delete move-aside fallback
+→ direct flushed-temp-to-ledger rename only
+→ forced rename failure preserves old ledger and leaves no backup residue
+→ actual rename-boundary alias regression on Linux and Windows
+→ synchronize minimal D082 authority chain into the clean checkout
+→ one named clean finalization commit
 → independent exact-commit audit
 ```
 
 ## Authorized work
 
-1. Create an isolated worktree from `origin/main` at `0791efa`; leave the heavily dirty checkout untouched.
-2. Transplant only the accepted S-001 implementation and evidence path set.
-3. Delete recursive partial-harness copying, backup replacement, and mutating re-init behavior without backward compatibility.
-4. Reject `.meta-harness` symlinks, Windows junctions, reparse points, linked `contracts`, linked authority files, linked ledgers, linked status parents, and linked lock ancestors before read or write.
-5. Make stale bootstrap locks recoverable without removing live ownership.
-6. Track the structured public authority contract v1 using the current Ed25519 public key and preserve D078 legacy-readable event/status evidence.
-7. Add Linux symlink and Windows junction probes for bootstrap, canonical append, status refresh, and re-init deletion.
-8. Pass the literal Windows Node 25 suite, quality ratchet, package scan, production signer scan, `MH_TRUTH_001`, and `git diff --check`.
-9. Produce one named reviewable commit and stop for independent audit.
+1. Work only on the clean `codex/candidate-s001r5` lineage; do not return implementation work to the dirty main checkout.
+2. Delete the EEXIST/EPERM/EACCES move-aside fallback from `lib/events.js`.
+3. On direct rename failure, remove only the temporary file and preserve the existing canonical ledger exactly.
+4. Add deterministic fault injection proving `events.jsonl` remains byte-identical and no `.bak.events.*` residue exists.
+5. Replace the committed pre-operation alias test with the real rename-boundary swap probe independently proven on Linux and Windows Node 25.
+6. Bring the minimal D082 authority chain and active product surfaces into the candidate: S001R4 audit, D082 decision, roadmap, implementation plan, task, README, PRD, product specification, and SOP.
+7. Preserve replay and same-receipt concurrency: exactly one valid logical append remains accepted.
+8. Pass the complete Windows Node 25 suite, focused Linux/Windows custody probes, quality ratchet, package boundary, readiness, JSON validation, and diff checks.
+9. Create one named finalization commit and stop for independent audit.
 
 ## Stop rule
 
-Do not use the external private capability, append a new canonical event, integrate, push, merge, package S-001, or begin S-006M before the exact candidate commit passes independent audit.
+Do not use the external private capability, append a G-001 canonical event, integrate, push, merge, publish, or begin S-006M before the exact S001R5F commit passes independent audit.
 
 ---
 
