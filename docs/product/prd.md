@@ -3,8 +3,100 @@
 Status: active
 Date: 2026-06-29
 Owner: product / harness
+Intent authority: [Product Intent Anchor](product-intent.md)
+Roadmap authority: [Roadmap](roadmap.md)
+Question authority: [Problem-Solving Questions](problem-questions.md)
 
-## Product Statement
+## Governing Product Statement
+
+Meta-Harness is an AI-native operating harness for one solo developer/researcher shipping ultra-complex, multi-module systems that require both software engineering and specialist knowledge.
+
+It maximizes verified product progress per unit calendar time and human attention by combining:
+
+- a frozen human intent anchor;
+- one canonical fact layer;
+- an auditor-planner and worker loop;
+- numbered end-to-end functional slices;
+- validated handoff and resume;
+- expertise and research converted into product evidence;
+- borrowed coding-agent execution;
+- controller-owned authorization, integration, custody, and replay;
+- independent verification;
+- measured outcome learning later, after baseline and holdout evaluation exist.
+
+The primary interface is the top-level PM problem, not workflow machinery. It answers what outcome is being shipped, what is true, what blocks it, which slice moves the critical path, what requires human judgment, and what proof closes the slice.
+
+## Locked User and Object
+
+Primary user: one solo developer/researcher.
+
+Primary object: an ultra-complex, multi-module product whose correct implementation requires coordinated coding, research, domain expertise, integration, and shipping.
+
+The system is not optimized for enterprise queue administration, generic swarms, or maximum agent count.
+
+## Locked Role Boundary
+
+- The human owns intent, priority, taste, authority, material risk, scope expansion, and irreversible commitment.
+- The auditor-planner owns truthful diagnosis, intent-aligned direction, candidate comparison, RunSpec creation, and outcome scoring.
+- The worker owns all reversible execution already covered by the RunSpec and authorization envelope.
+- The controller owns canonical state, mutation authority, custody, leases, cancellation, atomic transitions, and loop integrity.
+
+## Product Problems
+
+Meta-Harness must solve:
+
+1. **Intent drift:** audits and repeated plans can optimize local defects or governance instead of the original product outcome.
+2. **Context amnesia:** fresh or compacted agents cannot reconstruct decisions, authority, evidence, and the exact next operation.
+3. **Complexity collapse:** no single context contains the full cross-module behavior and global invariants.
+4. **Expertise loss:** research and specialist input can remain documents rather than becoming product constraints, tests, and behavior.
+5. **Execution ambiguity:** agents can mutate outside scope, lose evidence, or make unverifiable completion claims.
+6. **Workflow friction:** humans repeatedly reconstruct context or approve reversible work already inside an accepted boundary.
+7. **Local completion bias:** tests and internal artifacts can pass while the product remains unshipped.
+8. **Learning without proof:** the harness can overfit prior runs or optimize internal metrics rather than product outcomes.
+9. **Parallel-work failure:** multiple agents can duplicate, conflict, contaminate review, or increase integration cost.
+10. **Silent drift:** current truth, intent, scope, authority, roadmap, and shipping definition can disagree without blocking progression.
+
+Detailed questions and proof conditions are canonical in [Problem-Solving Questions](problem-questions.md).
+
+## Product Outcomes
+
+The target system should:
+
+- convert a top-level product problem into a numbered critical-path functional slice;
+- preserve original intent verbatim across audits, handoffs, compaction, and re-planning;
+- let a fresh worker continue from artifacts alone;
+- apply research and expertise directly to requirements, tests, constraints, decisions, and implementation;
+- execute and independently verify bounded work with minimal routine human gates;
+- preserve global invariants across modules;
+- produce release and rollback evidence through the selected shipping state;
+- measure prediction versus observation and improve future recommendations without silent policy mutation.
+
+## Success Measures
+
+Primary measures:
+
+- problem-to-shipping elapsed calendar time;
+- verified end-to-end slice throughput;
+- user-visible product capability shipped;
+- human gates and clarification count per slice;
+- fresh-worker continuation success;
+- escaped defects and rework;
+- research-to-product conversion rate;
+- intent-aligned recommendation acceptance;
+- evidence strength and independent verification rate;
+- multi-agent latency benefit net of coordination and integration cost.
+
+Activity measures such as token count, patch count, test count, agent count, and artifact count are diagnostic only.
+
+## Current Build Boundary
+
+The immediate implementation scope is `CANDIDATE-S001R4 — Link-confined clean truth candidate`. S-001R3 independently closes the D080 verifier, bootstrap-value, concurrency, quality, package, and legacy-read blockers, but canonical and `init` writes can follow POSIX symlinks or Windows junctions outside the repository. Build one isolated candidate worktree from `origin/main` at `0791efa`; bootstrap only into an absent `.meta-harness`, remove mutating re-init and recursive partial-harness copying, and reject linked/reparse canonical paths before any read or write. Audit the exact commit, execute `G-001` in a fresh checkout, integrate, and proceed directly to `S-006M`: one real non-fixture coding loop to merged and packaged. Internal secret infrastructure, broad path frameworks, and standalone projection, corpus, handoff, learning, or multi-agent programs remain deferred.
+
+No loop controller, adapter expansion, mass module decomposition, outcome learning, or multi-agent fan-out is authorized in parallel. The historical execution-custody runtime remains a frozen lower layer and is changed only when a real product slice exposes a blocking defect.
+
+## Historical Product Statement
+
+> All remaining equal-level sections below preserve the original MVP and custody-era PRD for traceability and shipped documentation compatibility. They do not override the governing sections above.
 
 Meta-Harness is a Markdown-first, Codex-native workflow visibility harness.
 

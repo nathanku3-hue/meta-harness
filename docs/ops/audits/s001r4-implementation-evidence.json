@@ -1,0 +1,85 @@
+{
+  "schema_version": "meta-harness-s001r4-implementation-evidence/v1",
+  "candidate": "CANDIDATE-S001R4",
+  "candidate_commit_binding": "the single commit containing this evidence file",
+  "base_commit": "0791efa59bbc3f373868c8c7950797e712921af5",
+  "base_ref": "origin/main",
+  "status": "implemented_and_locally_verified_independent_exact_commit_audit_pending",
+  "intent": "Close repository-local canonical truth custody, then proceed only through independent audit, G-001, integration, and the first real non-fixture coding loop.",
+  "authority": {
+    "public_contract_schema": "meta-harness-truth-authority-public/v1",
+    "repository_id": "github:nathanku3-hue/meta-harness",
+    "signer_key_id": "sha256:bbc4330c83fd3b392a2b0628618d34b612818359dec1ea5ed47227f96f11be41",
+    "new_mutation_receipt_schema": "meta-harness-truth-authority-receipt/v2",
+    "maximum_receipt_lifetime_seconds": 300,
+    "legacy_read_evidence": "D078 meta-harness-truth-authority-receipt/v1 remains verifier-readable; new v1 mutation is rejected",
+    "production_boundary": "verifier-only; no private key, key generation, private-key loader, or receipt signer"
+  },
+  "repairs": {
+    "one_shot_bootstrap": "new initialization requires absent .meta-harness, creates a fresh staged harness, and promotes it with one rename",
+    "removed_behaviors": [
+      "recursive partial-harness copying",
+      "backup replacement bootstrap",
+      "mutating re-init",
+      "implicit starter-file repair through init"
+    ],
+    "path_confinement": "canonical authority, ledger, status, harness, bootstrap lock, event lock, and ancestor chains reject symlinks, Windows junctions, reparse links, non-regular surfaces, and real paths outside the repository",
+    "stale_lock_recovery": "bootstrap lock records pid, creation time, and ownership token; dead owners older than 30 seconds recover through a guarded compare-and-revalidate flow; live ownership is preserved"
+  },
+  "verification": {
+    "windows_node": "v25.2.1",
+    "windows_complete_suite": {
+      "tests": 836,
+      "passed": 831,
+      "failed": 0,
+      "skipped": 5,
+      "duration_ms": 78134.5254
+    },
+    "linux_truth_and_path_probes": {
+      "node": "v18.19.1",
+      "tests": 23,
+      "passed": 23,
+      "failed": 0,
+      "skipped": 0
+    },
+    "windows_truth_and_path_probes": {
+      "node": "v25.2.1",
+      "tests": 23,
+      "passed": 21,
+      "failed": 0,
+      "skipped": 2,
+      "skip_reason": "two probes use POSIX file/directory symlinks; equivalent Windows workers, authority-parent, lock-parent, and status-parent junction probes passed"
+    },
+    "quick_read_only_readiness": {
+      "ok": true,
+      "passed": 12,
+      "failed": 0,
+      "warned": 1,
+      "unknown": 1,
+      "skipped": 7,
+      "MH_TRUTH_001": "pass",
+      "MH_QUALITY_001": "pass"
+    },
+    "quality_ratchet": {
+      "ok": true,
+      "baseline_refreshed": false
+    },
+    "package_dry_run": {
+      "name": "@nkgss/meta-harness",
+      "version": "0.2.1",
+      "entries": 240,
+      "tests_or_fixtures": 0,
+      "private_or_signer_paths": 0
+    },
+    "diff_check": "pass",
+    "json_validation": "pass"
+  },
+  "negative_assertions": [
+    "No external private authority capability was used.",
+    "No new canonical event was appended.",
+    "No private material entered the repository, package, logs, or evidence.",
+    "No integration, push, merge, publication, or S-006M work was performed.",
+    "Package verification was dry-run inspection only and is not a shipment claim."
+  ],
+  "next_gate": "INDEPENDENT-AUDIT-CANDIDATE-S001R4"
+}

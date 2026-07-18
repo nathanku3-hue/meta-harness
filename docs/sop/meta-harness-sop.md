@@ -1,7 +1,206 @@
 # Meta Harness SOP
 
 Status: canonical
-Date: 2026-06-19
+Current direction locked: 2026-07-17
+Intent authority: [Product Intent Anchor](../product/product-intent.md)
+Roadmap authority: [Roadmap](../product/roadmap.md)
+
+## Current Core Principle
+
+Work must remain aligned with human intent and recoverable from validated artifacts rather than conversation memory.
+
+The minimal operating loop is:
+
+```text
+AUDITOR–PLANNER
+→ WORKER
+→ AUDITOR–PLANNER
+```
+
+Internal separations are mandatory:
+
+- audit before plan;
+- intent before local defect;
+- product movement before harness improvement;
+- evidence before narrative;
+- receiver validation before resume;
+- one writer before multi-agent fan-out;
+- shipping outcome before internal completion.
+
+## Canonical Read Order
+
+Every round begins with local files in this order:
+
+1. active human intent version;
+2. explicit human decisions and overrides;
+3. repository commit, tree, tag, dirty state, and active lease;
+4. current objective, slice, RunSpec, and authorization;
+5. immutable execution, audit, and outcome evidence;
+6. canonical event/fact ledger;
+7. active roadmap and product contracts;
+8. generated status, handoff, behavior map, and summaries.
+
+A generated projection never overrides its canonical sources. A material contradiction blocks planning and execution.
+
+## Auditor–Planner Contract
+
+The auditor-planner operates in two immutable passes.
+
+### Pass A — Audit
+
+Audit observes the completed round, extracts all **decision-relevant** insight, scores the result, and freezes the audit artifact.
+
+Decision-relevant insight must alter at least one of:
+
+- product interpretation;
+- slice ordering;
+- system or behavior map;
+- implementation strategy;
+- risk;
+- verification;
+- required expertise;
+- routing policy;
+- human decision.
+
+The audit records:
+
+- newly true product behavior;
+- required invariants that remain true;
+- failed or missing behavior;
+- evidence quality and independence;
+- process quality, retries, waste, and plan-to-diff drift;
+- salvageable partial results;
+- intent alignment;
+- scope and roadmap deviation;
+- shipping effect;
+- prediction versus observation;
+- new insight and unresolved unknowns.
+
+The audit does not select the next roadmap item and cannot be edited during planning to support a later recommendation.
+
+### Pass B — Plan
+
+Planning reads the frozen audit and then re-reads the human intent verbatim.
+
+It considers at least:
+
+1. the best forward functional slice;
+2. the best information-gathering or risk-reduction action;
+3. ship, stop, defer, repair, or no-build.
+
+Planning priority is:
+
+1. ship the active objective;
+2. unlock its critical path;
+3. reduce uncertainty blocking that path;
+4. fix defects threatening that path;
+5. improve the harness only when a product slice cannot ship without it.
+
+The plan emits one numbered slice and a bounded RunSpec containing product delta, shipping target, affected behaviors/modules, required expertise, authority envelope, verification contract, budget, expiry, stop rules, and predicted outcome.
+
+## Worker Contract
+
+The worker:
+
+1. verifies intent version, RunSpec, repository identity, lease, and authorization;
+2. reads relevant local source before generated summaries;
+3. states the newly true product behavior it will create;
+4. emits a compact execution plan;
+5. passes automated plan preflight;
+6. executes all reversible work already authorized without routine waiting;
+7. uses scouts or parallel work only when expected completion time decreases;
+8. checkpoints each independently valid increment;
+9. records deviations, invalidated assumptions, and partial results immediately;
+10. returns structured evidence and a typed handoff;
+11. never declares the roadmap or final shipping result;
+12. stops at the RunSpec boundary.
+
+The compact plan contains only:
+
+- intended product behavior;
+- expected files and modules;
+- invariants that must remain true;
+- implementation sequence;
+- verification sequence;
+- stop and escalation conditions.
+
+More detail is required only when uncertainty or integration risk is high.
+
+## Human Gate Contract
+
+The worker waits only for:
+
+- `G-AUTHORITY` — permission, credential, publication, or protected boundary;
+- `G-TASTE` — product or UX judgment;
+- `G-RISK` — material irreversible or high-impact risk acceptance;
+- `G-SCOPE` — meaningful expansion beyond the authorized outcome.
+
+Every gate states one decision, recommended choice, alternatives, consequence, required input, and skip condition. A valid pre-authorization envelope eliminates repeated gates for reversible actions inside its scope.
+
+## Verification Contract
+
+The verifier initially receives the intent, RunSpec, clean base, candidate diff, acceptance contract, observable output, and independent test surface. It does not initially receive the worker's private reasoning or preferred next action.
+
+Verification separately scores:
+
+- terminal correctness;
+- evidence strength;
+- global invariants;
+- process quality;
+- plan-to-diff drift;
+- rework and maintenance burden;
+- shipping state.
+
+Passing tests alone cannot close a slice.
+
+## Handoff and Resume Contract
+
+A handoff is a hash-bound state transition, not a summary. It records identity, versions, intent, authority, repository state, completed/current/incomplete operations, continuation cursor, decisions, assumptions, rejected approaches, evidence, next operation, recovery, and expiry.
+
+Before resume, the receiver independently returns:
+
+- objective understood;
+- current state understood;
+- completed work;
+- unfinished work;
+- exact next operation;
+- forbidden action;
+- done condition.
+
+The controller compares this with the handoff. Any mismatch, stale repository state, expired authority, newer handoff, active competing lease, superseding override, or completed equivalent run blocks continuation.
+
+Planned compaction or shutdown follows:
+
+1. publish an atomic checkpoint;
+2. generate the typed handoff;
+3. validate it from a fresh process;
+4. compact or stop;
+5. resume from the artifact rather than the conversation;
+6. confirm intent, cursor, authority, and repository identity.
+
+## Loop Disposition
+
+The auditor-planner returns exactly one:
+
+- `ACCEPT_AND_CONTINUE`;
+- `ACCEPT_AND_SHIP`;
+- `REPAIR_CURRENT_SLICE`;
+- `SALVAGE_AND_REPLAN`;
+- `REJECT_AND_REPLAN`;
+- `HUMAN_GATE`;
+- `STOP`.
+
+The controller then updates canonical state atomically.
+
+## Multi-Agent Rule
+
+Do not automate more agents until one fresh worker can reliably continue another worker's work from artifacts alone while preserving original intent.
+
+Later fan-out requires disjoint writes or read-only roles, leases, duplicate suppression, independent acceptance checks, deterministic integration order, cancellation propagation, salvage classification, and measured latency benefit greater than coordination cost.
+
+## Current Build Boundary
+
+Only `CANDIDATE-S001R4 — Link-confined clean truth candidate` is authorized now. The runtime remains verifier-only. Build the repair in an isolated worktree from `origin/main` at `0791efa`; bootstrap only into an absent `.meta-harness`, remove recursive partial-harness copying and mutating re-init, and reject symlinks, junctions, and equivalent reparse points on canonical authority, ledger, status-parent, and lock paths before read or write. The tracked verifier is public authority contract v1; externally signed mutations use receipt v2. After exact-commit independent acceptance, run `G-001`, complete integration, then execute `S-006M`—one real non-fixture coding loop to merged and packaged. Internal vaults, signer services, databases, broad path frameworks, horizontal governance, learning, and fan-out remain deferred. Where later historical sections conflict, D081 governs.
 
 ## Purpose
 
@@ -333,7 +532,7 @@ It should answer:
 The first running version should support:
 
 ```text
-meta-harness init "<goal>"
+meta-harness init --authority-public-key-file <path> --authority-receipt-file <path>
 meta-harness event --phase <phase> --action <action> --result <result>
 meta-harness status
 meta-harness lookback

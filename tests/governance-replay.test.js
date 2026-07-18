@@ -9,6 +9,7 @@ const test = require("node:test");
 const { runContextGate } = require("../lib/context-gate");
 const { replayFromSnapshot } = require("../lib/governance-replay");
 const { writeGovernanceSnapshot } = require("../lib/context-gate-governance");
+const { installCanonicalFixtureTruth } = require("./helpers/canonical-truth-fixture");
 
 const FIXTURE_ROOT = path.join(__dirname, "fixtures", "context-gate");
 const NOW = "2020-01-01T00:00:00.000Z";
@@ -122,6 +123,7 @@ test("governance replay reports evidence drift for unrelated post-write events",
 test("governance replay filters self-generated gate events before last-five retention", async () => {
   const root = copyFixture("complete");
   writeEvents(root, [0, 1, 2, 3, 4].map((index) => event(index)));
+  installCanonicalFixtureTruth(root);
   const { snapshotPath, artifactPath, artifact } = await writeSnapshotAndGate(root, {
     overrideContextGate: {
       reason: "Human accepts the remaining context risk for replay proof.",

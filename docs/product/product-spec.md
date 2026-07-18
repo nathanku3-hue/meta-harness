@@ -2,8 +2,190 @@
 
 Status: implemented MVP
 Date: 2026-05-02
+Current direction locked: 2026-07-17
+Intent authority: [Product Intent Anchor](product-intent.md)
+Roadmap authority: [Roadmap](roadmap.md)
 
-## Product Shape
+## Governing Product Shape
+
+Meta-Harness is a local AI-loop control plane for one solo developer/researcher. It remains a minimal owned script-and-skills system around borrowed execution substrates, but it is no longer merely a visibility layer or one-shot custody command.
+
+The governing loop is:
+
+```text
+truth reconciliation
+→ frozen audit
+→ intent-aligned planning
+→ bounded RunSpec
+→ authorized worker execution
+→ independent verification
+→ controller integration and custody
+→ outcome evaluation
+→ atomic state update
+```
+
+The historical Markdown MVP and the authority-bound execution-custody runtime remain shipped evidence and lower-layer capability. New work follows the numbered functional-slice roadmap.
+
+## Canonical Authority
+
+Decision-critical truth uses this order:
+
+```text
+active human intent version
+→ explicit human decision or override
+→ immutable run/execution evidence
+→ canonical event and fact ledger
+→ active roadmap and product contracts
+→ generated status and summaries
+```
+
+A material contradiction blocks progression and makes `ok: true` impossible. Generated status is a projection, not an independent authority source.
+
+## Role Contracts
+
+### Human
+
+Owns intent, priority, taste, authority, material risk tolerance, scope expansion, and irreversible commitment.
+
+### Auditor-planner
+
+Operates in two passes:
+
+1. audit evidence, diagnose, score, and freeze the audit;
+2. re-read the frozen intent, compare at least three forward alternatives, and emit one bounded RunSpec.
+
+The planning pass cannot alter the frozen audit to justify its recommendation.
+
+### Worker
+
+Reads local source and canonical artifacts before summaries, verifies authority and repository identity, emits a compact plan, passes automated preflight, and executes all reversible authorized work without routine waiting.
+
+The worker does not own roadmap changes, final acceptance, integration authority, or shipping claims.
+
+### Controller
+
+Owns canonical state, leases, duplicate suppression, cancellation, mutation authority, atomic artifact publication, execution custody, integration order, and loop disposition.
+
+## Normal Planning IDs
+
+- `O-###`: product outcome;
+- `S-###`: end-to-end functional slice;
+- `G-###`: named human gate;
+- `R-###`: execution run.
+
+Historical phase and decision IDs remain evidence-only operator detail.
+
+## Human Gates
+
+Only four gate reasons exist in normal operation:
+
+- `G-AUTHORITY`;
+- `G-TASTE`;
+- `G-RISK`;
+- `G-SCOPE`.
+
+Every gate declares one decision, recommended choice, alternatives, consequence, required input, and skip condition. Reversible actions inside a valid authorization envelope do not trigger another gate.
+
+## RunSpec Minimum Contract
+
+A RunSpec must bind:
+
+- active intent version and hash;
+- objective and functional-slice IDs;
+- newly true product behavior;
+- shipping target;
+- repository and base identity;
+- owned and forbidden surfaces;
+- required invariants;
+- allowed commands and actions;
+- required expertise and workcell roles;
+- verification contract;
+- budget and expiry;
+- stop and escalation conditions;
+- predicted product and process outcome.
+
+## Outcome Record
+
+Every run records:
+
+- schema, loop, policy, skill, and adapter versions;
+- canonical input truth hash;
+- candidates considered and their scores;
+- selected action and prediction;
+- authorization envelope;
+- execution and audit evidence;
+- actual changed surface;
+- plan-to-diff deviation;
+- observed product and process outcome;
+- cost and elapsed time;
+- salvage class when incomplete;
+- loop disposition;
+- next recommendation;
+- intent and roadmap deviation.
+
+## Handoff and Resume
+
+A handoff is a validated state transition, not a summary.
+
+`handoff/v1` includes:
+
+- identity and role transfer;
+- loop, policy, schema, and skill versions;
+- intent version and hash;
+- authorization, remaining budget, and expiry;
+- repository commit, tree, worktree hash, and changed paths;
+- completed, current, and incomplete operations;
+- last verified checkpoint and continuation cursor;
+- accepted decisions, assumptions, unresolved questions, and rejected approaches;
+- evidence references and hashes;
+- exact next operation, expected result, stop rule, recovery operation, and expiry.
+
+`resume/v1` returns one of:
+
+- `accepted`;
+- `stale`;
+- `contradictory`;
+- `unauthorized`;
+- `incomplete`.
+
+Before `accepted`, the receiver independently states the objective, current state, completed work, unfinished work, exact next operation, forbidden action, and done condition. The controller compares these with the handoff and blocks on mismatch.
+
+Only one active lease may own a work unit. Resume also checks for a newer handoff, superseding human override, changed repository state, expired authority, and an already completed equivalent run.
+
+## Independent Verification
+
+The verifier initially receives:
+
+- active intent;
+- RunSpec and acceptance contract;
+- clean base;
+- candidate diff and artifacts;
+- observable output and independent test surface.
+
+It does not initially receive the worker's private reasoning or preferred conclusion. Reviewer context, model/tool identity, mutability, test authorship, and expected-answer disclosure are recorded.
+
+## Knowledge Application
+
+Research is complete only when accepted evidence becomes at least one of:
+
+- requirement;
+- constraint;
+- test;
+- benchmark;
+- risk;
+- decision;
+- product claim;
+- implementation rule.
+
+Every material claim binds provenance, freshness, confidence, contradiction state, and affected product surface.
+
+## Current Authorized Slice
+
+Only `CANDIDATE-S001R4 — Link-confined clean truth candidate` is authorized now. S-001R3 independently closes production signing, pre-write receipt semantics, Ed25519, lifetime, concurrency, quality, package, and historical-read findings, but target-bound custody still fails because authority, ledger, and re-init writes can follow symlinks or junctions. Create an isolated worktree from `origin/main` at `0791efa`; bootstrap only into an absent `.meta-harness`, build a fresh stage and promote once, delete mutating re-init, and require regular non-link/reparse canonical paths and ancestors. Audit the exact named commit, run `G-001`, integrate, and proceed directly to `S-006M`: one real non-fixture single-worker coding loop to merged and packaged. Broader secret infrastructure, path frameworks, contract refactoring, projection, corpus, handoff/resume, learning, and multi-agent work requires an observed active-slice blocker.
+
+## Historical MVP Product Shape
+
+> All remaining equal-level sections below preserve the original MVP and custody-era specification for traceability and shipped documentation compatibility. They do not override the governing contracts above.
 
 Meta-Harness is a global CLI that creates and maintains per-repo Markdown state.
 
@@ -295,7 +477,7 @@ Parent status reads child statuses. It does not centralize child event memory.
 Target command surface:
 
 ```bash
-meta-harness init
+meta-harness init --authority-public-key-file <path> --authority-receipt-file <path>
 meta-harness status
 meta-harness event
 meta-harness worker-report
@@ -312,7 +494,7 @@ Command responsibilities:
 
 | Command | Responsibility |
 | --- | --- |
-| `init` | Create `.meta-harness/` starter docs. |
+| `init` | Create `.meta-harness/` starter docs and install initial canonical truth from a structured public verifier contract plus an externally signed repository-bound receipt. |
 | `status` | Print or refresh official status. |
 | `event` | Append one event. |
 | `worker-report` | Create a PM-facing worker brief and require explicit `Outcome`. |
@@ -327,7 +509,7 @@ Command responsibilities:
 Implemented command examples:
 
 ```bash
-meta-harness init "Build coding and research visibility"
+meta-harness init --authority-public-key-file /external/truth-authority-public.json --authority-receipt-file /external/initial-truth-receipt.json
 meta-harness event --stream research --phase work --action "surveyed adjacent products" --result "copy visibility and persistence"
 meta-harness worker-report codex-researcher --stream research --task "extract patterns" --outcome DONE --round ROUND-001 --progress "10/100 -> 20/100" --confidence "9/10" --result "normalized product-pattern PM brief" --human-summary "Research output is ready for PM synthesis." --validations-passed "worker brief parsed" --validations-skipped "none" --evidence-artifacts ".meta-harness/workers/codex-researcher.md" --requested-work-type docs --actual-work-type docs --next-action "synthesize status"
 meta-harness templates install
@@ -365,7 +547,9 @@ Phase 16 exception (D041): a dependency-free read-only stdio JSON-RPC server is 
 The one-shot MVP is acceptable when:
 
 - `npm install -g meta-harness` exposes `meta-harness`;
-- `meta-harness init` creates starter Markdown state;
+- `meta-harness init` creates starter Markdown state only from a structured public verifier contract and an externally signed repository-bound initial receipt;
+- the runtime and package contain no private-key path, key generation, private-key loading, or receipt-signing surface;
+- receipt replay detection, prior-snapshot binding, contradiction simulation, and append execute under one cross-process lock;
 - `meta-harness event` appends to `events.jsonl`;
 - `meta-harness status` prints official status;
 - `meta-harness worker-report` creates a worker-report artifact from a template;

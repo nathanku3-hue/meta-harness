@@ -15,6 +15,7 @@ const READY_JSON_CHECK_IDS = Object.freeze([
   "MH_TRUST_001",
   "MH_CONTRACT_001",
   "MH_STATE_001",
+  "MH_TRUTH_001",
   "MH_BRIEF_001",
   "MH_CONTEXT_GATE_001",
   "MH_DECISION_001",
@@ -73,7 +74,6 @@ test("ready command failing scenario (missing templates)", () => {
   assert.match(res.stdout, /FAIL  MH_SYNC_001/);
   assert.match(res.stdout, /Next action:/);
 });
-
 test("ready command JSON output validation", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Ready check JSON target"]);
@@ -118,7 +118,7 @@ test("ready command pregenerated ready.json override", () => {
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 20, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 21, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks({
       MH_TEST_001: { reason: "overridden test", next_action: "" },
@@ -169,7 +169,7 @@ test("stale ready.json is rejected due to git_commit mismatch (non-git target ex
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 20, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 21, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks()
   }), "utf8");
@@ -182,13 +182,11 @@ test("stale ready.json is rejected due to git_commit mismatch (non-git target ex
 
 test("stale ready.json is rejected due to git_commit mismatch (git target compares checkout commit)", () => {
   const cwd = tempDir();
-  // Initialize git repo
   spawnSync("git", ["init"], { cwd });
   spawnSync("git", ["config", "user.name", "Test"], { cwd });
   spawnSync("git", ["config", "user.email", "test@test.com"], { cwd });
   run(cwd, ["init", "Stale ready git target"]);
 
-  // Create a commit
   fs.writeFileSync(path.join(cwd, "file.txt"), "hello", "utf8");
   spawnSync("git", ["add", "."], { cwd });
   spawnSync("git", ["commit", "-m", "initial commit"], { cwd });
@@ -204,7 +202,7 @@ test("stale ready.json is rejected due to git_commit mismatch (git target compar
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 20, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 21, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks()
   }), "utf8");
@@ -301,7 +299,7 @@ test("ready --read-only standalone implies no-exec (skips tests)", () => {
     version: "1.0.0",
     engines: { node: ">=20" },
     packageManager: "npm@10.0.0",
-    scripts: { test: "exit 1" } // test fails if executed
+    scripts: { test: "exit 1" }
   }), "utf8");
   fs.writeFileSync(path.join(cwd, "package-lock.json"), JSON.stringify({
     name: "dummy-target",
@@ -312,7 +310,6 @@ test("ready --read-only standalone implies no-exec (skips tests)", () => {
 
   run(cwd, ["quality", "init"]);
 
-  // Without no-exec, read-only should still skip tests
   const res = runRaw(cwd, ["ready", "--target", cwd, "--read-only", "--json"]);
   const data = JSON.parse(res.stdout);
   const testCheck = data.checks.find(c => c.id === "MH_TEST_001");
@@ -393,9 +390,7 @@ test("generated ready --json validates as ready.json", () => {
 test("worktree Git detection integration test", () => {
   const cwd = tempDir();
   const gitCheck = spawnSync("git", ["--version"]);
-  if (gitCheck.status !== 0) {
-    return;
-  }
+  if (gitCheck.status !== 0) return;
 
   const mainRepo = path.join(cwd, "main");
   fs.mkdirSync(mainRepo);
@@ -422,9 +417,7 @@ test("worktree Git detection integration test", () => {
 
   const worktreePath = path.join(cwd, "worktree-branch");
   const wtRes = spawnSync("git", ["worktree", "add", "-b", "new-branch", worktreePath], { cwd: mainRepo });
-  if (wtRes.status !== 0) {
-    return;
-  }
+  if (wtRes.status !== 0) return;
 
   const res = runRaw(worktreePath, ["ready", "--target", worktreePath, "--quick", "--json"]);
   const data = JSON.parse(res.stdout);

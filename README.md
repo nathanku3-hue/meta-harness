@@ -1,8 +1,46 @@
 # Meta Harness
 
-Authority-bound execution-custody harness for approved one-shot repository changes, with durable workflow visibility and independently verifiable evidence.
+AI-native operating harness for one solo developer/researcher shipping ultra-complex, multi-module systems. It combines a frozen intent anchor, an auditor-planner/worker loop, skills and research application, minimal human gates, and an authority-bound agent execution-custody harness for independently verifiable bounded changes.
 
-## Current Artifacts
+## Current Product Authority
+
+Read in this order:
+
+- [Product documentation authority](docs/product/README.md)
+- [Locked product intent](docs/product/product-intent.md)
+- [Problem-solving questions](docs/product/problem-questions.md)
+- [PRD](docs/product/prd.md)
+- [Locked functional-slice roadmap](docs/product/roadmap.md)
+- [Product spec](docs/product/product-spec.md)
+- [Architecture map](docs/architecture/map.md)
+- [Operating SOP](docs/sop/meta-harness-sop.md)
+- [Decision log](docs/product/decision-log.md)
+
+Historical MVP, phase-era, and custody evidence remains in the repository but does not override the authority order above.
+
+## Locked Direction
+
+The product intent is one solo developer/researcher applying coding and specialist knowledge to ship ultra-complex, multi-module products with maximum verified velocity and minimal routine human friction.
+
+The governing loop is:
+
+```text
+reconcile truth
+→ freeze audit
+→ re-read human intent
+→ compare forward alternatives
+→ authorize one numbered functional slice
+→ execute all reversible authorized work
+→ independently verify and integrate
+→ record prediction versus outcome
+→ continue, ship, repair, re-plan, gate, or stop
+```
+
+The human owns intent, taste, authority, material risk, scope expansion, and irreversible commitments. The auditor-planner owns truthful direction. The worker owns bounded authorized execution. The controller owns canonical state, leases, cancellation, integration, custody, and loop integrity.
+
+The immediate implementation scope is `CANDIDATE-S001R4 — Link-confined clean truth candidate`. S-001R3 independently closes verifier-only authority, pre-write semantic validation, Ed25519 pinning, the 300-second lifetime ceiling, concurrency, quality, package, and legacy-read findings, but linked filesystem surfaces can redirect authority, ledger, and re-init writes outside the repository. Build the repair directly in an isolated worktree from `origin/main` at `0791efa`: one-shot bootstrap into an absent `.meta-harness`, no recursive partial-harness copy or mutating re-init, and fail-closed symlink/junction/reparse validation on every canonical path. Independently audit the named commit, run `G-001`, integrate, then move immediately to `S-006M`. Internal vaults, signer services, databases, broad path frameworks, horizontal governance, and multi-agent programs remain deferred.
+
+## Historical and Supporting Artifacts
 
 - [PRD](docs/product/prd.md)
 - [Product spec](docs/product/product-spec.md)
@@ -17,7 +55,7 @@ Authority-bound execution-custody harness for approved one-shot repository chang
 Run locally from this repo:
 
 ```powershell
-node bin/meta-harness.js init "Build coding and research visibility"
+node bin/meta-harness.js init --authority-public-key-file C:\\external\\truth-authority-public.json --authority-receipt-file C:\\external\\initial-truth-receipt.json
 node bin/meta-harness.js event --stream research --phase work --action "surveyed adjacent products" --result "copy visibility and persistence, reject full swarm"
 node bin/meta-harness.js worker-report codex-researcher --stream research --task "extract product patterns" --outcome DONE --round ROUND-001 --progress "10/100 -> 20/100" --confidence "9/10" --result "normalized product-pattern PM brief" --human-summary "Research output is ready for PM synthesis." --validations-passed "worker brief parsed" --validations-skipped "none" --evidence-artifacts ".meta-harness/workers/codex-researcher.md" --requested-work-type docs --actual-work-type docs --next-action "synthesize status"
 node bin/meta-harness.js templates install
@@ -29,11 +67,11 @@ node bin/meta-harness.js lookback --write
 After package installation, the command is:
 
 ```bash
-meta-harness init "Build coding and research visibility"
+meta-harness init --authority-public-key-file /external/truth-authority-public.json --authority-receipt-file /external/initial-truth-receipt.json
 meta-harness status
 ```
 
-## Direction
+## Historical MVP Direction
 
 The first version should stay product-first and small:
 
@@ -58,7 +96,7 @@ The product target is a global npm CLI. This repo now exposes the `meta-harness`
 
 ```bash
 npm install -g meta-harness
-meta-harness init
+meta-harness init --authority-public-key-file C:\\external\\truth-authority-public.json --authority-receipt-file C:\\external\\initial-truth-receipt.json
 meta-harness status
 meta-harness templates install
 meta-harness expert-packet ROUND-001

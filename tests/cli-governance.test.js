@@ -5,12 +5,14 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const { runRaw, tempDir } = require("./helpers/cli");
+const { installCanonicalFixtureTruth } = require("./helpers/canonical-truth-fixture");
 
 const FIXTURE_ROOT = path.join(__dirname, "fixtures", "context-gate");
 
 function copyFixture(name = "complete") {
   const targetRoot = tempDir("cli-governance-");
   fs.cpSync(path.join(FIXTURE_ROOT, name), targetRoot, { recursive: true });
+  installCanonicalFixtureTruth(targetRoot);
   return targetRoot;
 }
 

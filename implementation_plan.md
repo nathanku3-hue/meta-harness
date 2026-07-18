@@ -1,4 +1,62 @@
-# Phase 13A: Context Quality Gate
+# Active Implementation Plan: CANDIDATE-S001R4 Link-Confined Truth Candidate
+
+Status: **implemented and locally verified in the clean upstream-based candidate; pending independent exact-commit audit; not accepted, canonical, integrated, pushed, or shipped**.
+
+## Endgame intent
+
+Ship a local authority-bound execution harness that moves from frozen human intent to merged and packaged product outcomes without contradictory or externally redirected canonical state. The shortest remaining path is:
+
+```text
+CANDIDATE-S001R4 clean upstream-based repair commit
+→ independent exact-commit audit
+→ G-001 external authority continuity proof
+→ INTEGRATE-S001 merge and package
+→ S-006M first real non-fixture coding loop, merged and packaged
+```
+
+## First-principle constraints
+
+1. **Verifier-only runtime:** production and package verify receipts only; no private key, key generation, signer, or compatibility fallback.
+2. **Target-bound truth:** canonical authority, ledger, status-parent, and lock paths must be regular non-link/reparse surfaces contained by the target.
+3. **One-shot bootstrap:** new bootstrap requires absent `.meta-harness`, builds one fresh staged harness, and promotes it with one rename. No recursive copy, backup replacement, or mutating re-init.
+4. **Exact schemas:** tracked public authority contract is `meta-harness-truth-authority-public/v1`; repository-bound mutation receipt is `meta-harness-truth-authority-receipt/v2`.
+5. **Historical evidence only:** D078 legacy receipt v1 remains read-only verifiable; no new v1 mutation is accepted.
+6. **Minimal machinery:** no vault, signer daemon, keychain adapter, database, authority recovery framework, broad path framework, or unrelated decomposition.
+
+## Functional slice
+
+```text
+origin/main 0791efa isolated worktree
+→ transplant accepted S-001 paths only
+→ link-intolerant preflight and canonical path checks
+→ fresh one-shot staged bootstrap
+→ bounded recoverable bootstrap lock
+→ structured authority v1 + receipt v2 tests
+→ named reviewable commit
+→ independent exact-commit audit
+```
+
+## Authorized work
+
+1. Create an isolated worktree from `origin/main` at `0791efa`; leave the heavily dirty checkout untouched.
+2. Transplant only the accepted S-001 implementation and evidence path set.
+3. Delete recursive partial-harness copying, backup replacement, and mutating re-init behavior without backward compatibility.
+4. Reject `.meta-harness` symlinks, Windows junctions, reparse points, linked `contracts`, linked authority files, linked ledgers, linked status parents, and linked lock ancestors before read or write.
+5. Make stale bootstrap locks recoverable without removing live ownership.
+6. Track the structured public authority contract v1 using the current Ed25519 public key and preserve D078 legacy-readable event/status evidence.
+7. Add Linux symlink and Windows junction probes for bootstrap, canonical append, status refresh, and re-init deletion.
+8. Pass the literal Windows Node 25 suite, quality ratchet, package scan, production signer scan, `MH_TRUTH_001`, and `git diff --check`.
+9. Produce one named reviewable commit and stop for independent audit.
+
+## Stop rule
+
+Do not use the external private capability, append a new canonical event, integrate, push, merge, package S-001, or begin S-006M before the exact candidate commit passes independent audit.
+
+---
+
+# Historical Plan: Phase 13A Context Quality Gate
+
+> Retained as implementation evidence only. It does not define current product direction after D080/S-001R3.
 
 ## Phase 13B Status Note
 

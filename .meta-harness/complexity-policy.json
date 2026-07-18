@@ -11,7 +11,7 @@
   },
   "surface_ceiling": {
     "max_cli_commands": 25,
-    "max_check_ids_global_warn": 20,
+    "max_check_ids_global_warn": 21,
     "max_template_count": 30
   },
   "duplicate_template_allowlist": [],
