@@ -1,0 +1,216 @@
+{
+  "schema_version": "meta-harness-s001r5-independent-audit/v1",
+  "audit_id": "D083-S001R5-INDEPENDENT",
+  "recorded_at": "2026-07-18",
+  "candidate": "CANDIDATE-S001R5",
+  "candidate_branch": "codex/candidate-s001r5",
+  "candidate_commit": "a0e4835a4bcc9dea1f688689b4bf70575b12423d",
+  "parent_commit": "3cfe00c9bbeca707f3ea549b19e8c2cbf05d1360",
+  "base_commit": "0791efa59bbc3f373868c8c7950797e712921af5",
+  "verdict": "REPAIR_CURRENT_SLICE",
+  "accepted": false,
+  "shipped": false,
+  "summary": "The clean S001R5 candidate independently closes hard-link aliasing and post-validation path replacement when the direct temp-file rename succeeds. It is not accepted because the Windows move-aside fallback can remove the canonical ledger path on replacement or restoration failure, while native Windows Node 25 in the audit environment already replaces an existing file directly. The exact candidate also omits D082 and the S001R4 independent audit and still advertises the superseded R4/D081 direction.",
+  "independently_accepted": [
+    "The candidate worktree is clean at exact commit a0e4835a4bcc9dea1f688689b4bf70575b12423d.",
+    "The candidate is exactly one repair commit above 3cfe00c9 and two commits ahead of origin/main with merge-base 0791efa.",
+    "Canonical file validation rejects multiply linked file leaves through nlink == 1 enforcement.",
+    "The shared event store no longer uses fs.appendFileSync for runtime ledger mutation.",
+    "Direct complete-ledger temp-file rename preserves external hard-link targets and installs a unique local ledger on Linux and Windows Node 25.",
+    "A stronger independent post-validation swap at the actual rename boundary left the external file unchanged and produced exactly two local events on both Linux and Windows.",
+    "Focused Linux authority, bootstrap, ledger custody, and reconciliation tests passed 29 of 29.",
+    "Focused Windows Node 25 authority, bootstrap, ledger custody, and reconciliation tests passed 27 with zero failures and two POSIX-only skips.",
+    "MH_TRUTH_001 and MH_QUALITY_001 pass in quick read-only readiness.",
+    "The quality ratchet passes without a baseline refresh; the 28-command count remains warning-only.",
+    "The dry-run package is @nkgss/meta-harness@0.2.1 with 240 entries, zero tests or fixtures, and no private or signer surface.",
+    "The production source scan found no key generation, private-key loading, receipt signing, or private-key path surface.",
+    "git diff --check passes and the candidate worktree remains clean."
+  ],
+  "blocking_findings": [
+    {
+      "severity": "high",
+      "id": "S001R5_LEDGER_FALLBACK_FAIL_PRESERVATION",
+      "title": "Move-aside replacement fallback can remove the canonical ledger path",
+      "evidence": {
+        "implementation": "lib/events.js catches EEXIST, EPERM, or EACCES from temp-to-ledger rename, moves the current ledger to a backup pathname, retries installation, and silently ignores restoration failure.",
+        "fault_probe": {
+          "forced_initial_replace_error": "EPERM",
+          "old_ledger_move": "succeeded",
+          "forced_install_error": "EIO",
+          "forced_restore_error": "EIO",
+          "operation_error": "EIO: forced install failure",
+          "ledger_exists_after_failure": false,
+          "old_bytes_at_canonical_path": false,
+          "backup_contains_old_ledger": true
+        },
+        "native_windows_probe": {
+          "runtime": "Windows Node v25.2.1",
+          "rename_over_existing": "pass",
+          "destination_bytes": "new",
+          "source_exists_after": false
+        }
+      },
+      "consequence": "A recoverable filesystem error or process termination in the move-aside interval can leave events.jsonl missing and canonical truth readable only through an unrecognized backup file. The operation is therefore not fail-preserving or atomic on its fallback path.",
+      "required_repair": "Delete the move-aside fallback. Perform one direct rename of the flushed temporary file over events.jsonl. If rename fails, clean up only the temporary file and leave the prior canonical ledger untouched. Add deterministic fault injection proving the original ledger remains byte-identical and no backup residue exists on replacement failure."
+    },
+    {
+      "severity": "high",
+      "id": "S001R5_AUTHORITY_CUSTODY_DRIFT",
+      "title": "The exact candidate does not contain the authority that authorized it",
+      "evidence": {
+        "missing_file": "docs/ops/audits/s001r4-independent-audit.json",
+        "missing_decision": "D082 is absent from docs/product/decision-log.md",
+        "roadmap_version": "endgame-v8 + link-confined clean candidate",
+        "implementation_plan_heading": "CANDIDATE-S001R4 Link-Confined Truth Candidate",
+        "task_heading": "CANDIDATE-S001R4 Link-Confined Clean Candidate"
+      },
+      "consequence": "A fresh checkout of a0e4835 is code-reviewable but not direction-complete. It instructs a new operator to perform the already completed R4 gate and contains no repository evidence that R5 was authorized by D082. Advancing G-001 from this checkout would rely on conversation or a separate dirty checkout, violating the no-silent-drift and continuity requirements.",
+      "required_repair": "Bring the minimal D082 authority chain into the clean candidate before final audit: the S001R4 independent audit, D082 decision entry, current active roadmap, implementation plan, task, and aligned primary product surfaces. This is custody synchronization, not a governance expansion."
+    }
+  ],
+  "evidence_quality_findings": [
+    {
+      "severity": "medium",
+      "id": "S001R5_SWAP_TEST_OVERCLAIM",
+      "title": "The committed post-validation swap test does not swap after validation",
+      "evidence": "tests/cli-truth-ledger-custody.test.js replaces events.jsonl with a hard link before appendEvent begins and calls the ordinary no-targetRoot event-store path. It proves atomic replacement of a pre-existing alias, not a deterministic check/use replacement after assertContainedPath.",
+      "independent_resolution": "A stronger probe intercepted the final temp-to-ledger rename, replaced the validated pathname immediately before rename, and independently passed on Linux and Windows Node 25: external bytes unchanged, local event count two, local nlink one.",
+      "required_repair": "Replace or rename the test so its name matches the proven condition, and add the actual rename-boundary swap probe as the regression test."
+    },
+    {
+      "severity": "medium",
+      "id": "S001R5_FULL_SUITE_TRANSPORT_LIMIT",
+      "title": "The complete suite report was not independently returned through the connector",
+      "evidence": "Two independent aggregate executions encountered connector transport 502 responses. The user-supplied 122-file, zero-failure Windows Node 25 result is retained as supplied evidence. Focused independent Linux and Windows sets, quality, readiness, package, source, and fault probes completed successfully.",
+      "required_repair": "The final exact-commit audit should rerun the complete Windows suite in the supported environment and retain a bounded summary artifact or deterministic batch evidence."
+    }
+  ],
+  "stronger_post_validation_probe": {
+    "linux": {
+      "error": null,
+      "swapped_at_rename_boundary": true,
+      "external_unchanged": true,
+      "local_event_count": 2,
+      "local_nlink": 1
+    },
+    "windows_node_25": {
+      "error": null,
+      "swapped_at_rename_boundary": true,
+      "external_unchanged": true,
+      "local_event_count": 2,
+      "local_nlink": 1
+    }
+  },
+  "verification": {
+    "exact_commit_identity": "pass",
+    "candidate_clean": true,
+    "linux_focused": {
+      "tests": 29,
+      "passed": 29,
+      "failed": 0,
+      "skipped": 0
+    },
+    "windows_node_25_focused": {
+      "tests": 29,
+      "passed": 27,
+      "failed": 0,
+      "skipped": 2
+    },
+    "windows_complete_suite": {
+      "status": "user_supplied_not_independently_returned_due_connector_502",
+      "test_files": 122,
+      "failed_files": 0
+    },
+    "quality": "pass_with_command_count_warning",
+    "ready_quick_read_only": {
+      "ok": true,
+      "passed": 12,
+      "failed": 0,
+      "warned": 1,
+      "unknown": 1,
+      "skipped": 7,
+      "MH_TRUTH_001": "pass",
+      "MH_QUALITY_001": "pass"
+    },
+    "package": {
+      "name": "@nkgss/meta-harness",
+      "version": "0.2.1",
+      "entries": 240,
+      "tests_or_fixtures": 0,
+      "private_or_signer_paths": 0
+    },
+    "production_signer_scan": "pass",
+    "diff_check": "pass"
+  },
+  "score": {
+    "overall": 6.6,
+    "previous": 6.3,
+    "dimensions": {
+      "product_progress": 6.0,
+      "shipping_readiness": 5.5,
+      "intent_alignment": 7.5,
+      "functional_completeness": 8.0,
+      "evidence_confidence": 9.7,
+      "process_quality": 8.7,
+      "global_integrity": 5.2,
+      "knowledge_application": 3.0,
+      "human_friction": 3.8,
+      "cost_efficiency": 5.3,
+      "rework_burden": 3.3,
+      "continuity_confidence": 5.2
+    },
+    "rationale": "The direct atomic ledger design, clean lineage, focused cross-platform evidence, package boundary, and quality posture are substantial progress. The score remains capped because the fallback can remove the canonical path, the candidate lacks its own D082 authority chain, G-001 remains unproven, and no integrated or shipped product outcome exists."
+  },
+  "intent_assessment": {
+    "original_intent_changed": false,
+    "aligned": [
+      "Controller-owned canonical mutation remains the declared boundary.",
+      "Workers remain bounded executors and external authority remains borrowed.",
+      "The repair uses one shared event-store primitive and no database, daemon, vault, keychain, or generic filesystem framework.",
+      "The clean upstream-based candidate lineage is preserved.",
+      "G-001, integration, and S-006M remain the shipment path."
+    ],
+    "explicit_deviations": [
+      "A speculative Windows move-aside compatibility path was added despite native Node 25 replacement working in the supported environment.",
+      "The fallback weakens the fail-preserving invariant in order to support an unverified compatibility assumption.",
+      "The committed swap test name overstates what the test actually executes.",
+      "The exact candidate omitted the D082 authority and therefore drifted from the current roadmap while claiming to have read it."
+    ]
+  },
+  "revised_roadmap": [
+    {
+      "step": 1,
+      "gate": "CANDIDATE-S001R5F",
+      "description": "Finalize the current clean candidate without creating another architecture phase.",
+      "required": [
+        "Delete the move-aside backup fallback and use one direct temp-to-ledger rename.",
+        "On rename failure, prove the prior ledger remains byte-identical at events.jsonl and no backup residue exists.",
+        "Replace the weak swap test with the actual rename-boundary replacement probe on Linux and Windows.",
+        "Synchronize the minimal D082 authority chain and active R5 direction into the clean candidate.",
+        "Preserve all accepted R4/R5 runtime, quality, package, and verifier-only behavior.",
+        "Create one named clean finalization commit and stop."
+      ]
+    },
+    {
+      "step": 2,
+      "gate": "INDEPENDENT-AUDIT-CANDIDATE-S001R5F",
+      "description": "Audit the exact finalization commit, including direct rename failure preservation, actual rename-boundary swapping, complete Windows Node 25 scope, package, quality, and fresh-checkout authority continuity."
+    },
+    {
+      "step": 3,
+      "gate": "G-001",
+      "description": "Use the matching external capability once in a controller-owned fresh checkout only after exact-commit acceptance."
+    },
+    {
+      "step": 4,
+      "gate": "INTEGRATE-S001",
+      "description": "Commit the accepted event and status, independently verify, merge, and package."
+    },
+    {
+      "step": 5,
+      "gate": "S-006M",
+      "description": "Immediately ship the first real non-fixture coding loop to merged and packaged state."
+    }
+  ],
+  "stop_rule": "Do not run G-001, use the external private capability, append a new canonical event, integrate, push, merge, publish, or begin S-006M before CANDIDATE-S001R5F passes exact-commit independent audit."
+}

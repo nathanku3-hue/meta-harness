@@ -1,18 +1,216 @@
-# Meta-Harness Roadmap — Local-Audit-Driven Revision
+# Meta-Harness Roadmap
 
-Status: active baseline
+Status: **locked current direction**
+Version: `endgame-v10 + fail-preserving exact-candidate finalization`
+Effective date: 2026-07-18
+Intent authority: [Product Intent Anchor](product-intent.md)
+Question authority: [Problem-Solving Questions](problem-questions.md)
+
+## Locked Endgame
+
+Meta-Harness is an AI-native operating harness for one solo developer/researcher shipping ultra-complex, multi-module systems that require both software engineering and specialist knowledge.
+
+The human owns intent, taste, authority, risk tolerance, scope expansion, and irreversible commitments. The auditor-planner owns truthful direction. The worker owns authorized execution. The controller owns canonical state, custody, leases, cancellation, and loop integrity.
+
+The end-state loop is:
+
+```text
+reconcile canonical truth
+→ audit completed work and freeze the audit
+→ re-read frozen human intent
+→ compare three forward alternatives
+→ authorize one numbered functional slice
+→ execute all reversible authorized work
+→ independently verify and integrate
+→ measure product and process outcome
+→ atomically update canonical state
+→ continue, ship, re-plan, gate, or stop
+```
+
+The primary product view is always:
+
+- what outcome is being shipped;
+- what is currently true;
+- what blocks that outcome;
+- what the critical path is;
+- which smallest end-to-end slice should be built next;
+- why it beats the alternatives;
+- what requires human judgment;
+- what proves the slice worked;
+- what shipping state closes the objective.
+
+## Locked Operating Model
+
+```text
+AUDITOR–PLANNER
+  PASS A: audit, diagnose, score, freeze
+  PASS B: re-read intent, compare alternatives, emit RunSpec
+
+WORKER
+  verify authority and local truth
+  emit compact plan
+  pass automated plan preflight
+  execute all authorized reversible work
+  checkpoint and return structured evidence
+
+AUDITOR–PLANNER
+  independently verify result and process
+  choose one loop disposition
+```
+
+Loop dispositions are:
+
+- `ACCEPT_AND_CONTINUE`;
+- `ACCEPT_AND_SHIP`;
+- `REPAIR_CURRENT_SLICE`;
+- `SALVAGE_AND_REPLAN`;
+- `REJECT_AND_REPLAN`;
+- `HUMAN_GATE`;
+- `STOP`.
+
+The auditor-planner must initially evaluate the clean base, RunSpec, candidate diff, observable output, tests, and artifacts without receiving the worker's private reasoning or preferred next step.
+
+## Planning Priority
+
+Every planning round follows this order:
+
+1. Ship the active objective.
+2. Unlock its critical path.
+3. Reduce uncertainty blocking that path.
+4. Fix defects that threaten that path.
+5. Improve the harness only when a current product slice cannot ship without the improvement.
+
+Audit findings do not automatically become roadmap items.
+
+## Design Laws
+
+1. **One canonical fact layer.** Immutable events and run evidence are authority; status is a generated projection.
+2. **Frozen human intent.** The active intent version is injected verbatim into audits, plans, handoffs, resumes, outcomes, and roadmap changes.
+3. **Vertical functional slices.** Each slice creates an observable end-to-end product capability or removes a proven blocker to one.
+4. **Explicit contract kernel.** Feature modules may share only a small stable kernel for schemas, validation, atomic I/O, IDs, results, and errors.
+5. **Single-context changeability.** Judge modules by the complete context footprint needed for safe change, not file length alone.
+6. **Bounded loops.** Every run declares action, time, cost, scope, authority, stop, and escalation limits.
+7. **Minimal named human gates.** Only authority, taste, material risk, scope expansion, and irreversible commitment require human intervention.
+8. **Borrow execution.** Own decisions, evidence, custody, and integration; borrow general agent execution through thin measured adapters.
+9. **Independent audit.** Builders do not solely verify their own work.
+10. **Knowledge becomes product evidence.** Research must become a requirement, constraint, test, benchmark, decision, risk, claim, or implementation rule.
+11. **Versioned outcome learning.** Policy changes make falsifiable predictions, run against development and holdout corpora, and remain reversible.
+12. **Optimize shipping economics.** Maximize verified product progress per unit calendar time and human attention.
+13. **Continuity is correctness.** Handoffs are validated state transitions, not summaries; resume requires receiver-comprehension proof.
+14. **One writer before fan-out.** Multi-agent execution requires leases, disjoint writes or read-only roles, duplicate suppression, deterministic integration, and favorable economics.
+15. **No silent drift.** Intent, authority, shipping definition, material risk, evidence standards, and current facts cannot change implicitly.
+16. **Aggressive explicit deviation.** Roadmap, architecture, modules, and execution substrate may change aggressively when evidence shows a faster path to the locked endgame.
+
+## Planning Vocabulary
+
+Normal planning exposes only:
+
+| ID | Meaning |
+|---|---|
+| `O-###` | Product outcome |
+| `S-###` | Functional slice |
+| `G-###` | Human gate |
+| `R-###` | Execution run |
+
+Historical decision and phase identifiers remain available for evidence but are not the normal PM interface.
+
+## Scorecard
+
+Do not hide trade-offs in one aggregate score. Each round reports:
+
+- product progress;
+- shipping readiness;
+- intent alignment;
+- functional completeness;
+- evidence confidence;
+- process quality;
+- global integrity;
+- knowledge application;
+- human friction;
+- cost efficiency;
+- rework burden;
+- continuity confidence.
+
+A short overall verdict may accompany the vector, but weights remain explicit and versioned.
+
+## Locked Functional-Slice Build Order
+
+G-AUTHORITY-001 completed one-way authority epoch-2 migration and S001-SHIP-E2 as package `0.3.0` after candidate `588bbe9` acceptance. The only remaining critical-path slice is external-product S-006M. The original long-range capabilities remain valid endgame candidates, but they are not automatic prerequisites.
+
+| Step | Slice / gate | Product problem | Exit condition |
+|---:|---|---|---|
+| 1 | `CANDIDATE-S001R5F` + `S001R5F-CLOSE` + CI-ACCEPT | Runtime and direction close for S-001 candidate. | **Done** at accepted `588bbe9` (Linux/Windows × Node 20/25). |
+| 2 | `G-001` Epoch-1 continuity | Matching private capability for epoch-1 public key. | **Falsified** — capability unavailable; valid human-gate outcome. |
+| 3 | `G-AUTHORITY-001` + `S001-SHIP-E2` | Unrecoverable epoch-1 key blocked shipment. | **Done**: one-way epoch-2 migration, one receipt v2, package `0.3.0`, epoch-1 frozen as history, no dual-epoch runtime. |
+| 4 | `S-006M` First real single-worker coding loop | No real external product behavior has shipped through the harness. | One non-fixture change in a **non-Meta-Harness** product repository completes frozen audit → intent → three alternatives → bounded RunSpec → installed `0.3.0` execute custody → independent acceptance → merged and packaged terminal state. |
+| 5 | `OBSERVED-BLOCKER-ONLY` Evidence-led enabling work | Horizontal infrastructure can consume the roadmap without moving a product outcome. | Add only the smallest projection, intent, evaluation, handoff, resume, runtime, identity, research, custody, or PM-control change that a real active slice proves is blocking shipment. |
+| 6 | `S-009M` First research-to-product loop | Research remains useful only when it changes a requirement, constraint, test, benchmark, risk, decision, claim, or implementation rule. | One real research question changes shipped behavior or its acceptance evidence through the same bounded loop. |
+| 7 | `S-012M` Multi-module behavior slice | Cross-module behavior still risks local optimization and context collapse. | One real multi-module product behavior is localized, changed, independently verified, and shipped through progressive disclosure. |
+| 8 | `S-016M` Scored alternatives in shadow mode | Planning quality and economics are not measured against alternatives. | Three materially different next-slice candidates are scored beside the human/auditor decision and beat a baseline without controlling execution. |
+| 9 | `S-020M` Outcome learning | Historical evidence does not yet improve recommendations. | A versioned, reversible policy change makes a falsifiable prediction and improves holdout recommendation quality without shipping regressions. |
+| 10 | `S-024M` Controlled fan-out | Parallel agents are not yet proven economically or operationally safe. | Leased isolated workcells reduce elapsed time versus one worker without increasing defects, rework, duplicate work, or integration failure. |
+| 11 | `S-029M` Shipping workcell | Release mechanics and human reconstruction still interrupt the end-to-end objective. | One PM surface and bounded shipping workcell complete release evidence, migration, rollback, and the final shipping decision. |
+
+### Deferred standalone programs
+
+The following are no longer automatic prerequisites:
+
+- `S-001A` standalone projection contract: fold only the provenance required to close `CANDIDATE-S001R5F`; expand later only from observed failure.
+- `S-001B` standalone frozen-intent machinery: `docs/product/product-intent.md` remains the locked authority; automate injection only when a real loop proves the manual anchor insufficient.
+- `S-005`/`S-005A` standalone corpus program: add adversarial cases to each active slice; extract a shared corpus only after repeated reuse.
+- `S-006A/B/C` broad handoff, resume, and checkpoint programs: derive the minimum typed contract from the first real interrupted or transferred loop.
+- `S-002` runtime-floor work and `S-004` identity migration: execute only when they directly block release, adoption, or an active product outcome.
+
+## Immediate Scope
+
+The only authorized work is:
+
+```text
+S-006M — real non-Meta-Harness product loop through installed 0.3.0 → merged and packaged
+```
+
+S001-SHIP-E2 is complete under G-AUTHORITY-001: candidate `588bbe9` accepted, authority epoch 2 pinned, package identity `0.3.0`, epoch-1 evidence frozen at `docs/ops/audits/authority-epoch-1-frozen/`. The product remains verifier-only with a single active authority epoch. Declared Node support is `>=20` with CI evidence on Node 20 and Node 25 for Linux and Windows.
+
+The tracked verifier schema is `meta-harness-truth-authority-public/v1`; the repository-bound receipt schema is `meta-harness-truth-authority-receipt/v2`. No new authority schema, dual-epoch compatibility, database, daemon, or generic filesystem layer is authorized.
+
+S-006M must target a real non-Meta-Harness product repository. No new harness feature may precede it unless that real run demonstrates a concrete blocker.
+
+Do not begin an internal key vault, signer daemon, OS-keychain adapter, generic credential framework, authority recovery system, custom database, broad path framework, canonical-phase/role-permission refactor, adapter expansion, generic loop controller, corpus infrastructure, broad handoff machinery, mass module splitting, outcome learning, or multi-agent orchestration in parallel.
+
+## v1.0 Proof Standard
+
+The system may claim proven product success only after:
+
+- at least three real multi-module product outcomes;
+- coding and research both materially affecting shipped behavior;
+- zero undetected authoritative contradictions;
+- fresh-worker continuation after interruption without conversation reconstruction;
+- lower problem-to-shipping calendar time than baseline;
+- fewer routine human interventions per verified slice;
+- no increase in escaped defects or rework;
+- holdout-tested improvement in recommendation quality;
+- measured benefit from any multi-agent fan-out;
+- complete release evidence and rollback for every shipping claim.
+
+Until then, the honest position is: **credible SOTA research direction, not yet a proven SOTA system**.
+
+## Historical Phase-Era Baseline
+
+The phase-era roadmap below is retained as historical implementation and custody evidence. It does not supersede the locked functional-slice build order above.
+
+Status: historical phase-era baseline retained for traceability
 Approval scope: Phase 1–12 aggregate completion under accepted roadmap scopes, closed by D031 at commit d031c
 Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phase 13 local context-governance capabilities now extend through governance snapshotting/replay and compatibility classification. Phase 6B / 13D adds docs/templates-only build-vs-borrow expert routing before any connector or automation work. Phase 14C governance migration/release framework is implemented locally. Phase 16 is closed under D042. Phase 17 read-only multi-repo rollup pilot, ready freshness/drilldown, and drift warnings are closed locally under D043-D045. Phase 18 read-only response handoff is closed locally under D046. D048 supersedes D047's too-broad action/proposal claim and closes Phase 19A as read-only next-action routing only. Phase 19B read-only next-action brief is closed locally under D049. Phase 20A read-only proposal draft packet is closed locally under D050. Phase 20B read-only proposal draft validation is closed locally under D051. Phase 20C read-only proposal review gate is closed locally under D052. Phase 20D read-only proposal review packet envelope is closed locally under D053. Phase 20E read-only proposal review options is closed locally under D054. Phase 20F read-only review decision receipt template is closed locally under D055. Phase 20G read-only proposal review receipt validation is closed locally under D056. Phase 20H read-only copy block rendering is closed locally under D057. Phase 20I read-only copy block validation is closed locally under D058. Phase 20J read-only export intent/safety gate is closed and pushed under D059. Phase 20K explicit export files are bypassed/future-only unless a real user need appears. Phase 21A controlled autonomy dry-run plan, approval receipt validation, and CLI receipt input are closed. Phase 21B approved manual-work packet is closed under D060. Phase 21C approved packet materialization is implemented locally under D061. Phase 21D approved packet artifact verification is implemented locally under D062. Phase 21E read-only operator execution plan is implemented locally under D063. Phase 23A installed-package execution is closed through D076 under exact repair candidate `ce02548`. Feature development is frozen pending exact-closure-commit release/security evidence and publication. Dashboards, daemons, auto-worker routing, readiness refresh, auto-repair, generic provider integration, CI dashboard publishing, self-approving autonomy, broad workflow automation, and pre-release DELETE remain future/non-goals.
 Date: 2026-07-15
 Decision: D031 aggregate closure; D032-D038 context/governance records; D041-D066 MCP/strategic-loop, read-only rollup, manual-work/operator-plan/readiness records; D068-D076 execution-authority/custody and installed-package closure; D021–D030 remain source decisions; D017–D020 remain source decisions
 
-## Endgame
+## Historical Custody-Era Endgame
 
 Meta-Harness is a repo-local control plane for self-governing software work. It uses skills and bounded subagents to maximize leverage. It blocks unsafe autonomy through state, security, facts, tests, and review.
 
 The currently published registry package remains the older Markdown-first release, but D076 closes the next installed artifact locally: one shipped `execute` command from an isolated packed installation with authenticated VERIFIED, durable custody, expired zero-spawn REPLAY, independent validation, leakage PASS, and a public receipt. Exact-closure-commit release/security evidence and publication are now the active gate. Dashboards, daemon mode, generic worker orchestration, and full autonomy remain future phases, not current claims.
 
-## Scoring Baseline (2026-06-06 audit)
+## Historical Scoring Baseline (2026-06-06 audit)
 
 | Dimension | Score |
 |---|---|

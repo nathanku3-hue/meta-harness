@@ -1,0 +1,239 @@
+{
+  "schema_version": "meta-harness-s001r4-independent-audit/v1",
+  "audit_id": "D082-CANDIDATE-S001R4-INDEPENDENT",
+  "recorded_at": "2026-07-18",
+  "candidate": {
+    "branch": "codex/candidate-s001r4",
+    "commit": "3cfe00c9bbeca707f3ea549b19e8c2cbf05d1360",
+    "base": "0791efa59bbc3f373868c8c7950797e712921af5",
+    "clean": true,
+    "ahead_of_origin_main": 1,
+    "behind_origin_main": 0,
+    "push_or_merge_observed": false
+  },
+  "verdict": "REPAIR_CURRENT_SLICE",
+  "acceptance": false,
+  "integration": false,
+  "shipment": false,
+  "summary": "CANDIDATE-S001R4 is a real clean and check-outable advance and independently passes its complete supported-runtime, quality, readiness, package, verifier-only, legacy-read, bootstrap, symlink, junction, replay, and projection evidence. It is not accepted because canonical ledger writes remain pathname-based check-then-use operations. A regular hard-linked ledger passes lstat and realpath confinement on both Linux and Windows, after which event --canonical exits zero and appends the signed receipt to an external file. A deterministic post-check path swap also redirects the append externally. Pathname validation therefore does not establish controller custody against a same-user mutable filesystem.",
+  "independent_verification": {
+    "checkout_identity": {
+      "head": "3cfe00c9bbeca707f3ea549b19e8c2cbf05d1360",
+      "merge_base": "0791efa59bbc3f373868c8c7950797e712921af5",
+      "clean": true,
+      "ahead": 1,
+      "behind": 0
+    },
+    "windows_node_25_complete_suite": {
+      "runtime": "v25.2.1",
+      "tests": 836,
+      "passed": 831,
+      "failed": 0,
+      "skipped": 5,
+      "duration_ms": 78366.9221
+    },
+    "linux_focused_truth_suite": {
+      "runtime": "v18.19.1",
+      "tests": 30,
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0
+    },
+    "quality": {
+      "status": "pass",
+      "baseline_refreshed": false,
+      "warning": "public CLI command count 28 exceeds 25"
+    },
+    "quick_read_only_readiness": {
+      "ok": true,
+      "passed": 12,
+      "failed": 0,
+      "warned": 1,
+      "unknown": 1,
+      "skipped": 7,
+      "MH_TRUTH_001": "pass",
+      "MH_QUALITY_001": "pass"
+    },
+    "package": {
+      "name": "@nkgss/meta-harness",
+      "version": "0.2.1",
+      "entries": 240,
+      "tests_or_fixtures": 0,
+      "private_or_signer_paths": 0
+    },
+    "diff_check": "pass",
+    "tracked_public_authority": {
+      "schema": "meta-harness-truth-authority-public/v1",
+      "repository_id": "github:nathanku3-hue/meta-harness",
+      "algorithm": "Ed25519",
+      "signer_key_id": "sha256:bbc4330c83fd3b392a2b0628618d34b612818359dec1ea5ed47227f96f11be41"
+    },
+    "legacy_history": {
+      "receipt_schema": "meta-harness-truth-authority-receipt/v1",
+      "receipt_id": "D078-S001R-SIGNED-CUTOVER",
+      "readable": true,
+      "unresolved_events": 0
+    }
+  },
+  "findings": [
+    {
+      "severity": "high",
+      "id": "S001R4_HARDLINK_LEDGER_ESCAPE",
+      "title": "A regular hard-linked canonical ledger writes outside the repository",
+      "evidence": {
+        "linux": {
+          "event_exit": 0,
+          "ledger_is_regular_file": true,
+          "ledger_is_symlink": false,
+          "link_count": 2,
+          "external_file_changed": true,
+          "external_file_contains_receipt": true
+        },
+        "windows_node_25": {
+          "event_exit": 0,
+          "ledger_is_regular_file": true,
+          "ledger_is_symlink": false,
+          "link_count": 2,
+          "external_file_changed": true,
+          "external_file_contains_receipt": true
+        }
+      },
+      "cause": "assertContainedPath checks file type and realpath but not link count. fs.appendFileSync mutates the shared inode, so a path that appears regular and contained can have an external name.",
+      "consequence": "The claimed repository-local canonical fact layer is false without any race or malformed receipt. A worker can pre-position a hard link before a controller submits a valid receipt, causing an externally named file to receive the canonical append.",
+      "disposition": "blocking"
+    },
+    {
+      "severity": "high",
+      "id": "S001R4_PATH_CHECK_USE_RACE",
+      "title": "Final confinement validation is separated from the pathname write",
+      "evidence": {
+        "deterministic_probe": {
+          "append_error": null,
+          "path_swapped_after_final_check": true,
+          "target_became_symlink": true,
+          "external_file_changed": true,
+          "external_file_contains_receipt": true
+        }
+      },
+      "cause": "appendEventAtomic performs assertContainedPath and then reopens events.jsonl by pathname with fs.appendFileSync. The validated object identity is not the object being written if the path changes between those operations.",
+      "consequence": "Component lstat and realpath checks close static links but cannot establish a security boundary against a concurrent same-user filesystem writer.",
+      "disposition": "blocking unless the mutation implementation changes and the controller custody threat boundary is explicit"
+    },
+    {
+      "severity": "medium",
+      "id": "S001R4_SHARED_LEDGER_WRITE_SURFACE",
+      "title": "Ordinary and canonical events share the same in-place append primitive",
+      "evidence": "lib/harness-state.js appendEvent uses eventStore.appendEvent without targetRoot confinement, while canonical append uses the same fs.appendFileSync primitive after path checks.",
+      "consequence": "Fixing only event --canonical would leave ordinary event writes able to mutate a hard-linked or redirected shared ledger and then affect later canonical reconciliation.",
+      "disposition": "repair the event store once for both ordinary and canonical writes"
+    },
+    {
+      "severity": "medium",
+      "id": "S001R4_THREAT_BOUNDARY_OVERCLAIM",
+      "title": "Path hygiene was treated as same-principal custody isolation",
+      "evidence": "The candidate evidence claims canonical paths cannot escape through linked surfaces, but pathname checks cannot prevent hard-link aliasing or hostile check/use replacement by another process with the same filesystem authority.",
+      "consequence": "Continuing to add path variants would create an unbounded path-hardening program and still not produce an OS principal boundary.",
+      "disposition": "restore the original controller-owned mutation boundary explicitly; do not claim protection from an arbitrary hostile same-user filesystem process"
+    }
+  ],
+  "accepted_claims": [
+    "The candidate is clean, check-outable, exactly one commit ahead of origin/main, and based on the intended upstream commit.",
+    "One-shot bootstrap, ordinary static symlink/junction rejection, stale dead-owner lock recovery, and explicit already-initialized behavior work as tested.",
+    "The runtime and npm package are verifier-only and contain no private authority material or signing capability.",
+    "Ed25519 pinning, repository-bound receipt v2, 300-second receipt lifetime, replay checks, exact projection, reconciliation, and non-zero truth blocking remain independently green.",
+    "D078 receipt v1 history remains read-only verifiable against the tracked structured public authority contract v1.",
+    "Quality, package, diff, readiness, Linux focused tests, and the literal Windows Node 25 complete suite pass on the exact candidate commit."
+  ],
+  "alternatives": [
+    {
+      "option": "Accept 3cfe00c9 and treat hard links and check/use races as residual risk",
+      "decision": "rejected",
+      "reason": "This would silently weaken the repository-local custody claim immediately before G-001 and would accept a demonstrated external canonical write with exit code zero."
+    },
+    {
+      "option": "Build a generic secure filesystem layer, daemon, OS-keychain service, or new database",
+      "decision": "rejected",
+      "reason": "This is disproportionate, conflicts with minimal governance, and still does not create a separate principal if the worker and controller run with the same unrestricted OS authority."
+    },
+    {
+      "option": "Repair the shared event store with atomic replacement, reject hard-linked canonical files, and explicitly bind mutation to controller-owned custody",
+      "decision": "selected",
+      "reason": "It closes the demonstrated non-racy escape, removes in-place inode mutation, reuses one event-store path for ordinary and canonical events, and aligns with the locked controller-owns-state intent without opening a broad infrastructure phase."
+    }
+  ],
+  "roadmap": [
+    {
+      "step": 1,
+      "id": "CANDIDATE-S001R5",
+      "title": "Atomic controller-custodied ledger candidate",
+      "exit": "Build one repair commit on top of 3cfe00c9. Reject nlink != 1 for canonical authority, ledger, status, and lock files. Replace in-place event append with logical append implemented as read and validate under the event lock, write the complete next ledger to a fresh regular temp file, flush, and atomically replace the ledger. Apply the same event-store primitive to ordinary and canonical events. Add Linux and Windows hard-link probes plus a deterministic post-check path-swap probe. State explicitly that canonical mutation requires a controller-owned checkout with no worker write scope or concurrent untrusted same-user filesystem writer; do not claim pathname checks create an OS principal boundary. Preserve all existing tests, package, quality, and exact-commit custody evidence."
+    },
+    {
+      "step": 2,
+      "id": "INDEPENDENT-AUDIT-CANDIDATE-S001R5",
+      "title": "Exact-commit ledger custody acceptance",
+      "exit": "Audit the named clean commit and fresh checkout, repeat static links, hard links, deterministic path replacement, event concurrency, bootstrap, legacy, receipt, quality, package, and complete Windows Node 25 proofs."
+    },
+    {
+      "step": 3,
+      "id": "G-001",
+      "title": "External authority continuity proof",
+      "exit": "In a controller-owned fresh checkout of the accepted candidate, produce one unique receipt v2 with lifetime at most 300 seconds from the matching external capability and observe exactly one accepted logical ledger append without private material exposure."
+    },
+    {
+      "step": 4,
+      "id": "INTEGRATE-S001",
+      "title": "Final truth integration",
+      "exit": "Commit the exact G-001 ledger and generated status, independently verify, merge, and package S-001."
+    },
+    {
+      "step": 5,
+      "id": "S-006M",
+      "title": "First real non-fixture coding loop",
+      "exit": "Ship one real bounded coding outcome to merged and packaged state without adding another horizontal governance phase."
+    }
+  ],
+  "score": {
+    "overall": 6.3,
+    "previous": 5.8,
+    "dimensions": {
+      "product_progress": 5.5,
+      "shipping_readiness": 5.0,
+      "intent_alignment": 8.0,
+      "functional_completeness": 7.5,
+      "evidence_confidence": 9.9,
+      "process_quality": 9.0,
+      "global_integrity": 4.8,
+      "knowledge_application": 3.0,
+      "human_friction": 3.5,
+      "cost_efficiency": 5.0,
+      "rework_burden": 3.5,
+      "continuity_confidence": 6.0
+    },
+    "reason": "The clean exact candidate, full supported-runtime proof, tracked authority state, and package custody are major forward progress. Acceptance remains blocked because the load-bearing repository-local write invariant is independently false for hard links and check/use replacement, G-001 is unproven, and no integration or shipped product outcome exists."
+  },
+  "intent_deviation": {
+    "intent_changed": false,
+    "aligned": [
+      "Verifier-only authority and external signing capability remain borrowed rather than owned.",
+      "The candidate is clean, upstream-based, check-outable, and independently testable.",
+      "The selected repair remains bounded to the shared event store and controller custody boundary.",
+      "G-001, integration, and S-006M remain the immediate shipment path."
+    ],
+    "explicit_deviations": [
+      "The implementation treated pathname validation as equivalent to controller custody, although the original intent assigns mutation custody to a distinct controller role.",
+      "Static symlink and junction coverage was mistaken for complete alias coverage; hard links were omitted.",
+      "The candidate still mutates the ledger inode in place, which is inconsistent with strong repository-local custody when aliases exist.",
+      "The active threat claim implicitly expanded to arbitrary hostile same-user filesystem concurrency without adding an OS principal boundary. D082 narrows the claim explicitly to controller-owned mutation custody and bounded workers in disjoint write scopes."
+    ]
+  },
+  "repository_state": {
+    "candidate_untouched_by_audit": true,
+    "candidate_commit": "3cfe00c9bbeca707f3ea549b19e8c2cbf05d1360",
+    "candidate_clean": true,
+    "main_remains_dirty": true,
+    "canonical_status_changed": false,
+    "g001_performed": false,
+    "push_merge_or_publication_performed": false
+  }
+}

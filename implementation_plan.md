@@ -1,4 +1,48 @@
-# Phase 13A: Context Quality Gate
+# Active Implementation Plan: S-006M External Product Loop
+
+Status: **S001-SHIP-E2 complete under G-AUTHORITY-001; package identity `0.3.0`; next is S-006M in a real non-Meta-Harness product repository.**
+
+## Endgame intent
+
+Ship a local authority-bound execution harness that moves from frozen human intent to merged and packaged outcomes while the controller owns canonical mutation and a failed write never displaces valid truth.
+
+## Immediate path
+
+```text
+S001-SHIP-E2 complete @ package 0.3.0
+→ S-006M in a real non-Meta-Harness product repository
+→ merged and packaged product change
+```
+
+## First-principle constraints
+
+1. Verifier-only runtime: no private key, key generation, signer, or dual-epoch compatibility in product/package.
+2. Epoch-1 evidence frozen at `docs/ops/audits/authority-epoch-1-frozen/` only.
+3. Active mutation uses epoch-2 public authority only.
+4. S-006M must not target Meta-Harness itself.
+5. No new harness feature unless the real external loop demonstrates a concrete blocker.
+
+## S-006M functional slice
+
+```text
+frozen audit
+→ original intent
+→ three alternatives
+→ bounded RunSpec
+→ installed 0.3.0 execution custody
+→ independent machine acceptance
+→ canonical disposition
+→ merged and packaged product change
+```
+
+## Stop rule
+
+Stop on private material leakage, dual-epoch runtime support, reopening S-001 architecture, or claiming product proof without an external-repo S-006M outcome.
+
+
+# Historical Plan: Phase 13A Context Quality Gate
+
+> Retained as implementation evidence only. It does not define current product direction after D080/S-001R3.
 
 ## Phase 13B Status Note
 

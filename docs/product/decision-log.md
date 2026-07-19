@@ -1,7 +1,434 @@
 # Meta-Harness Decision Log
 
-Status: starter
-Date: 2026-05-02
+Status: append-only
+Started: 2026-05-02
+Current direction locked: 2026-07-19
+
+## G-AUTHORITY-001: One-Way Authority Epoch-2 Migration and S001-SHIP-E2
+
+Decision:
+
+Authorize and execute one irreversible authority epoch migration after G-001 falsified recoverability of the epoch-1 private capability for the public key pinned since `3cfe00c` (`x: H66vchht-4Eg5W0XnRuspV_B738vwNsU6nB2f-DfO2A`).
+
+Accepted candidate `588bbe9` remains the technical base. S001-SHIP-E2 is one bounded shipping transaction, not a new phase:
+
+1. generate a new Ed25519 capability outside the repository and package;
+2. keep the private JWK only at the external controller path;
+3. freeze epoch-1 public contract, full prior ledger, and D078 status under `docs/ops/audits/authority-epoch-1-frozen/`;
+4. pin only the epoch-2 public contract as the active verifier;
+5. create one repository-bound receipt v2 (`G-AUTHORITY-001-S001-SHIP-E2`) with lifetime ≤300 seconds;
+6. establish fresh epoch-2 canonical state without dual-epoch runtime support;
+7. set package identity to `0.3.0`;
+8. fold acceptance, migration, and active direction into the same integration commit;
+9. immediately authorize `S-006M` in a real non-Meta-Harness product repository.
+
+No vault, signer daemon, keychain adapter, recovery framework, multi-epoch compatibility layer, or generic migration command is authorized.
+
+Rationale:
+
+Continuing to wait for an unrecoverable key is sunk-cost preservation. One breaking epoch migration preserves verifier-only architecture and restores shipping velocity. No active consumer demonstrated a need for epoch-1 continuity.
+
+Evidence:
+
+Accepted candidate `588bbe9`; frozen epoch-1 pack; epoch-2 public contract; signed receipt embedded in the active ledger; package `0.3.0`.
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Canonical-state note:
+
+Canonical status is advanced by the epoch-2 signed receipt `G-AUTHORITY-001-S001-SHIP-E2`. Epoch-1 D078 status remains immutable historical evidence only.
+
+Supersession:
+
+Supersedes the assumption that epoch-1 private capability remains recoverable. Preserves D078–D084 historical evidence and verifier-only packaging. Replaces the deferred G-001/INTEGRATE split with completed S001-SHIP-E2 and active `S-006M`.
+
+## D084: Close S001R5F Direction Surfaces, Permit Candidate Push, and Require Honest Node Evidence
+
+Decision:
+
+Retain `REPAIR_CURRENT_SLICE` only for direction and evidence-contract closure—not another runtime architecture cycle. Exact commit `88e17bf465ac1bd660121331b6b54c4a9d00fc0f` closes the two D083 runtime defects: unsafe move-aside fallback deleted; direct rename failure preserves the old ledger; Windows Node 25 suite, truth/quality readiness, and package boundary pass. The candidate is still not shippable because active ordinary product surfaces still described R5F as undone, package identity remains reused `0.2.1`, remote custody was missing, and declared Node `>=20` was evidenced only on Node 25.
+
+Authorized immediate work is exactly `S001R5F-CLOSE`:
+
+1. mark completed `88e17bf` work complete in `task.md` and active product surfaces;
+2. instruct fresh workers to audit the candidate, not re-implement R5F;
+3. keep `engines.node` at `>=20` and require CI evidence on Node 20 and Node 25 for Linux and Windows;
+4. permit non-force push of the exact candidate branch for remote custody and hosted CI only;
+5. keep G-001, merge, tag, and publication blocked;
+6. reserve package identity `0.3.0` for `INTEGRATE-S001` after acceptance (no compatibility shims);
+7. add no runtime framework, vault, signer daemon, authority system, or governance layer.
+
+Forward path after the close commit:
+
+```text
+exact candidate audit + hosted CI
+→ G-001
+→ INTEGRATE-S001 as 0.3.0
+→ S-006M real product loop
+```
+
+Rationale:
+
+Stale active instructions violate continuity and no-silent-drift. Forbidding reversible candidate publication blocked the evidence needed for acceptance. The Node floor claim must match tests. Materially changed package bytes must not share tagged `0.2.1` identity. The roadmap must get narrower, not broader.
+
+Evidence:
+
+Post-`88e17bf` independent audit revision (score 6.9/10; verdict `REPAIR_CURRENT_SLICE` for custody/direction, runtime PASS).
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Canonical-state note:
+
+The signed canonical status remains at D078/S-001R verify. D084 is ordinary non-canonical audit evidence because no valid external receipt was supplied. That status staleness remains disclosed and intentional until G-001.
+
+Supersession:
+
+D084 preserves D083's runtime finalization on `88e17bf`, verifier-only authority, controller-owned mutation, and candidate-before-G-001 order. It supersedes active instructions that still authorize R5F re-implementation, the stop rule that forbade non-force candidate push before exact acceptance, and the claim that Node 25-only evidence completes a `>=20` support contract.
+
+## D083: Keep S001R5 Open, Delete the Unsafe Replacement Fallback, and Synchronize Candidate Authority
+
+Decision:
+
+Retain `REPAIR_CURRENT_SLICE`. Exact commit `a0e4835a4bcc9dea1f688689b4bf70575b12423d` materially advances the clean candidate: multiply linked canonical files fail closed, runtime ledger mutation no longer uses `appendFileSync`, and direct complete-ledger replacement independently preserves external aliases and installs a unique local ledger on Linux and Windows Node 25.
+
+The candidate is not accepted for two load-bearing reasons. First, `lib/events.js` adds a move-aside compatibility fallback after rename errors. A deterministic fault probe forced initial replacement failure, successful movement of the old ledger, failed installation, and failed restoration; `events.jsonl` disappeared and only an unrecognized backup retained the prior bytes. Native Windows Node 25 in the audit environment replaces an existing file directly, so the fallback is both unnecessary for the supported runtime and weaker than fail-closed direct replacement. Second, the exact candidate omits `docs/ops/audits/s001r4-independent-audit.json` and D082 and still advertises the superseded R4/D081 roadmap, plan, and task. A fresh checkout is code-reviewable but not direction-complete.
+
+The accepted score is raised from `6.3/10` to `6.6/10`. Direct atomic ledger replacement, hard-link rejection, clean lineage, focused cross-platform verification, quality, readiness, and package posture are credible. Acceptance remains blocked by fallback failure preservation, missing candidate authority custody, unproven G-001 continuity, and the absence of integration or shipment.
+
+The immediate order is revised without opening another architecture phase:
+
+1. `CANDIDATE-S001R5F` — preserve `a0e4835`, delete the move-aside backup fallback, use one direct temp-to-ledger rename, and prove any rename failure leaves the prior ledger byte-identical at `events.jsonl` with no backup residue;
+2. replace the overstated pre-operation alias test with a real rename-boundary path-swap regression on Linux and Windows;
+3. synchronize the minimal D082 authority chain into the clean candidate: the S001R4 independent audit, D082 decision, active roadmap, implementation plan, task, and aligned primary product surfaces;
+4. create one clean finalization commit and stop for exact-commit independent audit;
+5. only after acceptance run `G-001`, integrate and package S-001, then immediately execute `S-006M` to merged and packaged state.
+
+No database, daemon, vault, keychain adapter, generic filesystem framework, new authority schema, or broad governance program is authorized. The authority synchronization is repository custody, not a documentation phase.
+
+Rationale:
+
+The shortest trustworthy path is deletion, not another compatibility layer. The supported Windows runtime already provides direct replacement semantics. If direct rename fails, preserving the old canonical ledger is safer than moving it aside and attempting rollback. The clean candidate must also carry the authority that authorized it so a fresh operator does not depend on chat or the dirty main checkout.
+
+Evidence:
+
+`docs/ops/audits/s001r5-independent-audit.json`
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Canonical-state note:
+
+The signed canonical status remains at D078/S-001R verify. D083 is ordinary non-canonical audit evidence because no valid external receipt was supplied.
+
+Supersession:
+
+D083 preserves D082's controller-owned mutation boundary, clean candidate lineage, verifier-only authority, and candidate-before-G-001 order. It supersedes the speculative move-aside compatibility fallback and the assumption that an exact code candidate may omit the decision authority that authorized its current gate.
+
+## D082: Reject CANDIDATE-S001R4 Ledger Custody and Restore Controller-Owned Mutation
+
+Decision:
+
+Retain `REPAIR_CURRENT_SLICE`. Exact commit `3cfe00c9bbeca707f3ea549b19e8c2cbf05d1360` is a clean, upstream-based, check-outable candidate and independently passes the literal Windows Node 25 suite, Linux truth suite, quality ratchet, quick readiness, package inspection, verifier-only boundary, legacy D078 verification, one-shot bootstrap, static symlink/junction rejection, replay, and projection checks.
+
+The candidate is not accepted because canonical event storage still mutates `events.jsonl` in place after pathname checks. A regular hard-linked ledger passes `lstat` and `realpath` confinement on both Linux and Windows, after which `event --canonical` exits zero and appends the signed receipt to an external file. A deterministic probe also replaced the ledger after the final confinement check and before `fs.appendFileSync`; the external file received the canonical append with no error. Pathname hygiene therefore does not establish controller custody against a same-user mutable filesystem.
+
+The accepted score is raised from `5.8/10` to `6.3/10`. Repository custody, supported-runtime evidence, package posture, and reviewability are now materially stronger. Acceptance remains blocked by the load-bearing ledger-write invariant, unproven external capability continuity, and the absence of integration or a shipped product outcome.
+
+The immediate order is revised:
+
+1. `CANDIDATE-S001R5` — preserve `3cfe00c9` and add one bounded repair commit: reject hard-linked canonical files, replace in-place event append with complete-ledger atomic replacement under the existing event lock, and use that event-store primitive for both ordinary and canonical events;
+2. add Linux and Windows hard-link probes and a deterministic post-check path-swap probe; preserve all existing static link, bootstrap, replay, legacy, quality, package, and complete Windows Node 25 evidence;
+3. state the boundary truthfully: canonical mutation runs only in a controller-owned checkout with no worker write scope or concurrent untrusted same-user filesystem writer. Path checks are defense in depth, not an OS principal boundary;
+4. independently audit the exact S001R5 commit, then run `G-001`, integrate and package S-001, and move immediately to `S-006M`.
+
+Do not open a generic secure-filesystem program, database, signer daemon, vault, keychain adapter, contract-kernel refactor, or new governance phase. An arbitrary hostile same-user process cannot be isolated by additional pathname checks alone; OS-principal separation would be a different product and requires an explicit future authority decision if ever needed.
+
+Rationale:
+
+The locked intent already assigns canonical state, custody, and mutation to the controller while workers execute bounded changes. The correct correction is not endless path-variant detection. It is one atomic shared-ledger repair plus an explicit controller-owned mutation boundary. This closes the demonstrated non-racy hard-link escape, removes in-place inode mutation, and keeps the path to G-001 and the first real shipped slice short.
+
+Evidence:
+
+`docs/ops/audits/s001r4-independent-audit.json`
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Authority:
+
+The human requested independent audit, maximal decision-relevant insight, aggressive roadmap revision, no backward compatibility, no silent drift, functional-slice-first movement, and shipped-endgame orientation in the 2026-07-18 audit round.
+
+Canonical-state note:
+
+The signed canonical status remains at D078/S-001R verify. D082 is non-canonical audit and roadmap evidence because no valid external receipt was supplied. The exact candidate commit was not modified during audit.
+
+Supersession:
+
+D082 preserves D081's clean candidate, verifier-only authority, one-shot bootstrap, static link defenses, candidate-before-G-001 order, and schema terminology. It supersedes the claim that component `lstat` plus `realpath` establishes complete repository-local mutation custody and supersedes in-place append as the canonical ledger write strategy.
+
+## D081: Reject S-001R3 Path Confinement and Repair in the Clean Candidate
+
+Decision:
+
+Retain `REPAIR_CURRENT_SLICE`. S-001R3 independently closes every D080 blocker: pre-write receipt validation, Ed25519 pinning, the 300-second receipt ceiling, clean retry, concurrent bootstrap exclusion, legacy D078 readability, verifier-only packaging, the quality ratchet, and the complete supported-runtime suite.
+
+S-001R3 is not accepted because truth and init paths are not link-intolerant. Independent probes proved that POSIX staged bootstrap preserves linked `contracts` and `events.jsonl` surfaces and writes the authority contract or signed ledger outside the target while returning success. A canonical event append also follows an externally linked ledger. On both Linux and Windows Node 25, re-running `init` follows a linked `workers` directory and creates the worker template outside the repository.
+
+The accepted score is raised from `5.4/10` to `5.8/10`. The cryptographic, concurrency, quality, package, and historical-read claims are now independently credible, but repository-local canonical custody is still false under linked filesystem state and no check-outable or shipped outcome exists.
+
+The immediate order is revised aggressively:
+
+1. `CANDIDATE-S001R4` — create an isolated worktree from `origin/main` at `0791efa`, transplant only the accepted S-001 paths, and repair link confinement directly in that clean candidate rather than performing another dirty-worktree repair round;
+2. make bootstrap one-shot: require absent `.meta-harness`, build one fresh staged harness, promote with one rename, and delete recursive partial-harness copying, backup replacement, and mutating re-init compatibility;
+3. reject symlinks, junctions, and equivalent reparse points on every canonical authority, ledger, status-parent, and lock path before read or write; add bounded stale-lock recovery;
+4. call the schemas exactly what they are: structured public authority contract `v1` and repository-bound authority receipt `v2`;
+5. independently audit the exact named candidate commit, then run `G-001`, commit the accepted event/status, merge and package S-001, and move immediately to `S-006M`.
+
+No internal vault, signer daemon, keychain adapter, database, authority recovery framework, contract-kernel extraction, broad path framework, or unrelated governance program is authorized. Historical v1 receipt verification remains read-only evidence support; no legacy mutation fallback is restored.
+
+Rationale:
+
+The locked intent prioritizes verified product movement, minimal owned machinery, explicit deviation, and aggressive replanning. A separate S-001R4 implementation in the existing heavily dirty checkout followed by later candidate isolation would repeat custody ambiguity and add another non-shipping cycle. The faster trustworthy route is to repair the observed path defect while building the clean reviewable candidate that is already required for G-001.
+
+Evidence:
+
+`docs/ops/audits/s001r3-independent-audit.json`
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Authority:
+
+The human requested independent audit, maximal decision-relevant insight, aggressive roadmap revision, no backward compatibility, no silent drift, functional-slice-first movement, and shipped-endgame orientation in the 2026-07-18 audit round.
+
+Canonical-state note:
+
+The signed canonical status remains at D078/S-001R verify. D081 is not forged into canonical state because no valid external receipt was supplied. The audit and roadmap correction are explicit non-canonical evidence until G-001.
+
+Supersession:
+
+D081 preserves `intent-v1`, verifier-only authority, D078 historical evidence, and D080's candidate-before-G-001 correction. It supersedes the assumption that staged recursive copying makes a pre-existing harness safe and supersedes the requirement for a separate accepted S-001R3 state before clean candidate construction.
+
+## D080: Keep S-001R2 Open, Make Bootstrap Atomic, and Put Candidate Isolation Before G-001
+
+Decision:
+
+Retain `REPAIR_CURRENT_SLICE`. S-001R2 independently closes the critical worker-accessible signing defect, exact projection, malformed-history recovery, and non-zero truth blocking. It is not accepted because `init` installs authority and writes starter state before validating the initial receipt. An invalid bootstrap leaves a populated harness and can pre-claim repository authority. The reported no-partial-state guarantee is false.
+
+The current score is raised from `4.8/10` to `5.4/10` because verifier-only authority is now independently credible. Acceptance remains blocked by atomic bootstrap, a failing static quality ratchet, external capability continuity, untracked legacy verifier state, and the absence of a check-outable candidate or shipped product outcome.
+
+The immediate order is revised to:
+
+1. keep `S-001R2` open only for atomic pre-write bootstrap validation, exact Ed25519 verifier constraints, a versioned maximum receipt lifetime, clean retry, stable authority errors, and bounded cleanup that makes `MH_QUALITY_001` pass without a baseline refresh;
+2. `CANDIDATE-S001` — reconcile upstream `0791efa` and create one named reviewable candidate containing the structured tracked verifier contract and legacy-readable signed evidence, with no private material;
+3. `G-001` — in a fresh checkout of that candidate, prove continuity of the matching external capability with one short-lived repository-bound receipt accepted exactly once;
+4. `INTEGRATE-S001` — commit the exact signed event/status, pass full supported-runtime and package proof, independently accept, merge, and package;
+5. `S-006M` — immediately execute the first real non-fixture coding loop to merged and packaged.
+
+`G-001` may not precede candidate isolation: its required clean checkout and tracked structured verifier contract do not yet exist. If the matching external capability is unavailable, stop at a human authority gate and consider a one-way authority-epoch migration only then. Do not build recovery infrastructure speculatively.
+
+Remove contract-kernel extraction of canonical phases or role permissions from the active integration path. It is not an observed blocker to authority, custody, integration, or S-006M.
+
+Rationale:
+
+The locked intent requires verified product progress, minimal governance, no silent drift, and aggressive replanning. The smallest trustworthy path is to close the proven bootstrap and quality defects, make the candidate check-outable, prove external authority continuity, integrate, and return immediately to a real functional slice. A signer service, vault, keychain adapter, generic credential framework, custom database, or unrelated contract refactor would increase friction and delay shipping.
+
+Evidence:
+
+`docs/ops/audits/s001r2-independent-audit.json`
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Authority:
+
+The human requested independent audit, maximal decision-relevant insight, aggressive roadmap revision, no backward compatibility, no silent drift, functional-slice-first movement, and shipped-endgame orientation in the 2026-07-18 audit round.
+
+Canonical-state note:
+
+The signed canonical status remains at D078/S-001R verify. D080 is not forged into canonical state because no valid external receipt was supplied. The mismatch is explicit and remains governed by `G-001` after candidate isolation.
+
+## D079: Reject S-001R Authority Closure and Make Runtime Verifier-Only
+
+Decision:
+
+Reject S-001R acceptance and retain `REPAIR_CURRENT_SLICE`.
+
+S-001R closes four D078 behavior findings: exact whole-projection comparison, removal of unsupported inferred status fields, append-only reconciliation, and non-zero truth-block exits. It does not close the load-bearing authority finding. `init` automatically writes a raw Ed25519 private JWK inside the target root, and the packaged runtime exports key loading and receipt signing. An independent same-user worker probe used those normal product surfaces to mint a receipt and publish arbitrary canonical direction with exit code 0.
+
+Signed data is tamper-evident, but the signer is not separated from the worker. File mode, ignored local state, and absence from the npm tarball do not create a distinct security principal.
+
+The immediate order is revised to:
+
+1. `S-001R2` — make the shipped product verifier-only: delete target-local private-key generation, storage, loading, and signing APIs without compatibility; consume only externally signed bounded receipts;
+2. `G-001` — prove the current signing capability is recoverable outside the repository and worker environment, and produce one bounded receipt without exposing private material;
+3. `INTEGRATE-S001` — reconcile upstream `0791efa`, isolate one reviewable candidate, and track the exact public key, signed event tail, and status so a fresh checkout validates without private material;
+4. `S-006M` — immediately run one real non-fixture single-worker coding loop to merged and packaged;
+5. add any further continuity, custody, projection, or research machinery only when that real slice proves it blocks shipment.
+
+No signer daemon, internal key vault, OS-keychain adapter, queue, provider integration, or generic credential framework is authorized. Meta-Harness borrows the external authority boundary and owns only receipt contracts, verification, canonical append, and contradiction blocking.
+
+Rationale:
+
+The smallest enforceable boundary is verifier-only. A worker may inspect every shipped byte and every target file without gaining the ability to mint authority. Building secret infrastructure inside the harness would deepen governance gravity before the first real product loop and still would not prove same-user isolation across Codex, OpenHands, Aider, and other borrowed executors.
+
+Evidence:
+
+`docs/ops/audits/s001r-independent-audit.json`
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Authority:
+
+The human explicitly requested independent audit, maximal decision-relevant insight, aggressive roadmap revision, no backward compatibility, no silent drift, functional-slice-first movement, and shipped-endgame orientation in the 2026-07-18 audit round.
+
+Supersession:
+
+D079 preserves intent-v1, D077 role separation, D078 functional-first ordering, and all historical evidence. It narrows the remaining S-001 repair to verifier-only authority separation and adds the minimal named `G-001` authority-custody proof before integration.
+
+Canonical-state note:
+
+The current signed status remains at D078/S-001R verify because the matching private capability is absent from the checkout. D079 must not be forged into canonical state. The mismatch is explicit and remains a named `G-001` authority gate until an external valid receipt is supplied.
+
+## D078: Reject S-001 Closure and Restore Functional-First Order
+
+Decision:
+
+Reject the S-001 completion claim and choose `REPAIR_CURRENT_SLICE`.
+
+Independent audit proved four load-bearing failures: canonical actors and authority are self-asserted strings; duplicate contradictory material status sections pass reconciliation; decision-relevant projection fields can be stale or worker-authored while truth passes; and one malformed canonical snapshot permanently bricks an append-only ledger. The public context command also returns process success while truth is blocked.
+
+The accepted score is `4.7/10`, not `9/10`. ROUND-018 score 9 measured context sufficiency only and is not evidence of implementation correctness, authority integrity, product progress, or shipping readiness.
+
+The immediate order is revised to:
+
+1. `S-001R` — repair the current slice with capability-bound canonical mutation, exact whole-projection validation, typed or removed decision-relevant fields, append-only recovery, and non-zero truth-block exits;
+2. integrate S-001 against upstream `0791efa` with unrelated dirty work preserved and independent acceptance;
+3. `S-006M` — run one real non-fixture single-worker coding loop through the existing execution-custody surface to an explicit merged and packaged terminal state;
+4. add projection, intent, corpus, handoff, resume, runtime, or identity machinery only when an observed product slice proves it is blocking shipment.
+
+Standalone `S-001A`, `S-001B`, `S-005/S-005A`, and broad `S-006A/B/C` programs are deferred. Their minimum required behavior may be folded into an active functional slice, but they are no longer prerequisites by default.
+
+Rationale:
+
+The locked original intent prioritizes shipped product movement and permits aggressive explicit replanning. D077's long prerequisite chain had begun reproducing governance gravity: multiple horizontal internal slices before the first real end-to-end coding loop. The fastest trustworthy route is to close only the proven truth blockers, then test the endgame on real work and let observed failure determine the next enabling change.
+
+Evidence:
+
+`docs/ops/audits/s001-independent-audit.json`
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Authority:
+
+The human explicitly requested independent audit, aggressive roadmap revision, no silent drift, no backward compatibility, functional-slice-first movement, and shipped-endgame orientation in the 2026-07-17 audit round.
+
+Supersession:
+
+D078 preserves `intent-v1`, D077's role separation and endgame, and all D001-D076 historical evidence. It supersedes D077's prerequisite ordering where that ordering delays a real functional loop without observed blocking evidence.
+
+## D077: Lock Solo Developer/Researcher Endgame, Intent Anchor, and Loop v4
+
+Decision:
+
+Adopt `endgame-v3 + continuity amendments + loop-v4` as the governing product direction.
+
+The human-authored original intent is locked verbatim in `docs/product/product-intent.md` as append-only `intent-v1`. It is the primary product-intent authority and must be injected unchanged into every audit, plan, RunSpec, handoff, resume, outcome, roadmap change, and scoring-policy evaluation.
+
+The governing operating model is:
+
+```text
+AUDITOR–PLANNER
+→ WORKER
+→ AUDITOR–PLANNER
+```
+
+with mandatory internal separation:
+
+```text
+audit before plan
+intent before local defect
+product movement before harness improvement
+evidence before narrative
+receiver validation before resume
+one writer before multi-agent fan-out
+shipping outcome before internal completion
+```
+
+The auditor-planner performs two immutable passes. Pass A reconciles evidence, diagnoses, scores, and freezes the audit. Pass B re-reads the intent, compares at least three forward alternatives, and emits one numbered functional-slice RunSpec. Planning may not edit the frozen audit.
+
+The worker reads local source first, verifies repository identity and authority, emits a compact plan, passes preflight, and executes all reversible work covered by the authorization envelope without routine waiting. It does not own roadmap changes, integration authority, final acceptance, or shipping claims.
+
+The controller is the sole authority for canonical state, leases, duplicate suppression, cancellation, mutation, integration order, custody, handoff/resume validation, and loop disposition.
+
+Rationale:
+
+The prior roadmap over-invested in horizontal governance surfaces and could report readiness while generated status contained a stale next action. A solo developer/researcher needs verified product movement, reliable continuity, applied expertise, minimal gates, and a top-level PM view—not additional status machinery.
+
+The critical unsolved failure modes are:
+
+- intent drift after repeated audit and planning rounds;
+- context amnesia after handoff, compaction, interruption, or provider failure;
+- complexity collapse across behaviors spanning many modules;
+- research output not becoming product behavior or tests;
+- test-passing but locally optimized or unshipped work;
+- parallel agents duplicating or conflicting without ownership and integration rules.
+
+Locked design consequences:
+
+- one canonical fact layer; generated status is a projection;
+- a material contradiction makes `ok: true` impossible;
+- vertical functional slices replace horizontal layer programs;
+- a small explicit artifact-contract kernel replaces the rule that modules never import each other;
+- module quality is measured by safe change context footprint, not a universal 300-line limit;
+- handoff is a validated state transition, not a summary;
+- resume requires receiver-comprehension proof, lease checks, split-brain prevention, and exact repository/authority validation;
+- research is complete only when it becomes a requirement, constraint, test, benchmark, risk, decision, claim, or implementation rule;
+- no runtime backward compatibility is presumed, but historical evidence remains readable through versioned schemas or one-way migrations;
+- multi-agent fan-out is deferred until a fresh worker can continue another worker's work from artifacts alone while preserving intent.
+
+Locked build order:
+
+1. `S-001` canonical truth and contradiction blocking;
+2. `S-001A` projection contract;
+3. `S-001B` frozen intent anchor;
+4. `S-005`/`S-005A` evaluation and continuity corpus;
+5. `S-006A` typed handoff;
+6. `S-006B` resume and receiver comprehension;
+7. `S-006C` interrupt-safe checkpoints;
+8. `S-002` supported Node execution floor;
+9. `S-004` standalone project identity migration;
+10. first real end-to-end coding loop;
+11. research-to-product loop;
+12. behavior localization and multi-module PM control;
+13. scored actions and expertise routing in shadow mode;
+14. versioned holdout-tested outcome learning;
+15. controlled multi-agent fan-out;
+16. human-friction and shipping workcell.
+
+Immediate authorization:
+
+Documentation alignment only. The next implementation slice is `S-001`. No loop controller, adapter expansion, mass module splitting, learning policy, or multi-agent orchestration is authorized in parallel.
+
+Supersession:
+
+D077 does not rewrite historical D001–D076 evidence. It supersedes their product-direction and roadmap guidance where they conflict with the locked intent and functional-slice order. The D068–D076 execution-authority and custody results remain frozen lower-layer evidence and capability.
+
+SOTA claim boundary:
+
+The system is a credible SOTA research direction, not yet a proven SOTA system. A proven claim requires real multi-module shipping outcomes, reliable fresh-worker continuation, zero undetected authoritative contradictions, reduced problem-to-shipping time and human friction, no increased escaped defects or rework, holdout-tested recommendation improvement, and measured multi-agent benefit.
 
 ## D001: Product First, Technical Later
 

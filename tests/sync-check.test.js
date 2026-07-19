@@ -1,11 +1,11 @@
 "use strict";
-
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 const { spawnSync } = require("node:child_process");
+const { prepareInitInvocation } = require("./helpers/truth-authority");
 const {
   checkTemplateSync,
   scanContracts,
@@ -242,7 +242,7 @@ test("templates install/upgrade round-trip integration test", () => {
   const targetRoot = tempDir();
 
   // 1. Run templates install command (requires init first)
-  const resultInit = spawnSync(process.execPath, [CLI, "init", "Roundtrip test"], { cwd: targetRoot });
+  const resultInit = spawnSync(process.execPath, [CLI, ...prepareInitInvocation(targetRoot, ["init", "Roundtrip test"])], { cwd: targetRoot });
   assert.equal(resultInit.status, 0);
 
   const resultInstall = spawnSync(process.execPath, [CLI, "templates", "install", "--allow-dirty"], { cwd: targetRoot });
@@ -279,7 +279,7 @@ test("templates install failure rollback test", () => {
   const CLI = path.join(ROOT, "bin", "meta-harness.js");
   const targetRoot = tempDir();
 
-  const resultInit = spawnSync(process.execPath, [CLI, "init", "Rollback test"], { cwd: targetRoot });
+  const resultInit = spawnSync(process.execPath, [CLI, ...prepareInitInvocation(targetRoot, ["init", "Rollback test"])], { cwd: targetRoot });
   assert.equal(resultInit.status, 0);
 
   const resultInstall = spawnSync(process.execPath, [CLI, "templates", "install", "--allow-dirty"], { cwd: targetRoot });

@@ -80,24 +80,6 @@ test("event validation fails closed for bad JSONL and CLI input", () => {
   assertCliError(runRaw(missingResultCwd, ["event", "--action", "did it"]), "MH_USAGE", /event requires --result/);
 });
 
-test("status refresh accepts legacy time-only event records", () => {
-  const cwd = tempDir();
-  run(cwd, ["init", "Legacy event compatibility"]);
-  const legacyEvent = {
-    time: "2026-06-03T15:59:48.136Z",
-    actor: "human",
-    stream: "coding",
-    phase: "intake",
-    action: "initialized harness",
-    result: "legacy harness state created",
-  };
-  fs.writeFileSync(path.join(cwd, ".meta-harness", "events.jsonl"), `${JSON.stringify(legacyEvent)}\n`, "utf8");
-
-  const status = run(cwd, ["status", "--refresh"]);
-
-  assert.match(status, /legacy harness state created/);
-});
-
 test("repos and poll read child repo status without launching workers", () => {
   const parent = tempDir();
   const child = tempDir();

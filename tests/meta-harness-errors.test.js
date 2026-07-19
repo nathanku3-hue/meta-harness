@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
+const { prepareInitInvocation } = require("./helpers/truth-authority");
 
 const ROOT = path.resolve(__dirname, "..");
 const CLI = path.join(ROOT, "bin", "meta-harness.js");
@@ -15,13 +16,14 @@ function tempDir() {
 }
 
 function run(cwd, args, options = {}) {
-  const result = spawnSync(process.execPath, [CLI, ...args], {
+  const invocation = prepareInitInvocation(cwd, args);
+  const result = spawnSync(process.execPath, [CLI, ...invocation], {
     cwd,
     encoding: "utf8",
     ...options,
   });
   if (result.status !== 0) {
-    throw new Error(`Command failed: ${args.join(" ")}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
+    throw new Error(`Command failed: ${invocation.join(" ")}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
   }
   return result.stdout;
 }
@@ -57,7 +59,7 @@ test("CLI failures expose stable typed error codes and exit statuses", () => {
   run(filesystemCwd, ["init", "Type filesystem failures"]);
   fs.rmSync(path.join(filesystemCwd, ".meta-harness", "events.jsonl"));
   fs.mkdirSync(path.join(filesystemCwd, ".meta-harness", "events.jsonl"));
-  assertFailureCode(runRaw(filesystemCwd, ["status", "--refresh"]), "MH_FILESYSTEM", 3);
+  assertFailureCode(runRaw(filesystemCwd, ["status", "--refresh"]), "MH_TRUTH_PATH", 1);
 
   const qualityCwd = tempDir();
   run(qualityCwd, ["quality", "init"]);

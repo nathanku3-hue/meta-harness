@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
+const { prepareInitInvocation } = require("./helpers/truth-authority");
 
 const ROOT = path.resolve(__dirname, "..");
 const CLI = path.join(ROOT, "bin", "meta-harness.js");
@@ -15,9 +16,10 @@ function tempDir() {
 }
 
 function run(cwd, args) {
-  const result = spawnSync(process.execPath, [CLI, ...args], { cwd, encoding: "utf8" });
+  const invocation = prepareInitInvocation(cwd, args);
+  const result = spawnSync(process.execPath, [CLI, ...invocation], { cwd, encoding: "utf8" });
   if (result.status !== 0) {
-    throw new Error(`Command failed: ${args.join(" ")}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
+    throw new Error(`Command failed: ${invocation.join(" ")}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
   }
   return result.stdout;
 }

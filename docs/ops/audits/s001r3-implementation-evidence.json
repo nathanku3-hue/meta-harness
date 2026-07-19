@@ -1,0 +1,156 @@
+{
+  "schema_version": "meta-harness-s001r3-implementation-evidence/v1",
+  "recorded_at": "2026-07-18",
+  "slice": "S-001R3",
+  "title": "Atomic verifier-only bootstrap repair candidate",
+  "status": "implemented_awaiting_independent_audit",
+  "acceptance_claim": false,
+  "integration_claim": false,
+  "canonical_state_changed": false,
+  "commit_created": false,
+  "push_or_merge_performed": false,
+  "intent_binding": {
+    "endgame": "authoritative local truth followed by a clean candidate, external authority continuity proof, final integration, and the first real non-fixture coding loop",
+    "functional_slice_first": "structured authority plus initial v2 receipt to preflight, staged complete harness, exact status, and atomic promotion",
+    "minimal_governance": "no vault, signer daemon, keychain adapter, recovery service, database, generic contract kernel, or broad decomposition program"
+  },
+  "algorithm_boundary_decision": {
+    "decision": "Require Ed25519 for structured v2 authority contracts and legacy raw verifier documents.",
+    "required_public_jwk": {
+      "kty": "OKP",
+      "crv": "Ed25519",
+      "x": "non-empty string",
+      "d": "absent"
+    },
+    "legacy_receipts": "read-only verification remains supported; new canonical mutation rejects legacy v1 receipts",
+    "d078_compatibility": "preserved because the current legacy D078 public JWK is already OKP/Ed25519 and MH_TRUTH_001 passes against the existing ledger"
+  },
+  "implemented": [
+    "Extracted public authority validation and installation into lib/truth-authority-contract.js while retaining a verifier-only production surface.",
+    "Pinned structured and legacy public JWK validation to OKP Ed25519 with non-empty x and absent d.",
+    "Added an explicit 300-second maximum authority receipt lifetime in verifier policy.",
+    "Added read-only initial bootstrap preflight against the supplied in-memory structured authority document before any target write.",
+    "Preflight validates authority installation state, v2 receipt shape, capability, empty prior, proposal, repository identity, signer identity, signature, receipt window, initial snapshot semantics, and simulated one-event canonical history.",
+    "Changed init to materialize the complete harness in a temporary sibling root and promote it only after successful staged append and exact status generation.",
+    "Added rollback of an existing harness if final directory promotion fails.",
+    "Added a root bootstrap lock plus a second under-lock preflight so concurrent valid initialization installs exactly one authority.",
+    "Added an actionable legacy-authority migration error and retained an exact structured-authority mismatch error.",
+    "Split bootstrap adversarial tests from canonical mutation tests and returned all four reported quality deltas to policy compliance without refreshing the baseline."
+  ],
+  "audit_finding_disposition": [
+    {
+      "finding": "Exact init write sequence before receipt validation",
+      "disposition": "closed in implementation",
+      "evidence": "preflightInitialCanonicalReceipt executes before promoteBootstrap; ensureHarness, all starter writes, authority installation, event append, and status generation occur only inside the staged root after preflight"
+    },
+    {
+      "finding": "validatePublicJwk did not pin Ed25519",
+      "disposition": "closed in implementation",
+      "evidence": "truth-authority-contract validation requires kty=OKP, crv=Ed25519, non-empty x, and absent d before crypto.createPublicKey"
+    },
+    {
+      "finding": "Legacy algorithm boundary could break D078 or remain generic",
+      "disposition": "closed by explicit decision",
+      "evidence": "legacy raw authority documents use the same Ed25519 validator; an isolated legacy Ed25519 history test passes, legacy RSA is rejected, and the current D078 MH_TRUTH_001 check passes"
+    },
+    {
+      "finding": "No maximum receipt lifetime",
+      "disposition": "closed in implementation",
+      "evidence": "MAX_RECEIPT_TTL_SECONDS equals 300 and verifier rejection is covered by a 301-second byte-identical bootstrap test"
+    },
+    {
+      "finding": "Legacy EEXIST path returned a generic/internal error",
+      "disposition": "closed in implementation",
+      "evidence": "existing raw legacy authority returns TRUTH_AUTHORITY_LEGACY_KEY_PRESENT through MH_TRUTH_AUTHORITY with a reviewed migration instruction and no target mutation"
+    },
+    {
+      "finding": "CANDIDATE-S001 did not explicitly require structured v2 authority state",
+      "disposition": "closed in roadmap",
+      "evidence": "candidate exit condition now requires a tracked structured v2 authority contract using the current Ed25519 key and explicitly rejects a raw legacy JWK"
+    }
+  ],
+  "verification": {
+    "focused_truth_and_bootstrap": {
+      "runtime": "connector Node 18.19.1 used for focused logic verification only",
+      "command": "node --test tests/cli-truth-bootstrap.test.js tests/cli-truth.test.js tests/truth-reconciler.test.js tests/cli-ready-truth.test.js tests/context-truth-pregate.test.js",
+      "tests": 23,
+      "passed": 23,
+      "failed": 0
+    },
+    "supported_runtime_complete": {
+      "runtime": "Windows Node 25.2.1",
+      "execution": "all 121 test files executed in deterministic runner-equivalent parallel and serial batches because the monolithic connector response returned transport 502 errors",
+      "test_files": 121,
+      "failed_files": 0
+    },
+    "quality": {
+      "command": "node bin/meta-harness.js quality check",
+      "status": "pass",
+      "remaining_warning": "public CLI command count 28 exceeds 25",
+      "baseline_refreshed": false,
+      "line_counts": {
+        "lib/truth-authority.js": 317,
+        "lib/truth-authority-contract.js": 162,
+        "tests/cli-truth.test.js": 286,
+        "tests/cli-truth-bootstrap.test.js": 267,
+        "tests/meta-harness-decisions.test.js": 335,
+        "tests/sync-check.test.js": 310
+      }
+    },
+    "read_only_readiness": {
+      "runtime": "Windows Node 25.2.1",
+      "ok": true,
+      "passed": 13,
+      "failed": 0,
+      "warned": 1,
+      "MH_TRUTH_001": "pass",
+      "MH_QUALITY_001": "pass"
+    },
+    "package_dry_run": {
+      "runtime": "npm 11.16.0",
+      "entries": 241,
+      "tests_packaged": 0,
+      "packaged_authority_files": [
+        "lib/truth-authority-contract.js",
+        "lib/truth-authority.js"
+      ],
+      "signer_or_private_key_surface_found": false
+    },
+    "diff_check": {
+      "status": "pass",
+      "note": "existing line-ending warnings remain"
+    }
+  },
+  "adversarial_proofs": [
+    "Invalid signature, expired, 301-second lifetime, wrong repository, wrong prior, non-snapshot, tampered proposal, and RSA authority bootstrap attempts leave the target tree byte-identical.",
+    "A failed hostile bootstrap leaves no .meta-harness authority claim and a subsequent legitimate authority initializes successfully.",
+    "Two concurrent valid bootstrap attempts produce exactly one accepted authority installation and one rejected invocation, with one initial event and no residual lock.",
+    "An existing raw legacy authority produces an actionable migration-required authority error without mutation.",
+    "Legacy Ed25519 signed history remains readable while legacy RSA authority is rejected.",
+    "Existing replay, cross-repository binding, concurrent single-receipt append, exact projection, append-only reconciliation, and non-zero truth-block behavior remain green.",
+    "Production and dry-run package scans find no key generation, private-key loading, signing API, private-key path, or test signer."
+  ],
+  "remaining_gates": [
+    {
+      "id": "INDEPENDENT-AUDIT-S001R3",
+      "status": "next_exclusive_gate",
+      "proof": "Independently reproduce the bootstrap matrix, D078 legacy truth verification, supported-runtime suite, quality result, package scan, and verifier-only source scan."
+    },
+    {
+      "id": "CANDIDATE-S001",
+      "status": "blocked_until_audit_acceptance",
+      "proof": "Reconcile upstream and create one named clean candidate containing S-001R3 and a tracked structured v2 authority contract, not a raw legacy JWK."
+    },
+    {
+      "id": "G-001",
+      "status": "blocked_until_candidate",
+      "proof": "Use the matching external private capability once in the clean candidate checkout without exposing private material."
+    }
+  ],
+  "stop_rule": "Do not claim S-001R3 accepted, change canonical state, isolate or commit a candidate, reconcile upstream, run G-001, push, merge, release-package, or begin S-006M before independent acceptance.",
+  "known_residual_risk": [
+    "The checkout remains dirty and one commit behind origin/main; this repair is not check-outable until CANDIDATE-S001.",
+    "External private-capability continuity remains unproven until G-001.",
+    "A filesystem or Git writer can still remove a signed ledger tail; custody remains an integration concern rather than justification for a new database."
+  ]
+}

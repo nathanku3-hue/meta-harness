@@ -1,0 +1,9 @@
+{
+  "schema_version": "meta-harness-truth-authority-public/v1",
+  "repository_id": "github:nathanku3-hue/meta-harness",
+  "public_key": {
+    "crv": "Ed25519",
+    "x": "IB2_pjWbMnx7su6_nsyEcMW16hx7Dr5ywGE8NoEuxKk",
+    "kty": "OKP"
+  }
+}
