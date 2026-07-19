@@ -43,7 +43,7 @@ function findRow(rows, pattern) {
   return row;
 }
 
-test("status records the signed D078 S-001R cutover while D077 and D076 remain historical evidence", () => {
+test("status records epoch-2 S001-SHIP while D078 remains frozen historical evidence", () => {
   const status = read(".meta-harness/status.md");
   const goal = section(status, "Goal");
   const phase = section(status, "Phase");
@@ -53,30 +53,43 @@ test("status records the signed D078 S-001R cutover while D077 and D076 remain h
   const decisionLog = read("docs/product/decision-log.md");
   const runtimeHistory = read("docs/product/runtime-authority-architecture.md");
   const events = read(".meta-harness/events.jsonl").trim().split(/\r?\n/).map((line) => JSON.parse(line));
-  const d077Snapshot = events.findLast((event) => event.truth_snapshot === true && event.authority === "D077");
-  const d078Snapshot = events.findLast((event) => event.truth_snapshot === true && event.authority === "D078");
-  const signedCutover = events.findLast((event) => event.authority_receipt?.receipt_id === "D078-S001R-SIGNED-CUTOVER");
+  const frozenEvents = read("docs/ops/audits/authority-epoch-1-frozen/events.jsonl").trim().split(/\r?\n/).map((line) => JSON.parse(line));
+  const frozenStatus = read("docs/ops/audits/authority-epoch-1-frozen/status.md");
+  const frozenAuthority = JSON.parse(read("docs/ops/audits/authority-epoch-1-frozen/truth-authority-public.json"));
+  const activeAuthority = JSON.parse(read(".meta-harness/contracts/truth-authority-public.json"));
+  const d077Snapshot = frozenEvents.findLast((event) => event.truth_snapshot === true && event.authority === "D077");
+  const d078Snapshot = frozenEvents.findLast((event) => event.truth_snapshot === true && event.authority === "D078");
+  const signedCutover = frozenEvents.findLast((event) => event.authority_receipt?.receipt_id === "D078-S001R-SIGNED-CUTOVER");
+  const epoch2 = events.findLast((event) => event.authority_receipt?.receipt_id === "G-AUTHORITY-001-S001-SHIP-E2");
 
-  assert.match(goal, /Close S-001R/i);
-  assert.match(goal, /ship one real non-fixture coding loop/i);
+  assert.match(goal, /Ship authority-bound Meta-Harness 0\.3\.0/i);
+  assert.match(goal, /S-006M/i);
   assert.match(phase, /verify/i);
-  assert.match(currentTruth, /S-001R is implemented in the authorized dirty worktree and remains under verification/i);
-  assert.match(currentTruth, /Signed reconciliation rejects the legacy unsigned canonical snapshots/i);
-  assert.match(currentTruth, /exact status projection/i);
+  assert.match(currentTruth, /Epoch-2 public verifier pinned/i);
+  assert.match(currentTruth, /Candidate 588bbe9 accepted/i);
+  assert.match(currentTruth, /package 0\.3\.0/i);
   assert.doesNotMatch(status, /Last verified:/i);
+  assert.ok(epoch2);
+  assert.equal(epoch2.truth_snapshot, true);
+  assert.equal(epoch2.authority_receipt.capability, "canonical_truth_mutation");
+  assert.equal(epoch2.authority_receipt.proposal.decision, "G-AUTHORITY-001");
+  assert.equal(epoch2.authority_receipt.schema_version, "meta-harness-truth-authority-receipt/v2");
+  assert.match(nextAction, /S-006M/i);
+  assert.match(nextAction, /non-Meta-Harness product repository/i);
+  assert.match(stopCriteria, /private material leakage|dual-epoch|external-repo S-006M/i);
+  assert.notEqual(activeAuthority.public_key.x, frozenAuthority.public_key.x);
+  assert.equal(frozenAuthority.public_key.x, "H66vchht-4Eg5W0XnRuspV_B738vwNsU6nB2f-DfO2A");
+
   assert.ok(d077Snapshot);
   assert.ok(d078Snapshot);
   assert.match(d078Snapshot.evidence, /s001-independent-audit\.json/i);
   assert.match(d078Snapshot.evidence, /intent-v1 sha256/i);
   assert.ok(signedCutover);
   assert.equal(signedCutover.truth_reconciliation, true);
-  assert.equal(signedCutover.authority_receipt.capability, "canonical_truth_mutation");
   assert.equal(signedCutover.authority_receipt.proposal.decision, "D078");
   assert.equal(signedCutover.rejected_event_digests.length, 4);
-  assert.match(nextAction, /complete supported-runtime suite and independent adversarial audit/i);
-  assert.match(nextAction, /do not integrate or start S-006M before acceptance/i);
-  assert.match(stopCriteria, /every critical and high D078 finding passes independent review/i);
-  assert.doesNotMatch(nextAction, /create a new exact `0\.2\.0` candidate/i);
+  assert.match(frozenStatus, /Close S-001R/i);
+  assert.match(frozenStatus, /S-001R is implemented in the authorized dirty worktree/i);
 
   assert.match(decisionLog, /## D078: Reject S-001 Closure and Restore Functional-First Order/i);
   assert.match(decisionLog, /## D077: Lock Solo Developer\/Researcher Endgame/i);

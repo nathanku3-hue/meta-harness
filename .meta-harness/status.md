@@ -1,19 +1,19 @@
 # Status
 
 Goal:
-Close S-001R, integrate it safely against upstream, then ship one real non-fixture coding loop through existing execution custody.
+Ship authority-bound Meta-Harness 0.3.0 and immediately prove real external product shipment through S-006M.
 
 Phase:
 verify
 
 Current truth:
-S-001R is implemented in the authorized dirty worktree and remains under verification. Signed reconciliation rejects the legacy unsigned canonical snapshots; exact status projection, receipt-bound mutation, append-only recovery, and non-zero truth-block exits are active.
+Authority epoch 1 private capability declared unavailable. Epoch-2 public verifier pinned. Candidate 588bbe9 accepted. Meta-Harness integrated as package 0.3.0. Next: S-006M real non-Meta-Harness product loop.
 
 Next action:
-Run the complete supported-runtime suite and independent adversarial audit of S-001R; do not integrate or start S-006M before acceptance.
+Execute S-006M in a real non-Meta-Harness product repository to merged and packaged state using installed 0.3.0.
 
 Stop criteria:
-Do not claim S-001 complete, integrate, rely on ok:true for shipment, or advance the roadmap until every critical and high D078 finding passes independent review.
+Stop on private material leakage, dual-epoch runtime support, reopening S-001 architecture, or claiming product proof without external-repo S-006M.
 
 Updated:
-2026-07-17T08:31:11.334Z
+2026-07-19T12:58:35.350Z

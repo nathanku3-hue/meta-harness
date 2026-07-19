@@ -181,7 +181,7 @@ Every material claim binds provenance, freshness, confidence, contradiction stat
 
 ## Current Authorized Slice
 
-Runtime work for `CANDIDATE-S001R5F` is complete on clean exact commit `88e17bf`: fail-preserving direct rename, rename-boundary regression, multiply-linked fail-closed, D082/S001R4 authority present, production verifier-only posture preserved. Authorized now: `S001R5F-CLOSE` (active surfaces aligned to “implemented; exact audit next”), exact-commit audit, hosted CI on declared Node 20 and current Node 25, and non-force candidate push for remote custody only. `G-001`, merge, tag, publication, and package identity remain blocked until acceptance; ship integrated S-001 only as `0.3.0`. Then proceed to `S-006M`: one real non-fixture single-worker coding loop to merged and packaged. Broader secret infrastructure, filesystem frameworks, contract refactoring, projection, corpus, handoff/resume, learning, and multi-agent work requires an observed active-slice blocker.
+S-001 is shipped as package `0.3.0` with verifier-only epoch-2 authority. Authorized now: `S-006M` — one real non-fixture single-worker coding loop in a **non-Meta-Harness product repository** using installed `0.3.0`, independently machine-accepted, merged and packaged. Epoch-1 materials remain frozen historical evidence only. Broader secret infrastructure, dual-epoch compatibility, filesystem frameworks, contract refactoring, projection, corpus, handoff/resume, learning, and multi-agent work requires an observed active-slice blocker.
 
 ## Historical MVP Product Shape
 

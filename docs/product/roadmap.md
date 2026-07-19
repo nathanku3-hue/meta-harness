@@ -135,23 +135,21 @@ A short overall verdict may accompany the vector, but weights remain explicit an
 
 ## Locked Functional-Slice Build Order
 
-D084 records that `88e17bf` closes the D083 runtime defects. Active surfaces must say R5F is implemented and that exact audit is next—not instruct workers to re-delete the fallback. Verifier-only authority, clean upstream-based lineage, controller-owned mutation, and candidate-before-G-001 ordering remain. The roadmap is aggressively narrow: close direction, audit, prove external authority once, integrate as `0.3.0`, then ship one real product loop. The original long-range capabilities remain valid endgame candidates, but they are not automatic prerequisites.
+G-AUTHORITY-001 completed one-way authority epoch-2 migration and S001-SHIP-E2 as package `0.3.0` after candidate `588bbe9` acceptance. The only remaining critical-path slice is external-product S-006M. The original long-range capabilities remain valid endgame candidates, but they are not automatic prerequisites.
 
 | Step | Slice / gate | Product problem | Exit condition |
 |---:|---|---|---|
-| 1 | `CANDIDATE-S001R5F` Fail-preserving exact-candidate finalization | **Implemented** on `88e17bf`: direct rename fail-preservation, rename-boundary regression, D082 authority in-candidate, Windows Node 25 suite green. | Runtime finalization commit exists; no further R5F implementation authorized. |
-| 2 | `S001R5F-CLOSE` Direction and evidence-contract close | Active docs still described R5F as undone; package identity and Node evidence contract lagged the candidate. | One docs/metadata-only commit marks R5F complete, points workers at exact audit, aligns Node 20+25 CI with `engines.node >=20`, permits non-force candidate push for remote custody/CI, and keeps G-001/merge/tag/publication blocked. |
-| 3 | `INDEPENDENT-AUDIT-CANDIDATE-S001R5F` Exact-commit final acceptance | Fail-preserving replacement and direction-complete custody must be proven on one named clean commit with hosted evidence. | Fresh auditor checks the exact close commit, repeats custody probes, runs Windows and Linux at Node 20 and Node 25, truth/quality/package/signer scans, package identity honesty, and accepts without private material. |
-| 4 | `G-001` External authority continuity proof | The current signer key is pinned but matching external private-capability continuity is unproven. | In a controller-owned fresh checkout of the accepted candidate, produce one unique receipt v2 with a lifetime of at most 300 seconds using the matching external capability, validate it against the tracked structured public authority contract v1, submit it through `event --canonical`, and observe exactly one accepted logical ledger append without private material entering target, package, logs, or evidence. If the capability is unavailable, stop at a human authority-epoch migration decision. |
-| 5 | `INTEGRATE-S001` Final truth integration as `0.3.0` | Accepted G-001 event/status and materially changed package bytes must not reuse tagged `0.2.1` identity. | Commit G-001 event and status; set package identity to `0.3.0`; produce unique tarball and digest; pass exact-commit CI and independent review; merge and package. |
-| 6 | `S-006M` First real single-worker coding loop | The product still has not proved that frozen intent, bounded execution custody, independent audit, and canonical disposition can ship real work end to end. | One non-fixture product change completes frozen audit → verbatim intent reread → three alternatives → bounded RunSpec → existing `execute` custody → independent audit → canonical disposition, and reaches an explicit merged and packaged terminal state. |
-| 7 | `OBSERVED-BLOCKER-ONLY` Evidence-led enabling work | Horizontal infrastructure can consume the roadmap without moving a product outcome. | Add only the smallest projection, intent, evaluation, handoff, resume, runtime, identity, research, custody, or PM-control change that a real active slice proves is blocking shipment. |
-| 8 | `S-009M` First research-to-product loop | Research remains useful only when it changes a requirement, constraint, test, benchmark, risk, decision, claim, or implementation rule. | One real research question changes shipped behavior or its acceptance evidence through the same bounded loop. |
-| 9 | `S-012M` Multi-module behavior slice | Cross-module behavior still risks local optimization and context collapse. | One real multi-module product behavior is localized, changed, independently verified, and shipped through progressive disclosure. |
-| 10 | `S-016M` Scored alternatives in shadow mode | Planning quality and economics are not measured against alternatives. | Three materially different next-slice candidates are scored beside the human/auditor decision and beat a baseline without controlling execution. |
-| 11 | `S-020M` Outcome learning | Historical evidence does not yet improve recommendations. | A versioned, reversible policy change makes a falsifiable prediction and improves holdout recommendation quality without shipping regressions. |
-| 12 | `S-024M` Controlled fan-out | Parallel agents are not yet proven economically or operationally safe. | Leased isolated workcells reduce elapsed time versus one worker without increasing defects, rework, duplicate work, or integration failure. |
-| 13 | `S-029M` Shipping workcell | Release mechanics and human reconstruction still interrupt the end-to-end objective. | One PM surface and bounded shipping workcell complete release evidence, migration, rollback, and the final shipping decision. |
+| 1 | `CANDIDATE-S001R5F` + `S001R5F-CLOSE` + CI-ACCEPT | Runtime and direction close for S-001 candidate. | **Done** at accepted `588bbe9` (Linux/Windows × Node 20/25). |
+| 2 | `G-001` Epoch-1 continuity | Matching private capability for epoch-1 public key. | **Falsified** — capability unavailable; valid human-gate outcome. |
+| 3 | `G-AUTHORITY-001` + `S001-SHIP-E2` | Unrecoverable epoch-1 key blocked shipment. | **Done**: one-way epoch-2 migration, one receipt v2, package `0.3.0`, epoch-1 frozen as history, no dual-epoch runtime. |
+| 4 | `S-006M` First real single-worker coding loop | No real external product behavior has shipped through the harness. | One non-fixture change in a **non-Meta-Harness** product repository completes frozen audit → intent → three alternatives → bounded RunSpec → installed `0.3.0` execute custody → independent acceptance → merged and packaged terminal state. |
+| 5 | `OBSERVED-BLOCKER-ONLY` Evidence-led enabling work | Horizontal infrastructure can consume the roadmap without moving a product outcome. | Add only the smallest projection, intent, evaluation, handoff, resume, runtime, identity, research, custody, or PM-control change that a real active slice proves is blocking shipment. |
+| 6 | `S-009M` First research-to-product loop | Research remains useful only when it changes a requirement, constraint, test, benchmark, risk, decision, claim, or implementation rule. | One real research question changes shipped behavior or its acceptance evidence through the same bounded loop. |
+| 7 | `S-012M` Multi-module behavior slice | Cross-module behavior still risks local optimization and context collapse. | One real multi-module product behavior is localized, changed, independently verified, and shipped through progressive disclosure. |
+| 8 | `S-016M` Scored alternatives in shadow mode | Planning quality and economics are not measured against alternatives. | Three materially different next-slice candidates are scored beside the human/auditor decision and beat a baseline without controlling execution. |
+| 9 | `S-020M` Outcome learning | Historical evidence does not yet improve recommendations. | A versioned, reversible policy change makes a falsifiable prediction and improves holdout recommendation quality without shipping regressions. |
+| 10 | `S-024M` Controlled fan-out | Parallel agents are not yet proven economically or operationally safe. | Leased isolated workcells reduce elapsed time versus one worker without increasing defects, rework, duplicate work, or integration failure. |
+| 11 | `S-029M` Shipping workcell | Release mechanics and human reconstruction still interrupt the end-to-end objective. | One PM surface and bounded shipping workcell complete release evidence, migration, rollback, and the final shipping decision. |
 
 ### Deferred standalone programs
 
@@ -168,18 +166,16 @@ The following are no longer automatic prerequisites:
 The only authorized work is:
 
 ```text
-S001R5F-CLOSE → exact candidate audit + hosted CI → G-001 → INTEGRATE-S001 as 0.3.0 → S-006M
+S-006M — real non-Meta-Harness product loop through installed 0.3.0 → merged and packaged
 ```
 
-The product remains verifier-only. Exact commit `88e17bf` implements fail-preserving direct rename, rename-boundary regression, D082/S001R4 authority custody, multiply linked rejection, bootstrap/static-link protections, and the Windows Node 25 suite green path. Do not re-implement R5F. Close active surfaces so a fresh worker audits that commit, then gather hosted evidence.
+S001-SHIP-E2 is complete under G-AUTHORITY-001: candidate `588bbe9` accepted, authority epoch 2 pinned, package identity `0.3.0`, epoch-1 evidence frozen at `docs/ops/audits/authority-epoch-1-frozen/`. The product remains verifier-only with a single active authority epoch. Declared Node support is `>=20` with CI evidence on Node 20 and Node 25 for Linux and Windows.
 
-Declared Node support is `>=20`. Evidence contract requires Linux and Windows at Node 20 and Node 25. Non-force push of the exact candidate branch is permitted for remote custody and hosted CI. `G-001`, merge, tag, publication, and reuse of package identity `0.2.1` for materially changed bytes remain blocked. Integrated shipment uses package identity `0.3.0`.
+The tracked verifier schema is `meta-harness-truth-authority-public/v1`; the repository-bound receipt schema is `meta-harness-truth-authority-receipt/v2`. No new authority schema, dual-epoch compatibility, database, daemon, or generic filesystem layer is authorized.
 
-The tracked verifier schema is `meta-harness-truth-authority-public/v1`; the repository-bound receipt schema is `meta-harness-truth-authority-receipt/v2`. No new authority schema, database, daemon, or generic filesystem layer is authorized.
+S-006M must target a real non-Meta-Harness product repository. No new harness feature may precede it unless that real run demonstrates a concrete blocker.
 
-After exact-commit independent acceptance, G-001, and final integration, the next slice is `S-006M`, not another horizontal governance program.
-
-Do not begin an internal key vault, signer daemon, OS-keychain adapter, generic credential framework, authority recovery system, custom database, broad path framework, canonical-phase/role-permission refactor, adapter expansion, generic loop controller, corpus infrastructure, broad handoff machinery, mass module splitting, outcome learning, or multi-agent orchestration in parallel. Direction close is bounded by the post-`88e17bf` independent audit revision (D084).
+Do not begin an internal key vault, signer daemon, OS-keychain adapter, generic credential framework, authority recovery system, custom database, broad path framework, canonical-phase/role-permission refactor, adapter expansion, generic loop controller, corpus infrastructure, broad handoff machinery, mass module splitting, outcome learning, or multi-agent orchestration in parallel.
 
 ## v1.0 Proof Standard
 

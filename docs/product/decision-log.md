@@ -4,6 +4,46 @@ Status: append-only
 Started: 2026-05-02
 Current direction locked: 2026-07-19
 
+## G-AUTHORITY-001: One-Way Authority Epoch-2 Migration and S001-SHIP-E2
+
+Decision:
+
+Authorize and execute one irreversible authority epoch migration after G-001 falsified recoverability of the epoch-1 private capability for the public key pinned since `3cfe00c` (`x: H66vchht-4Eg5W0XnRuspV_B738vwNsU6nB2f-DfO2A`).
+
+Accepted candidate `588bbe9` remains the technical base. S001-SHIP-E2 is one bounded shipping transaction, not a new phase:
+
+1. generate a new Ed25519 capability outside the repository and package;
+2. keep the private JWK only at the external controller path;
+3. freeze epoch-1 public contract, full prior ledger, and D078 status under `docs/ops/audits/authority-epoch-1-frozen/`;
+4. pin only the epoch-2 public contract as the active verifier;
+5. create one repository-bound receipt v2 (`G-AUTHORITY-001-S001-SHIP-E2`) with lifetime ≤300 seconds;
+6. establish fresh epoch-2 canonical state without dual-epoch runtime support;
+7. set package identity to `0.3.0`;
+8. fold acceptance, migration, and active direction into the same integration commit;
+9. immediately authorize `S-006M` in a real non-Meta-Harness product repository.
+
+No vault, signer daemon, keychain adapter, recovery framework, multi-epoch compatibility layer, or generic migration command is authorized.
+
+Rationale:
+
+Continuing to wait for an unrecoverable key is sunk-cost preservation. One breaking epoch migration preserves verifier-only architecture and restores shipping velocity. No active consumer demonstrated a need for epoch-1 continuity.
+
+Evidence:
+
+Accepted candidate `588bbe9`; frozen epoch-1 pack; epoch-2 public contract; signed receipt embedded in the active ledger; package `0.3.0`.
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Canonical-state note:
+
+Canonical status is advanced by the epoch-2 signed receipt `G-AUTHORITY-001-S001-SHIP-E2`. Epoch-1 D078 status remains immutable historical evidence only.
+
+Supersession:
+
+Supersedes the assumption that epoch-1 private capability remains recoverable. Preserves D078–D084 historical evidence and verifier-only packaging. Replaces the deferred G-001/INTEGRATE split with completed S001-SHIP-E2 and active `S-006M`.
+
 ## D084: Close S001R5F Direction Surfaces, Permit Candidate Push, and Require Honest Node Evidence
 
 Decision:

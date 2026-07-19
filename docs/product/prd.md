@@ -90,7 +90,7 @@ Activity measures such as token count, patch count, test count, agent count, and
 
 ## Current Build Boundary
 
-`CANDIDATE-S001R5F` is implemented on clean exact commit `88e17bf` (fail-preserving direct rename, rename-boundary regression, D082 authority in-candidate). Immediate authorized work is direction-close (`S001R5F-CLOSE`), exact-commit independent audit, and hosted CI on Node 20 and Node 25—not another runtime repair cycle. Non-force candidate push is allowed for remote custody and CI only. After acceptance: `G-001`, integrate and package as `0.3.0` (do not reuse `0.2.1`), then `S-006M`: one real non-fixture coding loop to merged and packaged. Internal secret infrastructure, broad filesystem frameworks, and standalone projection, corpus, handoff, learning, or multi-agent programs remain deferred.
+S-001 is integrated and packaged as `0.3.0` under authority epoch 2. Immediate authorized work is `S-006M` only: one real non-fixture coding loop in a **non-Meta-Harness product repository** through installed `0.3.0` to merged and packaged state. Do not reopen S-001 runtime repair, dual-epoch support, or harness feature work unless that external loop demonstrates a concrete blocker. Internal secret infrastructure, broad filesystem frameworks, and standalone projection, corpus, handoff, learning, or multi-agent programs remain deferred.
 
 No loop controller, adapter expansion, mass module decomposition, outcome learning, or multi-agent fan-out is authorized in parallel. The historical execution-custody runtime remains a frozen lower layer and is changed only when a real product slice exposes a blocking defect.
 

@@ -1,6 +1,6 @@
 {
   "name": "@nkgss/meta-harness",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Authority-bound installed execution custody for approved one-shot repository changes.",
   "license": "MIT",
   "type": "commonjs",

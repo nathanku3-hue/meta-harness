@@ -1,58 +1,44 @@
-# Active Implementation Plan: S001R5F-CLOSE Direction Alignment
+# Active Implementation Plan: S-006M External Product Loop
 
-Status: **authorized after D084; runtime finalization `88e17bf` is implemented; exact audit and hosted CI are next. Not accepted, integrated, merged, tagged, or shipped.**
+Status: **S001-SHIP-E2 complete under G-AUTHORITY-001; package identity `0.3.0`; next is S-006M in a real non-Meta-Harness product repository.**
 
 ## Endgame intent
 
-Ship a local authority-bound execution harness that moves from frozen human intent to merged and packaged outcomes while the controller owns canonical mutation and a failed write never displaces valid truth. The shortest remaining path is:
+Ship a local authority-bound execution harness that moves from frozen human intent to merged and packaged outcomes while the controller owns canonical mutation and a failed write never displaces valid truth.
+
+## Immediate path
 
 ```text
-S001R5F-CLOSE one bounded docs/metadata commit on 88e17bf
-→ independent exact-commit audit + hosted CI (Node 20 + Node 25, Linux + Windows)
-→ G-001 external authority continuity proof
-→ INTEGRATE-S001 as package 0.3.0
-→ S-006M first real non-fixture coding loop, merged and packaged
+S001-SHIP-E2 complete @ package 0.3.0
+→ S-006M in a real non-Meta-Harness product repository
+→ merged and packaged product change
 ```
 
 ## First-principle constraints
 
-1. **Verifier-only runtime:** production and package verify receipts only; no private key, key generation, signer, or compatibility fallback.
-2. **Fail-preserving replacement:** already implemented on `88e17bf`—one direct rename; rename failure leaves the prior ledger byte-identical at `events.jsonl`.
-3. **No multiply linked canonical files:** authority, ledger, status, and lock files fail closed when `nlink != 1`.
-4. **Controller custody:** canonical mutation runs only in a controller-owned checkout outside worker write scope.
-5. **Direction-complete checkout:** active surfaces must describe the real candidate state; workers audit, they do not re-implement closed work.
-6. **Honest package identity:** materially changed package bytes ship as `0.3.0`, never as reused `0.2.1`.
-7. **Evidence matches claims:** declared `engines.node >=20` is proven on Node 20 and Node 25, not Node 25 alone.
-8. **Minimal machinery:** no vault, signer daemon, keychain adapter, database, generic filesystem layer, or unrelated governance program.
+1. Verifier-only runtime: no private key, key generation, signer, or dual-epoch compatibility in product/package.
+2. Epoch-1 evidence frozen at `docs/ops/audits/authority-epoch-1-frozen/` only.
+3. Active mutation uses epoch-2 public authority only.
+4. S-006M must not target Meta-Harness itself.
+5. No new harness feature unless the real external loop demonstrates a concrete blocker.
 
-## Functional slice (authorized now)
+## S-006M functional slice
 
 ```text
-clean exact candidate 88e17bf
-→ mark R5F complete in task and active product surfaces
-→ permit non-force candidate push for remote custody and hosted CI
-→ keep G-001 / merge / tag / publication blocked
-→ align CI matrix to Node 20 + Node 25
-→ one named clean close commit
-→ independent exact-commit audit
+frozen audit
+→ original intent
+→ three alternatives
+→ bounded RunSpec
+→ installed 0.3.0 execution custody
+→ independent machine acceptance
+→ canonical disposition
+→ merged and packaged product change
 ```
-
-## Authorized work
-
-1. Work only on the clean `codex/candidate-s001r5` lineage; do not use the dirty main checkout.
-2. Mark completed `88e17bf` work complete in `task.md`.
-3. Change active product surfaces from “implement R5F” to “R5F implemented; exact audit is next.”
-4. Keep `engines.node` at `>=20` and test Node 20 and Node 25 on Linux and Windows.
-5. Permit non-force push of the exact candidate branch for CI and remote custody.
-6. State that G-001, merge, tag, and publication remain blocked; integrated package identity is `0.3.0`.
-7. Add no runtime framework, compatibility path, authority system, or governance layer.
-8. Stop for independent exact-commit audit after the close commit.
 
 ## Stop rule
 
-Non-force push of this exact candidate branch is allowed for remote custody and hosted CI. Do not use the external private capability, append a G-001 canonical event, merge, tag, publish, reuse package identity `0.2.1` for changed bytes, or begin S-006M before the exact close commit passes independent audit.
+Stop on private material leakage, dual-epoch runtime support, reopening S-001 architecture, or claiming product proof without an external-repo S-006M outcome.
 
----
 
 # Historical Plan: Phase 13A Context Quality Gate
 
