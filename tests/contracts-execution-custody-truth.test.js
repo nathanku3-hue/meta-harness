@@ -87,8 +87,8 @@ test("status records the signed D078 S-001R cutover while D077 and D076 remain h
 
 test("CI and active runtime identities are phase-neutral", () => {
   const ci = read(".github/workflows/ci.yml");
-  assert.match(ci, /runs-on:\s*ubuntu-latest[\s\S]*?run:\s*npm test/i);
-  assert.match(ci, /name:\s*Windows complete suite[\s\S]*?runs-on:\s*windows-latest[\s\S]*?run:\s*npm test/i);
+  assert.match(ci, /name:\s*Linux Node \$\{\{\s*matrix\.node-version\s*\}\}[\s\S]*?runs-on:\s*ubuntu-latest[\s\S]*?node-version:\s*\["20",\s*"25"\][\s\S]*?run:\s*npm test/i);
+  assert.match(ci, /name:\s*Windows Node \$\{\{\s*matrix\.node-version\s*\}\}[\s\S]*?runs-on:\s*windows-latest[\s\S]*?node-version:\s*\["20",\s*"25"\][\s\S]*?run:\s*npm test/i);
   assert.doesNotMatch(ci, /d0(?:69|70|71|72)-windows|D0(?:69|70|71|72) Windows/i);
   assert.doesNotMatch(read("scripts/run-tests.js"), /runtime-d0(?:70|71|72)/i);
 
