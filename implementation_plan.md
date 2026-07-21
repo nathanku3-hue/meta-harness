@@ -1,43 +1,145 @@
-# Active Implementation Plan: S-006M External Product Loop
+# Active Implementation Plan: D085 R0–R6 External Product Proof
 
-Status: **S001-SHIP-E2 complete under G-AUTHORITY-001; package identity `0.3.0`; next is S-006M in a real non-Meta-Harness product repository.**
+Status: **active under D086; R0 and R1 done; R2 human target lock is current; R3 execution unauthorized until R2 exits.**
+
+```text
+ROADMAP_PROOF_SCORE = 30 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
+```
 
 ## Endgame intent
 
-Ship a local authority-bound execution harness that moves from frozen human intent to merged and packaged outcomes while the controller owns canonical mutation and a failed write never displaces valid truth.
+Use a minimal authority-bound execution harness to help one solo developer/researcher combine coding and specialist knowledge into merged and packaged external product outcomes. Preserve `intent-v1` verbatim; D085 changes roadmap proof sequencing, not product intent.
 
-## Immediate path
+## Active proof boundary
+
+S-006M uses Option A:
+
+- prove one external workflow where explicit specialist knowledge materially shapes the result;
+- independently verify coding, scope, custody, tests, and observable behavior;
+- do not claim independent domain correctness, generalization, or real-world value;
+- carry that limitation in the merged and packaged artifact itself;
+- test the domain axis independently in R6.
+
+`MERGED + PACKAGED` closes R4. `PUBLISHED`, deployed, live-capital, broker, credential, and public-performance states require a separate named human gate.
+
+## R0 — Shipped substrate
+
+**DONE — score 20/100.**
+
+- `origin/main` and `v0.3.0` resolve to `0b4e0dd7df766a701086d6b611556d9f321a0cb7` in reconciled remote evidence.
+- S-001 candidate `588bbe9` accepted.
+- verifier-only epoch 2 active;
+- package `@nkgss/meta-harness@0.3.0`;
+- epoch-1 evidence frozen.
+
+## R1 — Clean target-independent Meta-Harness execution base
+
+**DONE — independently accepted under D086; score 30/100.**
+
+1. Reconcile live and local `origin/main` plus peeled `v0.3.0` at `0b4e0dd7df766a701086d6b611556d9f321a0cb7`.
+2. Bind one clean accepted Meta-Harness source worktree to commit `0b4e0dd7df766a701086d6b611556d9f321a0cb7` and tree `29e0d4aaf0235f84dea8d958e5dd8500f16f47f0`.
+3. Pack and install exact `@nkgss/meta-harness@0.3.0`; record tarball and installed identity.
+4. Bind native Windows Node `25.2.1` at `D:\nodejs\node.exe` and npm `11.16.0` at `D:\nodejs\npm.cmd`; stop below Node 20.
+5. Record verifier-only authority, allowed reversible actions, forbidden commitments, and stop rules.
+6. Preserve dirty or stale operator checkouts without promoting them to execution authority.
+7. Keep the external repository, target commit, target worktree, product behavior, alternatives, and RunSpec unset for R2.
+
+## R2 — Representative external target and slice selection
+
+**CURRENT — human target lock required; score after exit 40/100.**
+
+R2 owns the external repository, exact base commit, clean target worktree, product behavior, alternatives, and RunSpec. Human target lock:
 
 ```text
-S001-SHIP-E2 complete @ package 0.3.0
-→ S-006M in a real non-Meta-Harness product repository
-→ merged and packaged product change
+User:
+Job or progress sought:
+Specialist judgment generic coding cannot replace:
+Observable result after shipment:
 ```
 
-## First-principle constraints
+The selected slice must:
 
-1. Verifier-only runtime: no private key, key generation, signer, or dual-epoch compatibility in product/package.
-2. Epoch-1 evidence frozen at `docs/ops/audits/authority-epoch-1-frozen/` only.
-3. Active mutation uses epoch-2 public authority only.
-4. S-006M must not target Meta-Harness itself.
-5. No new harness feature unless the real external loop demonstrates a concrete blocker.
+- name a real non-Meta-Harness product repository and exact base commit;
+- create one clean isolated target worktree;
+- trace explicitly to `docs/product/product-intent.md` and `intent-v1`;
+- be the smallest representative coding-plus-knowledge behavior, not the smallest trivial merge;
+- compare three materially different alternatives;
+- state recommendation, strongest counterargument, claim ceiling, cheapest alternative, and reversing evidence;
+- bind exact installed `0.3.0`, authority, owned/forbidden surfaces, budget, rollback, and stop rules;
+- emit a bounded RunSpec;
+- target `MERGED + PACKAGED` without requiring publication.
 
-## S-006M functional slice
+A provisional theme such as G08 is not selected until these fields are concrete.
+
+## R3 — Execute and independently accept S-006M
+
+**BLOCKED ON R2 — score after exit 60/100.**
 
 ```text
 frozen audit
-→ original intent
+→ verbatim original intent
 → three alternatives
 → bounded RunSpec
 → installed 0.3.0 execution custody
-→ independent machine acceptance
-→ canonical disposition
-→ merged and packaged product change
+→ observable product result
+→ independent acceptance
 ```
+
+The candidate or its durable user-facing documentation must include:
+
+> Specialist knowledge materially shaped this result. Independent domain correctness, generalization, and real-world value remain unproven.
+
+If the same R3 execution exposes a concrete Meta-Harness blocker, remain inside R3:
+
+```text
+name exact blocker and failed evidence
+→ implement only the smallest proven harness repair
+→ prove the repair against that blocker
+→ resume the same external slice
+→ independent acceptance
+```
+
+Do not select a replacement product, broaden scope, or award partial points. Only an independently accepted external product candidate earns R3 points. Rejected or incomplete work may be retained under the normal salvage classifications but does not raise the score.
+
+## R4 — Merge and package
+
+**BLOCKED ON R3 — score after exit 80/100; S-006M 1/1.**
+
+1. Integrate against the current target branch.
+2. Rerun product and package acceptance checks.
+3. Merge the external behavior.
+4. Produce and verify a reproducible distributable artifact.
+5. Preserve the claim ceiling in the artifact.
+6. Record base/merged commit, package identity, rollback, elapsed time, interventions, rework, and unresolved limits.
+
+Stop before publication unless a separate human gate authorizes it.
+
+## R5 — Learning and validated handover
+
+**BLOCKED ON R4 — score after exit 90/100.**
+
+Produce one evidence-bound learning record and one canonical continuation state. A fresh receiver must restate objective, current state, completed work, unresolved work, exact next action, forbidden action, and done condition.
+
+Do not promote one case beyond verified observation or tested hypothesis without additional evidence.
+
+## R6 — Independent domain-axis validation or replication
+
+**BLOCKED ON R5 — score after exit 100/100.**
+
+Use a named independent domain reviewer, authoritative benchmark, blinded comparison, pre-registered rubric, or equivalent falsifiable method to test the specialist judgment and the transferability of R5 learning against the already merged and packaged S-006M result.
+
+R6 contains no shipment-repair path. Any pre-acceptance harness blocker belongs to the bounded R3 exception loop.
+
+## Held work
+
+No generic guided-pilot platform, research-agent platform, knowledge database, provider expansion, broad handoff framework, outcome-learning engine, generic loop controller, mass module splitting, or multi-agent orchestration may proceed in parallel.
 
 ## Stop rule
 
-Stop on private material leakage, dual-epoch runtime support, reopening S-001 architecture, or claiming product proof without an external-repo S-006M outcome.
+Do not edit `.meta-harness/status.md` manually. Complete the four-line human target lock before selecting an R2 repository, and stop before R3 implementation until the full R2 exit contract passes.
+
+Also stop on private material leakage, dual-epoch runtime support, silent intent or claim drift, a trivial coding-only target, missing artifact-level claim boundary, publication being conflated with packaging, reopening S-001 architecture without a concrete R3 blocker, or claiming domain correctness from S-006M.
 
 
 # Historical Plan: Phase 13A Context Quality Gate

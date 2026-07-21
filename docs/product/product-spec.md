@@ -1,8 +1,8 @@
 # Meta-Harness Product Spec
 
-Status: implemented MVP
-Date: 2026-05-02
-Current direction locked: 2026-07-17
+Status: implemented substrate; active external product-proof sequence under D086
+Date: 2026-07-21
+Candidate direction proposed: 2026-07-21
 Intent authority: [Product Intent Anchor](product-intent.md)
 Roadmap authority: [Roadmap](roadmap.md)
 
@@ -91,8 +91,11 @@ Every gate declares one decision, recommended choice, alternatives, consequence,
 A RunSpec must bind:
 
 - active intent version and hash;
+- explicit trace from the selected slice to the frozen intent;
 - objective and functional-slice IDs;
-- newly true product behavior;
+- real user and job or progress sought;
+- specialist judgment that generic coding cannot replace;
+- newly true observable product behavior;
 - shipping target;
 - repository and base identity;
 - owned and forbidden surfaces;
@@ -102,7 +105,9 @@ A RunSpec must bind:
 - verification contract;
 - budget and expiry;
 - stop and escalation conditions;
-- predicted product and process outcome.
+- predicted product and process outcome;
+- claim ceiling and durable artifact surface that carries it;
+- whether domain correctness is independently verified or explicitly unproven.
 
 ## Outcome Record
 
@@ -121,7 +126,9 @@ Every run records:
 - salvage class when incomplete;
 - loop disposition;
 - next recommendation;
-- intent and roadmap deviation.
+- intent and roadmap deviation;
+- claim ceiling reproduced in the merged or packaged artifact;
+- separate states for merged, packaged, published, deployed, externally validated, and user-observed.
 
 ## Handoff and Resume
 
@@ -179,9 +186,24 @@ Research is complete only when accepted evidence becomes at least one of:
 
 Every material claim binds provenance, freshness, confidence, contradiction state, and affected product surface.
 
-## Current Authorized Slice
+## Active External Product-Proof Slice
 
-S-001 is shipped as package `0.3.0` with verifier-only epoch-2 authority. Authorized now: `S-006M` — one real non-fixture single-worker coding loop in a **non-Meta-Harness product repository** using installed `0.3.0`, independently machine-accepted, merged and packaged. Epoch-1 materials remain frozen historical evidence only. Broader secret infrastructure, dual-epoch compatibility, filesystem frameworks, contract refactoring, projection, corpus, handoff/resume, learning, and multi-agent work requires an observed active-slice blocker.
+D086 activates the D085 R0–R6 external product-proof roadmap and records the R2 target lock as the canonical next action.
+
+```text
+ROADMAP_PROOF_SCORE = 30 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
+```
+
+S-001 is shipped as package `0.3.0` with verifier-only epoch-2 authority, and R1 is independently accepted. No external repository is selected and no R3 implementation is authorized.
+
+R2 owns the non-Meta-Harness repository, exact base commit, clean target worktree, human four-line lock, three alternatives, and bounded RunSpec. The selected behavior must be the smallest representative slice that exercises both coding and specialist knowledge.
+
+S-006M uses Option A: independent verification covers code, scope, custody, tests, and observable behavior. Specialist knowledge must be explicit, provenance-linked, challengeable, and materially shape the output, but independent domain correctness, generalization, and real-world value remain unproven. The following or equivalent boundary must travel with the candidate and package:
+
+> Specialist knowledge materially shaped this result. Independent domain correctness, generalization, and real-world value remain unproven.
+
+The terminal state is `MERGED + PACKAGED`. `PUBLISHED`, deployed, live-capital, broker, credential, and public-performance states require a separate named human gate. Epoch-1 materials remain frozen historical evidence only. A concrete blocker discovered during authorized R3 execution may open only the smallest proven repair inside the same R3 slice before resumption and independent acceptance. R6 is reserved for post-shipment independent domain validation or replication. Broader secret infrastructure, dual-epoch compatibility, filesystem frameworks, contract refactoring, generic knowledge systems, handoff/resume frameworks, learning engines, and multi-agent work remain unauthorized.
 
 ## Historical MVP Product Shape
 

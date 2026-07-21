@@ -1,8 +1,8 @@
 # Meta-Harness Roadmap
 
-Status: **locked current direction**
-Version: `endgame-v10 + fail-preserving exact-candidate finalization`
-Effective date: 2026-07-18
+Status: **active D085 direction under canonical D086 acceptance**
+Version: `endgame-v11 + active R0–R6 external product proof`
+Activated date: 2026-07-21
 Intent authority: [Product Intent Anchor](product-intent.md)
 Question authority: [Problem-Solving Questions](problem-questions.md)
 
@@ -33,7 +33,7 @@ The primary product view is always:
 - what is currently true;
 - what blocks that outcome;
 - what the critical path is;
-- which smallest end-to-end slice should be built next;
+- which smallest representative end-to-end slice should be built next;
 - why it beats the alternatives;
 - what requires human judgment;
 - what proves the slice worked;
@@ -116,7 +116,7 @@ Historical decision and phase identifiers remain available for evidence but are 
 
 ## Scorecard
 
-Do not hide trade-offs in one aggregate score. Each round reports:
+Each round continues to report the multidimensional evidence vector:
 
 - product progress;
 - shipping readiness;
@@ -131,51 +131,250 @@ Do not hide trade-offs in one aggregate score. Each round reports:
 - rework burden;
 - continuity confidence.
 
-A short overall verdict may accompany the vector, but weights remain explicit and versioned.
-
-## Locked Functional-Slice Build Order
-
-G-AUTHORITY-001 completed one-way authority epoch-2 migration and S001-SHIP-E2 as package `0.3.0` after candidate `588bbe9` acceptance. The only remaining critical-path slice is external-product S-006M. The original long-range capabilities remain valid endgame candidates, but they are not automatic prerequisites.
-
-| Step | Slice / gate | Product problem | Exit condition |
-|---:|---|---|---|
-| 1 | `CANDIDATE-S001R5F` + `S001R5F-CLOSE` + CI-ACCEPT | Runtime and direction close for S-001 candidate. | **Done** at accepted `588bbe9` (Linux/Windows × Node 20/25). |
-| 2 | `G-001` Epoch-1 continuity | Matching private capability for epoch-1 public key. | **Falsified** — capability unavailable; valid human-gate outcome. |
-| 3 | `G-AUTHORITY-001` + `S001-SHIP-E2` | Unrecoverable epoch-1 key blocked shipment. | **Done**: one-way epoch-2 migration, one receipt v2, package `0.3.0`, epoch-1 frozen as history, no dual-epoch runtime. |
-| 4 | `S-006M` First real single-worker coding loop | No real external product behavior has shipped through the harness. | One non-fixture change in a **non-Meta-Harness** product repository completes frozen audit → intent → three alternatives → bounded RunSpec → installed `0.3.0` execute custody → independent acceptance → merged and packaged terminal state. |
-| 5 | `OBSERVED-BLOCKER-ONLY` Evidence-led enabling work | Horizontal infrastructure can consume the roadmap without moving a product outcome. | Add only the smallest projection, intent, evaluation, handoff, resume, runtime, identity, research, custody, or PM-control change that a real active slice proves is blocking shipment. |
-| 6 | `S-009M` First research-to-product loop | Research remains useful only when it changes a requirement, constraint, test, benchmark, risk, decision, claim, or implementation rule. | One real research question changes shipped behavior or its acceptance evidence through the same bounded loop. |
-| 7 | `S-012M` Multi-module behavior slice | Cross-module behavior still risks local optimization and context collapse. | One real multi-module product behavior is localized, changed, independently verified, and shipped through progressive disclosure. |
-| 8 | `S-016M` Scored alternatives in shadow mode | Planning quality and economics are not measured against alternatives. | Three materially different next-slice candidates are scored beside the human/auditor decision and beat a baseline without controlling execution. |
-| 9 | `S-020M` Outcome learning | Historical evidence does not yet improve recommendations. | A versioned, reversible policy change makes a falsifiable prediction and improves holdout recommendation quality without shipping regressions. |
-| 10 | `S-024M` Controlled fan-out | Parallel agents are not yet proven economically or operationally safe. | Leased isolated workcells reduce elapsed time versus one worker without increasing defects, rework, duplicate work, or integration failure. |
-| 11 | `S-029M` Shipping workcell | Release mechanics and human reconstruction still interrupt the end-to-end objective. | One PM surface and bounded shipping workcell complete release evidence, migration, rollback, and the final shipping decision. |
-
-### Deferred standalone programs
-
-The following are no longer automatic prerequisites:
-
-- `S-001A` standalone projection contract: fold only the provenance required to close `CANDIDATE-S001R5F`; expand later only from observed failure.
-- `S-001B` standalone frozen-intent machinery: `docs/product/product-intent.md` remains the locked authority; automate injection only when a real loop proves the manual anchor insufficient.
-- `S-005`/`S-005A` standalone corpus program: add adversarial cases to each active slice; extract a shared corpus only after repeated reuse.
-- `S-006A/B/C` broad handoff, resume, and checkpoint programs: derive the minimum typed contract from the first real interrupted or transferred loop.
-- `S-002` runtime-floor work and `S-004` identity migration: execute only when they directly block release, adoption, or an active product outcome.
-
-## Immediate Scope
-
-The only authorized work is:
+The PM roadmap also uses one all-or-none completion measure:
 
 ```text
-S-006M — real non-Meta-Harness product loop through installed 0.3.0 → merged and packaged
+ROADMAP_PROOF_SCORE = 30 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 ```
 
-S001-SHIP-E2 is complete under G-AUTHORITY-001: candidate `588bbe9` accepted, authority epoch 2 pinned, package identity `0.3.0`, epoch-1 evidence frozen at `docs/ops/audits/authority-epoch-1-frozen/`. The product remains verifier-only with a single active authority epoch. Declared Node support is `>=20` with CI evidence on Node 20 and Node 25 for Linux and Windows.
+| Phase | Evidence earned only after the full exit contract passes | Points |
+|---|---|---:|
+| R0 | Shipped technical substrate | 20 |
+| R1 | Clean target-independent Meta-Harness execution base | 10 |
+| R2 | Representative external target and slice selected | 10 |
+| R3 | External result independently accepted, including any observed-blocker repair loop | 20 |
+| R4 | External result merged and packaged | 20 |
+| R5 | Learning and handover validated | 10 |
+| R6 | Domain axis independently validated or replicated | 10 |
+| **Total** |  | **100** |
 
-The tracked verifier schema is `meta-harness-truth-authority-public/v1`; the repository-bound receipt schema is `meta-harness-truth-authority-receipt/v2`. No new authority schema, dual-epoch compatibility, database, daemon, or generic filesystem layer is authorized.
+Partial implementation, renamed scorecards, plans, documents, test counts, and self-assessed intent earn zero points. The aggregate score supplements rather than hides the evidence vector.
 
-S-006M must target a real non-Meta-Harness product repository. No new harness feature may precede it unless that real run demonstrates a concrete blocker.
+## Active PM Roadmap — R0 to R6
 
-Do not begin an internal key vault, signer daemon, OS-keychain adapter, generic credential framework, authority recovery system, custom database, broad path framework, canonical-phase/role-permission refactor, adapter expansion, generic loop controller, corpus infrastructure, broad handoff machinery, mass module splitting, outcome learning, or multi-agent orchestration in parallel.
+D086 activates the D085 critical path and proof boundary after independent R1 acceptance. G-AUTHORITY-001 completed one-way authority epoch-2 migration and S001-SHIP-E2 as package `0.3.0` after candidate `588bbe9` acceptance. R2 target lock is now the canonical next action; no external repository has been selected.
+
+The first external slice must be the smallest **representative** behavior that exercises both software engineering and specialist knowledge. A trivial coding-only change may be mergeable but cannot close the endgame proof.
+
+### R0 — Shipped Technical Substrate
+
+**Status: DONE**
+
+Local and fetched remote evidence bind `origin/main` and `v0.3.0` to `0b4e0dd7df766a701086d6b611556d9f321a0cb7`. S-001 is integrated as `@nkgss/meta-harness@0.3.0` under verifier-only authority epoch 2; epoch-1 evidence is frozen as history.
+
+Exit contract:
+
+- accepted candidate `588bbe9`;
+- Linux and Windows evidence on Node 20 and Node 25;
+- one active verifier epoch;
+- package identity `0.3.0`;
+- no dual-epoch compatibility or private capability in the package.
+
+**Score after phase completion: `ROADMAP_PROOF_SCORE = 20 / 100`.**
+
+### R1 — Clean Target-Independent Meta-Harness Execution Base
+
+**Status: DONE — INDEPENDENTLY ACCEPTED UNDER D086**
+
+Establish the exact Meta-Harness source, package, runtime, authority boundary, and stop rules before any human-owned external target decision. R1 does not name or create an external product checkout.
+
+Exit contract:
+
+- live and local `origin/main` and peeled `v0.3.0` truth reconciled at accepted commit `0b4e0dd7df766a701086d6b611556d9f321a0cb7`;
+- one clean accepted Meta-Harness source worktree bound to commit `0b4e0dd7df766a701086d6b611556d9f321a0cb7` and tree `29e0d4aaf0235f84dea8d958e5dd8500f16f47f0`;
+- exact packed and installed `@nkgss/meta-harness@0.3.0` identity recorded, including tarball digest;
+- native Windows Node `25.2.1` and npm `11.16.0` paths and versions recorded, with Node below 20 a hard stop;
+- verifier-only authority, allowed reversible actions, forbidden commitments, and stop rules recorded;
+- dirty or stale operator checkouts preserved but never promoted to execution authority;
+- external repository, target commit, target worktree, and product behavior remain intentionally unset.
+
+Independent re-audit accepts R1 and banks its 10 points under D086.
+
+**Score after phase completion: `ROADMAP_PROOF_SCORE = 30 / 100`.**
+
+### R2 — Select the Representative External Target and Slice
+
+**Status: CURRENT — HUMAN TARGET DECISION REQUIRED**
+
+R2 owns the complete external target decision: repository, exact base commit, clean target worktree, behavior, alternatives, and RunSpec. Select one external behavior by completing this four-line lock:
+
+```text
+User:
+Job or progress sought:
+Specialist judgment generic coding cannot replace:
+Observable result after shipment:
+```
+
+The slice must trace explicitly to `intent-v1` and compare at least three materially different alternatives. The recommendation must include the strongest counterargument, claim ceiling, cheapest alternative, and evidence that would reverse it.
+
+Active proof boundary — Option A:
+
+- specialist knowledge must materially shape the result;
+- S-006M proves the operational combination of coding and specialist knowledge;
+- independent correctness, generalization, and real-world value of the specialist knowledge are not prerequisites for this first shipment;
+- no new Meta-Harness feature may be assumed as a prerequisite.
+
+Exit contract:
+
+- one real user and named non-Meta-Harness product repository;
+- exact target base commit and one clean isolated target worktree;
+- the four-line user / job / specialist judgment / observable result lock completed;
+- one user-visible, bounded, reversible behavior;
+- one explicit specialist judgment;
+- three materially different alternatives compared;
+- exact R1-installed `0.3.0` identity bound to the target execution plan;
+- terminal state set to `MERGED + PACKAGED`;
+- bounded RunSpec bound to `intent-v1`, target repository identity, owned surfaces, stop rules, and the evidence ceiling.
+
+**Score after phase completion: `ROADMAP_PROOF_SCORE = 40 / 100`.**
+
+### R3 — Execute and Independently Accept S-006M
+
+**Status: BLOCKED ON R2**
+
+Run:
+
+```text
+frozen audit
+→ verbatim intent reread
+→ three alternatives
+→ bounded RunSpec
+→ installed 0.3.0 execution custody
+→ observable external product result
+→ independent acceptance
+```
+
+Coding correctness, scope, custody, tests, and observable behavior require independent verification. Specialist knowledge must be explicit, provenance-linked, challengeable, and bounded by a claim ceiling, but its independent domain correctness remains unproven in R3.
+
+The limitation must travel with the candidate and later package through a README, decision record, output disclaimer, or equivalent durable user-facing surface:
+
+> Specialist knowledge materially shaped this result. Independent domain correctness, generalization, and real-world value remain unproven.
+
+If execution exposes a concrete Meta-Harness blocker, remain inside R3:
+
+```text
+same R3 slice
+→ name the exact blocker and failed evidence
+→ implement only the smallest proven harness repair
+→ prove the repair against that blocker
+→ resume the same external slice
+→ independent acceptance
+```
+
+The exception loop cannot select a new product, broaden the slice, or earn partial points. Valid incomplete outcomes remain salvageable evidence, but only an independently accepted external product candidate earns the phase points.
+
+**Score after phase completion: `ROADMAP_PROOF_SCORE = 60 / 100`.**
+
+### R4 — Merge and Package the External Result
+
+**Status: BLOCKED ON R3**
+
+Take the independently accepted candidate through integration, merge, package creation, and package-level verification. Record base and merged commits, package identity, product behavior, rollback method, elapsed time, human interventions, rework, and unresolved limits.
+
+The terminal state is exactly:
+
+```text
+MERGED + PACKAGED
+```
+
+`PACKAGED` does not mean `PUBLISHED`. Registry publication, deployment, live capital, broker access, public performance claims, credentials, or equivalent irreversible commitments require a separate named `G-AUTHORITY` or `G-RISK` decision.
+
+Exit contract:
+
+- external change merged;
+- reproducible distributable artifact produced;
+- packaged behavior independently checked;
+- claim boundary present in the artifact;
+- no unresolved authoritative contradiction.
+
+**Score after phase completion:**
+
+```text
+ROADMAP_PROOF_SCORE = 80 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 1 / 1
+```
+
+### R5 — Evidence-Bound Learning and Validated Handover
+
+**Status: BLOCKED ON R4**
+
+Produce one learning record:
+
+```text
+Prior belief
+→ observed evidence
+→ changed conclusion
+→ confidence before and after
+→ reusable rule
+→ remaining uncertainty
+→ next falsifier
+```
+
+Classify each conclusion as raw evidence, verified observation, tested hypothesis, reusable rule, system model, or product strategy. One run does not silently become a system law.
+
+Produce one canonical continuation state for both operator and expert use:
+
+```text
+What we were trying to do
+What now works
+What was learned
+What remains unresolved
+What must not be reopened
+Exact recommended next action
+```
+
+A fresh receiver must restate the objective, state, completed work, unresolved work, exact next action, forbidden action, and done condition before resume.
+
+**Score after phase completion: `ROADMAP_PROOF_SCORE = 90 / 100`.**
+
+### R6 — Independently Validate or Replicate the Domain Axis
+
+**Status: BLOCKED ON R5**
+
+R6 is exclusively post-shipment domain validation or replication. Independently test the specialist-knowledge axis using a named domain reviewer, authoritative benchmark, blinded comparison, pre-registered rubric, or equivalent falsifiable method.
+
+Exit contract:
+
+- run one independent replication or domain evaluation against the merged and packaged S-006M result;
+- test whether the domain judgment is correct enough for its stated claim;
+- test whether the R5 learning survives outside the original author's judgment;
+- preserve the distinction between workflow usefulness, domain correctness, generalization, and real-world value;
+- record a falsifiable result without reopening shipment repair inside R6.
+
+Any harness blocker discovered before independent R3 acceptance belongs to the bounded R3 exception loop, not R6.
+
+**Score after phase completion: `ROADMAP_PROOF_SCORE = 100 / 100`.**
+
+Completion of R6 closes this roadmap, not the broader v1.0 or SOTA proof.
+
+## Held Roadmap
+
+The following remain closed until the R0–R6 proof path earns evidence for them:
+
+- generic guided-pilot platform;
+- generic research-agent platform;
+- generic knowledge database;
+- provider expansion;
+- broad handoff or resume framework;
+- outcome-learning engine;
+- generic loop controller;
+- mass module splitting;
+- multi-agent orchestration;
+- investment, alpha, live-capital, broker, or public-performance claims;
+- compatibility layers for superseded authority architecture.
+
+After canonical authorization, a harness-internal change may open only inside R3 when the same external slice identifies the concrete blocker, smallest repair, and proof that the repair unlocks resumption and independent acceptance.
+
+## Active Immediate Scope
+
+D086 makes D085 the active direction and records the R2 four-line target lock as the canonical next action. No external repository is selected by the banking transaction, and no R3 implementation may begin before the complete R2 exit contract passes.
+
+The active path is R2 target and slice lock → R3 execution and any observed-blocker exception loop → R4 merge/package → R5 learning/handover → R6 independent domain validation or replication.
+
+A provisional theme such as G08 is not a selected functional slice until the four-line User / Job / Specialist judgment / Observable result gate, exact repository/base/worktree, alternatives, and RunSpec are concrete.
+
+No new authority schema, dual-epoch compatibility, database, daemon, vault, keychain adapter, generic credential framework, broad filesystem layer, knowledge platform, provider framework, or multi-agent program is authorized.
 
 ## v1.0 Proof Standard
 

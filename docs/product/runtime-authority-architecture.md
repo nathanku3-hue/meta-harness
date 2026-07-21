@@ -4,6 +4,14 @@
 
 **Rule:** Behavioral authority lives in schemas + tests. This doc stays short.
 
+## Current Consumer Proof Boundary
+
+D085 leaves the runtime authority architecture frozen and is canonically active under D086. R0 and R1 are complete; R2 now asks which representative external coding-plus-specialist-knowledge behavior installed `0.3.0` should target.
+
+The runtime independently establishes execution authority, custody, repository identity, replay, and code/product evidence. It does not certify the truth of specialist-domain judgments. S-006M carries that limitation in its merged and packaged artifact; R6 later supplies an independent reviewer, benchmark, blinded comparison, pre-registered rubric, or equivalent domain test.
+
+`PACKAGED` is a verified artifact state. `PUBLISHED` is a separate irreversible boundary and is not runtime-inferred.
+
 ## Objects
 
 ```text

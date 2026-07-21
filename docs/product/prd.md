@@ -1,7 +1,7 @@
 # Meta-Harness PRD
 
-Status: active
-Date: 2026-06-29
+Status: active baseline; D085 proof sequence canonically active under D086
+Date: 2026-07-21
 Owner: product / harness
 Intent authority: [Product Intent Anchor](product-intent.md)
 Roadmap authority: [Roadmap](roadmap.md)
@@ -88,11 +88,29 @@ Primary measures:
 
 Activity measures such as token count, patch count, test count, agent count, and artifact count are diagnostic only.
 
-## Current Build Boundary
+## Active Product-Proof Boundary
 
-S-001 is integrated and packaged as `0.3.0` under authority epoch 2. Immediate authorized work is `S-006M` only: one real non-fixture coding loop in a **non-Meta-Harness product repository** through installed `0.3.0` to merged and packaged state. Do not reopen S-001 runtime repair, dual-epoch support, or harness feature work unless that external loop demonstrates a concrete blocker. Internal secret infrastructure, broad filesystem frameworks, and standalone projection, corpus, handoff, learning, or multi-agent programs remain deferred.
+D086 activates the D085 R0–R6 external product-proof roadmap and records R2 target lock as the current canonical action.
 
-No loop controller, adapter expansion, mass module decomposition, outcome learning, or multi-agent fan-out is authorized in parallel. The historical execution-custody runtime remains a frozen lower layer and is changed only when a real product slice exposes a blocking defect.
+```text
+ROADMAP_PROOF_SCORE = 30 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
+```
+
+S-001 is integrated and packaged as `0.3.0` under authority epoch 2, and independent re-audit accepts the target-independent R1 execution base. R2—not R3 execution—now owns the human target lock, non-Meta-Harness repository, exact base commit, clean target worktree, target behavior, alternatives, and RunSpec. The target may not be a trivial coding-only change.
+
+The target-selection record must trace to `intent-v1` and name:
+
+- the user;
+- the job or progress sought;
+- the specialist judgment generic coding cannot replace;
+- the observable result after shipment.
+
+S-006M uses proof boundary Option A. Success proves one operational combination of independently verified coding and explicit specialist knowledge. It does not prove independent domain correctness, generalization, or real-world value. That limitation must be present in the merged and packaged artifact itself, not only in Meta-Harness planning documents.
+
+The S-006M terminal state is `MERGED + PACKAGED`. Public publication, deployment, credentials, live capital, broker access, public performance claims, and equivalent irreversible commitments remain separate named human gates.
+
+Do not reopen S-001 runtime repair, dual-epoch support, or harness feature work unless an authorized R3 execution demonstrates a concrete blocker. That smallest proven repair remains inside the same R3 slice, which then resumes to independent acceptance. R6 is exclusively post-shipment independent domain validation or replication. No loop controller, adapter expansion, mass module decomposition, generic knowledge database, outcome-learning engine, broad handoff framework, or multi-agent fan-out is authorized in parallel.
 
 ## Historical Product Statement
 

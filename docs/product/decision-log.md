@@ -2,7 +2,121 @@
 
 Status: append-only
 Started: 2026-05-02
-Current direction locked: 2026-07-19
+Candidate direction proposed: 2026-07-21
+Active direction banked: 2026-07-21
+
+## D086: Accept R1, Bank 30/100, and Activate D085 for R2 Target Lock
+
+Decision:
+
+Accept the independent R1 re-audit, bank the completed target-independent execution base, and activate the D085 R0–R6 external product-proof roadmap. Canonical receipt `D086-D085-R1-ACCEPTANCE` and its generated status are the activation authority. The historical D085 candidate decision below remains unchanged as proposal evidence.
+
+Current proof state:
+
+```text
+ROADMAP_PROOF_SCORE = 30 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
+```
+
+R2 is the canonical next action. It begins with the four-line human target lock—User, job or progress sought, specialist judgment generic coding cannot replace, and observable result after shipment—before repository selection, exact base commit, isolated target worktree, three alternatives, installed-runtime binding, or RunSpec creation. No external repository is selected by this decision, and R3 implementation remains blocked until the complete R2 exit contract passes.
+
+Rationale:
+
+The independent re-audit closed every R1 blocker and confirmed that R1 is target-independent, observed-blocker repair remains inside R3, R6 is post-shipment domain validation only, and the D085 candidate does not claim authority before the canonical transaction. Banking the whole reconciled set prevents the opposite contradiction in which canonical state is active while tracked planning surfaces and tests still describe D085 as inactive.
+
+Evidence:
+
+- independent re-audit verdict: APPROVED;
+- native Windows Node `25.2.1` and npm `11.16.0`;
+- pre-banking independent re-audit focused suite: 23/23 passed;
+- post-banking D085 and adjacent custody-truth suite: 24/24 passed after repairing one stale status-goal assertion inside the same banking slice;
+- candidate HEAD tree equals merged `0b4e0dd` tree `29e0d4aaf0235f84dea8d958e5dd8500f16f47f0`;
+- no external repository selected and no product implementation or runtime source changed;
+- canonical event/status agreement under receipt `D086-D085-R1-ACCEPTANCE`.
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Canonical-state note:
+
+D086 is banked by the epoch-2 controller-authorized receipt and generated status. D085 is active only while that event, status projection, active planning surfaces, and the D085 contract test agree. The external private capability remains outside the repository and package.
+
+Supersession:
+
+D086 activates rather than rewrites D085. It supersedes candidate-only and R1-pending language on active surfaces, banks R1 at 30/100, and replaces immediate S-006M execution with the R2 target lock. It preserves the R1/R2 dependency, R3/R6 boundary, Option-A claim ceiling, verifier-only runtime, and the requirement for a separate named gate before publication or other irreversible commitments.
+
+## D085 (candidate): Propose the R0–R6 External Product-Proof Roadmap and the Option-A Claim Boundary
+
+Candidate decision:
+
+Propose the PM-facing `R0–R6` roadmap as the next product-development sequence after S001-SHIP-E2. D085 remains candidate-only and is not the sole active direction until a controller-authorized canonical event reconciles `.meta-harness/status.md`, records the R2 target-lock next action, and adds the new stop criteria. Preserve the endgame in `intent-v1`: Meta-Harness exists for one solo developer/researcher shipping ultra-complex, multi-module products through both software engineering and specialist knowledge. Reject a guided-pilot endgame swap, a second aspirational headline score, and any parallel horizontal program before the first external product proof.
+
+The first external slice, `S-006M`, must be the smallest **representative** external behavior, not merely the smallest mergeable behavior. Selection must trace explicitly to `docs/product/product-intent.md` and name:
+
+1. the real user;
+2. the progress or job the user is trying to complete;
+3. the specialist judgment that generic coding cannot replace; and
+4. the observable user-visible result.
+
+Propose proof boundary **Option A**:
+
+- S-006M must prove that explicit specialist knowledge materially shaped one independently verified, merged, and packaged external product workflow;
+- independent correctness, generalization, and real-world value of that specialist knowledge are not prerequisites for S-006M;
+- those limits must travel with the shipped or packaged artifact itself through its README, decision record, output disclaimer, or equivalent durable user-facing surface;
+- independent domain correctness becomes the primary next crux in R6 rather than an uncontrolled external dependency on the first-shipment critical path.
+
+Propose the shipping boundary:
+
+- R4 closes at `MERGED + PACKAGED` with a reproducible distributable artifact;
+- `PUBLISHED`, deployed, live-capital, broker, public-performance, and equivalent irreversible states require a separate named `G-AUTHORITY` or `G-RISK` decision;
+- packaging must never be silently reported as publication.
+
+Propose the evidence score:
+
+```text
+ROADMAP_PROOF_SCORE = 20 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
+```
+
+`ROADMAP_PROOF_SCORE` awards points only when an entire phase exit contract passes: R0 shipped substrate 20, R1 target-independent Meta-Harness execution base 10, R2 external target and slice selection 10, R3 execution plus any observed-blocker exception loop through independent acceptance 20, R4 merge/package 20, R5 learning/handover 10, and R6 independent domain validation or replication 10. Partial implementation, renamed scorecards, plans, documents, test counts, and self-assessed intent do not earn points. The score supplements rather than replaces the existing multidimensional evidence vector.
+
+The candidate sequence is:
+
+```text
+R0 shipped technical substrate — DONE
+→ R1 clean target-independent Meta-Harness execution base
+→ R2 representative external target and slice selection
+→ R3 execute, repair only an observed concrete blocker if necessary, resume, and independently accept S-006M
+→ R4 merge and package the external result
+→ R5 evidence-bound learning and validated handover
+→ R6 independent domain validation or replication
+```
+
+No generic guided-pilot platform, research-agent platform, knowledge database, provider expansion, broad handoff framework, outcome-learning engine, or multi-agent orchestration may run in parallel. After canonical authorization, a harness change may open only inside the same R3 slice when execution names the concrete failure, smallest repair, and proof that the repair unlocks resumption and independent acceptance.
+
+Rationale:
+
+The key strategic risk is an off-target proof: a trivial coding-only slice could reach `1/1` while proving none of the specialist-knowledge axis that differentiates the product. The correct operating point is Rumelt target discipline plus Bezos decision tempo: choose the crux, then treat the bounded first shipment as a reversible two-way door. Requiring independent domain correctness in S-006M would add a reviewer, benchmark, or authoritative rubric outside the current span of control and could block the first shipment for reasons unrelated to whether Meta-Harness works. Keeping that validation in R6 preserves the proof standard while respecting dependency structure.
+
+Evidence:
+
+- fetched live `origin/main` and `v0.3.0` resolve to `0b4e0dd7df766a701086d6b611556d9f321a0cb7`;
+- package identity is `@nkgss/meta-harness@0.3.0`;
+- accepted S-001 candidate is `588bbe9`;
+- prior planning audit and human approval selected Option A and required the claim boundary to travel with the artifact.
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Canonical-state note:
+
+D085 is explicit human candidate direction and documentation evidence. It does not forge a new canonical event or authority receipt. Existing epoch-2 canonical truth and `.meta-harness/status.md` remain the execution authority. The D085 roadmap and planning surfaces are review candidates only; no R2 repository selection or R3 implementation is authorized until a controller-authorized event records the new next action and stop criteria.
+
+Supersession:
+
+If canonically authorized, D085 preserves G-AUTHORITY-001, S001-SHIP-E2, verifier-only epoch-2 authority, and the external-product S-006M requirement. It would supersede “smallest mergeable behavior” as sufficient proof, any coding-pilot aggregate score, any implication that domain correctness is proven by the first run, and any implication that `PACKAGED` means `PUBLISHED`.
 
 ## G-AUTHORITY-001: One-Way Authority Epoch-2 Migration and S001-SHIP-E2
 

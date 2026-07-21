@@ -1,7 +1,7 @@
 # Problem-Solving Questions
 
 Status: canonical product questions
-Date: 2026-07-17
+Date: 2026-07-21
 Intent authority: [Product Intent Anchor](product-intent.md)
 Roadmap authority: [Roadmap](roadmap.md)
 
@@ -265,3 +265,30 @@ Required evidence includes:
 - holdout-tested recommendation improvement.
 
 Until then, the correct claim is: **credible SOTA research direction, not yet a proven SOTA system**.
+
+## Q-017 — What must the first external product proof establish about specialist knowledge?
+
+**Answer:** It must prove that explicit specialist knowledge materially shaped one real shipped workflow, not merely decorate a coding task.
+
+The selected slice must name:
+
+- a real user;
+- the progress the user is trying to make;
+- the specialist judgment generic coding cannot replace;
+- the observable result after shipment.
+
+For S-006M, independent verification covers code, scope, custody, tests, and observable behavior. Specialist knowledge must be provenance-linked, challengeable, and bounded by an explicit claim ceiling. Independent domain correctness, generalization, and real-world value remain unproven until R6 supplies a named reviewer, authoritative benchmark, blinded comparison, pre-registered rubric, or equivalent falsifiable method.
+
+The limitation must travel with the merged and packaged artifact. A roadmap-only disclaimer is insufficient because later users may encounter the artifact without its planning context.
+
+**Solved only when:** one external coding-plus-knowledge workflow is merged and packaged with the claim boundary intact, followed by an independent domain-axis test that can falsify the specialist judgment.
+
+## Q-018 — Is a packaged result the same as a published result?
+
+**Answer:** No.
+
+`MERGED`, `PACKAGED`, `PUBLISHED`, `DEPLOYED`, `EXTERNALLY_VALIDATED`, and `USER_OBSERVED` are separate terminal states. Packaging creates a reproducible distributable artifact. Publication exposes it through a registry or public channel and can create external commitments that are harder to reverse.
+
+S-006M closes at `MERGED + PACKAGED`. Publication, deployment, credentials, live capital, broker access, public performance claims, and equivalent irreversible actions require a separate named `G-AUTHORITY` or `G-RISK` decision.
+
+**Solved only when:** every outcome and PM summary reports the exact terminal state without collapsing package creation into publication or user-observed value.

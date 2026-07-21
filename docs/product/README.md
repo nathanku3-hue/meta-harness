@@ -1,14 +1,14 @@
 # Product Documentation Authority
 
 Status: canonical index
-Date: 2026-07-17
+Date: 2026-07-21
 
 ## Read Order
 
 1. [Product Intent Anchor](product-intent.md) — immutable human intent and priorities.
 2. [Problem-Solving Questions](problem-questions.md) — subtle failure modes and proof conditions.
 3. [PRD](prd.md) — target user, problem, outcomes, boundaries, and success measures.
-4. [Roadmap](roadmap.md) — locked endgame and numbered functional-slice build order.
+4. [Roadmap](roadmap.md) — locked endgame plus the active D085 functional-slice sequence under D086.
 5. [Product Specification](product-spec.md) — operating contracts and artifact expectations.
 6. [Architecture Map](../architecture/map.md) — layer and dependency boundaries.
 7. [SOP](../sop/meta-harness-sop.md) — auditor-planner and worker operating loop.
@@ -31,21 +31,34 @@ human intent version
 
 A material disagreement must block `ok: true` until reconciled.
 
+## Active D085 Program
+
+D086 canonically activates the PM-facing R0–R6 external product-proof roadmap and records R2 target lock as the next action. Current evidence state:
+
+```text
+ROADMAP_PROOF_SCORE = 30 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
+```
+
+The first external proof must combine coding with specialist knowledge. It proves that knowledge materially shaped one independently verified, merged, and packaged workflow; it does not yet prove independent domain correctness, generalization, or real-world value. That boundary must travel with the external artifact. `PACKAGED` and `PUBLISHED` remain distinct states. No external repository is selected yet, and R3 remains blocked until the complete R2 exit contract passes.
+
 ## Document Classes
 
-### Active authority
+### Active baseline authority
 
 - `product-intent.md`
-- `problem-questions.md`
-- `prd.md`
-- `roadmap.md`
-- `product-spec.md`
-- `runtime-authority-architecture.md`
-- `decision-log.md`
-- `../architecture/map.md`
-- `../sop/meta-harness-sop.md`
-- `../ops/role-contracts.md`
-- `../ops/state-machine.md`
+- the controller-authorized canonical event/fact ledger;
+- `.meta-harness/status.md` as its generated projection;
+- accepted shipped and audit evidence.
+
+The D085 additions in `problem-questions.md`, `prd.md`, `roadmap.md`, `product-spec.md`, `runtime-authority-architecture.md`, `decision-log.md`, `../architecture/map.md`, `../sop/meta-harness-sop.md`, `../ops/role-contracts.md`, and `../ops/state-machine.md` are active planning authority while they agree with the D086 canonical event and generated status.
+
+### Active operational mirrors
+
+- top-level `implementation_plan.md`;
+- top-level `task.md`.
+
+These files mirror the active roadmap. Execution remains bounded by the D086 canonical event, generated status, and the current R2 target-lock gate. Their historical sections remain evidence only.
 
 ### Generated projections
 
@@ -64,7 +77,7 @@ The following remain readable evidence but do not define current direction:
 
 - `phase-*.md` planning documents;
 - closed audit records under `docs/ops/audits/`;
-- top-level `implementation_plan.md`, `walkthrough.md`, and `task.md`;
+- top-level `walkthrough.md` and historical sections retained inside active operational mirrors;
 - superseded phase maps and release plans;
 - historical MVP and phase-era sections retained inside active documents for compatibility and traceability.
 

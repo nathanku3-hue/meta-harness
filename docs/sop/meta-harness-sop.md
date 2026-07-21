@@ -1,7 +1,8 @@
 # Meta Harness SOP
 
-Status: canonical
-Current direction locked: 2026-07-17
+Status: canonical baseline; D085 active under D086
+Candidate direction proposed: 2026-07-21
+Active direction banked: 2026-07-21
 Intent authority: [Product Intent Anchor](../product/product-intent.md)
 Roadmap authority: [Roadmap](../product/roadmap.md)
 
@@ -98,6 +99,8 @@ Planning priority is:
 
 The plan emits one numbered slice and a bounded RunSpec containing product delta, shipping target, affected behaviors/modules, required expertise, authority envelope, verification contract, budget, expiry, stop rules, and predicted outcome.
 
+For S-006M, target selection must trace to `intent-v1` and name the real user, job or progress sought, specialist judgment generic coding cannot replace, and observable result. The planner selects the smallest representative coding-plus-knowledge slice, not a trivial coding-only slice chosen because it is easiest to merge.
+
 ## Worker Contract
 
 The worker:
@@ -153,6 +156,13 @@ Verification separately scores:
 
 Passing tests alone cannot close a slice.
 
+For S-006M, verification separates two claims:
+
+- code, scope, custody, tests, and observable product behavior require independent acceptance;
+- specialist knowledge must be explicit, provenance-linked, materially shape the output, and remain challengeable, while independent domain correctness, generalization, and real-world value stay explicitly unproven until R6.
+
+The claim ceiling must travel with the merged and packaged artifact itself. A planning-only disclaimer does not satisfy continuity or no-silent-drift.
+
 ## Handoff and Resume Contract
 
 A handoff is a hash-bound state transition, not a summary. It records identity, versions, intent, authority, repository state, completed/current/incomplete operations, continuation cursor, decisions, assumptions, rejected approaches, evidence, next operation, recovery, and expiry.
@@ -198,9 +208,20 @@ Do not automate more agents until one fresh worker can reliably continue another
 
 Later fan-out requires disjoint writes or read-only roles, leases, duplicate suppression, independent acceptance checks, deterministic integration order, cancellation propagation, salvage classification, and measured latency benefit greater than coordination cost.
 
-## Current Build Boundary
+## Active Build Boundary
 
-S-001 is shipped as `0.3.0` under one-way authority epoch 2. Active instruction is `S-006M` in a real non-Meta-Harness product repository through installed `0.3.0` to merged and packaged state. The runtime remains verifier-only; epoch-1 evidence is frozen under `docs/ops/audits/authority-epoch-1-frozen/` and is not an active mutation path. Canonical mutation runs in a controller-owned checkout outside worker write scope. Internal vaults, signer services, dual-epoch compatibility, databases, broad filesystem frameworks, horizontal governance, learning, and fan-out remain deferred. Where later historical sections conflict, G-AUTHORITY-001 / S001-SHIP-E2 governs active instruction.
+D086 activates the D085 R0–R6 external product-proof roadmap and records the R2 target lock as the canonical next action.
+
+```text
+ROADMAP_PROOF_SCORE = 30 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
+```
+
+S-001 is shipped as `0.3.0` under one-way authority epoch 2, and R1 is independently accepted. R2 now owns the human four-line target lock, external repository, exact base commit, clean target worktree, alternatives, and bounded RunSpec. No external repository is selected by D086, and no R3 implementation begins before the complete R2 exit contract passes.
+
+S-006M does not independently prove domain correctness, generalization, or real-world value. That boundary must appear in the candidate and package. `PACKAGED` is not `PUBLISHED`; publication, deployment, live capital, broker access, credentials, and public performance claims require a separate named human gate.
+
+The runtime remains verifier-only; epoch-1 evidence is frozen under `docs/ops/audits/authority-epoch-1-frozen/` and is not an active mutation path. Canonical mutation runs in a controller-owned checkout outside worker write scope. A concrete blocker observed during authorized R3 execution may open only the smallest proven repair inside that same slice before resumption and independent acceptance. R6 is exclusively post-shipment independent domain validation or replication. Internal vaults, signer services, dual-epoch compatibility, databases, broad filesystem frameworks, generic guided-pilot or knowledge platforms, horizontal governance, learning engines, and fan-out remain deferred. D086, its canonical event, and the generated status govern the active D085 path; R2 target lock is current and R3 remains closed.
 
 ## Purpose
 

@@ -43,7 +43,7 @@ function findRow(rows, pattern) {
   return row;
 }
 
-test("status records epoch-2 S001-SHIP while D078 remains frozen historical evidence", () => {
+test("status activates D085 while preserving epoch-2 S001-SHIP and frozen D078 evidence", () => {
   const status = read(".meta-harness/status.md");
   const goal = section(status, "Goal");
   const phase = section(status, "Phase");
@@ -61,22 +61,35 @@ test("status records epoch-2 S001-SHIP while D078 remains frozen historical evid
   const d078Snapshot = frozenEvents.findLast((event) => event.truth_snapshot === true && event.authority === "D078");
   const signedCutover = frozenEvents.findLast((event) => event.authority_receipt?.receipt_id === "D078-S001R-SIGNED-CUTOVER");
   const epoch2 = events.findLast((event) => event.authority_receipt?.receipt_id === "G-AUTHORITY-001-S001-SHIP-E2");
+  const d086 = events.findLast((event) => event.authority_receipt?.receipt_id === "D086-D085-R1-ACCEPTANCE");
 
-  assert.match(goal, /Ship authority-bound Meta-Harness 0\.3\.0/i);
-  assert.match(goal, /S-006M/i);
-  assert.match(phase, /verify/i);
-  assert.match(currentTruth, /Epoch-2 public verifier pinned/i);
-  assert.match(currentTruth, /Candidate 588bbe9 accepted/i);
-  assert.match(currentTruth, /package 0\.3\.0/i);
+  assert.match(goal, /representative external product shipment/i);
+  assert.match(goal, /specialist knowledge/i);
+  assert.match(phase, /plan/i);
+  assert.match(currentTruth, /R1/i);
+  assert.match(currentTruth, /ROADMAP_PROOF_SCORE = 30 \/ 100/i);
+  assert.match(currentTruth, /D085 is active authority/i);
+  assert.match(currentTruth, /no external repository has been selected/i);
   assert.doesNotMatch(status, /Last verified:/i);
   assert.ok(epoch2);
   assert.equal(epoch2.truth_snapshot, true);
   assert.equal(epoch2.authority_receipt.capability, "canonical_truth_mutation");
   assert.equal(epoch2.authority_receipt.proposal.decision, "G-AUTHORITY-001");
   assert.equal(epoch2.authority_receipt.schema_version, "meta-harness-truth-authority-receipt/v2");
-  assert.match(nextAction, /S-006M/i);
-  assert.match(nextAction, /non-Meta-Harness product repository/i);
-  assert.match(stopCriteria, /private material leakage|dual-epoch|external-repo S-006M/i);
+  assert.match(epoch2.result, /Epoch-2 public verifier pinned/i);
+  assert.match(epoch2.result, /Candidate 588bbe9 accepted/i);
+  assert.match(epoch2.result, /package 0\.3\.0/i);
+  assert.ok(d086);
+  assert.equal(d086.truth_snapshot, true);
+  assert.equal(d086.authority_receipt.proposal.decision, "D086");
+  assert.match(nextAction, /R2 four-line target lock/i);
+  assert.match(nextAction, /non-Meta-Harness repository/i);
+  assert.match(nextAction, /bounded RunSpec/i);
+  assert.match(stopCriteria, /private material leakage/i);
+  assert.match(stopCriteria, /dual-epoch runtime support/i);
+  assert.match(stopCriteria, /trivial coding-only target/i);
+  assert.match(stopCriteria, /R3 implementation before R2 exit/i);
+  assert.match(stopCriteria, /before R6/i);
   assert.notEqual(activeAuthority.public_key.x, frozenAuthority.public_key.x);
   assert.equal(frozenAuthority.public_key.x, "H66vchht-4Eg5W0XnRuspV_B738vwNsU6nB2f-DfO2A");
 
@@ -91,6 +104,7 @@ test("status records epoch-2 S001-SHIP while D078 remains frozen historical evid
   assert.match(frozenStatus, /Close S-001R/i);
   assert.match(frozenStatus, /S-001R is implemented in the authorized dirty worktree/i);
 
+  assert.match(decisionLog, /## D086: Accept R1, Bank 30\/100, and Activate D085 for R2 Target Lock/i);
   assert.match(decisionLog, /## D078: Reject S-001 Closure and Restore Functional-First Order/i);
   assert.match(decisionLog, /## D077: Lock Solo Developer\/Researcher Endgame/i);
   assert.match(decisionLog, /D068–D076 execution-authority and custody results remain frozen lower-layer evidence/i);

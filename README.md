@@ -38,7 +38,18 @@ reconcile truth
 
 The human owns intent, taste, authority, material risk, scope expansion, and irreversible commitments. The auditor-planner owns truthful direction. The worker owns bounded authorized execution. The controller owns canonical state, leases, cancellation, integration, custody, and loop integrity.
 
-S-001 is shipped as package `@nkgss/meta-harness@0.3.0` under one-way authority epoch 2 (`G-AUTHORITY-001`). Candidate `588bbe9` was accepted (Linux/Windows × Node 20/25). Epoch-1 public contract, D078 signed truth, and prior status are frozen historical evidence under `docs/ops/audits/authority-epoch-1-frozen/` and are not an active mutation path. Immediate work is `S-006M`: one real non-fixture coding loop in a **non-Meta-Harness product repository** through installed `0.3.0` to merged and packaged state. Internal vaults, signer services, dual-epoch compatibility, databases, broad filesystem frameworks, horizontal governance, and multi-agent programs remain deferred unless that real loop proves a concrete blocker.
+S-001 is shipped as package `@nkgss/meta-harness@0.3.0` under one-way authority epoch 2 (`G-AUTHORITY-001`). Candidate `588bbe9` was accepted (Linux/Windows × Node 20/25). Epoch-1 public contract, D078 signed truth, and prior status are frozen historical evidence under `docs/ops/audits/authority-epoch-1-frozen/` and are not an active mutation path.
+
+D085 is the canonically active PM-facing R0–R6 external product-proof roadmap under D086:
+
+```text
+ROADMAP_PROOF_SCORE = 30 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
+```
+
+The canonical event and generated status accept R1 and open the R2 four-line human target lock as the next action. No external repository has been selected, and R3 implementation remains blocked until the complete R2 exit contract passes.
+
+The first run proves one knowledge-shaped external shipment. It does not prove independent domain correctness, generalization, or real-world value; that boundary must travel with the merged and packaged artifact. `PACKAGED` does not mean `PUBLISHED`. Publication, deployment, live capital, broker access, credentials, and public performance claims require a separate named human gate. Internal vaults, signer services, dual-epoch compatibility, databases, broad filesystem frameworks, generic guided-pilot or knowledge platforms, horizontal governance, and multi-agent programs remain deferred unless the real loop proves a concrete blocker.
 
 ## Historical and Supporting Artifacts
 

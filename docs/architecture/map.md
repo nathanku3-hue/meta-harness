@@ -30,3 +30,25 @@ templates/ are data, not imported code
 The public CLI surface is defined by `lib/command-registry.js`.
 The check-ID surface is defined by `lib/check-id-registry.js`.
 Architecture changes that add commands or check families must update this map and the owning registry together.
+
+## Active Product-Proof Flow
+
+D085 is canonically active under D086 and does not add a runtime layer. It constrains how the existing substrate is applied:
+
+```text
+intent-v1
+→ representative external slice
+→ bounded RunSpec
+→ installed 0.3.0 execution custody
+→ if blocked, smallest proven harness repair inside the same R3 slice
+→ resume the same slice
+→ independent code/product acceptance
+→ merge
+→ package
+→ learning and handover
+→ independent domain-axis test
+```
+
+The code/product verifier and the later domain validator are distinct responsibilities. S-006M requires specialist knowledge to materially shape the output but does not treat the original author as independent proof of domain correctness.
+
+The packaged external artifact must carry its own claim ceiling. Publication is outside this flow and requires a separate human gate.
