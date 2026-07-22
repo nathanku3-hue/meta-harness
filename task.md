@@ -1,74 +1,92 @@
-# Active Task: D085 R2 Target Lock
+# Active Task: D089 R3 Entry Authority Invariant
 
 Current proof state:
 
 ```text
-ROADMAP_PROOF_SCORE = 30 / 100
+ROADMAP_PROOF_SCORE = 40 / 100
 S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 ```
 
-## R0 — Done
+## Authority
 
-- [x] Accept S-001 candidate `588bbe9`.
-- [x] Complete G-AUTHORITY-001 one-way epoch-2 migration.
-- [x] Integrate and package `@nkgss/meta-harness@0.3.0`.
-- [x] Reconcile fetched `origin/main` and `v0.3.0` at `0b4e0dd7df766a701086d6b611556d9f321a0cb7`.
-- [x] Book `ROADMAP_PROOF_SCORE = 20 / 100`.
+- [x] D088-R1 exact candidate `579c0dd04b846963b4e8fad2339317750a767eda` accepted by independent exact-commit audit.
+- [x] D089 controller receipt `D089-D088-R2-ACCEPTANCE` activates D088.
+- [x] R2A minimal owned layer accepted.
+- [x] R2B three-repository read-only proof accepted.
+- [x] R2C `ENTRY_AUTHORITY_INVARIANT` selected and accepted.
+- [x] D087 retained as historical candidate reasoning.
 
-## R1 — Done and independently accepted
+## R3 product behavior
 
-- [x] Reconcile live and local `origin/main` plus peeled `v0.3.0` at `0b4e0dd7df766a701086d6b611556d9f321a0cb7`.
-- [x] Name one clean accepted Meta-Harness source worktree at commit `0b4e0dd7df766a701086d6b611556d9f321a0cb7` and tree `29e0d4aaf0235f84dea8d958e5dd8500f16f47f0`.
-- [x] Pack and install exact `@nkgss/meta-harness@0.3.0` and record package identity.
-- [x] Bind native Windows Node `25.2.1` / npm `11.16.0` and stop below Node 20.
-- [x] Record verifier-only authority, reversible actions, forbidden commitments, and stop rules.
-- [x] Preserve dirty operator state without promoting it to execution authority.
-- [x] Obtain independent R1 acceptance and bank `ROADMAP_PROOF_SCORE = 30 / 100` under D086.
+Before product planning, Meta-Harness determines whether the opened checkout is the trusted place to continue.
 
-## Canonical authority gate — required before R2
-
-- [x] Use controller receipt `D086-D085-R1-ACCEPTANCE` to record the R2 target lock and D085 stop criteria.
-- [x] Do not manually edit `.meta-harness/status.md` or `.meta-harness/events.jsonl`.
-- [x] Activate D085 only after the D086 canonical event, generated status, active surfaces, and contract agree.
-
-## R2 — Current human target decision
-
-Complete:
+Input:
 
 ```text
-User:
-Job or progress sought:
-Specialist judgment generic coding cannot replace:
-Observable result after shipment:
+externally trusted expected repository identity
++ read-only observed checkout facts
 ```
 
-Then:
+Output — exactly one:
 
-- [ ] Name the non-Meta-Harness repository and exact base commit.
-- [ ] Create one clean isolated target worktree.
-- [ ] Trace the target explicitly to `intent-v1`.
-- [ ] Compare three materially different external-slice alternatives.
-- [ ] Select the smallest representative coding-plus-knowledge behavior.
-- [ ] Record recommendation, strongest counterargument, claim ceiling, cheapest alternative, and reversing evidence.
-- [ ] Bind exact installed `0.3.0`, authority, owned/forbidden surfaces, budget, rollback, and stop rules.
-- [ ] Bind terminal state to `MERGED + PACKAGED`, not publication.
-- [ ] Emit the bounded S-006M RunSpec.
+```text
+PASS_CURRENT
+REDIRECT — exact path/ref/commit
+CUSTODY_REQUIRED — product bytes lack named Git authority
+BLOCK — trusted expected identity is absent or contradictory
+```
 
-## Active S-006M claim boundary
+## Implementation boundary
 
-The merged and packaged external artifact must state, or express equivalently:
+- [ ] Reuse or extract existing identity comparison from `lib/contracts/run-spec.js`, `lib/contracts/execution-readiness-facts.js`, `lib/contracts/workspace-start.js`, and existing readiness/entry infrastructure.
+- [ ] Add one pure comparator; do not add a second authority architecture.
+- [ ] Integrate into the existing `ready` or worker-entry surface.
+- [ ] Add no public command unless the existing surface cannot express the accepted result cleanly.
+- [ ] Treat repository files as observed facts only.
+- [ ] Accept expected identity only from a controller-authorized RunSpec, authenticated trusted-operator boundary, signed canonical event or receipt, or independently anchored immutable evidence.
+- [ ] Reject checkout-local self-promotion and arbitrary unclassified CLI strings.
+- [ ] Preserve read-only, no-process, no-network, no-mutation behavior in the pure evaluator.
 
-> Specialist knowledge materially shaped this result. Independent domain correctness, generalization, and real-world value remain unproven.
+## Required proof
 
-## Repair and validation gate
+### Meta-Harness
 
-- [x] Make R1 target-independent and move repository/base/worktree ownership to R2.
-- [x] Move observed-blocker repair into the same R3 slice.
-- [x] Restrict R6 to independent domain validation or replication.
-- [x] Add and pass one focused contract check that prevents R2 prerequisites from appearing in the R1 exit contract.
-- [x] Run focused native Windows Node 25 checks and stop for independent re-audit.
-- [x] Preserve the reviewed candidate until acceptance; commit and push only the complete reconciled banking set.
+- [ ] stale primary checkout → `REDIRECT`;
+- [ ] accepted candidate authority → `PASS_CURRENT`;
+- [ ] checkout-local declaration alone → `BLOCK`.
+
+### Quant
+
+- [ ] contaminated primary checkout → `REDIRECT`;
+- [ ] exact F1A authority worktree → `PASS_CURRENT`.
+
+### Leningrad
+
+- [ ] contaminated research checkout with unversioned Alpha 0 bytes → `CUSTODY_REQUIRED`.
+
+For every proof run record:
+
+- [ ] elapsed time;
+- [ ] input context size;
+- [ ] authority-resolution hops;
+- [ ] human questions;
+- [ ] exact result;
+- [ ] recovered product next action.
+
+## Verification
+
+- [ ] focused entry-authority contract passes under Node `25.2.1`;
+- [ ] affected readiness, execution-custody, and worker-entry suites pass;
+- [ ] complete suite passes or any connector-bound failure is isolated with exhaustive grouped evidence;
+- [ ] evidence JSON parses;
+- [ ] `git diff --check` and committed `git show --check` pass;
+- [ ] canonical event, status, roadmap, product spec, SOP, plan, and focused contract agree;
+- [ ] one immutable R3 candidate is pushed and execution stops for independent exact-commit audit.
+
+## Forbidden scope
+
+No repository registry, automatic branch promotion, worktree creation, cleanup, migration, GC, pruning, deletion, dashboard, daemon, database, scheduler, queue, generic router, portfolio manager, broad strict-readiness repair, backward compatibility for superseded entry mechanisms, Finance F1B implementation, other external product implementation, provider work, real data, live capital, broker access, deployment, or publication.
 
 ## Stop rule
 
-No external repository selection before the four-line R2 target lock, and no R3 implementation before the complete R2 exit contract. No trivial coding-only target; no private material; no dual-epoch runtime; no S-001 reopening without a concrete R3 blocker; no new generic harness platform; no score increase for partial work; no claim of domain correctness from S-006M; no publication, deployment, live capital, broker access, credentials, or public performance claim without a separate named human gate.
+Stop on any authority source supplied by the evaluated checkout; any result outside the four-value taxonomy; duplicated execution-custody logic; mutation, process execution, or network access in the pure evaluator; scope expansion; or failure to reproduce the required three-repository outcomes. After a clean pushed R3 candidate, stop for independent exact-commit audit.

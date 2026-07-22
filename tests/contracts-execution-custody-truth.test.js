@@ -43,7 +43,7 @@ function findRow(rows, pattern) {
   return row;
 }
 
-test("status activates D085 while preserving epoch-2 S001-SHIP and frozen D078 evidence", () => {
+test("status activates D088 under D089 while preserving epoch-2 S001-SHIP and frozen D078 evidence", () => {
   const status = read(".meta-harness/status.md");
   const goal = section(status, "Goal");
   const phase = section(status, "Phase");
@@ -62,14 +62,16 @@ test("status activates D085 while preserving epoch-2 S001-SHIP and frozen D078 e
   const signedCutover = frozenEvents.findLast((event) => event.authority_receipt?.receipt_id === "D078-S001R-SIGNED-CUTOVER");
   const epoch2 = events.findLast((event) => event.authority_receipt?.receipt_id === "G-AUTHORITY-001-S001-SHIP-E2");
   const d086 = events.findLast((event) => event.authority_receipt?.receipt_id === "D086-D085-R1-ACCEPTANCE");
+  const d089 = events.findLast((event) => event.authority_receipt?.receipt_id === "D089-D088-R2-ACCEPTANCE");
 
-  assert.match(goal, /representative external product shipment/i);
-  assert.match(goal, /specialist knowledge/i);
-  assert.match(phase, /plan/i);
-  assert.match(currentTruth, /R1/i);
-  assert.match(currentTruth, /ROADMAP_PROOF_SCORE = 30 \/ 100/i);
-  assert.match(currentTruth, /D085 is active authority/i);
-  assert.match(currentTruth, /no external repository has been selected/i);
+  assert.match(goal, /thinnest reusable repository-entry capability/i);
+  assert.match(goal, /trusted continuation point/i);
+  assert.match(phase, /work/i);
+  assert.match(currentTruth, /D088 is active/i);
+  assert.match(currentTruth, /D087 is historical candidate reasoning/i);
+  assert.match(currentTruth, /R2A, R2B, and R2C are accepted/i);
+  assert.match(currentTruth, /ROADMAP_PROOF_SCORE = 40 \/ 100/i);
+  assert.match(currentTruth, /S-006M_EXTERNAL_LOOPS_SHIPPED = 0 \/ 1/i);
   assert.doesNotMatch(status, /Last verified:/i);
   assert.ok(epoch2);
   assert.equal(epoch2.truth_snapshot, true);
@@ -82,14 +84,22 @@ test("status activates D085 while preserving epoch-2 S001-SHIP and frozen D078 e
   assert.ok(d086);
   assert.equal(d086.truth_snapshot, true);
   assert.equal(d086.authority_receipt.proposal.decision, "D086");
-  assert.match(nextAction, /R2 four-line target lock/i);
-  assert.match(nextAction, /non-Meta-Harness repository/i);
-  assert.match(nextAction, /bounded RunSpec/i);
-  assert.match(stopCriteria, /private material leakage/i);
-  assert.match(stopCriteria, /dual-epoch runtime support/i);
-  assert.match(stopCriteria, /trivial coding-only target/i);
-  assert.match(stopCriteria, /R3 implementation before R2 exit/i);
-  assert.match(stopCriteria, /before R6/i);
+  assert.ok(d089);
+  assert.equal(d089.truth_snapshot, true);
+  assert.equal(d089.authority_receipt.proposal.decision, "D089");
+  assert.match(d089.evidence, /579c0dd04b846963b4e8fad2339317750a767eda/i);
+  assert.match(d089.evidence, /78575422d53fbd4c6b160ac9e73bfddb3142eaa9/i);
+  assert.match(nextAction, /Implement and independently accept ENTRY_AUTHORITY_INVARIANT/i);
+  assert.match(nextAction, /RunSpec, execution-readiness, workspace-start, and readiness infrastructure/i);
+  assert.match(nextAction, /Meta-Harness, Quant, and Leningrad/i);
+  assert.match(stopCriteria, /checkout self-attestation/i);
+  assert.match(stopCriteria, /arbitrary untrusted operator strings/i);
+  assert.match(stopCriteria, /duplicate identity rules engine/i);
+  assert.match(stopCriteria, /new public command/i);
+  assert.match(stopCriteria, /repository registry/i);
+  assert.match(stopCriteria, /worktree creation/i);
+  assert.match(stopCriteria, /external product implementation/i);
+  assert.match(stopCriteria, /PASS_CURRENT, REDIRECT, CUSTODY_REQUIRED, and BLOCK/i);
   assert.notEqual(activeAuthority.public_key.x, frozenAuthority.public_key.x);
   assert.equal(frozenAuthority.public_key.x, "H66vchht-4Eg5W0XnRuspV_B738vwNsU6nB2f-DfO2A");
 
@@ -104,6 +114,7 @@ test("status activates D085 while preserving epoch-2 S001-SHIP and frozen D078 e
   assert.match(frozenStatus, /Close S-001R/i);
   assert.match(frozenStatus, /S-001R is implemented in the authorized dirty worktree/i);
 
+  assert.match(decisionLog, /## D089: Accept D088 R2, Bank 40\/100, and Open R3 Entry Authority/i);
   assert.match(decisionLog, /## D086: Accept R1, Bank 30\/100, and Activate D085 for R2 Target Lock/i);
   assert.match(decisionLog, /## D078: Reject S-001 Closure and Restore Functional-First Order/i);
   assert.match(decisionLog, /## D077: Lock Solo Developer\/Researcher Endgame/i);

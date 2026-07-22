@@ -6,6 +6,46 @@ Candidate direction proposed: 2026-07-21
 Active direction banked: 2026-07-21
 Candidate correction proposed: 2026-07-22
 Thin-system correction proposed: 2026-07-22
+Thin-system correction banked: 2026-07-22
+
+## D089: Accept D088 R2, Bank 40/100, and Open R3 Entry Authority
+
+Decision:
+
+Accept the independent exact-commit audit of `579c0dd04b846963b4e8fad2339317750a767eda`, activate D088, retain D087 as historical candidate reasoning, accept R2A/R2B/R2C, and open only R3 `ENTRY_AUTHORITY_INVARIANT`.
+
+Canonical proof state:
+
+```text
+ROADMAP_PROOF_SCORE = 40 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
+```
+
+The controller receipt `D089-D088-R2-ACCEPTANCE` and generated status are execution authority. R3 must reuse the existing RunSpec, execution-readiness, workspace-start, and readiness primitives; it may add one pure comparator and the smallest integration surface needed to expose exactly `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`.
+
+Authority input remains external to the evaluated checkout. A controller-authorized RunSpec, authenticated trusted-operator boundary, signed canonical event or receipt, or independently anchored immutable evidence may supply expected identity. Repository files supply observed facts only and cannot promote themselves to authority.
+
+Required proof:
+
+- Meta-Harness stale primary checkout redirects to the accepted authority; the accepted authority passes; checkout-local self-claim blocks;
+- Quant contaminated primary redirects; exact F1A authority passes;
+- Leningrad unversioned Alpha 0 product bytes return custody required;
+- every run records elapsed time, context size, authority-resolution hops, human questions, exact result, and recovered product next action;
+- no registry, worktree creation, branch promotion, cleanup, migration, dashboard, daemon, database, scheduler, generic router, strict-readiness cleanup, or external product implementation.
+
+Evidence:
+
+- independent audit verdict `ACCEPT_AND_CONTINUE`;
+- exact branch and remote `codex/candidate-d088-thin-loop` at `579c0dd04b846963b4e8fad2339317750a767eda`;
+- exact tree `78575422d53fbd4c6b160ac9e73bfddb3142eaa9`;
+- clean worktree and seven load-bearing repair files;
+- focused D085/D088 contract 3/3 under Node `25.2.1`;
+- supplied exhaustive grouped suite 123/123;
+- Gate 0A SHA-256 remains `3f13c3aa7a951ed77b26b3745dafdaba5b8acc47460464a88bb35345fad4d99c`.
+
+Supersession:
+
+D089 activates D088 without rewriting D088 or D087 history. It supersedes D086's R2 target-lock next action and D088-R1's audit-pending stop. It does not authorize R4, Finance F1B, external product implementation, repository management, or broad readiness repair.
 
 ## D088-R1 (candidate repair): Bind Entry Authority Externally and Correct Execution Truth
 

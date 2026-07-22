@@ -1,8 +1,9 @@
 # Meta-Harness Product Spec
 
-Status: implemented substrate; active D085 sequence under D086; D088 thin cross-repository correction candidate pending independent audit and controller activation
+Status: implemented substrate; active D088 sequence under D089; R3 entry-authority invariant current
 Date: 2026-07-22
 Candidate direction proposed: 2026-07-22
+D088 activated: 2026-07-22
 Intent authority: [Product Intent Anchor](product-intent.md)
 Roadmap authority: [Roadmap](roadmap.md)
 
@@ -10,7 +11,7 @@ Roadmap authority: [Roadmap](roadmap.md)
 
 Meta-Harness is a local AI-loop control plane for one solo developer/researcher. It remains a minimal owned script-and-skills system around borrowed execution substrates, but it is no longer merely a visibility layer or one-shot custody command.
 
-The active D085 loop remains official under D086. D088 proposes one thin reusable loop applied independently inside each managed repository:
+D089 activates D088 while preserving the D085/D086 external-product proof boundary. The active thin reusable loop applies independently inside each managed repository:
 
 ```text
 repository and authoritative-state resolution
@@ -187,12 +188,12 @@ Research is complete only when accepted evidence becomes at least one of:
 
 Every material claim binds provenance, freshness, confidence, contradiction state, and affected product surface.
 
-## Active Cross-Repository Product Proof and Candidate D088 Correction
+## Active Cross-Repository Product Proof under D089
 
-D086 keeps D085 active and records R2 as the official next action.
+D089 activates D088, accepts R2A/R2B/R2C, and records R3 `ENTRY_AUTHORITY_INVARIANT` as the only current implementation slice.
 
 ```text
-ROADMAP_PROOF_SCORE = 30 / 100
+ROADMAP_PROOF_SCORE = 40 / 100
 S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 ```
 
@@ -212,7 +213,7 @@ The model supplies planning, product reasoning, alternatives, repository compreh
 
 ### R2A — Minimal-layer and deletion-rule lock
 
-Candidate evidence is complete pending exact-commit audit. Gate 0A supplies the explicit authority base and no-destructive-operation boundary; the contracted D088 surfaces define the owned-versus-borrowed boundary. No later R2A implementation phase is required.
+Accepted evidence is complete under D089. Gate 0A supplies the explicit authority base and no-destructive-operation boundary; the contracted D088 surfaces define the owned-versus-borrowed boundary. No later R2A implementation phase is required.
 
 Record the owned-versus-borrowed boundary and the evolution path:
 
@@ -226,7 +227,7 @@ explicit SOP guidance
 
 ### R2B — Read-only cross-repository proof
 
-Candidate evidence is complete pending exact-commit audit. The loop was applied before activation to Meta-Harness, Quant, and Leningrad; the comparison is retained at `docs/ops/audits/d088-cross-repository-proof.json`.
+Accepted evidence is complete under D089. The loop was applied before activation to Meta-Harness, Quant, and Leningrad; the comparison is retained at `docs/ops/audits/d088-cross-repository-proof.json`.
 
 Apply the same loop to Meta-Harness and at least two unlike external repositories. For each, reconstruct intent, endgame, current capability, bottleneck, thinnest complete next product loop, strongest alternative, immediately authorized work, and genuine human decision.
 
@@ -234,13 +235,13 @@ The proof must show that distinct product contexts produce distinct recommendati
 
 ### R2C — Common bottleneck and smallest response
 
-Candidate selection is complete pending exact-commit audit. The common defect is `ENTRY_AUTHORITY_AMBIGUITY`; the selected response is one read-only `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only; they cannot promote those facts to authority. The check returns exactly `PASS_CURRENT`, `REDIRECT` with one exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. It must create no worktree, ref, registry, daemon, database, scheduler, dashboard, queue, or router.
+The accepted D089 selection is complete. The common defect is `ENTRY_AUTHORITY_AMBIGUITY`; the selected response is one read-only `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only; they cannot promote those facts to authority. The check returns exactly `PASS_CURRENT`, `REDIRECT` with one exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. It must create no worktree, ref, registry, daemon, database, scheduler, dashboard, queue, or router.
 
 Identify one common deficiency evidenced in at least two proving repositories. Compare at least three responses, including `NO_BUILD`, and bind only the smallest accepted implementation and verification contract.
 
 Finance GodView remains one proving-repository candidate. It is not a preselected adopter or implementation target. Whichever repository wins R4 must still satisfy the active D085/D086 coding-plus-specialist-knowledge proof goal. Its domain-specific claim ceiling must travel with the artifact.
 
-R3 implements only the exact accepted entry-authority invariant. The rerun must instrument elapsed time and context volume because the first read-only proof retained authority-resolution hops but did not capture exact elapsed seconds. R4 uses the accepted thin method to choose and ship one real product slice across the proving repositories. R5 proves fresh-session continuation across them. R6 compares benefit and deletes or shrinks obsolete guidance. Independent domain validation remains a separate later gate for the selected specialist product.
+R3 is current and implements only the exact accepted entry-authority invariant by reusing the existing RunSpec, execution-readiness, workspace-start, and readiness infrastructure. The rerun must instrument elapsed time and context volume because the first read-only proof retained authority-resolution hops but did not capture exact elapsed seconds. R4 remains blocked until independent R3 acceptance, then uses the accepted thin method to choose and ship one real product slice across the proving repositories. R5 proves fresh-session continuation across them. R6 compares benefit and deletes or shrinks obsolete guidance. Independent domain validation remains a separate later gate for the selected specialist product.
 
 Every fresh/resumed session performs silent alignment after repository-state resolution. Normal post-slice chat contains product capability, evidence when needed, direction-changing learning, next product bottleneck, and genuine human decisions. Complete process evidence remains in artifacts unless it is the blocker or requested audit subject.
 

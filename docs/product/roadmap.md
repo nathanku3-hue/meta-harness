@@ -1,9 +1,10 @@
 # Meta-Harness Roadmap
 
-Status: **active D085 direction under canonical D086 acceptance; D088 thin cross-repository correction is candidate-only pending independent audit and controller activation**
-Version: `endgame-v11 + active D085 proof path + candidate D088 thin-system correction`
+Status: **active D088 thin cross-repository proof under canonical D089 acceptance; R3 entry-authority implementation is current**
+Version: `endgame-v11 + active D088 thin-system correction + R3 entry authority`
 Activated date: 2026-07-21
 Candidate correction date: 2026-07-22
+D088 activation date: 2026-07-22
 Intent authority: [Product Intent Anchor](product-intent.md)
 Question authority: [Problem-Solving Questions](problem-questions.md)
 
@@ -13,7 +14,7 @@ Meta-Harness is an AI-native operating harness for one solo developer/researcher
 
 The human owns intent, taste, authority, risk tolerance, scope expansion, and irreversible commitments. The auditor-planner owns truthful direction. The worker owns authorized execution. The controller owns canonical state, custody, leases, cancellation, and loop integrity.
 
-The active D085 proof path remains governed by D086 until a later controller-authorized event changes it. D088 proposes a thin reusable loop that can operate independently inside any managed repository:
+D089 activates D088 while preserving the accepted D085/D086 proof boundary. The active thin reusable loop operates independently inside any managed repository:
 
 ```text
 resolve the repository and its authoritative state
@@ -42,7 +43,7 @@ The primary product view is always:
 
 ## Locked Operating Model
 
-D086 keeps the D085 auditor-planner/worker loop active until D088 is accepted. D088 proposes the following operating model for aligned sessions:
+D089 keeps the D085 auditor-planner/worker proof boundary and activates D088's following operating model for aligned sessions:
 
 ```text
 SESSION ALIGNMENT
@@ -89,7 +90,7 @@ Every planning round follows this order:
 
 Audit findings do not automatically become roadmap items.
 
-## Candidate D088 Core Methodology
+## D088 Core Methodology
 
 D088 preserves D087's product-proof-per-time correction and adds the missing product constraint: Meta-Harness must remain a minimal, elegant, replaceable layer whose usefulness generalizes across unlike repositories.
 
@@ -241,7 +242,7 @@ Each round continues to report the multidimensional evidence vector:
 The PM roadmap also retains one all-or-none retrospective completion ledger:
 
 ```text
-ROADMAP_PROOF_SCORE = 30 / 100
+ROADMAP_PROOF_SCORE = 40 / 100
 S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 ```
 
@@ -256,11 +257,11 @@ S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 | R6 | Cross-repository benefit compared; obsolete guidance deleted or shrunk | 10 |
 | **Total** |  | **100** |
 
-Partial implementation, renamed scorecards, plans, documents, test counts, and self-assessed intent earn zero points. The aggregate score supplements rather than hides the evidence vector and is never a work-selection objective. D088 preserves the banked R0/R1 `30 / 100` and repurposes only the unearned R2–R6 exit contracts.
+Partial implementation, renamed scorecards, plans, documents, test counts, and self-assessed intent earn zero points. The aggregate score supplements rather than hides the evidence vector and is never a work-selection objective. D089 banks the complete accepted R2 exit at `40 / 100`; only R3–R6 remain unearned.
 
-## Active PM Roadmap — R0 to R6, with Candidate D088 Revision
+## Active PM Roadmap — R0 to R6 under D089
 
-D086 activates the D085 critical path after independent R1 acceptance. R2 remains the official next action. D088 is a candidate correction only; it preserves R0/R1 and changes the next proof from one preselected adopter to a thin reusable method demonstrated across unlike repositories.
+D089 activates D088 after independent exact-commit acceptance. R2 is complete and banked; R3 is the only current implementation slice. D088 preserves R0/R1 and changes the proof from one preselected adopter to a thin reusable method demonstrated across unlike repositories.
 
 The proving set must include Meta-Harness and at least two external repositories with materially different endgames. Finance GodView may be one proving repository, but no single repository or domain owns the Meta-Harness roadmap.
 
@@ -282,13 +283,13 @@ The accepted source, package, runtime, authority boundary, stop rules, and dirty
 
 ### R2 — Define and Prove the Thin Reusable Repository Loop
 
-**Status: D085 R2 REMAINS OFFICIAL; D088 R2A/R2B/R2C CANDIDATE EVIDENCE COMPLETE PENDING EXACT-COMMIT AUDIT AND CONTROLLER ACTIVATION**
+**Status: DONE — INDEPENDENTLY ACCEPTED AND BANKED UNDER D089**
 
-R2 remains one phase and earns no partial points. The official score stays `30 / 100` until exact-commit independent audit accepts the complete candidate exit.
+R2 remains one indivisible phase. Exact-commit independent audit accepted the complete exit and D089 banked `ROADMAP_PROOF_SCORE = 40 / 100`.
 
 #### R2A — Lock the Minimal Owned Layers and Deletion Rules
 
-**Candidate evidence: COMPLETE PENDING AUDIT.** Gate 0A selects the explicit authority base and protects the dirty canonical checkout; the contracted D088 surfaces define the owned boundary. No later R2A implementation phase is required.
+**Accepted evidence: COMPLETE UNDER D089.** Gate 0A selects the explicit authority base and protects the dirty canonical checkout; the contracted D088 surfaces define the owned boundary. No later R2A implementation phase is required.
 
 Define the smallest durable contract Meta-Harness must own:
 
@@ -312,7 +313,7 @@ Exit contract:
 
 #### R2B — Read-Only Cross-Repository Proof
 
-**Candidate evidence: COMPLETE PENDING AUDIT.** The loop was applied before activation to Meta-Harness, Quant, and Leningrad; detailed evidence is retained in `docs/ops/audits/d088-cross-repository-proof.json`.
+**Accepted evidence: COMPLETE UNDER D089.** The loop was applied before activation to Meta-Harness, Quant, and Leningrad; detailed evidence is retained in `docs/ops/audits/d088-cross-repository-proof.json`.
 
 Apply the same thin loop to at least three unlike repositories, including Meta-Harness and two external products with materially different endgames.
 
@@ -340,7 +341,7 @@ Required proof:
 
 #### R2C — Name the Common Bottleneck and Smallest Reusable Patch
 
-**Candidate evidence: SELECTED PENDING AUDIT.** The repeated defect is `ENTRY_AUTHORITY_AMBIGUITY`: the obvious checkout was non-authoritative in all three proving repositories. The candidate response is one read-only `ENTRY_AUTHORITY_INVARIANT` in the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only; they cannot promote those facts to authority. The check returns exactly `PASS_CURRENT`, `REDIRECT` with an exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. `NO_BUILD` and guidance-only responses were compared and rejected as insufficient.
+**Accepted response: SELECTED UNDER D089.** The repeated defect is `ENTRY_AUTHORITY_AMBIGUITY`: the obvious checkout was non-authoritative in all three proving repositories. The candidate response is one read-only `ENTRY_AUTHORITY_INVARIANT` in the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only; they cannot promote those facts to authority. The check returns exactly `PASS_CURRENT`, `REDIRECT` with an exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. `NO_BUILD` and guidance-only responses were compared and rejected as insufficient.
 
 Compare the cross-repository results and identify the smallest shared Meta-Harness deficiency that materially harms correct continuation or product selection.
 
@@ -365,9 +366,9 @@ R2C exit contract:
 
 ### R3 — Implement and Independently Accept the Thin Capability
 
-**Status: BLOCKED ON EXACT-COMMIT D088/R2 AUDIT AND D089 ACTIVATION**
+**Status: CURRENT — IMPLEMENT ONLY ENTRY_AUTHORITY_INVARIANT**
 
-Implement only the exact reusable capability named by R2C. If R2C returns `NO_BUILD`, R3 proves the existing thin composition without adding code.
+Implement only the exact reusable capability named by R2C. Reuse the existing RunSpec, execution-readiness, workspace-start, and readiness infrastructure; add no second authority architecture or public command unless the current entry surface cannot express the accepted result contract.
 
 Acceptance requires rerunning the same proving repositories and showing:
 
@@ -449,21 +450,21 @@ The following remain closed until the R0–R6 proof path earns evidence for them
 - automated trading, broker integration, live capital, deployment, or public-performance claims;
 - compatibility layers for superseded authority architecture.
 
-A harness-internal change may open only after exact-commit audit accepts the R2B comparison, R2C response selection, and bounded R3 contract, and D089 activates that proven state.
+The only open harness-internal change is R3 `ENTRY_AUTHORITY_INVARIANT`, authorized because exact-commit audit accepted the R2B comparison, R2C response selection, and bounded R3 contract and D089 activated that proven state.
 
 ## Active Immediate Scope
 
-D086 keeps D085 active and R2 current. D087 and D088 remain candidate-only. The combined Gate 0B double-prime candidate has contracted the documentation, preserved exact Gate 0A evidence, run the three-repository proof before activation, and selected the bounded `ENTRY_AUTHORITY_INVARIANT`. No R3 implementation may begin before one immutable candidate passes exact-commit independent audit and D089 activates the furthest proven state.
+D089 activates D088, retains D087 as historical candidate reasoning, banks R2 at `40 / 100`, and opens only R3. The combined Gate 0B double-prime proof contracted the documentation, preserved exact Gate 0A evidence, ran the three-repository proof before activation, and selected the bounded `ENTRY_AUTHORITY_INVARIANT`.
 
 The immediate path is:
 
 ```text
 Gate 0B double-prime evidence complete
-→ exact candidate 07d7711 accepted in substance
-→ pinned Node 25 validation complete on one immutable candidate commit and explicit branch, frozen and pushed on codex/candidate-d088-thin-loop
-→ exact-commit independent re-audit is current
-→ D089 activates accepted R2A/R2B/R2C evidence and, if fully accepted, banks 40 / 100
+→ exact repair candidate 579c0dd frozen and pushed on codex/candidate-d088-thin-loop
+→ exact-commit independent audit ACCEPT_AND_CONTINUE
+→ D089 activates accepted R2A/R2B/R2C evidence and banks 40 / 100
 → R3 implements only the accepted entry-authority invariant
+→ exact R3 candidate stops for independent acceptance before any external product slice
 ```
 
 The first proof did not instrument exact elapsed time. R3 rerun must record elapsed time and context volume before claiming quantitative improvement.

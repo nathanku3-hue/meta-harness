@@ -1,9 +1,9 @@
-# Candidate Implementation Plan: D088 Thin Cross-Repository Usefulness Correction
+# Active Implementation Plan: D089 R3 Entry Authority Invariant
 
-Status: **D085/D086 remains official. Gate 0B double-prime is complete. Exact candidate `07d77115e121ae0f58ff7e669576b9ad4eb5e69d` succeeded in substance and is superseded only by the single bounded D088-R1 repair candidate on `codex/candidate-d088-thin-loop`. Pinned validation is complete, the repair candidate is frozen and pushed, and exact-commit re-audit is the current gate. R3 is blocked only on audit acceptance and D089 activation; no R3 or external product implementation is authorized.**
+Status: **D089 canonically activates D088 after exact-commit acceptance of `579c0dd04b846963b4e8fad2339317750a767eda`. R2A/R2B/R2C are complete and banked. R3 `ENTRY_AUTHORITY_INVARIANT` is the only current implementation slice; external product work remains blocked until independent R3 acceptance.**
 
 ```text
-ROADMAP_PROOF_SCORE = 30 / 100
+ROADMAP_PROOF_SCORE = 40 / 100
 S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 ```
 
@@ -51,7 +51,7 @@ SOP guidance
 
 ## Gate 0B double-prime — Prove and freeze D088
 
-**GATE COMPLETE; D088-R1 REPAIR CANDIDATE FROZEN AND PUSHED; EXACT-COMMIT RE-AUDIT CURRENT.**
+**DONE — D088-R1 EXACT CANDIDATE ACCEPTED AND D089 BANKED.**
 
 Completed candidate work:
 
@@ -69,13 +69,13 @@ Exact elapsed time was not instrumented in the initial proof. Authority-resoluti
 
 ## R2A — Minimal owned layers and deletion rules
 
-**CANDIDATE COMPLETE PENDING EXACT-COMMIT AUDIT.**
+**DONE — ACCEPTED UNDER D089.**
 
 Gate 0A plus the contracted D088 boundary closes R2A without another implementation phase. The owned layer remains limited to durable intent/decisions, repository state, authority/scope/risk boundaries, completed-work evidence, and continuation. Central schedulers, dashboards, databases, queues, daemons, generic grill engines, permanent routers, and compatibility frameworks remain prohibited.
 
 ## R2B — Read-only proof across unlike repositories
 
-**CANDIDATE COMPLETE PENDING EXACT-COMMIT AUDIT.**
+**DONE — ACCEPTED UNDER D089.**
 
 - Meta-Harness: contract and prove D088; do not create another worktree or repository programme.
 - Quant: open F1B `NO_POSITION` only through the proven book/certification/adapter path.
@@ -85,7 +85,7 @@ The recommendations are materially different. The obvious checkout was non-autho
 
 ## R2C — Common bottleneck and smallest response
 
-**CANDIDATE RESPONSE SELECTED PENDING EXACT-COMMIT AUDIT.**
+**DONE — RESPONSE ACCEPTED UNDER D089.**
 
 Common deficiency: `ENTRY_AUTHORITY_AMBIGUITY`.
 
@@ -95,9 +95,9 @@ Selected response: one minimal `ENTRY_AUTHORITY_INVARIANT` integrated into the e
 
 ## R3 — Implement and independently accept the thin capability
 
-**BLOCKED ONLY ON EXACT-COMMIT D088-R1 AUDIT ACCEPTANCE AND D089 ACTIVATION. Score ledger after R3 exit 60/100.**
+**CURRENT — IMPLEMENT ONLY ENTRY_AUTHORITY_INVARIANT. Score ledger after independent R3 exit 60/100.**
 
-Implement only the R2C result. If `NO_BUILD` wins, prove the existing composition instead of adding code.
+Implement only the accepted R2C result. Reuse the existing RunSpec, execution-readiness, workspace-start, and readiness infrastructure. Add one pure comparator and the smallest existing-surface integration needed to expose the accepted four-result contract. Do not create a second authority architecture or a new public command unless the current ready/entry surface cannot express the result cleanly.
 
 Rerun the same repositories and verify faster or more reliable product-direction reconstruction, preserved intent, differentiated recommendations, fewer unnecessary questions or artifacts, and no bulky control surface.
 
@@ -129,11 +129,11 @@ Delete, shrink, or demote any SOP, template, check, or runtime layer whose remov
 
 ## Held work
 
-No central repo registry, dashboard, scheduler, queue, daemon, generic grill engine, guided-pilot platform, research-agent platform, knowledge database, provider expansion, permanent multi-agent layer, finance-specific runtime, automated trading, broker integration, live-capital execution, or public performance claim proceeds in parallel.
+Forbidden during R3: repository registry, automatic branch promotion, worktree creation, cleanup, migration, broad strict-readiness repair, dashboard, scheduler, queue, daemon, database, generic router, portfolio manager, generic grill engine, guided-pilot platform, research-agent platform, knowledge database, provider expansion, permanent multi-agent layer, finance-specific runtime, external product implementation, automated trading, broker integration, live-capital execution, or public performance claim.
 
 ## Stop rule
 
-Do not edit `.meta-harness/status.md` or `.meta-harness/events.jsonl` manually. Pinned Node `25.2.1` / npm `11.16.0` validation and candidate freeze are complete. The only current operation is exact-commit independent re-audit of the pushed D088-R1 repair candidate. Do not begin R3 until D089 activates the accepted R2 state. Do not begin external product implementation until R3 accepts the entry-authority invariant. Do not award 40/100 before exact-commit audit accepts the complete R2 exit.
+Do not edit `.meta-harness/status.md` or `.meta-harness/events.jsonl` manually. D089 has banked the accepted R2 state at `40 / 100`. Implement only R3 `ENTRY_AUTHORITY_INVARIANT`, measure the three proving repositories, freeze one immutable candidate, and stop for independent exact-commit acceptance. Do not begin external product implementation, broad readiness repair, repository cleanup, migration, registry work, or branch/worktree automation before R3 acceptance.
 
 
 # Historical Plan: Phase 13A Context Quality Gate

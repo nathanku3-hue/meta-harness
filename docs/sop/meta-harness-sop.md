@@ -3,6 +3,7 @@
 Status: canonical
 Candidate direction proposed: 2026-07-22
 Active direction banked: 2026-07-21
+D088 activation banked: 2026-07-22
 Intent authority: [Product Intent Anchor](../product/product-intent.md)
 Roadmap authority: [Roadmap](../product/roadmap.md)
 
@@ -10,7 +11,7 @@ Roadmap authority: [Roadmap](../product/roadmap.md)
 
 Work must remain aligned with human intent and recoverable from validated artifacts rather than conversation memory.
 
-The active D085 loop remains official. D088 proposes one thin reusable product-progress loop inside each managed repository:
+D089 activates D088 while preserving the D085/D086 external-product proof boundary. The active thin reusable product-progress loop inside each managed repository is:
 
 ```text
 SESSION ALIGNMENT
@@ -112,7 +113,7 @@ The plan emits one numbered slice and a bounded RunSpec containing product delta
 
 The planner chooses the thinnest complete endgame-representative loop, not the highest roadmap score, easiest patch, best-isolated module, or largest architecture program.
 
-For candidate D088, Gate 0A plus the contracted owned-versus-model-supplied boundary closes R2A without another implementation phase. The same read-only method was applied before activation across Meta-Harness, Quant, and Leningrad. R2C compared `NO_BUILD`, guidance-only correction, and one invariant, then selected the smallest common missing capability: a read-only `ENTRY_AUTHORITY_INVARIANT` in the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only. The result is exactly `PASS_CURRENT`, `REDIRECT` with an exact path/ref/commit, `CUSTODY_REQUIRED`, or `BLOCK`. Exact-commit audit and D089 remain mandatory before implementation.
+Under active D088, Gate 0A plus the contracted owned-versus-model-supplied boundary closes R2A without another implementation phase. The same read-only method was applied before activation across Meta-Harness, Quant, and Leningrad. R2C compared `NO_BUILD`, guidance-only correction, and one invariant, then selected the smallest common missing capability: a read-only `ENTRY_AUTHORITY_INVARIANT` in the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input through an authenticated boundary, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only. The result is exactly `PASS_CURRENT`, `REDIRECT` with an exact path/ref/commit, `CUSTODY_REQUIRED`, or `BLOCK`. D089 accepts that contract and opens only its R3 implementation.
 
 Meta-Harness owns durable intent, decisions, repository state, authority/scope/risk boundaries, completed-work evidence, and continuation. The model supplies planning, product reasoning, alternatives, implementation, research synthesis, and most audit reasoning. Every SOP, skill, template, check, or runtime layer must have a deletion or shrink path as model capability improves.
 
@@ -226,14 +227,14 @@ Later fan-out requires disjoint writes or read-only roles, leases, duplicate sup
 
 ## Active Build Boundary
 
-D086 keeps the D085 R0–R6 external product-proof roadmap active and records R2 as the official next action.
+D089 activates D088, preserves the D085/D086 product-proof boundary, accepts R2A/R2B/R2C, and records R3 as the only current implementation slice.
 
 ```text
-ROADMAP_PROOF_SCORE = 30 / 100
+ROADMAP_PROOF_SCORE = 40 / 100
 S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 ```
 
-D087 and D088 are candidate-only pending exact-commit independent audit and controller activation. The combined D088 proof has candidate-completed R2A, R2B, and R2C:
+D087 is historical candidate reasoning. D088 is active. The accepted proof completed R2A, R2B, and R2C:
 
 ```text
 Gate 0A authority and no-destructive-operation boundary
@@ -246,7 +247,7 @@ Gate 0A authority and no-destructive-operation boundary
 
 The comparative evidence is retained once in `docs/ops/audits/d088-cross-repository-proof.json`, not copied across product surfaces. Exact elapsed time was not instrumented in the first run; R3 rerun must measure elapsed time and context volume.
 
-No external product implementation and no new runtime layer begins before exact-candidate audit and D089 activation. R3 implements only the accepted entry-authority invariant. R4 then uses the accepted method to select and ship one real product slice across the proving repositories. That selected slice must still materially combine software engineering with explicit specialist judgment under D085/D086.
+R3 implements only the accepted entry-authority invariant by reusing existing identity and readiness primitives. No external product implementation begins before independent R3 acceptance. R4 then uses the accepted method to select and ship one real product slice across the proving repositories. That selected slice must still materially combine software engineering with explicit specialist judgment under D085/D086.
 
 The runtime remains verifier-only; epoch-1 evidence is frozen and not an active mutation path. Central registries, schedulers, dashboards, queues, databases, grill engines, internal vaults, signer services, dual-epoch compatibility, broad filesystem frameworks, generic knowledge platforms, permanent multi-agent layers, automated trading, and finance-specific runtime paths remain deferred.
 
