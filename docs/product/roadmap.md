@@ -375,7 +375,7 @@ Candidate evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` shows
 - Meta-Harness primary `REDIRECT`, exact authority `PASS_CURRENT`, and checkout-local self-claim `BLOCK`;
 - Quant primary `REDIRECT` and exact F1A authority `PASS_CURRENT`;
 - Leningrad Alpha 0 state `CUSTODY_REQUIRED`;
-- six of six entry-result proof cases correct through the tracked collector, 4,452 serialized evaluator-input bytes, zero human questions, and measured elapsed time;
+- six of six entry-result proof cases correct through the tracked collector, 7,618 serialized evaluator-input bytes, zero human questions, and measured elapsed time;
 - Leningrad custody derived from 30 Alpha 0 product files absent from the named base authority;
 - focused evaluator, collector, production poll path, rollup, and worker-entry contracts pass 80/80; the complete pinned-Node suite remains a 125-file exact-candidate gate;
 - no bulky control surface and a clear deletion or shrink path.

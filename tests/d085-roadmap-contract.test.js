@@ -162,7 +162,7 @@ test("D088 proof remains exact and authority stays external", () => {
   assert.equal(r3Proof.measurement.libraryCasesPassed, 6);
   assert.equal(r3Proof.measurement.libraryCasesFailed, 0);
   assert.equal(r3Proof.measurement.humanQuestions, 0);
-  assert.equal(r3Proof.measurement.totalSerializedEvaluatorInputBytes, 4452);
+  assert.equal(r3Proof.measurement.totalSerializedEvaluatorInputBytes, 7618);
   assert.match(r3Proof.measurement.claimCeiling, /does not prove.*product next action/i);
   assert.equal(r3Proof.implementation.collectorCommit, "a80ebd3bc9ebb2d04be89f2e76301f32e4543f95");
   assert.equal(r3Proof.implementation.safety.publicCommandAdded, false);

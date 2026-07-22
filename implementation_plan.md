@@ -109,7 +109,7 @@ Delivered:
 - added no public command or second authority architecture;
 - the pure evaluator performs no process execution; the runtime collector spawns only read-only Git commands and performs no mutation, network access, ref creation, or worktree creation.
 
-Evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` records the six differentiated entry results, 4,452 serialized evaluator-input bytes, zero human questions, production-path gate coverage, and focused 80/80 validation. It does not claim that R3 reconstructs a repository's product next action; Quant F1B must provide that live continuation proof. The complete 125-file suite remains an exact-commit gate. Final commit/tree, remote identity, exact-commit validation, and the claim ceiling are bound in the ignored exact sidecar after freeze.
+Evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` records the six differentiated entry results, 7,618 serialized evaluator-input bytes, zero human questions, production-path gate coverage, and focused 80/80 validation. It does not claim that R3 reconstructs a repository's product next action; Quant F1B must provide that live continuation proof. The complete 125-file suite remains an exact-commit gate. Final commit/tree, remote identity, exact-commit validation, and the claim ceiling are bound in the ignored exact sidecar after freeze.
 
 ## R4 — Select and ship one real product slice
 

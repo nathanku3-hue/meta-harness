@@ -57,37 +57,37 @@
     {
       "id": "meta-primary-redirect",
       "result": "REDIRECT",
-      "serializedEvaluatorInputBytes": 717,
+      "serializedEvaluatorInputBytes": 1278,
       "humanQuestions": 0
     },
     {
       "id": "meta-authority-pass",
       "result": "PASS_CURRENT",
-      "serializedEvaluatorInputBytes": 748,
+      "serializedEvaluatorInputBytes": 1311,
       "humanQuestions": 0
     },
     {
       "id": "meta-checkout-self-claim-block",
       "result": "BLOCK",
-      "serializedEvaluatorInputBytes": 758,
+      "serializedEvaluatorInputBytes": 1255,
       "humanQuestions": 0
     },
     {
       "id": "quant-primary-redirect",
       "result": "REDIRECT",
-      "serializedEvaluatorInputBytes": 731,
+      "serializedEvaluatorInputBytes": 1242,
       "humanQuestions": 0
     },
     {
       "id": "quant-f1a-authority-pass",
       "result": "PASS_CURRENT",
-      "serializedEvaluatorInputBytes": 761,
+      "serializedEvaluatorInputBytes": 1274,
       "humanQuestions": 0
     },
     {
       "id": "leningrad-alpha0-custody-required",
       "result": "CUSTODY_REQUIRED",
-      "serializedEvaluatorInputBytes": 737,
+      "serializedEvaluatorInputBytes": 1258,
       "humanQuestions": 0,
       "productFileCount": 30,
       "unreachableProductFileCount": 30
@@ -108,7 +108,7 @@
   "measurement": {
     "libraryCasesPassed": 6,
     "libraryCasesFailed": 0,
-    "totalSerializedEvaluatorInputBytes": 4452,
+    "totalSerializedEvaluatorInputBytes": 7618,
     "humanQuestions": 0,
     "claimCeiling": "R3 proves trusted-checkout classification and actionable entry results. It does not prove that a fresh ChatGPT, Codex, or Grok session reconstructs the repository product next action; Quant F1B must provide that live continuation proof."
   },

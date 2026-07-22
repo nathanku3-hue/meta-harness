@@ -40,7 +40,7 @@ Candidate proof:
 - Quant primary → `REDIRECT` to exact F1A authority;
 - Quant exact F1A authority → `PASS_CURRENT`;
 - Leningrad unversioned Alpha 0 state → `CUSTODY_REQUIRED`;
-- the tracked runtime collector reproduced all six entry results with 4,452 serialized evaluator-input bytes, zero human questions, and measured elapsed time;
+- the tracked runtime collector reproduced all six entry results with 7,618 serialized evaluator-input bytes, zero human questions, and measured elapsed time;
 - Leningrad custody was derived from 30 Alpha 0 product files, all 30 absent from the named base authority;
 - focused evaluator, collector, production poll path, rollup, and worker-entry contracts pass;
 - the complete pinned-Node suite remains a 125-file exact-candidate gate.
