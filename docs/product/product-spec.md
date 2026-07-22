@@ -1,8 +1,8 @@
 # Meta-Harness Product Spec
 
-Status: implemented substrate; active external product-proof sequence under D086
-Date: 2026-07-21
-Candidate direction proposed: 2026-07-21
+Status: implemented substrate; active D085 sequence under D086; D088 thin cross-repository correction candidate pending independent audit and controller activation
+Date: 2026-07-22
+Candidate direction proposed: 2026-07-22
 Intent authority: [Product Intent Anchor](product-intent.md)
 Roadmap authority: [Roadmap](roadmap.md)
 
@@ -10,19 +10,20 @@ Roadmap authority: [Roadmap](roadmap.md)
 
 Meta-Harness is a local AI-loop control plane for one solo developer/researcher. It remains a minimal owned script-and-skills system around borrowed execution substrates, but it is no longer merely a visibility layer or one-shot custody command.
 
-The governing loop is:
+The active D085 loop remains official under D086. D088 proposes one thin reusable loop applied independently inside each managed repository:
 
 ```text
-truth reconciliation
-→ frozen audit
-→ intent-aligned planning
-→ bounded RunSpec
-→ authorized worker execution
-→ independent verification
-→ controller integration and custody
-→ outcome evaluation
-→ atomic state update
+repository and authoritative-state resolution
+→ silent intent, endgame, capability, and bottleneck reconstruction
+→ thinnest complete next product loop selection
+→ bounded execution
+→ independent observable-product verification
+→ retained evidence and exact continuation
 ```
+
+Across repositories, comparison is lightweight and temporary: choose where marginal product proof is highest without building a central scheduler, database, dashboard, or portfolio-control platform.
+
+The internal audit record remains complete. A separate plan audit is conditional rather than universal, and normal post-slice chat suppresses process machinery unless it changes a product decision.
 
 The historical Markdown MVP and the authority-bound execution-custody runtime remain shipped evidence and lower-layer capability. New work follows the numbered functional-slice roadmap.
 
@@ -49,12 +50,12 @@ Owns intent, priority, taste, authority, material risk tolerance, scope expansio
 
 ### Auditor-planner
 
-Operates in two passes:
+For a completed slice, decisive failure, or material plan-review trigger, operates in two passes:
 
 1. audit evidence, diagnose, score, and freeze the audit;
-2. re-read the frozen intent, compare at least three forward alternatives, and emit one bounded RunSpec.
+2. re-read the frozen intent, compare forward alternatives, and emit one bounded RunSpec.
 
-The planning pass cannot alter the frozen audit to justify its recommendation.
+The planning pass cannot alter the frozen audit to justify its recommendation. Routine aligned reversible sessions use silent session alignment and automated plan preflight without a separate human-facing plan-audit ceremony.
 
 ### Worker
 
@@ -93,9 +94,9 @@ A RunSpec must bind:
 - active intent version and hash;
 - explicit trace from the selected slice to the frozen intent;
 - objective and functional-slice IDs;
-- real user and job or progress sought;
-- specialist judgment that generic coding cannot replace;
 - newly true observable product behavior;
+- for an external product slice: real user, job or progress sought, product endgame, required layer map, specialist judgment when applicable, and the smallest complete representative product loop;
+- for a Meta-Harness internal slice: proving repositories, observed common deficiency, alternatives including `NO_BUILD`, smallest repair, expected cross-repository effect, and deletion/shrink condition;
 - shipping target;
 - repository and base identity;
 - owned and forbidden surfaces;
@@ -186,24 +187,62 @@ Research is complete only when accepted evidence becomes at least one of:
 
 Every material claim binds provenance, freshness, confidence, contradiction state, and affected product surface.
 
-## Active External Product-Proof Slice
+## Active Cross-Repository Product Proof and Candidate D088 Correction
 
-D086 activates the D085 R0–R6 external product-proof roadmap and records the R2 target lock as the canonical next action.
+D086 keeps D085 active and records R2 as the official next action.
 
 ```text
 ROADMAP_PROOF_SCORE = 30 / 100
 S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 ```
 
-S-001 is shipped as package `0.3.0` with verifier-only epoch-2 authority, and R1 is independently accepted. No external repository is selected and no R3 implementation is authorized.
+The score is a retrospective evidence ledger. Work selection optimizes endgame-relevant, user-observable product proof per elapsed time and human burden.
 
-R2 owns the non-Meta-Harness repository, exact base commit, clean target worktree, human four-line lock, three alternatives, and bounded RunSpec. The selected behavior must be the smallest representative slice that exercises both coding and specialist knowledge.
+### Minimal owned layer contract
 
-S-006M uses Option A: independent verification covers code, scope, custody, tests, and observable behavior. Specialist knowledge must be explicit, provenance-linked, challengeable, and materially shape the output, but independent domain correctness, generalization, and real-world value remain unproven. The following or equivalent boundary must travel with the candidate and package:
+Meta-Harness may durably own only:
 
-> Specialist knowledge materially shaped this result. Independent domain correctness, generalization, and real-world value remain unproven.
+- original intent and explicit human decisions;
+- repository identity and current product state;
+- authority, scope, risk, and irreversible-action boundaries;
+- completed-work evidence;
+- exact continuation and recovery state.
 
-The terminal state is `MERGED + PACKAGED`. `PUBLISHED`, deployed, live-capital, broker, credential, and public-performance states require a separate named human gate. Epoch-1 materials remain frozen historical evidence only. A concrete blocker discovered during authorized R3 execution may open only the smallest proven repair inside the same R3 slice before resumption and independent acceptance. R6 is reserved for post-shipment independent domain validation or replication. Broader secret infrastructure, dual-epoch compatibility, filesystem frameworks, contract refactoring, generic knowledge systems, handoff/resume frameworks, learning engines, and multi-agent work remain unauthorized.
+The model supplies planning, product reasoning, alternatives, repository comprehension, implementation, research synthesis, and most audit reasoning. Every SOP, template, check, and runtime layer must have a deletion or shrink path as model capability improves.
+
+### R2A — Minimal-layer and deletion-rule lock
+
+Candidate evidence is complete pending exact-commit audit. Gate 0A supplies the explicit authority base and no-destructive-operation boundary; the contracted D088 surfaces define the owned-versus-borrowed boundary. No later R2A implementation phase is required.
+
+Record the owned-versus-borrowed boundary and the evolution path:
+
+```text
+explicit SOP guidance
+→ compact skill or template
+→ minimal invariant check
+→ model-native behavior
+→ delete obsolete guidance
+```
+
+### R2B — Read-only cross-repository proof
+
+Candidate evidence is complete pending exact-commit audit. The loop was applied before activation to Meta-Harness, Quant, and Leningrad; the comparison is retained at `docs/ops/audits/d088-cross-repository-proof.json`.
+
+Apply the same loop to Meta-Harness and at least two unlike external repositories. For each, reconstruct intent, endgame, current capability, bottleneck, thinnest complete next product loop, strongest alternative, immediately authorized work, and genuine human decision.
+
+The proof must show that distinct product contexts produce distinct recommendations, existing intent is reused without a repeated intake ritual, audit and infrastructure gravity do not take over, and normal chat remains product-dominant.
+
+### R2C — Common bottleneck and smallest response
+
+Candidate selection is complete pending exact-commit audit. The common defect is `ENTRY_AUTHORITY_AMBIGUITY`; the selected response is one read-only `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface. It must fail closed with one exact authoritative path/ref/commit or product-custody action and must create no worktree, ref, registry, daemon, database, scheduler, dashboard, queue, or router.
+
+Identify one common deficiency evidenced in at least two proving repositories. Compare at least three responses, including `NO_BUILD`, and bind only the smallest accepted implementation and verification contract.
+
+Finance GodView remains one proving-repository candidate. It is not a preselected adopter or implementation target. Whichever repository wins R4 must still satisfy the active D085/D086 coding-plus-specialist-knowledge proof goal. Its domain-specific claim ceiling must travel with the artifact.
+
+R3 implements only the exact accepted entry-authority invariant. The rerun must instrument elapsed time and context volume because the first read-only proof retained authority-resolution hops but did not capture exact elapsed seconds. R4 uses the accepted thin method to choose and ship one real product slice across the proving repositories. R5 proves fresh-session continuation across them. R6 compares benefit and deletes or shrinks obsolete guidance. Independent domain validation remains a separate later gate for the selected specialist product.
+
+Every fresh/resumed session performs silent alignment after repository-state resolution. Normal post-slice chat contains product capability, evidence when needed, direction-changing learning, next product bottleneck, and genuine human decisions. Complete process evidence remains in artifacts unless it is the blocker or requested audit subject.
 
 ## Historical MVP Product Shape
 
@@ -264,17 +303,9 @@ Each repository owns its own harness state:
 
 Repo-level automation may also include `.github/workflows/post-worker-saw.yml` as a reusable read-only workflow for post-worker checks.
 
-## Human Status Language
+## Internal Status Artifact and Product Chat Boundary
 
-Human-facing status must answer:
-
-- What is true?
-- What changed?
-- What matters?
-- What needs product, intuition, or taste judgment?
-- What happens next?
-
-Minimum `status.md`:
+`status.md` is a recovery and contradiction-checking artifact. It may retain detailed internal state needed by a fresh process:
 
 ```md
 # Status
@@ -289,6 +320,16 @@ Last verified:
 Next action:
 Stop criteria:
 ```
+
+Normal post-slice chat must not mirror or translate this template. It contains only:
+
+- product capability created;
+- evidence when needed to support the claim;
+- direction-changing learning;
+- next product bottleneck;
+- a genuine human decision.
+
+Internal phase, score, authority, receipt, branch, projection, path, and command detail appears only when it blocks progress, is disputed, or is explicitly requested.
 
 ## Build-vs-Borrow Routing
 

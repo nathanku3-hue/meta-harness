@@ -4,6 +4,174 @@ Status: append-only
 Started: 2026-05-02
 Candidate direction proposed: 2026-07-21
 Active direction banked: 2026-07-21
+Candidate correction proposed: 2026-07-22
+Thin-system correction proposed: 2026-07-22
+
+## D088 (candidate): Make Thin Cross-Repository Usefulness the Next Product Proof
+
+Candidate decision:
+
+Preserve `intent-v1`, D086, the accepted R0/R1 evidence, and D087 as superseded candidate reasoning. Correct the proposed roadmap before audit: Meta-Harness must prove a minimal reusable operating loop across materially different repositories before centering any one adopter or product result.
+
+The product is not a portfolio dashboard, central scheduler, workflow database, generic grill engine, or permanent SOP bureaucracy. It is a thin replaceable layer around model intelligence:
+
+```text
+human intent and product endgame
+→ small durable repository artifacts
+→ thin session guidance and invariant checks
+→ model reasoning and execution
+→ lightweight independent verification
+→ retained evidence and exact continuation
+```
+
+Meta-Harness owns only durable information and boundaries that a model cannot safely reconstruct from one transient session:
+
+- original human intent and explicit decisions;
+- repository identity and current product state;
+- authority, risk, scope, and irreversible-action boundaries;
+- evidence of completed work;
+- exact continuation and recovery state.
+
+The model supplies planning, product reasoning, alternative generation, repository comprehension, implementation, research synthesis, and most audit reasoning. Every owned process layer must remain deletable. The evolution rule is:
+
+```text
+explicit SOP guidance
+→ compact skill or template
+→ minimal invariant check
+→ model-native behavior
+→ delete obsolete guidance
+```
+
+The next proof is therefore cross-repository usefulness, not a finance-first implementation. Apply the same thin session/product loop read-only to at least three unlike repositories, including Meta-Harness and two external products with materially different endgames. For each repository, reconstruct:
+
+```text
+original intent and endgame
+→ current product capability
+→ current product bottleneck
+→ thinnest complete next product loop
+→ strongest alternative
+→ authorized work that can begin immediately
+→ genuine human decision, if any
+```
+
+Then identify the smallest common Meta-Harness deficiency that prevents correct, fast continuation across those repositories. Implement only that deficiency, rerun the same repositories, and prove reduced context reconstruction, lower human burden, preserved endgame direction, and different product recommendations when the repositories differ.
+
+Finance GodView remains a valuable proving repository and possible first executed external product slice. It is not preselected as the Meta-Harness roadmap centre. The outer cross-repository loop selects where marginal endgame-relevant product value is highest; the inner repository loop then selects the thinnest complete product result. The selected R4 shipment must still satisfy the active D085/D086 proof goal that software engineering and explicit specialist judgment materially shape the observable result.
+
+Proposed corrected phase sequence:
+
+```text
+R2A lock the minimal owned layers and deletion rules
+→ R2B run one read-only thin loop across three unlike repositories
+→ R2C identify the common bottleneck and smallest reusable patch
+→ R3 implement and independently accept that thin capability
+→ R4 use it to select and execute one real product slice across the proving repositories
+→ R5 merge, package, and prove fresh-session continuation
+→ R6 compare benefit across repositories and delete or shrink obsolete guidance
+```
+
+The roadmap score remains retrospective evidence only. D088 preserves the banked R0/R1 `30 / 100` and proposes repurposing only the unearned R2–R6 exit contracts around cross-repository usefulness. Product-direction accuracy, time to correct next action, human interventions, rework, continuation success, and appropriately different recommendations become the proof measures.
+
+Independent domain validation is not deleted. It moves outside the first Meta-Harness cross-repository usefulness score and remains a separate later gate for whichever specialist product is selected and shipped in R4.
+
+No runtime implementation is authorized by D088 until the read-only cross-repository proof names the exact missing capability. No central repo registry, daemon, dashboard, queue, database, generic router, permanent multi-agent layer, finance-specific runtime, or backward-compatible process framework is authorized.
+
+Candidate proof evidence — Gate 0B double-prime:
+
+- Gate 0A selects immutable base `711ae4e53034ded102968f04ed17c44619a4d3fe` and protects the dirty canonical checkout from cleanup, migration, pruning, GC, or deletion. Its exact tracked copy is `docs/ops/audits/d088-gate0a-evidence.json`, SHA-256 `3f13c3aa7a951ed77b26b3745dafdaba5b8acc47460464a88bb35345fad4d99c`.
+- The proposed Gate 0B/F1A–F5 sequence in that manifest is rejected as evidence authoring, not product authority. No additional worktree is required.
+- The D088 candidate footprint is contracted to this decision, the roadmap, product specification, SOP, one active implementation plan, one focused contract test, and compact audit evidence. D088 phase narration is removed from non-authoritative product and operations mirrors.
+- The read-only loop was applied before activation to Meta-Harness, Quant, and Leningrad. It selected materially different next product loops: freeze/prove D088; execute Quant F1B `NO_POSITION`; and bank Leningrad Alpha 0 product custody.
+- All three repositories exposed one common objective defect: the obvious checkout was stale, contaminated, superseded, or lacked versioned product custody. `NO_BUILD` and guidance-only responses are insufficient; the candidate R2C response is one read-only `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface.
+- Exact elapsed time was not instrumented in this first proof. Authority-resolution hops and context surfaces are retained as the baseline; R3 rerun must measure elapsed time and context volume before claiming quantitative improvement.
+
+The complete candidate comparison and bounded R3 contract are recorded in `docs/ops/audits/d088-cross-repository-proof.json`. Gate 0A plus accepted D088 closes R2A without a later implementation phase. If exact-commit independent audit accepts R2A, R2B, R2C, the three response classes, and the bounded R3 contract, D089 may activate the furthest proven state and bank `ROADMAP_PROOF_SCORE = 40 / 100`. Until then D086/D085 and `30 / 100` remain official.
+
+Rationale:
+
+D087 correctly established product proof per time, loop first, silent session alignment, conditional audit, and governance suppression. It still over-centered one external adopter and one repository result. That would prove a downstream product slice more strongly than the reusable Meta-Harness method. The smallest honest next step is to use the existing SOP and artifacts as temporary scaffolding across unlike repositories, discover the shared bottleneck, then materialize only the minimal capability that evidence requires.
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Canonical-state note:
+
+D086 and `.meta-harness/status.md` remain official. D087 and D088 are documentation candidates only. Do not edit canonical status or events manually. Do not begin external product implementation or a new Meta-Harness runtime layer until independent audit accepts the reconciled D088 surfaces and a controller-authorized event activates the corrected R2 sequence.
+
+Supersession:
+
+If activated, D088 supersedes D087's finance-first and single-adopter sequencing while preserving its product-proof-per-time objective, loop-first method, authoritative session entry, conditional audit, product-dominant closure, claim ceilings, and explicit no-silent-drift rule.
+
+## D087 (candidate): Make Product Proof per Time the Selection Rule, Converge Session Entry, and Propose Finance GodView as the First External Proof
+
+Candidate decision:
+
+Preserve `intent-v1`, D086, the accepted R0/R1 evidence, verifier-only epoch-2 authority, and the active R2 gate. Propose a corrected R2–R6 roadmap without claiming a new canonical state. D087 remains candidate-only until independent audit and a controller-authorized event reconcile the official current state.
+
+The correction has four parts.
+
+1. **Selection rule.** Choose work by expected endgame-relevant, user-observable product proof per unit elapsed time. `ROADMAP_PROOF_SCORE` remains a retrospective all-or-none evidence ledger that supplements the multidimensional scorecard; it must never select work or become "max score first."
+2. **Loop-first product method.** Reverse-engineer from the endgame, ship the thinnest complete representative loop, deepen only the observed bottleneck, and automate only after the integrated loop works. A thin complete product loop beats an excellent isolated module.
+3. **Silent anti-drift.** Every fresh or resumed session first resolves the authoritative repository/ref, reconstructs original intent, endgame, current capability, current bottleneck, and the smallest complete next result. Aligned sessions proceed silently. A separate plan audit runs only on a new product/repository, material roadmap change, irreversible action, protected access, high-impact cross-module risk, contradiction, or proposed harness infrastructure before an observed product blocker.
+4. **Product-dominant closure.** Normal post-slice chat contains only the product capability created, evidence when needed, direction-changing learning, the next product bottleneck, and a genuine human decision. Internal authority, custody, score, branch, receipt, status-projection, path, and command detail stays in artifacts unless it blocks progress, is disputed, or is explicitly requested. The correction is suppression, not translation of governance vocabulary.
+
+The stale-checkout audit is treated as evidence of an entry-custody defect, not evidence that D086 is fictional. A fresh auditor opened `E:\\Code\\meta-harness` on stale `main` and reconstructed D083, while the accepted and pushed state existed at `E:\\Code\\meta-harness-s001r5`, branch `codex/candidate-s001r5`, commit `711ae4e53034ded102968f04ed17c44619a4d3fe`. Before external product execution, the default entry path must either converge on the accepted state or expose one machine-verifiable pointer that blocks stale planning.
+
+Proposed R2 structure:
+
+```text
+R2A authoritative entry convergence
+→ R2B layer-first external product lock
+→ R2C first representative loop, repository, base, worktree, alternatives, and RunSpec
+```
+
+Finance GodView is proposed as the first external adopter of Meta-Harness, not as a replacement for Meta-Harness product intent. Its endgame is a silent multi-module system that continuously identifies opportunities, integrates structural winner judgment, probabilistic judgment, timing, risk/reward, exposure, trading frequency, and action/no-action policy, then sends mobile decision notifications.
+
+The proposed first S-006M result is deliberately narrower:
+
+```text
+one replayable opportunity
+→ structural winner thesis
+→ probabilistic assessment
+→ timing assessment
+→ risk/reward and exposure assessment
+→ action / wait / reject
+→ one real mobile notification
+```
+
+Reject a single-indicator notification because it proves too little. Reject the full 24/7 platform because it creates infrastructure gravity. The complete one-opportunity decision notification is the smallest representative endgame loop.
+
+Claim ceiling:
+
+- the first slice may prove that explicit multidisciplinary judgment materially shaped one reproducible decision notification;
+- it does not prove alpha, winner-selection accuracy, timing skill, generalization, live profitability, or real-world value;
+- automated trading, broker access, credentials, live capital, deployment, publication, or public performance claims require separate named human gates.
+
+No external repository, exact base, replay case, notification endpoint, or R3 implementation is selected by D087. Those remain R2 decisions. No Meta-Harness runtime change, grill engine, dashboard, database, generic learning system, or new approval workflow is authorized.
+
+Rationale:
+
+The current method is directionally correct but not explicit enough about loop-first product proof, score non-optimization, conditional plan audit, silent session alignment, and suppression of process machinery from normal human conversation. The stale-checkout audit proves that a fresh-session planner can read local files first and still initialize from the wrong repository state. Fixing that entry ambiguity is necessary for silent full-auto operation and is smaller than another governance layer.
+
+Evidence:
+
+- banked D086 state and receipt `D086-D085-R1-ACCEPTANCE` at commit `711ae4e53034ded102968f04ed17c44619a4d3fe`;
+- stale primary `main` checkout still presenting D083/S-001R verification;
+- human direction defining the finance GodView user, economic goal, multidisciplinary trade-offs, and silent mobile-notification endgame;
+- review finding that translated governance vocabulary still contaminates post-slice chat and should normally be omitted instead.
+
+Intent binding:
+
+`intent-v1`, SHA-256 `0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1`
+
+Canonical-state note:
+
+D086 and `.meta-harness/status.md` remain the official current state. D087 is a documentation candidate only. Do not edit canonical status or events manually, select an external repository, or begin R3 until independent audit accepts the reconciled D087 surfaces and a controller-authorized event activates the corrected R2 sequence.
+
+Supersession:
+
+If activated, D087 sharpens rather than replaces `intent-v1`. It supersedes work selection by headline score, universal plan-audit ceremony, governance-heavy post-slice chat, four-line target selection without prior layer reconstruction, and any assumption that finance GodView is the Meta-Harness product itself. It preserves the D085 proof boundary, R1/R2 separation, R3 same-slice repair rule, R6 post-shipment domain validation boundary, and `MERGED + PACKAGED` first-shipment terminal state.
 
 ## D086: Accept R1, Bank 30/100, and Activate D085 for R2 Target Lock
 

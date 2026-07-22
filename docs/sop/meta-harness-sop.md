@@ -1,7 +1,7 @@
 # Meta Harness SOP
 
-Status: canonical baseline; D085 active under D086
-Candidate direction proposed: 2026-07-21
+Status: canonical
+Candidate direction proposed: 2026-07-22
 Active direction banked: 2026-07-21
 Intent authority: [Product Intent Anchor](../product/product-intent.md)
 Roadmap authority: [Roadmap](../product/roadmap.md)
@@ -10,32 +10,43 @@ Roadmap authority: [Roadmap](../product/roadmap.md)
 
 Work must remain aligned with human intent and recoverable from validated artifacts rather than conversation memory.
 
-The minimal operating loop is:
+The active D085 loop remains official. D088 proposes one thin reusable product-progress loop inside each managed repository:
 
 ```text
-AUDITOR–PLANNER
-→ WORKER
-→ AUDITOR–PLANNER
+SESSION ALIGNMENT
+→ PRODUCT BOTTLENECK
+→ THINNEST COMPLETE REPRESENTATIVE LOOP
+→ AUTHORIZED EXECUTION
+→ PRODUCT VERIFICATION
+→ RETAINED EVIDENCE AND EXACT CONTINUATION
 ```
+
+Across repositories, compare where the next complete product loop has the highest marginal value only when no authorized slice exists, the active slice closes or is decisively blocked, or the human explicitly reprioritizes. Do not run the outer comparison before every action or create a permanent scheduler, dashboard, database, queue, or portfolio-control layer.
 
 Internal separations are mandatory:
 
-- audit before plan;
-- intent before local defect;
+- authoritative repository/ref before planning;
+- intent and endgame before local defect;
+- complete product loop before isolated-layer depth;
 - product movement before harness improvement;
 - evidence before narrative;
+- triggered audit before material direction, repository, risk, authority, contradiction, or infrastructure decisions;
 - receiver validation before resume;
 - one writer before multi-agent fan-out;
 - shipping outcome before internal completion.
 
+The selection objective is endgame-relevant, user-observable product proof per elapsed time and human attention. Completion scores record earned evidence and never choose work.
+
 ## Canonical Read Order
 
-Every round begins with local files in this order:
+Before reading product files, resolve repository identity, authoritative branch/ref, exact commit, and whether the current checkout is stale, dirty, superseded, or non-authoritative. Ambiguity blocks planning. This preflight prevents a coherent stale checkout from becoming session truth.
+
+After entry resolution, every round reads local files in this order:
 
 1. active human intent version;
 2. explicit human decisions and overrides;
 3. repository commit, tree, tag, dirty state, and active lease;
-4. current objective, slice, RunSpec, and authorization;
+4. current objective, product endgame, current bottleneck, slice, RunSpec, and authorization;
 5. immutable execution, audit, and outcome evidence;
 6. canonical event/fact ledger;
 7. active roadmap and product contracts;
@@ -45,7 +56,7 @@ A generated projection never overrides its canonical sources. A material contrad
 
 ## Auditor–Planner Contract
 
-The auditor-planner operates in two immutable passes.
+The auditor-planner uses two immutable passes after a completed slice, decisive failure, or material plan-review trigger. A separate plan audit is not universal for aligned reversible work.
 
 ### Pass A — Audit
 
@@ -81,7 +92,7 @@ The audit does not select the next roadmap item and cannot be edited during plan
 
 ### Pass B — Plan
 
-Planning reads the frozen audit and then re-reads the human intent verbatim.
+When an audit is triggered, planning reads the frozen audit and then re-reads the human intent verbatim. Otherwise session alignment and automated preflight may proceed directly to bounded execution.
 
 It considers at least:
 
@@ -99,24 +110,29 @@ Planning priority is:
 
 The plan emits one numbered slice and a bounded RunSpec containing product delta, shipping target, affected behaviors/modules, required expertise, authority envelope, verification contract, budget, expiry, stop rules, and predicted outcome.
 
-For S-006M, target selection must trace to `intent-v1` and name the real user, job or progress sought, specialist judgment generic coding cannot replace, and observable result. The planner selects the smallest representative coding-plus-knowledge slice, not a trivial coding-only slice chosen because it is easiest to merge.
+The planner chooses the thinnest complete endgame-representative loop, not the highest roadmap score, easiest patch, best-isolated module, or largest architecture program.
+
+For candidate D088, Gate 0A plus the contracted owned-versus-model-supplied boundary closes R2A without another implementation phase. The same read-only method was applied before activation across Meta-Harness, Quant, and Leningrad. R2C compared `NO_BUILD`, guidance-only correction, and one invariant, then selected the smallest common missing capability: a read-only `ENTRY_AUTHORITY_INVARIANT` in the existing readiness/entry surface. Exact-commit audit and D089 remain mandatory before implementation.
+
+Meta-Harness owns durable intent, decisions, repository state, authority/scope/risk boundaries, completed-work evidence, and continuation. The model supplies planning, product reasoning, alternatives, implementation, research synthesis, and most audit reasoning. Every SOP, skill, template, check, or runtime layer must have a deletion or shrink path as model capability improves.
 
 ## Worker Contract
 
 The worker:
 
-1. verifies intent version, RunSpec, repository identity, lease, and authorization;
-2. reads relevant local source before generated summaries;
-3. states the newly true product behavior it will create;
-4. emits a compact execution plan;
-5. passes automated plan preflight;
-6. executes all reversible work already authorized without routine waiting;
-7. uses scouts or parallel work only when expected completion time decreases;
-8. checkpoints each independently valid increment;
-9. records deviations, invalidated assumptions, and partial results immediately;
-10. returns structured evidence and a typed handoff;
-11. never declares the roadmap or final shipping result;
-12. stops at the RunSpec boundary.
+1. resolves the authoritative repository/ref, then verifies intent version, RunSpec, lease, and authorization;
+2. silently reconstructs endgame, current product capability, current bottleneck, smallest complete next result, fastest-route rationale, and deferred work;
+3. reads relevant local source before generated summaries;
+4. states the newly true product behavior it will create;
+5. emits a compact execution plan;
+6. passes automated plan preflight;
+7. executes all reversible work already authorized without routine waiting;
+8. uses scouts or parallel work only when expected completion time decreases;
+9. checkpoints each independently valid increment;
+10. records deviations, invalidated assumptions, and partial results immediately;
+11. returns structured evidence and a typed handoff;
+12. never declares the roadmap or final shipping result;
+13. stops at the RunSpec boundary.
 
 The compact plan contains only:
 
@@ -156,10 +172,10 @@ Verification separately scores:
 
 Passing tests alone cannot close a slice.
 
-For S-006M, verification separates two claims:
+For a specialist-knowledge product slice, verification separates two claims:
 
 - code, scope, custody, tests, and observable product behavior require independent acceptance;
-- specialist knowledge must be explicit, provenance-linked, materially shape the output, and remain challengeable, while independent domain correctness, generalization, and real-world value stay explicitly unproven until R6.
+- specialist knowledge must be explicit, provenance-linked, materially shape the output, and remain challengeable, while independent domain correctness, generalization, and real-world value remain a separate later proof.
 
 The claim ceiling must travel with the merged and packaged artifact itself. A planning-only disclaimer does not satisfy continuity or no-silent-drift.
 
@@ -210,18 +226,29 @@ Later fan-out requires disjoint writes or read-only roles, leases, duplicate sup
 
 ## Active Build Boundary
 
-D086 activates the D085 R0–R6 external product-proof roadmap and records the R2 target lock as the canonical next action.
+D086 keeps the D085 R0–R6 external product-proof roadmap active and records R2 as the official next action.
 
 ```text
 ROADMAP_PROOF_SCORE = 30 / 100
 S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 ```
 
-S-001 is shipped as `0.3.0` under one-way authority epoch 2, and R1 is independently accepted. R2 now owns the human four-line target lock, external repository, exact base commit, clean target worktree, alternatives, and bounded RunSpec. No external repository is selected by D086, and no R3 implementation begins before the complete R2 exit contract passes.
+D087 and D088 are candidate-only pending exact-commit independent audit and controller activation. The combined D088 proof has candidate-completed R2A, R2B, and R2C:
 
-S-006M does not independently prove domain correctness, generalization, or real-world value. That boundary must appear in the candidate and package. `PACKAGED` is not `PUBLISHED`; publication, deployment, live capital, broker access, credentials, and public performance claims require a separate named human gate.
+```text
+Gate 0A authority and no-destructive-operation boundary
+→ contracted durable owned layer
+→ read-only proof across Meta-Harness, Quant, and Leningrad
+→ materially different product recommendations
+→ common ENTRY_AUTHORITY_AMBIGUITY defect
+→ selected read-only ENTRY_AUTHORITY_INVARIANT
+```
 
-The runtime remains verifier-only; epoch-1 evidence is frozen under `docs/ops/audits/authority-epoch-1-frozen/` and is not an active mutation path. Canonical mutation runs in a controller-owned checkout outside worker write scope. A concrete blocker observed during authorized R3 execution may open only the smallest proven repair inside that same slice before resumption and independent acceptance. R6 is exclusively post-shipment independent domain validation or replication. Internal vaults, signer services, dual-epoch compatibility, databases, broad filesystem frameworks, generic guided-pilot or knowledge platforms, horizontal governance, learning engines, and fan-out remain deferred. D086, its canonical event, and the generated status govern the active D085 path; R2 target lock is current and R3 remains closed.
+The comparative evidence is retained once in `docs/ops/audits/d088-cross-repository-proof.json`, not copied across product surfaces. Exact elapsed time was not instrumented in the first run; R3 rerun must measure elapsed time and context volume.
+
+No external product implementation and no new runtime layer begins before exact-candidate audit and D089 activation. R3 implements only the accepted entry-authority invariant. R4 then uses the accepted method to select and ship one real product slice across the proving repositories. That selected slice must still materially combine software engineering with explicit specialist judgment under D085/D086.
+
+The runtime remains verifier-only; epoch-1 evidence is frozen and not an active mutation path. Central registries, schedulers, dashboards, queues, databases, grill engines, internal vaults, signer services, dual-epoch compatibility, broad filesystem frameworks, generic knowledge platforms, permanent multi-agent layers, automated trading, and finance-specific runtime paths remain deferred.
 
 ## Purpose
 
@@ -362,7 +389,7 @@ These routes describe the existing general and machine-facing vocabulary. The ca
 
 This section is the canonical contract for agent-level `ship-fast`. It is a prompt and artifact discipline only: it adds no command, daemon, Python behavior, Node behavior, or machine-enforced route.
 
-Classify the scenario before planning or editing: `IDEA`, `PLAN`, `AUDIT`, `IMPLEMENT`, `DIRTY_WORKTREE`, `STALE_MAIN`, `WORKER_PATCH`, `PR_REVIEW`, `MERGE`, or `INSTALL_SMOKE`. Read the applicable operations contract, enforce its hard gates, and move exactly one state forward.
+Classify internally before planning or editing: `SESSION_ALIGN`, `ENTRY_CONVERGENCE`, `IDEA`, `PLAN`, `PRODUCT_LOCK`, `SLICE_LOCK`, `AUDIT`, `IMPLEMENT`, `DIRTY_WORKTREE`, `STALE_ENTRY`, `WORKER_PATCH`, `PR_REVIEW`, `MERGE`, `PACKAGE`, `PUBLISH`, or `INSTALL_SMOKE`. Read the applicable operations contract, enforce its hard gates, and move exactly one state forward. These classifier names are not normal chat content.
 
 Ship-fast has only three routes:
 
@@ -374,7 +401,7 @@ Ship-fast has only three routes:
 
 Every ship-fast artifact has exactly one type:
 
-- `PM_CLOSURE`: the PM-visible route, outcome, reason/evidence, and next action only;
+- `PM_CLOSURE`: product capability, supporting evidence only when needed, direction-changing learning, next product bottleneck, and genuine human decision only;
 - `REVIEW_SPECIMEN`: bounded material presented for a decision, not an implementation claim;
 - `MATERIALIZED_IMPLEMENTATION`: files, configuration, code, or a full audit artifact produced only after its gates pass.
 
@@ -388,9 +415,9 @@ Three distinct information channels exist:
 
 Status-only artifacts are not shipped progress unless the user explicitly requested status or reporting as the product. Expert packets, approval packets, PM status, and dashboards that only restate current truth may advance a `REVIEW` or `BLOCK` gate, but they do not move implementation progress or terminal outcome to `SHIP`. After approval, the next ship-fast round must either materialize the smallest owned, reversible, locally verifiable slice or emit the bounded gate closure; it must not create another status-only packet as progress.
 
-The PM closure is the chat answer, not the worker-report artifact. Translate internal state into plain language and hide `Outcome`, `Round`, `Progress`, `Confidence`, `Ship gate tier`, SAW/ClosurePacket internals, hashes, absolute paths, file allowlists, command logs, and accountability booleans unless the user asks for evidence. If the user asks for approval text, emit only the pasteable approval block.
+The PM closure is the chat answer, not the worker-report artifact. Do not translate internal process machinery into friendlier vocabulary and then copy it into chat. Omit authority, custody, score, receipt, branch, projection, path, allowlist, command-log, classifier, and accountability detail unless it blocks progress, is disputed, or the user asks for evidence. If the user asks for approval text, emit only the pasteable approval block.
 
-Use one canonical user-visible closure policy, separate from machine classifier tiers, worker evidence fields, and internal handover schemas. Include only applicable semantic items, in this order: result and practical effect; reason or nearest evidence when needed; next action when work remains; the highest-priority user decision when one is required. Omit empty or `none` items. Use one short paragraph for simple completion; otherwise use no more than four applicable semantic items. This budget applies only to normal human-facing closure. Requested audits, reviews, safety evidence, and orchestrator handover state are separate surfaces and may expand as needed without converting `PM_CLOSURE` into an audit packet.
+Use one canonical user-visible closure policy. Normal post-slice chat includes only applicable items in this order: product capability created; evidence when needed to support the claim; direction-changing learning; next product bottleneck; the highest-priority genuine human decision. Omit empty items. Requested audits, reviews, safety evidence, and orchestrator handover state are separate surfaces and may expand without contaminating normal product conversation.
 
 Decision-needed questions must use exactly one owner tag:
 

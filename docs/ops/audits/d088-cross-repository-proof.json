@@ -1,0 +1,224 @@
+{
+  "schemaVersion": "meta-harness-d088-cross-repository-proof/v1",
+  "generatedAt": "2026-07-22T20:53:34.3815801+08:00",
+  "mode": "read-only-candidate-validation",
+  "officialState": {
+    "activeDecision": "D086",
+    "activeRoadmap": "D085",
+    "roadmapProofScore": "30 / 100",
+    "externalLoopsShipped": "0 / 1",
+    "d088Status": "candidate-only-pending-exact-commit-independent-audit-and-controller-activation"
+  },
+  "method": [
+    "recover repository intent and endgame",
+    "identify current useful capability",
+    "identify the current product bottleneck",
+    "select the thinnest complete next product loop",
+    "name the strongest alternative",
+    "separate already-authorized work from genuine human decisions"
+  ],
+  "repositories": [
+    {
+      "name": "Meta-Harness",
+      "obviousCheckout": {
+        "path": "E:/Code/meta-harness",
+        "head": "8ec31913b52b12a3ebe2660a1ee1aec82695c564",
+        "status": "blocked-stale-dirty-non-authoritative",
+        "trackedModified": 47,
+        "untracked": 145,
+        "behindOriginMain": 2
+      },
+      "selectedAuthority": {
+        "path": "E:/Code/meta-harness-s001r5",
+        "base": "711ae4e53034ded102968f04ed17c44619a4d3fe",
+        "ref": "refs/heads/codex/candidate-s001r5",
+        "basis": "Gate 0A exact remote and local authority evidence"
+      },
+      "endgame": "A thin replaceable repository operating layer that preserves durable intent, authority, evidence, and continuation while borrowing planning and execution intelligence from the model.",
+      "currentUsefulCapability": "Authority-bound execution custody, canonical truth, packaged 0.3.0 substrate, and an unbanked D088 thin-loop candidate.",
+      "currentProductBottleneck": "Reduce and prove the D088 candidate rather than creating another repository-containment or governance programme.",
+      "thinnestCompleteNextProductLoop": "Contract D088 to authoritative surfaces, preserve Gate 0A evidence, run the three-repository proof, select the smallest response, validate one immutable candidate, and obtain exact-commit audit.",
+      "strongestAlternative": "Keep D085 finance-first target lock active and select one external coding-plus-specialist slice immediately.",
+      "alreadyAuthorizedWork": "Gate 0B double-prime candidate proof: contraction, read-only comparison, response selection, pinned-runtime validation, and candidate freeze.",
+      "actualHumanDecision": "None before the exact candidate audit; controller activation remains a later authority action.",
+      "auditRoadmapDriftObserved": true,
+      "infrastructureWithoutProductBlockerRecommended": true,
+      "authorityResolutionHops": 2,
+      "unansweredUncertainty": "Whether exact-commit independent audit accepts the contracted D088 package and selected invariant."
+    },
+    {
+      "name": "Quant",
+      "obviousCheckout": {
+        "path": "E:/Code/Quant",
+        "head": "accef5c6be62f63cfc57f0118e0b6b7ae46fad4f",
+        "status": "blocked-contaminated-non-authoritative",
+        "note": "Large tracked deletion and untracked mirror state; not used for product planning."
+      },
+      "selectedAuthority": {
+        "path": "E:/Code/Quant/.worktrees/Quant_c0x_m7f4_v8-3be41171",
+        "head": "e156c664fbbd6af96f2fbc46d4a7e23c6c6933a6",
+        "status": "clean-detached-exact-F1A-close"
+      },
+      "endgame": "A finance GodView product that turns portfolio state and multidisciplinary judgment into certified, decision-useful product outputs without overstating domain validity.",
+      "currentUsefulCapability": "F1A synthetic OPEN is banked and independently closed with exact PortfolioBook, snapshots, certification, and injected read-only adapter; product 43/43, protocol 137/137, combined 180/180.",
+      "currentProductBottleneck": "The second representative component state has not traversed the proven product path.",
+      "thinnestCompleteNextProductLoop": "Open F1B only and send NO_POSITION through the identical book, certification, and adapter path.",
+      "strongestAlternative": "Publish or route the existing OPEN result as a permanent bundle before proving the second component state.",
+      "alreadyAuthorizedWork": "F1B only; F1C/F1D, permanent publication, default routing, providers, real data, PEAD reopen, and FS1 remain closed.",
+      "actualHumanDecision": "None for F1B execution.",
+      "auditRoadmapDriftObserved": false,
+      "infrastructureWithoutProductBlockerRecommended": false,
+      "authorityResolutionHops": 2,
+      "unansweredUncertainty": "Only F1B implementation evidence and independent acceptance; no product-direction question is open."
+    },
+    {
+      "name": "Leningrad",
+      "obviousCheckout": {
+        "path": "E:/Code/leningrad",
+        "head": "56797f45367b7b8fa115f1e874c5d618edaf9226",
+        "branch": "codex/system1-panic-cascade",
+        "status": "blocked-dirty-superseded-research-line",
+        "auditStatusEntries": 120,
+        "auditTrackedChanges": 58,
+        "auditStagedChanges": 3,
+        "auditUntrackedEntries": 62
+      },
+      "selectedAuthority": {
+        "base": "main@e8fd08d77e5a",
+        "status": "clean-product-custody-base-named-by-current-ship-gate",
+        "note": "The Alpha 0 product spine is currently working local bytes but absent from a named Git object."
+      },
+      "endgame": "Ship one bounded, auditable swarm counterfactual product that traces a declared mechanism change through collective outcomes under protected exogenous randomness.",
+      "currentUsefulCapability": "The Alpha 0 functional mechanism is materially sufficient at 77/100 and the development suite passes 51 tests, but release readiness is 29/100.",
+      "currentProductBottleneck": "Repository custody: the tested Alpha 0 product spine is untracked while superseded research owns Git history.",
+      "thinnestCompleteNextProductLoop": "Create the already-specified clean non-release product-custody slice from main@e8fd08d77e5a, import only the Alpha 0 spine, bank FS-1F_BASELINE_ONLY, then run target CPython 3.12 compile, tests, and CLI smoke.",
+      "strongestAlternative": "Continue independent-oracle, trusted-attestation, or mechanism research directly in the contaminated checkout.",
+      "alreadyAuthorizedWork": "A0-SHIP Slice 1 product custody only; no additional model, research, adaptation, topology, deployment, or certification work.",
+      "actualHumanDecision": "None for the custody slice; later release authority remains gated.",
+      "auditRoadmapDriftObserved": true,
+      "infrastructureWithoutProductBlockerRecommended": false,
+      "authorityResolutionHops": 1,
+      "unansweredUncertainty": "Whether the exact clean product spine passes the target CPython 3.12 environment after banking."
+    }
+  ],
+  "comparison": {
+    "recommendationsMateriallyDifferent": true,
+    "differences": [
+      "Meta-Harness: contract and prove the operating method itself.",
+      "Quant: execute the next NO_POSITION product vertical through a proven path.",
+      "Leningrad: bank existing product bytes into Git custody before deeper verification or research."
+    ],
+    "commonObservedBottleneck": {
+      "id": "ENTRY_AUTHORITY_AMBIGUITY",
+      "observedIn": [
+        "Meta-Harness",
+        "Quant",
+        "Leningrad"
+      ],
+      "statement": "The obvious checkout is not a trustworthy execution authority; accepted or product-relevant state exists in another worktree/ref or is absent from Git custody.",
+      "objectiveSignals": [
+        "current checkout dirty or contaminated",
+        "current checkout stale or on superseded direction",
+        "accepted ref/worktree differs from obvious checkout",
+        "product bytes are not reachable from the named Git authority"
+      ]
+    },
+    "measurement": {
+      "exactElapsedSeconds": null,
+      "status": "not-instrumented-in-initial-read-only-run",
+      "availableBaseline": {
+        "authorityResolutionHops": {
+          "Meta-Harness": 2,
+          "Quant": 2,
+          "Leningrad": 1
+        },
+        "humanQuestions": 0,
+        "contextStrategy": "Use compact current-truth artifacts where available and one current ship-gate review where not."
+      },
+      "claimCeiling": "This run proves differentiated recommendations and a repeated entry-authority defect. It does not prove a quantified time reduction; the R3 rerun must instrument elapsed time and context volume."
+    }
+  },
+  "responseSelection": {
+    "responsesCompared": [
+      {
+        "class": "NO_BUILD",
+        "verdict": "rejected",
+        "reason": "All three repositories required manual authority reconstruction, and the obvious checkout could direct planning from stale, contaminated, or unversioned state."
+      },
+      {
+        "class": "COMPACT_SOP_OR_SKILL",
+        "verdict": "rejected-as-sufficient-response",
+        "reason": "Guidance can improve reasoning but cannot objectively fail closed when the checkout is not the declared authority or product bytes are not in Git custody."
+      },
+      {
+        "class": "ONE_MINIMAL_MACHINE_CHECKABLE_INVARIANT",
+        "verdict": "selected",
+        "id": "ENTRY_AUTHORITY_INVARIANT",
+        "reason": "The failure is repeated, objective, and detectable without a registry, daemon, database, scheduler, dashboard, or new worktree."
+      }
+    ],
+    "selectedResponse": "ENTRY_AUTHORITY_INVARIANT"
+  },
+  "boundedR3Contract": {
+    "objective": "Before product planning, read-only verification either proves that the current checkout is the repository-declared authority or fails closed with one exact authoritative path/ref/commit or one custody action.",
+    "minimumBehavior": [
+      "resolve repository identity, top-level path, HEAD, branch or detached state, and dirty state",
+      "compare the current checkout with one explicit repository-local authority declaration or accepted evidence pointer",
+      "detect stale, superseded, contaminated, divergent, or unversioned-product state",
+      "return PASS only for the declared authority state",
+      "otherwise return one actionable BLOCK naming the exact accepted path/ref/commit or the required product-custody action",
+      "operate read-only and create no worktree, ref, registry, daemon, database, scheduler, dashboard, queue, or router"
+    ],
+    "integrationPreference": "Extend the existing read-only readiness/entry surface rather than add a new platform or generic repository manager.",
+    "verification": [
+      "Meta-Harness obvious root blocks and selected candidate worktree passes against explicit authority evidence",
+      "Quant obvious root blocks and exact F1A authority worktree passes",
+      "Leningrad obvious root blocks with product-custody action until the Alpha 0 spine is reachable from the declared Git authority",
+      "rerun all three repositories with instrumented elapsed time and context volume"
+    ],
+    "deletionOrShrinkPath": "Delete or demote the explicit guidance when model-native entry reliably resolves the same authority state and the invariant no longer catches material drift."
+  },
+  "candidateValidation": {
+    "runtime": {
+      "node": "25.2.1",
+      "npm": "11.16.0",
+      "nodePath": "D:/nodejs/node.exe",
+      "npmPath": "D:/nodejs/npm.cmd"
+    },
+    "focusedContract": {
+      "file": "tests/d085-roadmap-contract.test.js",
+      "passed": 3,
+      "failed": 0
+    },
+    "repositorySuite": {
+      "testFiles": 123,
+      "execution": "all test files executed exhaustively in bounded pinned-Node groups",
+      "status": "pass",
+      "canonicalNpmWrapper": "connector returned HTTP 502 before test evidence was returned; this is transport failure, not repository test evidence"
+    },
+    "diffCheck": {
+      "status": "pass",
+      "note": "Only a non-blocking CRLF-to-LF warning remains for docs/sop/meta-harness-sop.md."
+    },
+    "strictReadOnlyReady": {
+      "command": "D:/nodejs/node.exe bin/meta-harness.js ready --target . --json --read-only --mode strict",
+      "ok": false,
+      "passed": 12,
+      "failed": 8,
+      "interpretation": "The command combines read-only/no-exec behavior with strict requirements. It therefore marks skipped Git diff, package, GitHub settings, npm tests, and ship-gate checks as failures; it also reports inherited absence of a domain-governance surface, inherited external security-setting evidence gaps, and no pregenerated ready.json. Truth, sync, trust, contracts, state, brief, decisions, quality, reproducibility, root-leak, and transition-graph checks pass. No failure is caused by the D088 candidate diff."
+    }
+  },
+  "scoreRecommendation": {
+    "now": "30 / 100",
+    "reason": "The official D085/D086 state is unchanged and the proof package has not passed exact-commit independent audit.",
+    "afterExactCandidateAcceptance": "40 / 100",
+    "conditions": [
+      "minimal owned-layer boundary accepted",
+      "R2A closed without a new implementation phase",
+      "three-repository read-only proof accepted",
+      "recommendations materially differentiated",
+      "common bottleneck and three response classes accepted",
+      "bounded R3 contract accepted"
+    ]
+  }
+}

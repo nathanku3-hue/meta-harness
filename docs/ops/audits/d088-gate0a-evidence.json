@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "meta-harness-gate0a-evidence/v1",
+  "gate": "0A",
+  "status": "COMPLETE",
+  "generatedAt": "2026-07-22T19:18:02+08:00",
+  "mode": "read-only-lineage-and-identity",
+  "repository": {
+    "path": "E:/Code/meta-harness",
+    "gitDir": "E:/Code/meta-harness/.git",
+    "commonGitDir": "E:/Code/meta-harness/.git",
+    "objectFormat": "sha1",
+    "bare": false,
+    "shallow": false,
+    "rootFileId": "0x0000000000000000001200000002c348",
+    "gitDirFileId": "0x0000000000000000000500000002cb3d",
+    "indexFileId": "0x000000000000000000020000001e599a",
+    "volume": {
+      "label": "sn770",
+      "serial": "7C10-CDDC"
+    },
+    "rootReparsePoint": false,
+    "gitDirReparsePoint": false,
+    "alternatesFile": false,
+    "sparseCheckoutFile": false,
+    "configWorktree": false
+  },
+  "canonicalCheckout": {
+    "branch": "main",
+    "head": "8ec31913b52b12a3ebe2660a1ee1aec82695c564",
+    "upstream": "origin/main",
+    "ahead": 0,
+    "behind": 2,
+    "packageVersion": "0.2.0",
+    "clean": false,
+    "statusCounts": {
+      "total": 192,
+      "trackedModified": 47,
+      "untracked": 145,
+      "staged": 0,
+      "unstaged": 47
+    },
+    "preEvidenceStatusSha256": "61788355424fcce258b827f6b8c2271e379d4e97104a897bfb971677549ee3aa",
+    "usableAsPatchAuthority": false
+  },
+  "remote": {
+    "validatedExplicitUrl": "https://github.com/nathanku3-hue/meta-harness.git",
+    "method": "ls-remote; protocol.allow=never; protocol.https.allow=always; no fetch; empty system/global config; credential helper disabled",
+    "refs": {
+      "main": "0b4e0dd7df766a701086d6b611556d9f321a0cb7",
+      "candidate-s001r5": "711ae4e53034ded102968f04ed17c44619a4d3fe",
+      "release-0.2.1": "5799861f2f560a8043caa2280ff6798bfadee59c",
+      "v0.2.0": "8ec31913b52b12a3ebe2660a1ee1aec82695c564",
+      "v0.2.1-peeled": "0791efa59bbc3f373868c8c7950797e712921af5",
+      "v0.3.0-peeled": "0b4e0dd7df766a701086d6b611556d9f321a0cb7"
+    },
+    "fetchPerformed": false,
+    "localRefsMutated": false
+  },
+  "lineage": {
+    "mergeBaseMainCandidate": "0791efa59bbc3f373868c8c7950797e712921af5",
+    "localMainVsRemoteMain": {
+      "localOnly": 0,
+      "remoteOnly": 2
+    },
+    "remoteMainVsCandidate": {
+      "mainOnly": 1,
+      "candidateOnly": 7
+    },
+    "candidateTruth": {
+      "activeAuthority": "D085",
+      "nextGate": "R2 target lock",
+      "implementationStop": "before R3",
+      "packageVersion": "0.3.0"
+    }
+  },
+  "worktrees": {
+    "count": 13,
+    "outsideCanonicalRoot": 12,
+    "paths": [
+      "E:/Code/meta-harness",
+      "C:/Users/Lenovo/.devspace/worktrees/meta-harness-1a518e9b",
+      "C:/Users/Lenovo/.devspace/worktrees/meta-harness-2343fc2b",
+      "C:/Users/Lenovo/.devspace/worktrees/meta-harness-369d6c93",
+      "C:/Users/Lenovo/.devspace/worktrees/meta-harness-3d66d0e3",
+      "C:/Users/Lenovo/.devspace/worktrees/meta-harness-3f5cd5e8",
+      "C:/Users/Lenovo/.devspace/worktrees/meta-harness-4caf6925",
+      "C:/Users/Lenovo/.devspace/worktrees/meta-harness-c0d2c48c",
+      "C:/Users/Lenovo/.devspace/worktrees/meta-harness-c0e26c8a",
+      "C:/Users/Lenovo/.devspace/worktrees/meta-harness-d3f934e8",
+      "E:/Code/meta-harness-g001",
+      "E:/Code/meta-harness-release-0.2.0",
+      "E:/Code/meta-harness-s001r5"
+    ],
+    "cleanCandidate": {
+      "path": "E:/Code/meta-harness-s001r5",
+      "head": "711ae4e53034ded102968f04ed17c44619a4d3fe",
+      "branch": "codex/candidate-s001r5",
+      "upstreamExact": true
+    }
+  },
+  "integrity": {
+    "fsckCommand": "git fsck --full --strict --no-progress",
+    "exitCode": 0,
+    "corruptionOrMissing": 0,
+    "dangling": {
+      "commits": 4,
+      "trees": 1029,
+      "blobs": 27
+    },
+    "danglingCommitOids": [
+      "bbc134bc69273ab8b2c5485997c8e9a760e04991",
+      "394cf7edc5d67468a0562f9e37feab1143bf012a",
+      "82a0de86c398495d249b97c89f37627eb83b9870",
+      "4bfbb6f5a077e917a3d3706b9374c48d928475e8"
+    ]
+  },
+  "localValue": {
+    "localOnlyReachableCount": 9,
+    "localOnlyReachableOids": [
+      "a311dbd2f423b3de0217da04b73f6dac60d270f9",
+      "585189b0f8c8f363b3a933d191c73b98d50a3b36",
+      "be177b11ab574f3ac368d5b0b0e5de0550d7e33d",
+      "cf1405e70bdf301b8c4c70bddb6c922a79423363",
+      "5bd4ec524a04d06b670fd33ba1b0d8f8337351a9",
+      "c81db006ef838898a28b9cac3ea970b214aee6eb",
+      "cf494ca29f6fe5a09d52e74a66bd56c7073429f9",
+      "ae4ea8bcd77f7654fac1a873e9db1ca12ad796b7",
+      "eeade2f3d14ef76849419afe8ddbda9bdc29a28f"
+    ],
+    "localOnlyReachableListSha256": "b94b7f5a06baf1f9cff2fd3924f56ffd2e11a70756b3b23f79131c9246ea56f0",
+    "reflogOnlyCount": 36,
+    "reflogOnlyListSha256": "9100aa15afc63debf1d576db992fdf5c9c2e792b1fd43b23533ddcc3f19dcfbc",
+    "dirtyWorkingStateRequiresPreservation": true,
+    "destructiveOperationsAllowed": false
+  },
+  "features": {
+    "submodulesObserved": false,
+    "gitlinksObserved": false,
+    "lfsAttributesObservedAtSelectedBase": false,
+    "splitIndexConfigured": false,
+    "sparseIndexConfigured": false,
+    "sparseCheckoutConfigured": false
+  },
+  "authorityDecision": {
+    "selectedCleanBaseForGate0B": "711ae4e53034ded102968f04ed17c44619a4d3fe",
+    "remoteRef": "refs/heads/codex/candidate-s001r5",
+    "basis": [
+      "remote ref current and exact",
+      "existing candidate worktree clean and upstream-exact",
+      "committed status names D085 as active authority and R2 as next gate",
+      "remote main lacks seven candidate-only direction commits"
+    ],
+    "canonicalCheckoutBlocked": true
+  },
+  "next": {
+    "gate0B": "NOT_AUTHORIZED",
+    "operator": "create exactly one detached contained worktree and record exact .git/worktrees mutation",
+    "validator": "read-only worktree; restricted synthetic profile/temp; baseline tests only",
+    "sequence": [
+      "Gate 0B",
+      "F1A",
+      "Gate 0C",
+      "F1B",
+      "F2",
+      "F3",
+      "F4",
+      "F5"
+    ]
+  },
+  "evidenceWrite": {
+    "path": "E:/Code/meta-harness/tmp/gate0a_20260722_readonly/manifest.json",
+    "preexisting": false,
+    "ignoredBy": ".gitignore:16:tmp/",
+    "trackedBeforeWrite": false,
+    "onlyPermittedFilesystemWrite": true
+  },
+  "manifestBodySha256": "9d023e9654ed0ac1e795c25496c655edf1f82d2adcd07eb37a70c5f2f6cb59da"
+}

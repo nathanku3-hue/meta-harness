@@ -1,145 +1,136 @@
-# Active Implementation Plan: D085 R0–R6 External Product Proof
+# Candidate Implementation Plan: D088 Thin Cross-Repository Usefulness Correction
 
-Status: **active under D086; R0 and R1 done; R2 human target lock is current; R3 execution unauthorized until R2 exits.**
+Status: **D085/D086 remains official. Gate 0B double-prime has produced contracted D088, exact Gate 0A evidence, a three-repository read-only proof, and the selected `ENTRY_AUTHORITY_INVARIANT`; all remain candidate-only pending pinned validation, immutable commit, exact-commit independent audit, and D089 activation. No R3 or external product implementation is authorized.**
 
 ```text
 ROADMAP_PROOF_SCORE = 30 / 100
 S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 ```
 
-## Endgame intent
+The score records earned proof and never selects work.
 
-Use a minimal authority-bound execution harness to help one solo developer/researcher combine coding and specialist knowledge into merged and packaged external product outcomes. Preserve `intent-v1` verbatim; D085 changes roadmap proof sequencing, not product intent.
+## Core method
 
-## Active proof boundary
+Optimize for the fastest endgame-relevant, user-observable product proof while keeping Meta-Harness minimal and replaceable.
 
-S-006M uses Option A:
+```text
+open a managed repository
+→ recover intent, endgame, current capability, and bottleneck
+→ choose the thinnest complete next product loop
+→ execute authorized reversible work
+→ verify product movement
+→ retain evidence and exact continuation
+```
 
-- prove one external workflow where explicit specialist knowledge materially shapes the result;
-- independently verify coding, scope, custody, tests, and observable behavior;
-- do not claim independent domain correctness, generalization, or real-world value;
-- carry that limitation in the merged and packaged artifact itself;
-- test the domain axis independently in R6.
+Meta-Harness owns durable intent, decisions, repository state, authority/scope/risk boundaries, completed-work evidence, and continuation. The model owns planning, product reasoning, alternatives, repository comprehension, implementation, research synthesis, and most audit reasoning.
 
-`MERGED + PACKAGED` closes R4. `PUBLISHED`, deployed, live-capital, broker, credential, and public-performance states require a separate named human gate.
+Every owned layer follows:
+
+```text
+SOP guidance
+→ skill or template
+→ minimal invariant
+→ model-native behavior
+→ deletion
+```
 
 ## R0 — Shipped substrate
 
-**DONE — score 20/100.**
+**DONE — score ledger 20/100.**
 
-- `origin/main` and `v0.3.0` resolve to `0b4e0dd7df766a701086d6b611556d9f321a0cb7` in reconciled remote evidence.
-- S-001 candidate `588bbe9` accepted.
-- verifier-only epoch 2 active;
-- package `@nkgss/meta-harness@0.3.0`;
+- S-001 accepted, integrated, and packaged as `@nkgss/meta-harness@0.3.0`.
+- verifier-only authority epoch 2 active;
 - epoch-1 evidence frozen.
 
-## R1 — Clean target-independent Meta-Harness execution base
+## R1 — Clean target-independent execution base
 
-**DONE — independently accepted under D086; score 30/100.**
+**DONE — independently accepted under D086; score ledger 30/100.**
 
-1. Reconcile live and local `origin/main` plus peeled `v0.3.0` at `0b4e0dd7df766a701086d6b611556d9f321a0cb7`.
-2. Bind one clean accepted Meta-Harness source worktree to commit `0b4e0dd7df766a701086d6b611556d9f321a0cb7` and tree `29e0d4aaf0235f84dea8d958e5dd8500f16f47f0`.
-3. Pack and install exact `@nkgss/meta-harness@0.3.0`; record tarball and installed identity.
-4. Bind native Windows Node `25.2.1` at `D:\nodejs\node.exe` and npm `11.16.0` at `D:\nodejs\npm.cmd`; stop below Node 20.
-5. Record verifier-only authority, allowed reversible actions, forbidden commitments, and stop rules.
-6. Preserve dirty or stale operator checkouts without promoting them to execution authority.
-7. Keep the external repository, target commit, target worktree, product behavior, alternatives, and RunSpec unset for R2.
+- accepted source, package, runtime, authority boundary, stop rules, and dirty-checkout non-authority are recorded;
+- external product work remains unset.
 
-## R2 — Representative external target and slice selection
+## Gate 0B double-prime — Prove and freeze D088
 
-**CURRENT — human target lock required; score after exit 40/100.**
+**CANDIDATE WORK COMPLETE; VALIDATION AND IMMUTABLE FREEZE PENDING.**
 
-R2 owns the external repository, exact base commit, clean target worktree, product behavior, alternatives, and RunSpec. Human target lock:
+Completed candidate work:
 
-```text
-User:
-Job or progress sought:
-Specialist judgment generic coding cannot replace:
-Observable result after shipment:
-```
+1. Contracted D088 from 15 modified surfaces to the decision log, roadmap, product specification, SOP, one active implementation plan, one focused contract test, and compact evidence.
+2. Preserved the exact Gate 0A manifest at `docs/ops/audits/d088-gate0a-evidence.json`; SHA-256 remains `3f13c3aa7a951ed77b26b3745dafdaba5b8acc47460464a88bb35345fad4d99c`.
+3. Ran the thin loop read-only across Meta-Harness, Quant, and Leningrad before activation.
+4. Recorded materially different next loops and the comparison in `docs/ops/audits/d088-cross-repository-proof.json`.
+5. Compared `NO_BUILD`, compact SOP/skill correction, and one machine-checkable invariant.
+6. Selected `ENTRY_AUTHORITY_INVARIANT`: a read-only check that either proves the current checkout is the declared authority or fails closed with one exact authoritative path/ref/commit or product-custody action.
 
-The selected slice must:
+Exact elapsed time was not instrumented in the initial proof. Authority-resolution hops and context surfaces form the baseline; the R3 rerun must measure elapsed time and context volume.
 
-- name a real non-Meta-Harness product repository and exact base commit;
-- create one clean isolated target worktree;
-- trace explicitly to `docs/product/product-intent.md` and `intent-v1`;
-- be the smallest representative coding-plus-knowledge behavior, not the smallest trivial merge;
-- compare three materially different alternatives;
-- state recommendation, strongest counterargument, claim ceiling, cheapest alternative, and reversing evidence;
-- bind exact installed `0.3.0`, authority, owned/forbidden surfaces, budget, rollback, and stop rules;
-- emit a bounded RunSpec;
-- target `MERGED + PACKAGED` without requiring publication.
+## R2A — Minimal owned layers and deletion rules
 
-A provisional theme such as G08 is not selected until these fields are concrete.
+**CANDIDATE COMPLETE PENDING EXACT-COMMIT AUDIT.**
 
-## R3 — Execute and independently accept S-006M
+Gate 0A plus the contracted D088 boundary closes R2A without another implementation phase. The owned layer remains limited to durable intent/decisions, repository state, authority/scope/risk boundaries, completed-work evidence, and continuation. Central schedulers, dashboards, databases, queues, daemons, generic grill engines, permanent routers, and compatibility frameworks remain prohibited.
 
-**BLOCKED ON R2 — score after exit 60/100.**
+## R2B — Read-only proof across unlike repositories
 
-```text
-frozen audit
-→ verbatim original intent
-→ three alternatives
-→ bounded RunSpec
-→ installed 0.3.0 execution custody
-→ observable product result
-→ independent acceptance
-```
+**CANDIDATE COMPLETE PENDING EXACT-COMMIT AUDIT.**
 
-The candidate or its durable user-facing documentation must include:
+- Meta-Harness: contract and prove D088; do not create another worktree or repository programme.
+- Quant: open F1B `NO_POSITION` only through the proven book/certification/adapter path.
+- Leningrad: bank the existing Alpha 0 product spine into clean Git custody before more mechanism or release work.
 
-> Specialist knowledge materially shaped this result. Independent domain correctness, generalization, and real-world value remain unproven.
+The recommendations are materially different. The obvious checkout was non-authoritative in all three repositories. Human questions were zero; exact elapsed time remains unmeasured and must be instrumented on rerun.
 
-If the same R3 execution exposes a concrete Meta-Harness blocker, remain inside R3:
+## R2C — Common bottleneck and smallest response
 
-```text
-name exact blocker and failed evidence
-→ implement only the smallest proven harness repair
-→ prove the repair against that blocker
-→ resume the same external slice
-→ independent acceptance
-```
+**CANDIDATE RESPONSE SELECTED PENDING EXACT-COMMIT AUDIT.**
 
-Do not select a replacement product, broaden scope, or award partial points. Only an independently accepted external product candidate earns R3 points. Rejected or incomplete work may be retained under the normal salvage classifications but does not raise the score.
+Common deficiency: `ENTRY_AUTHORITY_AMBIGUITY`.
 
-## R4 — Merge and package
+Selected response: one minimal `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface. It must operate read-only, create no worktree or ref, and emit one actionable block when the current checkout is stale, contaminated, superseded, divergent, or lacks versioned product custody.
 
-**BLOCKED ON R3 — score after exit 80/100; S-006M 1/1.**
+`NO_BUILD` is rejected because manual authority reconstruction was required in all three repositories. A skill alone is rejected because guidance cannot objectively fail closed. The bounded R3 contract and verification cases are in the comparative evidence artifact.
 
-1. Integrate against the current target branch.
-2. Rerun product and package acceptance checks.
-3. Merge the external behavior.
-4. Produce and verify a reproducible distributable artifact.
-5. Preserve the claim ceiling in the artifact.
-6. Record base/merged commit, package identity, rollback, elapsed time, interventions, rework, and unresolved limits.
+## R3 — Implement and independently accept the thin capability
 
-Stop before publication unless a separate human gate authorizes it.
+**BLOCKED ON PINNED VALIDATION, IMMUTABLE D088 CANDIDATE, EXACT-COMMIT AUDIT, AND D089 ACTIVATION. Score ledger after R3 exit 60/100.**
 
-## R5 — Learning and validated handover
+Implement only the R2C result. If `NO_BUILD` wins, prove the existing composition instead of adding code.
 
-**BLOCKED ON R4 — score after exit 90/100.**
+Rerun the same repositories and verify faster or more reliable product-direction reconstruction, preserved intent, differentiated recommendations, fewer unnecessary questions or artifacts, and no bulky control surface.
 
-Produce one evidence-bound learning record and one canonical continuation state. A fresh receiver must restate objective, current state, completed work, unresolved work, exact next action, forbidden action, and done condition.
+## R4 — Select and ship one real product slice
 
-Do not promote one case beyond verified observation or tested hypothesis without additional evidence.
+**BLOCKED ON R3. Score ledger after exit 80/100; S-006M 1/1.**
 
-## R6 — Independent domain-axis validation or replication
+Use the accepted cross-repository loop to select the repository and complete product slice with the highest expected product proof per elapsed time and human burden.
 
-**BLOCKED ON R5 — score after exit 100/100.**
+Finance GodView's one-opportunity decision notification remains one candidate. It competes with the best complete product loops found in the other proving repositories.
 
-Use a named independent domain reviewer, authoritative benchmark, blinded comparison, pre-registered rubric, or equivalent falsifiable method to test the specialist judgment and the transferability of R5 learning against the already merged and packaged S-006M result.
+The selected slice must still satisfy the D085/D086 proof goal: software engineering and explicit specialist judgment materially shape the observable result. Execute through independent acceptance, merge, and package. Carry the domain-specific claim ceiling in the product artifact. Stop before publication or other irreversible actions without separate human gates.
 
-R6 contains no shipment-repair path. Any pre-acceptance harness blocker belongs to the bounded R3 exception loop.
+## R5 — Fresh-session continuation across repositories
+
+**BLOCKED ON R4. Score ledger after exit 90/100.**
+
+Prove fresh sessions can enter each proving repository, reconstruct its distinct endgame and bottleneck, identify its next complete loop, and resume exact authorized work without conversation reconstruction.
+
+Normal post-slice chat remains product-dominant. Do not create a central portfolio manager to coordinate the repositories.
+
+## R6 — Compare benefit and remove obsolete layers
+
+**BLOCKED ON R5. Score ledger after exit 100/100.**
+
+Compare before/after time to correct next action, human interventions, intent preservation, recommendation differentiation, rework, drift, continuation success, and owned surface.
+
+Delete, shrink, or demote any SOP, template, check, or runtime layer whose removal no longer causes material drift, lost evidence, unsafe execution, or failed continuation.
 
 ## Held work
 
-No generic guided-pilot platform, research-agent platform, knowledge database, provider expansion, broad handoff framework, outcome-learning engine, generic loop controller, mass module splitting, or multi-agent orchestration may proceed in parallel.
+No central repo registry, dashboard, scheduler, queue, daemon, generic grill engine, guided-pilot platform, research-agent platform, knowledge database, provider expansion, permanent multi-agent layer, finance-specific runtime, automated trading, broker integration, live-capital execution, or public performance claim proceeds in parallel.
 
 ## Stop rule
 
-Do not edit `.meta-harness/status.md` manually. Complete the four-line human target lock before selecting an R2 repository, and stop before R3 implementation until the full R2 exit contract passes.
-
-Also stop on private material leakage, dual-epoch runtime support, silent intent or claim drift, a trivial coding-only target, missing artifact-level claim boundary, publication being conflated with packaging, reopening S-001 architecture without a concrete R3 blocker, or claiming domain correctness from S-006M.
+Do not edit `.meta-harness/status.md` or `.meta-harness/events.jsonl` manually. Validate with pinned Node `25.2.1` / npm `11.16.0`, freeze one immutable candidate, and stop for exact-commit independent audit. Do not begin R3 until D089 activates the accepted R2 state. Do not begin external product implementation until R3 accepts the entry-authority invariant. Do not award 40/100 before exact-commit audit accepts the complete R2 exit.
 
 
 # Historical Plan: Phase 13A Context Quality Gate
