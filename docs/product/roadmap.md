@@ -341,7 +341,7 @@ Required proof:
 
 #### R2C — Name the Common Bottleneck and Smallest Reusable Patch
 
-**Accepted response: SELECTED UNDER D089.** The repeated defect is `ENTRY_AUTHORITY_AMBIGUITY`: the obvious checkout was non-authoritative in all three proving repositories. The candidate response is one read-only `ENTRY_AUTHORITY_INVARIANT` in the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only; they cannot promote those facts to authority. The check returns exactly `PASS_CURRENT`, `REDIRECT` with an exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. `NO_BUILD` and guidance-only responses were compared and rejected as insufficient.
+**Accepted response: SELECTED UNDER D089.** The repeated defect is `ENTRY_AUTHORITY_AMBIGUITY`: the obvious checkout was non-authoritative in all three proving repositories. The candidate response is one read-only `ENTRY_AUTHORITY_INVARIANT` in the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. The accepted R3 trust boundary is intentionally smaller than the original comparison: only a controller-supplied validated RunSpec plus exact authority path/ref may establish expected identity. Repository identity, object format, commit, source kind, and digest are derived internally. Raw expected-identity JSON and self-asserted authenticated-operator, signed-canonical, or immutable-evidence labels block. Repository files may supply observed facts only; they cannot promote those facts to authority. The check returns exactly `PASS_CURRENT`, `REDIRECT` with an exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. `NO_BUILD` and guidance-only responses were compared and rejected as insufficient.
 
 Compare the cross-repository results and identify the smallest shared Meta-Harness deficiency that materially harms correct continuation or product selection.
 
@@ -368,19 +368,19 @@ R2C exit contract:
 
 **Status: CANDIDATE COMPLETE — INDEPENDENT EXACT-COMMIT ACCEPTANCE REQUIRED**
 
-The candidate implements only the exact reusable capability named by R2C. It extracts the existing repository identity comparison, adds one pure four-result evaluator, and adds one tracked read-only collector for live repository identity, HEAD, ref, cleanliness, and explicit product-path custody. The collector attaches raw observed inputs to the existing rollup; the worker-entry gate recomputes the result instead of trusting a claimed verdict. No second authority architecture or public command was added.
+The candidate implements only the exact reusable capability named by R2C. It extracts the existing repository identity comparison, adds one pure four-result evaluator, and adds one tracked collector for live repository identity, HEAD, ref, cleanliness, and explicit product-path custody through read-only Git processes. The normal `poll --rollup --verify-operator-execution-plan` path now requires a controller RunSpec envelope, derives the trusted expected identity internally, runs the collector before worker entry, and fails closed when controller input is absent or malformed. The worker-entry gate recomputes the result instead of trusting a claimed verdict. Repository identity is established before custody classification. No second authority architecture or public command was added.
 
 Candidate evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` shows:
 
 - Meta-Harness primary `REDIRECT`, exact authority `PASS_CURRENT`, and checkout-local self-claim `BLOCK`;
 - Quant primary `REDIRECT` and exact F1A authority `PASS_CURRENT`;
 - Leningrad Alpha 0 state `CUSTODY_REQUIRED`;
-- six of six proof cases correct through the tracked collector, 4,452 input-context bytes, zero human questions, and measured elapsed time;
+- six of six entry-result proof cases correct through the tracked collector, 4,452 serialized evaluator-input bytes, zero human questions, and measured elapsed time;
 - Leningrad custody derived from 30 Alpha 0 product files absent from the named base authority;
-- focused evaluator, collector, rollup, and worker-entry contracts pass 62/62; the complete pinned-Node suite passes 125/125 test files in 212.9 seconds;
+- focused evaluator, collector, production poll path, rollup, and worker-entry contracts pass 80/80; the complete pinned-Node suite remains a 125-file exact-candidate gate;
 - no bulky control surface and a clear deletion or shrink path.
 
-These are candidate results only. The score remains `40 / 100` and R4 remains blocked until independent exact-commit acceptance.
+These are candidate results only. R3 proves trusted-checkout classification and actionable entry results; it does not prove fresh-session product-next-action reconstruction. The score remains `40 / 100` and R4 remains blocked until independent exact-commit acceptance.
 
 **Score after phase completion: `ROADMAP_PROOF_SCORE = 60 / 100`.**
 
@@ -467,7 +467,7 @@ Gate 0B double-prime evidence complete
 → exact-commit independent audit ACCEPT_AND_CONTINUE
 → D089 activates accepted R2A/R2B/R2C evidence and banks 40 / 100
 → R3 implements only the accepted entry-authority invariant
-→ six-case three-repository proof and 124-file suite pass
+→ six-case three-repository proof, production-path integration, and 125-file suite pass
 → exact R3 candidate freezes and stops for independent acceptance before any external product slice
 ```
 

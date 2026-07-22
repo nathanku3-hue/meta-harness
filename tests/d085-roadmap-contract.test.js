@@ -92,9 +92,9 @@ test("D089 banks the complete R2 exit and keeps R3 thin", () => {
   assert.match(r3, /CANDIDATE COMPLETE — INDEPENDENT EXACT-COMMIT ACCEPTANCE REQUIRED/i);
   assert.match(r3, /existing repository identity comparison/i);
   assert.match(r3, /pure four-result evaluator/i);
-  assert.match(r3, /tracked read-only collector/i);
+  assert.match(r3, /tracked collector[\s\S]*read-only Git processes/i);
   assert.match(r3, /No second authority architecture or public command/i);
-  assert.match(r3, /six of six proof cases correct through the tracked collector/i);
+  assert.match(r3, /six of six entry-result proof cases correct through the tracked collector/i);
   assert.match(r3, /Leningrad custody derived from 30 Alpha 0 product files/i);
   assert.match(r3, /clear deletion or shrink path/i);
 
@@ -122,9 +122,9 @@ test("D088 proof remains exact and authority stays external", () => {
 
   for (const surface of [decisionLog, roadmap, productSpec, sop, implementationPlan]) {
     assert.match(surface, /checkout under evaluation cannot declare itself authoritative/i);
-    assert.match(surface, /controller-authorized RunSpec/i);
-    assert.match(surface, /signed canonical event or receipt/i);
-    assert.match(surface, /independently anchored immutable evidence/i);
+    assert.match(surface, /controller-supplied validated RunSpec/i);
+    assert.match(surface, /source kind.*digest.*derived internally|derived internally.*source kind.*digest/i);
+    assert.match(surface, /authenticated-operator.*signed-canonical.*immutable-evidence.*reject|authenticated-operator.*signed-canonical.*immutable-evidence.*block/i);
   }
 
   const gate0aBytes = read("docs/ops/audits/d088-gate0a-evidence.json");
@@ -156,21 +156,32 @@ test("D088 proof remains exact and authority stays external", () => {
   assert.equal(proof.scoreRecommendation.afterExactCandidateAcceptance, "40 / 100");
 
   const r3Proof = JSON.parse(read("docs/ops/audits/d089-r3-entry-authority-proof.json"));
-  assert.equal(r3Proof.status, "candidate-proof-complete-pending-independent-exact-commit-audit");
+  assert.equal(r3Proof.schemaVersion, "meta-harness-entry-authority-proof/v3");
+  assert.equal(r3Proof.status, "repair-candidate-proof-complete-pending-independent-exact-commit-audit");
   assert.equal(r3Proof.canonicalAuthority.roadmapProofScore, "40 / 100");
-  assert.equal(r3Proof.measurement.casesPassed, 6);
-  assert.equal(r3Proof.measurement.casesFailed, 0);
+  assert.equal(r3Proof.measurement.libraryCasesPassed, 6);
+  assert.equal(r3Proof.measurement.libraryCasesFailed, 0);
   assert.equal(r3Proof.measurement.humanQuestions, 0);
-  assert.equal(r3Proof.measurement.totalInputContextBytes, 4452);
+  assert.equal(r3Proof.measurement.totalSerializedEvaluatorInputBytes, 4452);
+  assert.match(r3Proof.measurement.claimCeiling, /does not prove.*product next action/i);
   assert.equal(r3Proof.implementation.collectorCommit, "a80ebd3bc9ebb2d04be89f2e76301f32e4543f95");
   assert.equal(r3Proof.implementation.safety.publicCommandAdded, false);
-  assert.equal(r3Proof.implementation.safety.evaluatorExecutesChildCommands, false);
-  assert.equal(r3Proof.implementation.safety.collectorExecutesReadOnlyGitCommands, true);
-  assert.equal(r3Proof.validation.focusedEvaluatorCollectorRollup.passed, 62);
+  assert.equal(r3Proof.implementation.safety.evaluatorSpawnsProcess, false);
+  assert.equal(r3Proof.implementation.safety.collectorSpawnsReadOnlyGitProcesses, true);
+  assert.deepEqual(r3Proof.implementation.safety.acceptedAuthoritySources, ["controller_authorized_run_spec"]);
+  assert.equal(r3Proof.implementation.safety.selfAssertedSourceLabelsRejected, true);
+  assert.equal(r3Proof.implementation.safety.rawExpectedIdentityJsonAccepted, false);
+  assert.equal(r3Proof.productionPathProof.entryAuthorityMandatory, true);
+  assert.equal(r3Proof.productionPathProof.workerEntryFailClosedWhenAbsent, true);
+  assert.equal(r3Proof.validation.focusedEvaluatorCollectorProductionPath.passed, 80);
   assert.equal(r3Proof.validation.completeSuite.testFiles, 125);
-  assert.equal(r3Proof.validation.completeSuite.failed, 0);
-  assert.equal(r3Proof.validation.completeSuite.durationSeconds, 212.9);
-  assert.deepEqual(r3Proof.proofCases.map((item) => item.result), [
+  assert.equal(r3Proof.validation.completeSuite.status, "exact-candidate-gate-pending");
+  assert.equal(r3Proof.validation.completeSuite.failed, null);
+  assert.equal(r3Proof.validation.completeSuite.durationSeconds, null);
+  assert.equal(r3Proof.validation.completeSuite.runtime, "v25.2.1");
+  assert.equal(r3Proof.validation.completeSuite.concurrency, 6);
+  assert.match(r3Proof.validation.completeSuite.execution, /exact-commit pass is required before push/i);
+  assert.deepEqual(r3Proof.libraryProofCases.map((item) => item.result), [
     "REDIRECT",
     "PASS_CURRENT",
     "BLOCK",
@@ -178,9 +189,10 @@ test("D088 proof remains exact and authority stays external", () => {
     "PASS_CURRENT",
     "CUSTODY_REQUIRED",
   ]);
-  assert.equal(r3Proof.proofCases.at(-1).productFileCount, 30);
-  assert.equal(r3Proof.proofCases.at(-1).unreachableProductFileCount, 30);
-  assert.equal(r3Proof.exit.trackedLiveCollectorComplete, true);
+  assert.equal(r3Proof.libraryProofCases.at(-1).productFileCount, 30);
+  assert.equal(r3Proof.libraryProofCases.at(-1).unreachableProductFileCount, 30);
+  assert.equal(r3Proof.exit.normalWorkerPathIntegrated, true);
+  assert.equal(r3Proof.exit.freshSessionProductDirectionProofComplete, false);
   assert.equal(r3Proof.exit.independentAcceptance, false);
 });
 
@@ -200,4 +212,6 @@ test("R3 scope excludes repository management and external product work", () => 
   assert.doesNotMatch(activePlan, /BLOCKED ONLY ON EXACT-COMMIT D088-R1 AUDIT ACCEPTANCE AND D089 ACTIVATION/i);
   assert.match(activePlan, /D089 remains canonical at `40 \/ 100`/i);
   assert.match(task, /After a clean pushed R3 candidate, stop for independent exact-commit audit/i);
+  assert.doesNotMatch(activePlan, /124\/124|124-file suite/i);
+  assert.doesNotMatch(read("docs/product/roadmap.md").slice(0, 25000), /124-file suite/i);
 });

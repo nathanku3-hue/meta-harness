@@ -10,6 +10,7 @@ const test = require("node:test");
 const {
   assessEntryAuthority,
   attachEntryAuthorityToRollup,
+  buildControllerExpectedIdentity,
   canonicalRemoteRepositoryId,
   renderEntryAuthorityResult,
 } = require("../lib/entry-authority");
@@ -38,25 +39,39 @@ function setupRepo() {
   };
 }
 
-function expected(repo, over = {}) {
+function runSpec(repo) {
   return {
-    source: {
-      kind: "immutable_evidence",
-      verified: true,
-      reference: `fixture@${repo.head}`,
-    },
+    schemaVersion: "run-spec/v1",
+    runId: "R3-ENTRY-RUNTIME",
     repository: {
       repositoryId: "github:example/entry-runtime",
       objectFormat: "sha1",
       expectedBaseRevision: repo.head,
     },
+    objective: "Verify runtime entry authority",
+    scope: { allow: ["product"], deny: [] },
+    validation: {
+      commands: [{
+        argv: ["node", "--test", "tests/entry-authority-runtime.test.js"],
+        cwdRelative: ".",
+        timeoutSeconds: 120,
+        networkPolicy: "denied",
+        environmentPolicy: { allow: [] },
+      }],
+    },
+    changePolicy: "forbid-noop",
+  };
+}
+
+function expected(repo, over = {}) {
+  return buildControllerExpectedIdentity({
+    runSpec: runSpec(repo),
     authority: {
       path: repo.root.replace(/\\/g, "/"),
       ref: repo.ref,
-      commit: repo.head,
       ...(over.authority || {}),
     },
-  };
+  });
 }
 
 function readiness() {

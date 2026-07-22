@@ -8,6 +8,7 @@ const {
   evaluateEntryAuthority,
 } = require("../lib/contracts/entry-authority");
 const { computeRunSpecDigest } = require("../lib/contracts/run-spec");
+const { buildControllerExpectedIdentity } = require("../lib/entry-authority");
 const { buildWorkerEntryGate } = require("../lib/worker-entry-gate");
 
 const META_COMMIT = "52f0fe51e2f7a2e021952d4bc4e20ceaee98f3de";
@@ -139,6 +140,21 @@ test("CUSTODY_REQUIRED wins when useful product bytes lack named Git authority",
   assertReadOnly(result);
 });
 
+test("unrelated repository never returns custody required", () => {
+  const result = evaluate(controllerExpected(), observed({
+    repositoryId: "github:other/repository",
+    repositoryRoot: "E:/Code/other-repository",
+    observedHeadRevision: OLD_META_COMMIT,
+    ref: "refs/heads/main",
+    clean: false,
+    productBytesPresent: true,
+    productBytesReachableFromNamedAuthority: false,
+  }));
+  assert.equal(result.verdict, RESULT.REDIRECT);
+  assert.ok(result.reasons.some((item) => item.code === "READINESS_REPOSITORY_MISMATCH"));
+  assert.equal(result.reasons.some((item) => item.code === "PRODUCT_BYTES_OUTSIDE_NAMED_AUTHORITY"), false);
+});
+
 test("BLOCK when trusted expected identity is absent", () => {
   const result = evaluateEntryAuthority({ expected: null, observed: observed() });
   assert.equal(result.verdict, RESULT.BLOCK);
@@ -161,28 +177,32 @@ test("BLOCK arbitrary strings and checkout-local self-attestation", () => {
   assert.ok(result.reasons.some((item) => item.code === "TRUST_SOURCE_UNTRUSTED"));
 });
 
-test("BLOCK unverified operator input and accept only authenticated boundary output", () => {
-  const repository = runSpec().repository;
-  const expected = {
-    source: {
-      kind: "authenticated_operator",
-      verified: false,
-      reference: "operator-session:123",
-    },
-    repository,
+test("BLOCK every self-asserted non-controller source even with verified true", () => {
+  for (const kind of ["authenticated_operator", "signed_canonical", "immutable_evidence"]) {
+    const expected = controllerExpected({ source: { kind, verified: true, reference: "self-asserted" } });
+    const result = evaluate(expected);
+    assert.equal(result.verdict, RESULT.BLOCK, kind);
+    assert.ok(result.reasons.some((item) => item.code === "TRUST_SOURCE_UNTRUSTED"), kind);
+  }
+});
+
+test("controller input derives source, repository, commit, and digest internally", () => {
+  const spec = runSpec();
+  const expected = buildControllerExpectedIdentity({
     authority: {
       path: "E:/Code/meta-harness-s001r5",
       ref: "refs/heads/codex/candidate-d088-thin-loop",
-      commit: META_COMMIT,
     },
-  };
-  let result = evaluate(expected);
-  assert.equal(result.verdict, RESULT.BLOCK);
-  assert.ok(result.reasons.some((item) => item.code === "TRUST_SOURCE_UNVERIFIED"));
-
-  expected.source.verified = true;
-  result = evaluate(expected);
-  assert.equal(result.verdict, RESULT.PASS_CURRENT);
+    runSpec: spec,
+  });
+  assert.deepEqual(expected.source, {
+    kind: "controller_authorized_run_spec",
+    verified: true,
+    reference: computeRunSpecDigest(spec),
+  });
+  assert.deepEqual(expected.repository, spec.repository);
+  assert.equal(expected.authority.commit, spec.repository.expectedBaseRevision);
+  assert.equal(Object.prototype.hasOwnProperty.call(expected.authority, "verified"), false);
 });
 
 test("BLOCK contradictory trusted identity before comparing checkout facts", () => {

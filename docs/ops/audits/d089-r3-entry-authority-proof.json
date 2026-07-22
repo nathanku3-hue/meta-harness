@@ -1,7 +1,7 @@
 {
-  "schemaVersion": "meta-harness-entry-authority-proof/v2",
-  "generatedAt": "2026-07-22T16:43:52.269Z",
-  "status": "candidate-proof-complete-pending-independent-exact-commit-audit",
+  "schemaVersion": "meta-harness-entry-authority-proof/v3",
+  "generatedAt": "2026-07-22T18:40:11.000Z",
+  "status": "repair-candidate-proof-complete-pending-independent-exact-commit-audit",
   "canonicalAuthority": {
     "decision": "D089",
     "receiptId": "D089-D088-R2-ACCEPTANCE",
@@ -11,180 +11,143 @@
   "implementation": {
     "evaluatorCommit": "386e13b97e8be96b997124c3db30ed31cfa8111c",
     "collectorCommit": "a80ebd3bc9ebb2d04be89f2e76301f32e4543f95",
-    "collectorTree": "d4f0aebc9382d316fd129cecb810e0b5a12224c4",
+    "repairBaseCommit": "ff47a3740c1c92314f3c3e53e0b440494b837465",
     "runtime": {
       "node": "25.2.1",
-      "npm": "11.16.0",
       "platform": "win32",
       "arch": "x64"
     },
     "ownedFiles": [
       "lib/contracts/entry-authority.js",
-      "lib/contracts/execution-readiness-facts.js",
       "lib/entry-authority.js",
-      "lib/worker-entry-gate.js",
+      "lib/commands/poll.js",
+      "lib/command-registry.js",
       "lib/repo-rollup.js",
+      "lib/worker-entry-gate.js",
       "tests/entry-authority.test.js",
-      "tests/entry-authority-runtime.test.js"
+      "tests/entry-authority-runtime.test.js",
+      "tests/worker-entry-gate.test.js"
     ],
     "shape": [
-      "extract the existing repository identity comparison from execution-readiness facts",
-      "collect repository identity, HEAD, ref, cleanliness, and explicit product-path custody through read-only Git inspection",
+      "collect live repository identity, HEAD, ref, cleanliness, and explicit product-path custody through read-only Git processes",
       "evaluate externally trusted expected identity against observed checkout facts through one pure comparator",
+      "wire collection into poll --rollup --verify-operator-execution-plan before worker entry",
+      "require a controller RunSpec envelope, derive expected identity internally, and fail closed when absent or malformed",
+      "require expected-repository identity before custody classification",
       "return and render exactly PASS_CURRENT, REDIRECT, CUSTODY_REQUIRED, or BLOCK",
-      "attach raw observed input to the existing rollup and recompute it inside the worker-entry gate"
+      "attach raw observed input to the rollup and recompute it inside the worker-entry gate"
     ],
     "safety": {
       "publicCommandAdded": false,
-      "evaluatorExecutesChildCommands": false,
-      "collectorExecutesReadOnlyGitCommands": true,
+      "evaluatorSpawnsProcess": false,
+      "collectorSpawnsReadOnlyGitProcesses": true,
       "mutates": false,
       "writesFiles": false,
       "network": false,
       "createsWorktree": false,
-      "createsRef": false
+      "createsRef": false,
+      "acceptedAuthoritySources": [
+        "controller_authorized_run_spec"
+      ],
+      "selfAssertedSourceLabelsRejected": true,
+      "rawExpectedIdentityJsonAccepted": false
     }
   },
-  "proofCases": [
+  "libraryProofCases": [
     {
       "id": "meta-primary-redirect",
-      "checkout": "E:/Code/meta-harness",
-      "observedHead": "8ec31913b52b12a3ebe2660a1ee1aec82695c564",
-      "observedRef": "refs/heads/main",
-      "dirtyEntries": 192,
-      "expectedAuthority": {
-        "path": "E:/Code/meta-harness-s001r5",
-        "ref": "refs/heads/codex/candidate-d088-thin-loop",
-        "commit": "a80ebd3bc9ebb2d04be89f2e76301f32e4543f95"
-      },
       "result": "REDIRECT",
-      "rendered": "REDIRECT — E:/Code/meta-harness-s001r5 refs/heads/codex/candidate-d088-thin-loop a80ebd3bc9ebb2d04be89f2e76301f32e4543f95",
-      "elapsedMilliseconds": 945.106,
-      "inputContextBytes": 717,
-      "authorityResolutionHops": 1,
-      "humanQuestions": 0,
-      "recoveredProductNextAction": "continue R3 validation and candidate freeze at the exact D089 authority"
+      "serializedEvaluatorInputBytes": 717,
+      "humanQuestions": 0
     },
     {
       "id": "meta-authority-pass",
-      "checkout": "E:/Code/meta-harness-s001r5",
-      "observedHead": "a80ebd3bc9ebb2d04be89f2e76301f32e4543f95",
-      "observedRef": "refs/heads/codex/candidate-d088-thin-loop",
-      "dirtyEntries": 0,
-      "productFileCount": 2,
-      "unreachableProductFileCount": 0,
       "result": "PASS_CURRENT",
-      "rendered": "PASS_CURRENT",
-      "elapsedMilliseconds": 1439.841,
-      "inputContextBytes": 748,
-      "authorityResolutionHops": 0,
-      "humanQuestions": 0,
-      "recoveredProductNextAction": "freeze the exact R3 candidate and stop for independent audit"
+      "serializedEvaluatorInputBytes": 748,
+      "humanQuestions": 0
     },
     {
       "id": "meta-checkout-self-claim-block",
-      "checkout": "E:/Code/meta-harness-s001r5",
-      "untrustedSource": "checkout_local",
       "result": "BLOCK",
-      "reasonCode": "TRUST_SOURCE_UNTRUSTED",
-      "elapsedMilliseconds": 833.692,
-      "inputContextBytes": 758,
-      "authorityResolutionHops": 0,
-      "humanQuestions": 0,
-      "recoveredProductNextAction": "obtain externally verified authority; do not plan from checkout-local claims"
+      "serializedEvaluatorInputBytes": 758,
+      "humanQuestions": 0
     },
     {
       "id": "quant-primary-redirect",
-      "checkout": "E:/Code/Quant",
-      "observedHead": "accef5c6be62f63cfc57f0118e0b6b7ae46fad4f",
-      "observedRef": "refs/heads/main",
-      "dirtyEntries": 98571,
-      "expectedAuthority": {
-        "path": "E:/Code/Quant/.worktrees/Quant_c0x_m7f4_v8-3be41171",
-        "ref": "DETACHED",
-        "commit": "e156c664fbbd6af96f2fbc46d4a7e23c6c6933a6"
-      },
       "result": "REDIRECT",
-      "rendered": "REDIRECT — E:/Code/Quant/.worktrees/Quant_c0x_m7f4_v8-3be41171 DETACHED e156c664fbbd6af96f2fbc46d4a7e23c6c6933a6",
-      "elapsedMilliseconds": 18830.292,
-      "inputContextBytes": 731,
-      "authorityResolutionHops": 1,
-      "humanQuestions": 0,
-      "recoveredProductNextAction": "open F1B only and pass NO_POSITION through the identical book, certification, and adapter path",
-      "note": "Inspection time is dominated by the contaminated primary checkout. No cleanup is authorized or required for R3."
+      "serializedEvaluatorInputBytes": 731,
+      "humanQuestions": 0
     },
     {
       "id": "quant-f1a-authority-pass",
-      "checkout": "E:/Code/Quant/.worktrees/Quant_c0x_m7f4_v8-3be41171",
-      "observedHead": "e156c664fbbd6af96f2fbc46d4a7e23c6c6933a6",
-      "observedRef": "DETACHED",
-      "dirtyEntries": 0,
       "result": "PASS_CURRENT",
-      "rendered": "PASS_CURRENT",
-      "elapsedMilliseconds": 968.708,
-      "inputContextBytes": 761,
-      "authorityResolutionHops": 0,
-      "humanQuestions": 0,
-      "recoveredProductNextAction": "open F1B only and pass NO_POSITION through the identical book, certification, and adapter path"
+      "serializedEvaluatorInputBytes": 761,
+      "humanQuestions": 0
     },
     {
       "id": "leningrad-alpha0-custody-required",
-      "checkout": "E:/Code/leningrad",
-      "observedHead": "56797f45367b7b8fa115f1e874c5d618edaf9226",
-      "observedRef": "refs/heads/codex/system1-panic-cascade",
-      "dirtyEntries": 140,
-      "namedBase": "e8fd08d77e5a138d4811de549496d10e3ee8555e",
-      "productFileCount": 30,
-      "unreachableProductFileCount": 30,
       "result": "CUSTODY_REQUIRED",
-      "rendered": "CUSTODY_REQUIRED — product bytes lack named Git authority",
-      "elapsedMilliseconds": 6021.46,
-      "inputContextBytes": 737,
-      "authorityResolutionHops": 0,
+      "serializedEvaluatorInputBytes": 737,
       "humanQuestions": 0,
-      "recoveredProductNextAction": "bank only the Alpha 0 product spine into named Git custody from main@e8fd08d77e5a"
+      "productFileCount": 30,
+      "unreachableProductFileCount": 30
     }
   ],
+  "productionPathProof": {
+    "surface": "poll --rollup --verify-operator-execution-plan",
+    "cases": [
+      "correct checkout collects live facts and opens worker entry",
+      "non-authority checkout returns REDIRECT and blocks worker entry",
+      "raw self-attested expected identity returns BLOCK",
+      "missing trusted expected identity blocks worker entry",
+      "unrelated repository with unreachable bytes does not return CUSTODY_REQUIRED"
+    ],
+    "entryAuthorityMandatory": true,
+    "workerEntryFailClosedWhenAbsent": true
+  },
   "measurement": {
-    "casesPassed": 6,
-    "casesFailed": 0,
-    "totalInputContextBytes": 4452,
-    "totalElapsedMilliseconds": 29039.099,
+    "libraryCasesPassed": 6,
+    "libraryCasesFailed": 0,
+    "totalSerializedEvaluatorInputBytes": 4452,
     "humanQuestions": 0,
-    "claimCeiling": "The proof establishes correct differentiated entry outcomes, tracked live-fact collection, exact result rendering, and exact continuation recovery. It does not claim that status inspection of a checkout with nearly one hundred thousand dirty entries is fast."
+    "claimCeiling": "R3 proves trusted-checkout classification and actionable entry results. It does not prove that a fresh ChatGPT, Codex, or Grok session reconstructs the repository product next action; Quant F1B must provide that live continuation proof."
   },
   "validation": {
-    "focusedEvaluatorCollectorRollup": {
-      "tests": 62,
-      "passed": 62,
+    "focusedEvaluatorCollectorProductionPath": {
+      "tests": 80,
+      "passed": 80,
       "failed": 0
     },
     "completeSuite": {
       "testFiles": 125,
-      "failed": 0,
-      "durationSeconds": 212.9,
-      "execution": "canonical scripts/run-tests.js wrapper under pinned Node 25.2.1 with six-file concurrency and serialized risk tests on the reconciled candidate tree",
-      "transport": "Command-channel transport is not treated as test evidence; final results are read from the redirected local log after process completion."
+      "status": "exact-candidate-gate-pending",
+      "failed": null,
+      "durationSeconds": null,
+      "runtime": "v25.2.1",
+      "concurrency": 6,
+      "execution": "canonical scripts/run-tests.js wrapper under pinned Windows Node 25.2.1; exact-commit pass is required before push"
     }
   },
   "forbiddenScopeObserved": {
+    "newPublicCommand": false,
     "repositoryRegistry": false,
     "automaticBranchPromotion": false,
     "worktreeCreation": false,
     "cleanupOrMigration": false,
     "strictReadinessRepair": false,
+    "continuityFramework": false,
     "dashboardOrDaemon": false,
     "databaseOrScheduler": false,
-    "genericRouterOrPortfolioManager": false,
-    "externalProductImplementation": false,
-    "financeWinnerSelection": false
+    "genericRouterOrProviderFramework": false,
+    "externalProductImplementation": false
   },
   "exit": {
     "implementationComplete": true,
-    "trackedLiveCollectorComplete": true,
-    "threeRepositoryProofComplete": true,
+    "normalWorkerPathIntegrated": true,
+    "threeRepositoryEntryProofComplete": true,
+    "freshSessionProductDirectionProofComplete": false,
     "independentAcceptance": false,
     "scoreBanked": "40 / 100",
-    "nextOperation": "freeze and push one immutable R3 candidate, then stop for independent exact-commit audit"
+    "nextOperation": "freeze and push one repair commit, bind the final commit/tree, exact-commit validation, remote identity, and claim ceiling in the ignored sidecar, then stop for independent exact-commit audit"
   }
 }

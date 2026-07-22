@@ -26,8 +26,11 @@ Implementation:
 - added one pure evaluator that consumes externally trusted expected identity plus read-only observed checkout facts;
 - added one tracked runtime collector that derives repository identity, HEAD, ref, cleanliness, and explicit product-path custody through read-only Git inspection;
 - returns and renders exactly `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`;
+- wires the collector into the normal `poll --rollup --verify-operator-execution-plan` path before worker entry;
+- makes entry authority mandatory and fail-closed when trusted expected identity is absent;
+- requires expected-repository identity before returning `CUSTODY_REQUIRED`;
 - attaches raw observed inputs to the existing rollup and recomputes the outcome inside the existing worker-entry gate;
-- adds no public command; the evaluator performs no process execution, and the collector performs no mutation, network access, ref creation, or worktree creation.
+- adds no public command; the pure evaluator performs no process execution, while the collector spawns only read-only Git processes and performs no mutation, network access, ref creation, or worktree creation.
 
 Candidate proof:
 
@@ -37,10 +40,10 @@ Candidate proof:
 - Quant primary → `REDIRECT` to exact F1A authority;
 - Quant exact F1A authority → `PASS_CURRENT`;
 - Leningrad unversioned Alpha 0 state → `CUSTODY_REQUIRED`;
-- the tracked runtime collector reproduced all six cases with 4,452 input-context bytes, zero human questions, and measured elapsed time;
+- the tracked runtime collector reproduced all six entry results with 4,452 serialized evaluator-input bytes, zero human questions, and measured elapsed time;
 - Leningrad custody was derived from 30 Alpha 0 product files, all 30 absent from the named base authority;
-- focused evaluator, collector, rollup, and worker-entry contracts pass 62/62;
-- complete pinned-Node suite passes 125/125 test files in 212.9 seconds.
+- focused evaluator, collector, production poll path, rollup, and worker-entry contracts pass;
+- the complete pinned-Node suite remains a 125-file exact-candidate gate.
 
 Evidence:
 
@@ -48,7 +51,7 @@ Evidence:
 
 Disposition:
 
-This is an immutable-candidate preparation record, not independent acceptance. R4, Quant F1B implementation, external product work, broad readiness cleanup, repository cleanup, migration, registry work, and branch/worktree automation remain blocked. The next operation is exact-commit independent audit after candidate freeze and push.
+This is an immutable-candidate preparation record, not independent acceptance. The claim ceiling is trusted-checkout classification and actionable entry outcomes; product-next-action reconstruction remains unproven and moves to the live Quant F1B loop. R4, Quant F1B implementation, external product work, broad readiness cleanup, repository cleanup, migration, registry work, and branch/worktree automation remain blocked. The next operation is exact-commit independent audit after candidate freeze and push.
 
 ## D089: Accept D088 R2, Bank 40/100, and Open R3 Entry Authority
 
@@ -65,14 +68,14 @@ S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
 
 The controller receipt `D089-D088-R2-ACCEPTANCE` and generated status are execution authority. R3 must reuse the existing RunSpec, execution-readiness, workspace-start, and readiness primitives; it may add one pure comparator and the smallest integration surface needed to expose exactly `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`.
 
-Authority input remains external to the evaluated checkout. A controller-authorized RunSpec, authenticated trusted-operator boundary, signed canonical event or receipt, or independently anchored immutable evidence may supply expected identity. Repository files supply observed facts only and cannot promote themselves to authority.
+Authority input remains external to the evaluated checkout. R3 accepts only a controller-supplied validated RunSpec plus exact authority path/ref; repository identity and commit are derived from the RunSpec, and the source classification and digest are constructed internally. Repository files supply observed facts only and cannot promote themselves to authority. Authenticated-operator, signed-canonical, and immutable-evidence source classes remain rejected until they have substantive verification.
 
 Required proof:
 
 - Meta-Harness stale primary checkout redirects to the accepted authority; the accepted authority passes; checkout-local self-claim blocks;
 - Quant contaminated primary redirects; exact F1A authority passes;
 - Leningrad unversioned Alpha 0 product bytes return custody required;
-- every run records elapsed time, context size, authority-resolution hops, human questions, exact result, and recovered product next action;
+- every run records elapsed time, serialized evaluator-input size, authority-resolution hops, human questions, and exact entry result; product-next-action reconstruction is a later live-loop proof;
 - no registry, worktree creation, branch promotion, cleanup, migration, dashboard, daemon, database, scheduler, generic router, strict-readiness cleanup, or external product implementation.
 
 Evidence:
@@ -95,7 +98,7 @@ Candidate repair:
 
 Gate 0B double-prime is complete. Exact candidate `07d77115e121ae0f58ff7e669576b9ad4eb5e69d` succeeded in substance, but exact-commit audit found two load-bearing defects: the active implementation plan still described validation and freeze as pending, and the bounded R3 contract allowed the evaluated checkout to rely on a repository-local declaration.
 
-The repair is intentionally narrow. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must be supplied by the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts, but they cannot promote those facts to authority.
+The repair is intentionally narrow. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must be supplied through the controller RunSpec boundary only. The controller supplies a validated RunSpec plus exact authority path/ref; repository identity, object format, commit, source kind, and digest are derived internally. Repository files may supply observed facts, but they cannot promote those facts to authority. Other source classes are rejected until real verification exists.
 
 The read-only result contract is exactly:
 

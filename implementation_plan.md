@@ -1,6 +1,6 @@
 # Active Implementation Plan: D089 R3 Entry Authority Invariant
 
-Status: **D089 canonically activates D088. R3 `ENTRY_AUTHORITY_INVARIANT` is implemented, the six-case cross-repository proof passes, and the complete pinned-Node suite passes 124/124 test files. The current operation is immutable candidate freeze and exact-commit independent audit; R4 and external product work remain blocked.**
+Status: **D089 canonically activates D088. R3 `ENTRY_AUTHORITY_INVARIANT` is implemented and repaired into the normal poll/worker-entry path. Controller-bound authority is mandatory and fail-closed, repository identity precedes custody classification, and focused validation passes 80/80. The current operation is one immutable repair-candidate freeze, exact 125-file validation, push, and independent audit; R4 and external product work remain blocked.**
 
 ```text
 ROADMAP_PROOF_SCORE = 40 / 100
@@ -62,7 +62,7 @@ Completed candidate work:
 5. Compared `NO_BUILD`, compact SOP/skill correction, and one machine-checkable invariant.
 6. Selected `ENTRY_AUTHORITY_INVARIANT`: a read-only check that compares observed checkout facts with trusted expected repository identity and returns exactly `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`.
 7. Repaired the active execution truth after exact candidate `07d7711` succeeded in substance: pinned validation is complete, the sole D088-R1 repair candidate is frozen and pushed, and exact-commit re-audit is current.
-8. Bound expected repository identity to the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. The checkout under evaluation cannot declare itself authoritative.
+8. Bound expected repository identity to one controller-supplied validated RunSpec plus exact authority path/ref. The runtime derives repository identity, object format, commit, source kind, and digest internally. Raw expected-identity JSON and self-asserted source labels block. The checkout under evaluation cannot declare itself authoritative.
 9. Preserved D085/D086, `30 / 100`, canonical status/events, and the prohibition on D089 activation or R3 implementation before exact-commit acceptance.
 
 Exact elapsed time was not instrumented in the initial proof. Authority-resolution hops and context surfaces form the baseline; the R3 rerun must measure elapsed time and context volume.
@@ -89,7 +89,7 @@ The recommendations are materially different. The obvious checkout was non-autho
 
 Common deficiency: `ENTRY_AUTHORITY_AMBIGUITY`.
 
-Selected response: one minimal `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only; they cannot promote those facts to authority. The read-only result is exactly `PASS_CURRENT`, `REDIRECT` with one exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. The check creates no worktree or ref.
+Selected response: one minimal `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. For R3, trusted expected repository identity must come only from a controller-supplied validated RunSpec plus exact authority path/ref. Repository identity, object format, commit, source kind, and digest are derived internally. Raw expected-identity JSON and self-asserted authenticated-operator, signed-canonical, or immutable-evidence labels are rejected. Repository files may supply observed facts only; they cannot promote those facts to authority. The read-only result is exactly `PASS_CURRENT`, `REDIRECT` with one exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. The check creates no worktree or ref.
 
 `NO_BUILD` is rejected because manual authority reconstruction was required in all three repositories. A skill alone is rejected because guidance cannot objectively fail closed. The bounded R3 contract and verification cases are in the comparative evidence artifact.
 
@@ -102,11 +102,14 @@ Delivered:
 - extracted the existing repository identity comparator from execution-readiness facts;
 - added one pure evaluator returning only `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`;
 - added one tracked runtime collector for repository identity, HEAD, ref, cleanliness, and explicit product-path custody through read-only Git inspection;
+- wires live collection into `poll --rollup --verify-operator-execution-plan` before the worker-entry gate;
+- requires a controller RunSpec envelope for worker entry, derives expected identity internally, and fails closed when absent or malformed;
+- requires expected-repository identity before `CUSTODY_REQUIRED` can be returned;
 - attaches raw observed inputs to the existing rollup and recomputes them in the worker-entry gate rather than trusting a claimed verdict;
 - added no public command or second authority architecture;
-- performs no mutation, network access, ref creation, or worktree creation.
+- the pure evaluator performs no process execution; the runtime collector spawns only read-only Git commands and performs no mutation, network access, ref creation, or worktree creation.
 
-Evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` records Meta-Harness redirect/pass/self-claim block, Quant redirect/pass, Leningrad custody required from 30 Alpha 0 files absent from named authority, 4,452 input-context bytes, zero human questions, focused contracts 62/62, and complete suite 125/125 test files in 212.9 seconds.
+Evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` records the six differentiated entry results, 4,452 serialized evaluator-input bytes, zero human questions, production-path gate coverage, and focused 80/80 validation. It does not claim that R3 reconstructs a repository's product next action; Quant F1B must provide that live continuation proof. The complete 125-file suite remains an exact-commit gate. Final commit/tree, remote identity, exact-commit validation, and the claim ceiling are bound in the ignored exact sidecar after freeze.
 
 ## R4 — Select and ship one real product slice
 

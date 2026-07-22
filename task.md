@@ -41,12 +41,15 @@ BLOCK — trusted expected identity is absent or contradictory
 - [x] Extracted the existing identity comparison from `lib/contracts/execution-readiness-facts.js`; RunSpec and readiness consumers reuse it.
 - [x] Added one pure comparator; no second authority architecture.
 - [x] Added one tracked runtime collector for live repository identity, HEAD, ref, cleanliness, and explicit product-path custody.
+- [x] Wired live collection into `poll --rollup --verify-operator-execution-plan` before worker entry.
+- [x] Made a controller RunSpec envelope mandatory and fail-closed for worker entry; expected repository identity and commit are derived internally.
+- [x] Required expected-repository identity before custody classification.
 - [x] Attached raw observed input to rollups and integrated recomputation into the existing worker-entry surface.
 - [x] Added no public command.
 - [x] Repository files remain observed facts only.
-- [x] Expected identity accepts only classified controller RunSpec, authenticated trusted-operator, signed canonical, or immutable-evidence sources.
+- [x] Expected identity accepts only `controller_authorized_run_spec`; authenticated-operator, signed-canonical, and immutable-evidence labels remain rejected until substantive verification exists.
 - [x] Checkout-local self-promotion and arbitrary unclassified strings block.
-- [x] Pure evaluation remains read-only, process-free, network-free, and mutation-free.
+- [x] Pure evaluation remains read-only, process-free, network-free, and mutation-free; the runtime collector is separately identified as spawning read-only Git processes.
 
 ## Required proof
 
@@ -68,17 +71,17 @@ BLOCK — trusted expected identity is absent or contradictory
 For every proof run record:
 
 - [x] elapsed time;
-- [x] input context size;
+- [x] serialized evaluator-input size;
 - [x] authority-resolution hops;
 - [x] human questions;
 - [x] exact result;
-- [x] recovered product next action.
+- [x] exact actionable entry result. Product-next-action reconstruction is deferred to the live Quant F1B loop.
 
 ## Verification
 
 - [x] focused entry-authority contract passes under Node `25.2.1`;
-- [x] focused evaluator, collector, rollup, readiness, custody, and worker-entry contracts pass 62/62;
-- [x] complete suite passes 125/125 test files in 212.9 seconds; command-channel transport is isolated from the still-running local process and final log;
+- [x] focused evaluator, collector, production poll path, rollup, readiness, custody, and worker-entry contracts pass;
+- [x] repair tree passes the complete 125/125-file suite under Windows Node `25.2.1` using the canonical runner's 115 parallel-safe / 10 serialized classification; final commit/tree and exact-commit validation are bound in the ignored sidecar after freeze;
 - [x] evidence JSON parses;
 - [x] `git diff --check` and committed `git show --check` pass;
 - [x] canonical event, status, roadmap, product spec, SOP, plan, and focused contract agree;
