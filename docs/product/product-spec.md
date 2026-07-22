@@ -1,6 +1,6 @@
 # Meta-Harness Product Spec
 
-Status: implemented substrate; active D088 sequence under D089; R3 entry-authority invariant current
+Status: implemented substrate; active D088 under D089; R3 entry-authority candidate complete pending independent exact-commit audit
 Date: 2026-07-22
 Candidate direction proposed: 2026-07-22
 D088 activated: 2026-07-22
@@ -190,7 +190,7 @@ Every material claim binds provenance, freshness, confidence, contradiction stat
 
 ## Active Cross-Repository Product Proof under D089
 
-D089 activates D088, accepts R2A/R2B/R2C, and records R3 `ENTRY_AUTHORITY_INVARIANT` as the only current implementation slice.
+D089 activates D088 and accepts R2A/R2B/R2C. R3 `ENTRY_AUTHORITY_INVARIANT` is implemented and validated as a candidate; independent acceptance remains open.
 
 ```text
 ROADMAP_PROOF_SCORE = 40 / 100
@@ -241,7 +241,7 @@ Identify one common deficiency evidenced in at least two proving repositories. C
 
 Finance GodView remains one proving-repository candidate. It is not a preselected adopter or implementation target. Whichever repository wins R4 must still satisfy the active D085/D086 coding-plus-specialist-knowledge proof goal. Its domain-specific claim ceiling must travel with the artifact.
 
-R3 is current and implements only the exact accepted entry-authority invariant by reusing the existing RunSpec, execution-readiness, workspace-start, and readiness infrastructure. The rerun must instrument elapsed time and context volume because the first read-only proof retained authority-resolution hops but did not capture exact elapsed seconds. R4 remains blocked until independent R3 acceptance, then uses the accepted thin method to choose and ship one real product slice across the proving repositories. R5 proves fresh-session continuation across them. R6 compares benefit and deletes or shrinks obsolete guidance. Independent domain validation remains a separate later gate for the selected specialist product.
+The R3 candidate extracts the existing repository identity comparator, adds one pure evaluator, and recomputes raw entry inputs inside the existing worker-entry gate. It returns only `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`; adds no public command; and performs no mutation, process execution, network access, ref creation, or worktree creation. The six-case proof across Meta-Harness, Quant, and Leningrad passed with measured elapsed time, 4,448 input-context bytes, and zero human questions; the complete pinned-Node suite passed 124/124 test files. Evidence is retained in `docs/ops/audits/d089-r3-entry-authority-proof.json`. R4 remains blocked until independent R3 acceptance, then uses the accepted thin method to choose and ship one real product slice across the proving repositories. R5 proves fresh-session continuation across them. R6 compares benefit and deletes or shrinks obsolete guidance. Independent domain validation remains a separate later gate for the selected specialist product.
 
 Every fresh/resumed session performs silent alignment after repository-state resolution. Normal post-slice chat contains product capability, evidence when needed, direction-changing learning, next product bottleneck, and genuine human decisions. Complete process evidence remains in artifacts unless it is the blocker or requested audit subject.
 

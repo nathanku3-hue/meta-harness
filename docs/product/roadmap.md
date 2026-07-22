@@ -1,6 +1,6 @@
 # Meta-Harness Roadmap
 
-Status: **active D088 thin cross-repository proof under canonical D089 acceptance; R3 entry-authority implementation is current**
+Status: **active D088 under canonical D089; R3 entry-authority candidate implemented, validated, and awaiting independent exact-commit audit**
 Version: `endgame-v11 + active D088 thin-system correction + R3 entry authority`
 Activated date: 2026-07-21
 Candidate correction date: 2026-07-22
@@ -366,18 +366,20 @@ R2C exit contract:
 
 ### R3 — Implement and Independently Accept the Thin Capability
 
-**Status: CURRENT — IMPLEMENT ONLY ENTRY_AUTHORITY_INVARIANT**
+**Status: CANDIDATE COMPLETE — INDEPENDENT EXACT-COMMIT ACCEPTANCE REQUIRED**
 
-Implement only the exact reusable capability named by R2C. Reuse the existing RunSpec, execution-readiness, workspace-start, and readiness infrastructure; add no second authority architecture or public command unless the current entry surface cannot express the accepted result contract.
+The candidate implements only the exact reusable capability named by R2C. It extracts the existing repository identity comparison, adds one pure four-result evaluator, and recomputes raw entry inputs inside the existing worker-entry gate. No second authority architecture or public command was added.
 
-Acceptance requires rerunning the same proving repositories and showing:
+Candidate evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` shows:
 
-- faster or more reliable reconstruction of correct product work;
-- preserved original intent and endgame;
-- different recommendations where product contexts differ;
-- fewer unnecessary human questions or process artifacts;
-- no new bulky control surface;
-- a clear deletion or shrink path as model capability improves.
+- Meta-Harness primary `REDIRECT`, exact authority `PASS_CURRENT`, and checkout-local self-claim `BLOCK`;
+- Quant primary `REDIRECT` and exact F1A authority `PASS_CURRENT`;
+- Leningrad Alpha 0 state `CUSTODY_REQUIRED`;
+- six of six proof cases correct, 4,448 input-context bytes, zero human questions, and measured elapsed time;
+- focused affected surface 64/64 and complete pinned-Node suite 124/124 test files;
+- no bulky control surface and a clear deletion or shrink path.
+
+These are candidate results only. The score remains `40 / 100` and R4 remains blocked until independent exact-commit acceptance.
 
 **Score after phase completion: `ROADMAP_PROOF_SCORE = 60 / 100`.**
 
@@ -464,7 +466,8 @@ Gate 0B double-prime evidence complete
 → exact-commit independent audit ACCEPT_AND_CONTINUE
 → D089 activates accepted R2A/R2B/R2C evidence and banks 40 / 100
 → R3 implements only the accepted entry-authority invariant
-→ exact R3 candidate stops for independent acceptance before any external product slice
+→ six-case three-repository proof and 124-file suite pass
+→ exact R3 candidate freezes and stops for independent acceptance before any external product slice
 ```
 
 The first proof did not instrument exact elapsed time. R3 rerun must record elapsed time and context volume before claiming quantitative improvement.

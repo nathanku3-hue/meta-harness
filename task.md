@@ -38,50 +38,50 @@ BLOCK — trusted expected identity is absent or contradictory
 
 ## Implementation boundary
 
-- [ ] Reuse or extract existing identity comparison from `lib/contracts/run-spec.js`, `lib/contracts/execution-readiness-facts.js`, `lib/contracts/workspace-start.js`, and existing readiness/entry infrastructure.
-- [ ] Add one pure comparator; do not add a second authority architecture.
-- [ ] Integrate into the existing `ready` or worker-entry surface.
-- [ ] Add no public command unless the existing surface cannot express the accepted result cleanly.
-- [ ] Treat repository files as observed facts only.
-- [ ] Accept expected identity only from a controller-authorized RunSpec, authenticated trusted-operator boundary, signed canonical event or receipt, or independently anchored immutable evidence.
-- [ ] Reject checkout-local self-promotion and arbitrary unclassified CLI strings.
-- [ ] Preserve read-only, no-process, no-network, no-mutation behavior in the pure evaluator.
+- [x] Extracted the existing identity comparison from `lib/contracts/execution-readiness-facts.js`; RunSpec and readiness consumers reuse it.
+- [x] Added one pure comparator; no second authority architecture.
+- [x] Integrated raw-input recomputation into the existing worker-entry surface.
+- [x] Added no public command.
+- [x] Repository files remain observed facts only.
+- [x] Expected identity accepts only classified controller RunSpec, authenticated trusted-operator, signed canonical, or immutable-evidence sources.
+- [x] Checkout-local self-promotion and arbitrary unclassified strings block.
+- [x] Pure evaluation remains read-only, process-free, network-free, and mutation-free.
 
 ## Required proof
 
 ### Meta-Harness
 
-- [ ] stale primary checkout → `REDIRECT`;
-- [ ] accepted candidate authority → `PASS_CURRENT`;
-- [ ] checkout-local declaration alone → `BLOCK`.
+- [x] stale primary checkout → `REDIRECT`;
+- [x] accepted candidate authority → `PASS_CURRENT`;
+- [x] checkout-local declaration alone → `BLOCK`.
 
 ### Quant
 
-- [ ] contaminated primary checkout → `REDIRECT`;
-- [ ] exact F1A authority worktree → `PASS_CURRENT`.
+- [x] contaminated primary checkout → `REDIRECT`;
+- [x] exact F1A authority worktree → `PASS_CURRENT`.
 
 ### Leningrad
 
-- [ ] contaminated research checkout with unversioned Alpha 0 bytes → `CUSTODY_REQUIRED`.
+- [x] contaminated research checkout with unversioned Alpha 0 bytes → `CUSTODY_REQUIRED`.
 
 For every proof run record:
 
-- [ ] elapsed time;
-- [ ] input context size;
-- [ ] authority-resolution hops;
-- [ ] human questions;
-- [ ] exact result;
-- [ ] recovered product next action.
+- [x] elapsed time;
+- [x] input context size;
+- [x] authority-resolution hops;
+- [x] human questions;
+- [x] exact result;
+- [x] recovered product next action.
 
 ## Verification
 
-- [ ] focused entry-authority contract passes under Node `25.2.1`;
-- [ ] affected readiness, execution-custody, and worker-entry suites pass;
-- [ ] complete suite passes or any connector-bound failure is isolated with exhaustive grouped evidence;
-- [ ] evidence JSON parses;
-- [ ] `git diff --check` and committed `git show --check` pass;
-- [ ] canonical event, status, roadmap, product spec, SOP, plan, and focused contract agree;
-- [ ] one immutable R3 candidate is pushed and execution stops for independent exact-commit audit.
+- [x] focused entry-authority contract passes under Node `25.2.1`;
+- [x] affected readiness, execution-custody, and worker-entry suites pass 64/64;
+- [x] complete suite passes 124/124 test files; connector 502 was isolated from the still-running local process and final log;
+- [x] evidence JSON parses;
+- [x] `git diff --check` and committed `git show --check` pass;
+- [x] canonical event, status, roadmap, product spec, SOP, plan, and focused contract agree;
+- [x] one immutable R3 candidate is pushed and execution stops for independent exact-commit audit.
 
 ## Forbidden scope
 

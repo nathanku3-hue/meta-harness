@@ -1,6 +1,6 @@
 # Active Implementation Plan: D089 R3 Entry Authority Invariant
 
-Status: **D089 canonically activates D088 after exact-commit acceptance of `579c0dd04b846963b4e8fad2339317750a767eda`. R2A/R2B/R2C are complete and banked. R3 `ENTRY_AUTHORITY_INVARIANT` is the only current implementation slice; external product work remains blocked until independent R3 acceptance.**
+Status: **D089 canonically activates D088. R3 `ENTRY_AUTHORITY_INVARIANT` is implemented, the six-case cross-repository proof passes, and the complete pinned-Node suite passes 124/124 test files. The current operation is immutable candidate freeze and exact-commit independent audit; R4 and external product work remain blocked.**
 
 ```text
 ROADMAP_PROOF_SCORE = 40 / 100
@@ -95,11 +95,17 @@ Selected response: one minimal `ENTRY_AUTHORITY_INVARIANT` integrated into the e
 
 ## R3 — Implement and independently accept the thin capability
 
-**CURRENT — IMPLEMENT ONLY ENTRY_AUTHORITY_INVARIANT. Score ledger after independent R3 exit 60/100.**
+**CANDIDATE COMPLETE — INDEPENDENT EXACT-COMMIT ACCEPTANCE REQUIRED. Score remains 40/100 until acceptance.**
 
-Implement only the accepted R2C result. Reuse the existing RunSpec, execution-readiness, workspace-start, and readiness infrastructure. Add one pure comparator and the smallest existing-surface integration needed to expose the accepted four-result contract. Do not create a second authority architecture or a new public command unless the current ready/entry surface cannot express the result cleanly.
+Delivered:
 
-Rerun the same repositories and verify faster or more reliable product-direction reconstruction, preserved intent, differentiated recommendations, fewer unnecessary questions or artifacts, and no bulky control surface.
+- extracted the existing repository identity comparator from execution-readiness facts;
+- added one pure evaluator returning only `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`;
+- recomputes raw entry inputs in the existing worker-entry gate rather than trusting a claimed verdict;
+- added no public command or second authority architecture;
+- performs no mutation, process execution, network access, ref creation, or worktree creation.
+
+Evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` records Meta-Harness redirect/pass/self-claim block, Quant redirect/pass, Leningrad custody required, 4,448 input-context bytes, zero human questions, focused 64/64, and complete suite 124/124.
 
 ## R4 — Select and ship one real product slice
 
@@ -133,7 +139,7 @@ Forbidden during R3: repository registry, automatic branch promotion, worktree c
 
 ## Stop rule
 
-Do not edit `.meta-harness/status.md` or `.meta-harness/events.jsonl` manually. D089 has banked the accepted R2 state at `40 / 100`. Implement only R3 `ENTRY_AUTHORITY_INVARIANT`, measure the three proving repositories, freeze one immutable candidate, and stop for independent exact-commit acceptance. Do not begin external product implementation, broad readiness repair, repository cleanup, migration, registry work, or branch/worktree automation before R3 acceptance.
+Do not edit `.meta-harness/status.md` or `.meta-harness/events.jsonl` manually. D089 remains canonical at `40 / 100`. Freeze and push one immutable R3 candidate, verify exact local/remote identity, and stop for independent exact-commit acceptance. Do not begin R4, external product implementation, broad readiness repair, repository cleanup, migration, registry work, or branch/worktree automation before R3 acceptance.
 
 
 # Historical Plan: Phase 13A Context Quality Gate

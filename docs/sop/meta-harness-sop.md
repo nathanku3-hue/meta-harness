@@ -227,7 +227,7 @@ Later fan-out requires disjoint writes or read-only roles, leases, duplicate sup
 
 ## Active Build Boundary
 
-D089 activates D088, preserves the D085/D086 product-proof boundary, accepts R2A/R2B/R2C, and records R3 as the only current implementation slice.
+D089 activates D088 and preserves the D085/D086 product-proof boundary. R3 is implemented and validated as a candidate; independent exact-commit acceptance remains open.
 
 ```text
 ROADMAP_PROOF_SCORE = 40 / 100
@@ -245,9 +245,9 @@ Gate 0A authority and no-destructive-operation boundary
 → selected read-only ENTRY_AUTHORITY_INVARIANT
 ```
 
-The comparative evidence is retained once in `docs/ops/audits/d088-cross-repository-proof.json`, not copied across product surfaces. Exact elapsed time was not instrumented in the first run; R3 rerun must measure elapsed time and context volume.
+The accepted R2 comparison remains in `docs/ops/audits/d088-cross-repository-proof.json`. The R3 candidate proof is retained in `docs/ops/audits/d089-r3-entry-authority-proof.json`: Meta-Harness and Quant each redirect from the contaminated primary and pass at exact authority; checkout-local self-claim blocks; Leningrad requires custody; six cases passed with measured elapsed time, 4,448 input-context bytes, and zero human questions.
 
-R3 implements only the accepted entry-authority invariant by reusing existing identity and readiness primitives. No external product implementation begins before independent R3 acceptance. R4 then uses the accepted method to select and ship one real product slice across the proving repositories. That selected slice must still materially combine software engineering with explicit specialist judgment under D085/D086.
+R3 reuses existing identity and readiness primitives, adds no public command, and leaves the score at `40 / 100` until independent acceptance. No external product implementation begins before that gate. R4 then uses the accepted method to select and ship one real product slice across the proving repositories. That selected slice must still materially combine software engineering with explicit specialist judgment under D085/D086.
 
 The runtime remains verifier-only; epoch-1 evidence is frozen and not an active mutation path. Central registries, schedulers, dashboards, queues, databases, grill engines, internal vaults, signer services, dual-epoch compatibility, broad filesystem frameworks, generic knowledge platforms, permanent multi-agent layers, automated trading, and finance-specific runtime paths remain deferred.
 

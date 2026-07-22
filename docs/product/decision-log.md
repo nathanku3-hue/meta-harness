@@ -7,6 +7,46 @@ Active direction banked: 2026-07-21
 Candidate correction proposed: 2026-07-22
 Thin-system correction proposed: 2026-07-22
 Thin-system correction banked: 2026-07-22
+R3 candidate implemented: 2026-07-22
+
+## D089-R3 (candidate): Enforce Entry Authority Before Product Planning
+
+Candidate result:
+
+R3 `ENTRY_AUTHORITY_INVARIANT` is implemented on top of canonical D089 without activating R4 or changing the banked score.
+
+```text
+ROADMAP_PROOF_SCORE = 40 / 100
+S-006M_EXTERNAL_LOOPS_SHIPPED = 0 / 1
+```
+
+Implementation:
+
+- extracted the existing repository identity comparison from execution-readiness facts rather than creating a second rules engine;
+- added one pure evaluator that consumes externally trusted expected identity plus read-only observed checkout facts;
+- returns exactly `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`;
+- recomputes the outcome inside the existing worker-entry gate when raw entry inputs are supplied;
+- adds no public command and performs no mutation, process execution, network access, ref creation, or worktree creation.
+
+Candidate proof:
+
+- Meta-Harness primary → `REDIRECT` to the exact R3 authority;
+- Meta-Harness exact authority → `PASS_CURRENT`;
+- checkout-local Meta-Harness authority claim → `BLOCK`;
+- Quant primary → `REDIRECT` to exact F1A authority;
+- Quant exact F1A authority → `PASS_CURRENT`;
+- Leningrad unversioned Alpha 0 state → `CUSTODY_REQUIRED`;
+- six cases passed with 4,448 input-context bytes, zero human questions, and measured elapsed time;
+- focused affected surface 64/64;
+- complete pinned-Node suite 124/124 test files.
+
+Evidence:
+
+`docs/ops/audits/d089-r3-entry-authority-proof.json`
+
+Disposition:
+
+This is an immutable-candidate preparation record, not independent acceptance. R4, Quant F1B implementation, external product work, broad readiness cleanup, repository cleanup, migration, registry work, and branch/worktree automation remain blocked. The next operation is exact-commit independent audit after candidate freeze and push.
 
 ## D089: Accept D088 R2, Bank 40/100, and Open R3 Entry Authority
 

@@ -1,0 +1,176 @@
+{
+  "schemaVersion": "meta-harness-entry-authority-proof/v1",
+  "generatedAt": "2026-07-22T16:15:31.816Z",
+  "status": "candidate-proof-complete-pending-independent-exact-commit-audit",
+  "canonicalAuthority": {
+    "decision": "D089",
+    "receiptId": "D089-D088-R2-ACCEPTANCE",
+    "roadmapProofScore": "40 / 100",
+    "externalLoopsShipped": "0 / 1"
+  },
+  "implementation": {
+    "commit": "386e13b97e8be96b997124c3db30ed31cfa8111c",
+    "tree": "6a2c00d20dc12ce2516f645cf1df52b2583b992d",
+    "runtime": {
+      "node": "25.2.1",
+      "npm": "11.16.0",
+      "platform": "win32",
+      "arch": "x64"
+    },
+    "ownedFiles": [
+      "lib/contracts/entry-authority.js",
+      "lib/contracts/execution-readiness-facts.js",
+      "lib/worker-entry-gate.js",
+      "tests/entry-authority.test.js"
+    ],
+    "shape": [
+      "extract the existing repository identity comparison from execution-readiness facts",
+      "evaluate externally trusted expected identity against read-only observed checkout facts",
+      "return exactly PASS_CURRENT, REDIRECT, CUSTODY_REQUIRED, or BLOCK",
+      "recompute the result inside the existing worker-entry gate when raw entry input is supplied"
+    ],
+    "safety": {
+      "mutates": false,
+      "writesFiles": false,
+      "executesChildCommands": false,
+      "spawnsProcess": false,
+      "network": false,
+      "createsWorktree": false,
+      "createsRef": false,
+      "publicCommandAdded": false
+    }
+  },
+  "proofCases": [
+    {
+      "id": "meta-primary-redirect",
+      "checkout": "E:/Code/meta-harness",
+      "observedHead": "8ec31913b52b12a3ebe2660a1ee1aec82695c564",
+      "observedRef": "refs/heads/main",
+      "dirtyEntries": 192,
+      "expectedAuthority": {
+        "path": "E:/Code/meta-harness-s001r5",
+        "ref": "refs/heads/codex/candidate-d088-thin-loop",
+        "commit": "386e13b97e8be96b997124c3db30ed31cfa8111c"
+      },
+      "result": "REDIRECT",
+      "elapsedMilliseconds": 809.566,
+      "inputContextBytes": 716,
+      "authorityResolutionHops": 1,
+      "humanQuestions": 0,
+      "recoveredProductNextAction": "continue R3 validation and candidate freeze at the exact D089 authority"
+    },
+    {
+      "id": "meta-authority-pass",
+      "checkout": "E:/Code/meta-harness-s001r5",
+      "observedHead": "386e13b97e8be96b997124c3db30ed31cfa8111c",
+      "observedRef": "refs/heads/codex/candidate-d088-thin-loop",
+      "dirtyEntries": 0,
+      "result": "PASS_CURRENT",
+      "elapsedMilliseconds": 795.605,
+      "inputContextBytes": 748,
+      "authorityResolutionHops": 0,
+      "humanQuestions": 0,
+      "recoveredProductNextAction": "continue R3 validation and candidate freeze"
+    },
+    {
+      "id": "meta-checkout-self-claim-block",
+      "checkout": "E:/Code/meta-harness-s001r5",
+      "untrustedSource": "checkout_local",
+      "result": "BLOCK",
+      "reasonCode": "TRUST_SOURCE_UNTRUSTED",
+      "elapsedMilliseconds": 848.605,
+      "inputContextBytes": 757,
+      "authorityResolutionHops": 0,
+      "humanQuestions": 0,
+      "recoveredProductNextAction": "obtain externally verified authority; do not plan from checkout-local claims"
+    },
+    {
+      "id": "quant-primary-redirect",
+      "checkout": "E:/Code/Quant",
+      "observedHead": "accef5c6be62f63cfc57f0118e0b6b7ae46fad4f",
+      "observedRef": "refs/heads/main",
+      "dirtyEntries": 98571,
+      "expectedAuthority": {
+        "path": "E:/Code/Quant/.worktrees/Quant_c0x_m7f4_v8-3be41171",
+        "ref": "DETACHED",
+        "commit": "e156c664fbbd6af96f2fbc46d4a7e23c6c6933a6"
+      },
+      "result": "REDIRECT",
+      "elapsedMilliseconds": 18075.453,
+      "inputContextBytes": 730,
+      "authorityResolutionHops": 1,
+      "humanQuestions": 0,
+      "recoveredProductNextAction": "open F1B only and pass NO_POSITION through the identical book, certification, and adapter path",
+      "note": "Inspection time is dominated by the contaminated primary checkout. No cleanup is authorized or required for R3."
+    },
+    {
+      "id": "quant-f1a-authority-pass",
+      "checkout": "E:/Code/Quant/.worktrees/Quant_c0x_m7f4_v8-3be41171",
+      "observedHead": "e156c664fbbd6af96f2fbc46d4a7e23c6c6933a6",
+      "observedRef": "DETACHED",
+      "dirtyEntries": 0,
+      "result": "PASS_CURRENT",
+      "elapsedMilliseconds": 1227.232,
+      "inputContextBytes": 760,
+      "authorityResolutionHops": 0,
+      "humanQuestions": 0,
+      "recoveredProductNextAction": "open F1B only and pass NO_POSITION through the identical book, certification, and adapter path"
+    },
+    {
+      "id": "leningrad-alpha0-custody-required",
+      "checkout": "E:/Code/leningrad",
+      "observedHead": "56797f45367b7b8fa115f1e874c5d618edaf9226",
+      "observedRef": "refs/heads/codex/system1-panic-cascade",
+      "dirtyEntries": 140,
+      "untrackedAlphaRelatedPaths": 72,
+      "namedBase": "e8fd08d77e5a138d4811de549496d10e3ee8555e",
+      "result": "CUSTODY_REQUIRED",
+      "elapsedMilliseconds": 1213.566,
+      "inputContextBytes": 737,
+      "authorityResolutionHops": 0,
+      "humanQuestions": 0,
+      "recoveredProductNextAction": "bank only the Alpha 0 product spine into named Git custody from main@e8fd08d77e5a"
+    }
+  ],
+  "measurement": {
+    "casesPassed": 6,
+    "casesFailed": 0,
+    "totalInputContextBytes": 4448,
+    "totalElapsedMilliseconds": 22970.027,
+    "humanQuestions": 0,
+    "claimCeiling": "The proof establishes correct differentiated entry outcomes and exact continuation recovery. It does not claim that contaminated-repository Git status inspection is uniformly fast."
+  },
+  "validation": {
+    "focusedEntryAndReadiness": {
+      "tests": 64,
+      "passed": 64,
+      "failed": 0
+    },
+    "completeSuite": {
+      "testFiles": 124,
+      "failed": 0,
+      "durationSeconds": 198.0,
+      "execution": "canonical scripts/run-tests.js wrapper under pinned Node 25.2.1 with six-file concurrency and serialized risk tests on the reconciled candidate tree",
+      "transport": "The command channel returned early while the underlying process continued. Final zero-failure evidence was read from the redirected local log after process completion."
+    }
+  },
+  "forbiddenScopeObserved": {
+    "repositoryRegistry": false,
+    "automaticBranchPromotion": false,
+    "worktreeCreation": false,
+    "cleanupOrMigration": false,
+    "strictReadinessRepair": false,
+    "dashboardOrDaemon": false,
+    "databaseOrScheduler": false,
+    "genericRouterOrPortfolioManager": false,
+    "externalProductImplementation": false,
+    "financeWinnerSelection": false
+  },
+  "exit": {
+    "implementationComplete": true,
+    "threeRepositoryProofComplete": true,
+    "independentAcceptance": false,
+    "scoreBanked": "40 / 100",
+    "nextOperation": "freeze and push one immutable R3 candidate, then stop for independent exact-commit audit"
+  }
+}

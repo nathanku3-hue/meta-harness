@@ -56,15 +56,16 @@ test("D089 canonical event activates D088 and opens only R3", () => {
   assert.ok(status.includes(activation.ts));
 
   const decisionLog = read("docs/product/decision-log.md");
+  const d089r3 = decisionLog.indexOf("## D089-R3 (candidate): Enforce Entry Authority Before Product Planning");
   const d089 = decisionLog.indexOf("## D089: Accept D088 R2, Bank 40/100, and Open R3 Entry Authority");
   const d088r1 = decisionLog.indexOf("## D088-R1 (candidate repair): Bind Entry Authority Externally and Correct Execution Truth");
   const d088 = decisionLog.indexOf("## D088 (candidate): Make Thin Cross-Repository Usefulness the Next Product Proof");
   const d087 = decisionLog.indexOf("## D087 (candidate): Make Product Proof per Time the Selection Rule");
   const d086 = decisionLog.indexOf("## D086: Accept R1, Bank 30/100, and Activate D085 for R2 Target Lock");
   assert.ok(
-    d089 !== -1 && d088r1 !== -1 && d088 !== -1 && d087 !== -1 && d086 !== -1
-      && d089 < d088r1 && d088r1 < d088 && d088 < d087 && d087 < d086,
-    "D089 must be appended above the preserved D088/D087/D086 history",
+    d089r3 !== -1 && d089 !== -1 && d088r1 !== -1 && d088 !== -1 && d087 !== -1 && d086 !== -1
+      && d089r3 < d089 && d089 < d088r1 && d088r1 < d088 && d088 < d087 && d087 < d086,
+    "D089-R3 candidate evidence must be appended above canonical D089 and preserved history",
   );
 });
 
@@ -88,9 +89,12 @@ test("D089 banks the complete R2 exit and keeps R3 thin", () => {
   assert.match(r2, /NO_BUILD[\s\S]*guidance-only responses were compared and rejected/i);
   assert.match(r2, /ROADMAP_PROOF_SCORE = 40 \/ 100/i);
 
-  assert.match(r3, /CURRENT — IMPLEMENT ONLY ENTRY_AUTHORITY_INVARIANT/i);
-  assert.match(r3, /RunSpec, execution-readiness, workspace-start, and readiness infrastructure/i);
-  assert.match(r3, /no second authority architecture or public command/i);
+  assert.match(r3, /CANDIDATE COMPLETE — INDEPENDENT EXACT-COMMIT ACCEPTANCE REQUIRED/i);
+  assert.match(r3, /existing repository identity comparison/i);
+  assert.match(r3, /pure four-result evaluator/i);
+  assert.match(r3, /No second authority architecture or public command/i);
+  assert.match(r3, /six of six proof cases correct/i);
+  assert.match(r3, /complete pinned-Node suite 124\/124 test files/i);
   assert.match(r3, /clear deletion or shrink path/i);
 
   assert.match(r4, /BLOCKED ON R3/i);
@@ -149,6 +153,25 @@ test("D088 proof remains exact and authority stays external", () => {
   ]);
   assert.equal(proof.comparison.measurement.exactElapsedSeconds, null);
   assert.equal(proof.scoreRecommendation.afterExactCandidateAcceptance, "40 / 100");
+
+  const r3Proof = JSON.parse(read("docs/ops/audits/d089-r3-entry-authority-proof.json"));
+  assert.equal(r3Proof.status, "candidate-proof-complete-pending-independent-exact-commit-audit");
+  assert.equal(r3Proof.canonicalAuthority.roadmapProofScore, "40 / 100");
+  assert.equal(r3Proof.measurement.casesPassed, 6);
+  assert.equal(r3Proof.measurement.casesFailed, 0);
+  assert.equal(r3Proof.measurement.humanQuestions, 0);
+  assert.equal(r3Proof.validation.focusedEntryAndReadiness.passed, 64);
+  assert.equal(r3Proof.validation.completeSuite.testFiles, 124);
+  assert.equal(r3Proof.validation.completeSuite.failed, 0);
+  assert.deepEqual(r3Proof.proofCases.map((item) => item.result), [
+    "REDIRECT",
+    "PASS_CURRENT",
+    "BLOCK",
+    "REDIRECT",
+    "PASS_CURRENT",
+    "CUSTODY_REQUIRED",
+  ]);
+  assert.equal(r3Proof.exit.independentAcceptance, false);
 });
 
 test("R3 scope excludes repository management and external product work", () => {
@@ -165,6 +188,6 @@ test("R3 scope excludes repository management and external product work", () => 
 
   assert.doesNotMatch(activePlan, /exact-commit re-audit is the current gate/i);
   assert.doesNotMatch(activePlan, /BLOCKED ONLY ON EXACT-COMMIT D088-R1 AUDIT ACCEPTANCE AND D089 ACTIVATION/i);
-  assert.match(activePlan, /D089 has banked the accepted R2 state at `40 \/ 100`/i);
+  assert.match(activePlan, /D089 remains canonical at `40 \/ 100`/i);
   assert.match(task, /After a clean pushed R3 candidate, stop for independent exact-commit audit/i);
 });
