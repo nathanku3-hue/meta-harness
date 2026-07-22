@@ -340,7 +340,7 @@ Required proof:
 
 #### R2C — Name the Common Bottleneck and Smallest Reusable Patch
 
-**Candidate evidence: SELECTED PENDING AUDIT.** The repeated defect is `ENTRY_AUTHORITY_AMBIGUITY`: the obvious checkout was non-authoritative in all three proving repositories. The candidate response is one read-only `ENTRY_AUTHORITY_INVARIANT` in the existing readiness/entry surface. `NO_BUILD` and guidance-only responses were compared and rejected as insufficient.
+**Candidate evidence: SELECTED PENDING AUDIT.** The repeated defect is `ENTRY_AUTHORITY_AMBIGUITY`: the obvious checkout was non-authoritative in all three proving repositories. The candidate response is one read-only `ENTRY_AUTHORITY_INVARIANT` in the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only; they cannot promote those facts to authority. The check returns exactly `PASS_CURRENT`, `REDIRECT` with an exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. `NO_BUILD` and guidance-only responses were compared and rejected as insufficient.
 
 Compare the cross-repository results and identify the smallest shared Meta-Harness deficiency that materially harms correct continuation or product selection.
 
@@ -458,9 +458,10 @@ D086 keeps D085 active and R2 current. D087 and D088 remain candidate-only. The 
 The immediate path is:
 
 ```text
-pinned Node 25 validation of the contracted candidate
-→ one immutable candidate commit and explicit branch
-→ exact-commit independent audit
+Gate 0B double-prime evidence complete
+→ exact candidate 07d7711 accepted in substance
+→ pinned Node 25 validation complete on one immutable candidate commit and explicit branch, frozen and pushed on codex/candidate-d088-thin-loop
+→ exact-commit independent re-audit is current
 → D089 activates accepted R2A/R2B/R2C evidence and, if fully accepted, banks 40 / 100
 → R3 implements only the accepted entry-authority invariant
 ```

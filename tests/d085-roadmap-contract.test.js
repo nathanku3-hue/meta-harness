@@ -59,14 +59,15 @@ test("D085 is active only when D086 canonical event and status agree", () => {
   assert.match(roadmap, /D085 R2 REMAINS OFFICIAL; D088 R2A\/R2B\/R2C CANDIDATE EVIDENCE COMPLETE/i);
 
   const decisionLog = read("docs/product/decision-log.md");
+  const d088r1 = decisionLog.indexOf("## D088-R1 (candidate repair): Bind Entry Authority Externally and Correct Execution Truth");
   const d088 = decisionLog.indexOf("## D088 (candidate): Make Thin Cross-Repository Usefulness the Next Product Proof");
   const d087 = decisionLog.indexOf("## D087 (candidate): Make Product Proof per Time the Selection Rule");
   const d086 = decisionLog.indexOf("## D086: Accept R1, Bank 30/100, and Activate D085 for R2 Target Lock");
   const d085 = decisionLog.indexOf("## D085 (candidate): Propose the R0–R6 External Product-Proof Roadmap");
   assert.ok(
-    d088 !== -1 && d087 !== -1 && d086 !== -1 && d085 !== -1
-      && d088 < d087 && d087 < d086 && d086 < d085,
-    "D088 and D087 must remain append-only above D086 and historical D085",
+    d088r1 !== -1 && d088 !== -1 && d087 !== -1 && d086 !== -1 && d085 !== -1
+      && d088r1 < d088 && d088 < d087 && d087 < d086 && d086 < d085,
+    "D088-R1, D088, and D087 must remain append-only above D086 and historical D085",
   );
 });
 
@@ -107,6 +108,10 @@ test("D088 proof evidence is exact, thin, differentiated, and candidate-only", (
   const decisionLog = read("docs/product/decision-log.md");
   const status = read(".meta-harness/status.md");
   const allEvents = events();
+  const productSpec = read("docs/product/product-spec.md");
+  const sop = read("docs/sop/meta-harness-sop.md");
+  const implementationPlan = read("implementation_plan.md");
+  const activeImplementationPlan = implementationPlan.split("# Historical Plan:")[0];
 
   assert.match(decisionLog, /D086 and `.meta-harness\/status.md` remain official\. D087 and D088 are documentation candidates only/i);
   assert.match(decisionLog, /Gate 0B double-prime/i);
@@ -115,6 +120,19 @@ test("D088 proof evidence is exact, thin, differentiated, and candidate-only", (
   assert.match(roadmap, /pinned Node 25 validation/i);
   assert.match(roadmap, /one immutable candidate commit and explicit branch/i);
   assert.match(roadmap, /first proof did not instrument exact elapsed time/i);
+  assert.match(activeImplementationPlan, /repair candidate is frozen and pushed/i);
+  assert.match(activeImplementationPlan, /exact-commit re-audit is the current gate/i);
+  assert.match(activeImplementationPlan, /BLOCKED ONLY ON EXACT-COMMIT D088-R1 AUDIT ACCEPTANCE AND D089 ACTIVATION/i);
+  assert.doesNotMatch(activeImplementationPlan, /VALIDATION AND IMMUTABLE FREEZE PENDING/i);
+  assert.doesNotMatch(activeImplementationPlan, /pending pinned validation, immutable commit/i);
+
+  for (const surface of [decisionLog, roadmap, productSpec, sop, implementationPlan]) {
+    assert.match(surface, /checkout under evaluation cannot declare itself authoritative/i);
+    assert.match(surface, /controller-authorized RunSpec/i);
+    assert.match(surface, /explicit trusted operator input/i);
+    assert.match(surface, /signed canonical event or receipt/i);
+    assert.match(surface, /independently anchored immutable evidence/i);
+  }
 
   const gate0aBytes = read("docs/ops/audits/d088-gate0a-evidence.json");
   assert.equal(
@@ -131,6 +149,20 @@ test("D088 proof evidence is exact, thin, differentiated, and candidate-only", (
   assert.equal(proof.comparison.recommendationsMateriallyDifferent, true);
   assert.deepEqual(proof.comparison.commonObservedBottleneck.observedIn, ["Meta-Harness", "Quant", "Leningrad"]);
   assert.equal(proof.responseSelection.selectedResponse, "ENTRY_AUTHORITY_INVARIANT");
+  assert.match(proof.boundedR3Contract.objective, /cannot declare itself authoritative/i);
+  assert.deepEqual(proof.boundedR3Contract.authorityInput.trustedSources, [
+    "controller-authorized RunSpec",
+    "explicit trusted operator input",
+    "signed canonical event or receipt",
+    "independently anchored immutable evidence",
+  ]);
+  assert.match(proof.boundedR3Contract.authorityInput.checkoutRole, /cannot promote those facts to authority/i);
+  assert.deepEqual(proof.boundedR3Contract.results, [
+    "PASS_CURRENT",
+    "REDIRECT",
+    "CUSTODY_REQUIRED",
+    "BLOCK",
+  ]);
   assert.deepEqual(
     proof.responseSelection.responsesCompared.map((response) => response.class),
     ["NO_BUILD", "COMPACT_SOP_OR_SKILL", "ONE_MINIMAL_MACHINE_CHECKABLE_INVARIANT"],
@@ -140,7 +172,7 @@ test("D088 proof evidence is exact, thin, differentiated, and candidate-only", (
   assert.equal(proof.scoreRecommendation.afterExactCandidateAcceptance, "40 / 100");
 
   assert.doesNotMatch(status, /D087|D088|D089/);
-  assert.equal(allEvents.some((event) => ["D087", "D088", "D089"].includes(event.decision)), false);
+  assert.equal(allEvents.some((event) => ["D087", "D088", "D089", "R3"].includes(event.decision)), false);
 
   for (const surface of [
     "docs/product/decision-log.md",

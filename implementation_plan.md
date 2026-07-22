@@ -1,6 +1,6 @@
 # Candidate Implementation Plan: D088 Thin Cross-Repository Usefulness Correction
 
-Status: **D085/D086 remains official. Gate 0B double-prime has produced contracted D088, exact Gate 0A evidence, a three-repository read-only proof, and the selected `ENTRY_AUTHORITY_INVARIANT`; all remain candidate-only pending pinned validation, immutable commit, exact-commit independent audit, and D089 activation. No R3 or external product implementation is authorized.**
+Status: **D085/D086 remains official. Gate 0B double-prime is complete. Exact candidate `07d77115e121ae0f58ff7e669576b9ad4eb5e69d` succeeded in substance and is superseded only by the single bounded D088-R1 repair candidate on `codex/candidate-d088-thin-loop`. Pinned validation is complete, the repair candidate is frozen and pushed, and exact-commit re-audit is the current gate. R3 is blocked only on audit acceptance and D089 activation; no R3 or external product implementation is authorized.**
 
 ```text
 ROADMAP_PROOF_SCORE = 30 / 100
@@ -51,7 +51,7 @@ SOP guidance
 
 ## Gate 0B double-prime — Prove and freeze D088
 
-**CANDIDATE WORK COMPLETE; VALIDATION AND IMMUTABLE FREEZE PENDING.**
+**GATE COMPLETE; D088-R1 REPAIR CANDIDATE FROZEN AND PUSHED; EXACT-COMMIT RE-AUDIT CURRENT.**
 
 Completed candidate work:
 
@@ -60,7 +60,10 @@ Completed candidate work:
 3. Ran the thin loop read-only across Meta-Harness, Quant, and Leningrad before activation.
 4. Recorded materially different next loops and the comparison in `docs/ops/audits/d088-cross-repository-proof.json`.
 5. Compared `NO_BUILD`, compact SOP/skill correction, and one machine-checkable invariant.
-6. Selected `ENTRY_AUTHORITY_INVARIANT`: a read-only check that either proves the current checkout is the declared authority or fails closed with one exact authoritative path/ref/commit or product-custody action.
+6. Selected `ENTRY_AUTHORITY_INVARIANT`: a read-only check that compares observed checkout facts with trusted expected repository identity and returns exactly `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`.
+7. Repaired the active execution truth after exact candidate `07d7711` succeeded in substance: pinned validation is complete, the sole D088-R1 repair candidate is frozen and pushed, and exact-commit re-audit is current.
+8. Bound expected repository identity to the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. The checkout under evaluation cannot declare itself authoritative.
+9. Preserved D085/D086, `30 / 100`, canonical status/events, and the prohibition on D089 activation or R3 implementation before exact-commit acceptance.
 
 Exact elapsed time was not instrumented in the initial proof. Authority-resolution hops and context surfaces form the baseline; the R3 rerun must measure elapsed time and context volume.
 
@@ -86,13 +89,13 @@ The recommendations are materially different. The obvious checkout was non-autho
 
 Common deficiency: `ENTRY_AUTHORITY_AMBIGUITY`.
 
-Selected response: one minimal `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface. It must operate read-only, create no worktree or ref, and emit one actionable block when the current checkout is stale, contaminated, superseded, divergent, or lacks versioned product custody.
+Selected response: one minimal `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only; they cannot promote those facts to authority. The read-only result is exactly `PASS_CURRENT`, `REDIRECT` with one exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. The check creates no worktree or ref.
 
 `NO_BUILD` is rejected because manual authority reconstruction was required in all three repositories. A skill alone is rejected because guidance cannot objectively fail closed. The bounded R3 contract and verification cases are in the comparative evidence artifact.
 
 ## R3 — Implement and independently accept the thin capability
 
-**BLOCKED ON PINNED VALIDATION, IMMUTABLE D088 CANDIDATE, EXACT-COMMIT AUDIT, AND D089 ACTIVATION. Score ledger after R3 exit 60/100.**
+**BLOCKED ONLY ON EXACT-COMMIT D088-R1 AUDIT ACCEPTANCE AND D089 ACTIVATION. Score ledger after R3 exit 60/100.**
 
 Implement only the R2C result. If `NO_BUILD` wins, prove the existing composition instead of adding code.
 
@@ -130,7 +133,7 @@ No central repo registry, dashboard, scheduler, queue, daemon, generic grill eng
 
 ## Stop rule
 
-Do not edit `.meta-harness/status.md` or `.meta-harness/events.jsonl` manually. Validate with pinned Node `25.2.1` / npm `11.16.0`, freeze one immutable candidate, and stop for exact-commit independent audit. Do not begin R3 until D089 activates the accepted R2 state. Do not begin external product implementation until R3 accepts the entry-authority invariant. Do not award 40/100 before exact-commit audit accepts the complete R2 exit.
+Do not edit `.meta-harness/status.md` or `.meta-harness/events.jsonl` manually. Pinned Node `25.2.1` / npm `11.16.0` validation and candidate freeze are complete. The only current operation is exact-commit independent re-audit of the pushed D088-R1 repair candidate. Do not begin R3 until D089 activates the accepted R2 state. Do not begin external product implementation until R3 accepts the entry-authority invariant. Do not award 40/100 before exact-commit audit accepts the complete R2 exit.
 
 
 # Historical Plan: Phase 13A Context Quality Gate

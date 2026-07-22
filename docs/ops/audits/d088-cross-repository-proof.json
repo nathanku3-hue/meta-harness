@@ -160,20 +160,41 @@
     "selectedResponse": "ENTRY_AUTHORITY_INVARIANT"
   },
   "boundedR3Contract": {
-    "objective": "Before product planning, read-only verification either proves that the current checkout is the repository-declared authority or fails closed with one exact authoritative path/ref/commit or one custody action.",
+    "objective": "Before product planning, read-only verification compares observed checkout facts with trusted expected repository identity and returns one exact actionable result. The checkout under evaluation cannot declare itself authoritative.",
+    "authorityInput": {
+      "rule": "Expected repository identity is trusted input external to the checkout being evaluated.",
+      "trustedSources": [
+        "controller-authorized RunSpec",
+        "explicit trusted operator input",
+        "signed canonical event or receipt",
+        "independently anchored immutable evidence"
+      ],
+      "checkoutRole": "Repository files may supply observed facts only; they cannot promote those facts to authority."
+    },
+    "results": [
+      "PASS_CURRENT",
+      "REDIRECT",
+      "CUSTODY_REQUIRED",
+      "BLOCK"
+    ],
     "minimumBehavior": [
-      "resolve repository identity, top-level path, HEAD, branch or detached state, and dirty state",
-      "compare the current checkout with one explicit repository-local authority declaration or accepted evidence pointer",
+      "accept trusted expected repository identity before evaluating the checkout",
+      "resolve observed repository identity, top-level path, HEAD, branch or detached state, and dirty state",
+      "never infer authority from a declaration stored only inside the checkout being evaluated",
       "detect stale, superseded, contaminated, divergent, or unversioned-product state",
-      "return PASS only for the declared authority state",
-      "otherwise return one actionable BLOCK naming the exact accepted path/ref/commit or the required product-custody action",
+      "return PASS_CURRENT only when observed state matches trusted expected identity",
+      "return REDIRECT with one exact path/ref/commit when a different named Git authority owns the next action",
+      "return CUSTODY_REQUIRED when product bytes lack a named Git authority",
+      "return BLOCK when trusted expected identity is absent or contradictory",
       "operate read-only and create no worktree, ref, registry, daemon, database, scheduler, dashboard, queue, or router"
     ],
     "integrationPreference": "Extend the existing read-only readiness/entry surface rather than add a new platform or generic repository manager.",
     "verification": [
-      "Meta-Harness obvious root blocks and selected candidate worktree passes against explicit authority evidence",
-      "Quant obvious root blocks and exact F1A authority worktree passes",
-      "Leningrad obvious root blocks with product-custody action until the Alpha 0 spine is reachable from the declared Git authority",
+      "Meta-Harness obvious root redirects and selected candidate worktree passes against controller-authorized or independently anchored expected identity",
+      "a checkout-local declaration cannot make Meta-Harness PASS_CURRENT",
+      "Quant obvious root redirects and exact F1A authority worktree passes",
+      "Leningrad obvious root returns CUSTODY_REQUIRED until the Alpha 0 spine is reachable from a named Git authority",
+      "missing or contradictory trusted expected identity returns BLOCK",
       "rerun all three repositories with instrumented elapsed time and context volume"
     ],
     "deletionOrShrinkPath": "Delete or demote the explicit guidance when model-native entry reliably resolves the same authority state and the invariant no longer catches material drift."

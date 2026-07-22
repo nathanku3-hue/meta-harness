@@ -7,6 +7,25 @@ Active direction banked: 2026-07-21
 Candidate correction proposed: 2026-07-22
 Thin-system correction proposed: 2026-07-22
 
+## D088-R1 (candidate repair): Bind Entry Authority Externally and Correct Execution Truth
+
+Candidate repair:
+
+Gate 0B double-prime is complete. Exact candidate `07d77115e121ae0f58ff7e669576b9ad4eb5e69d` succeeded in substance, but exact-commit audit found two load-bearing defects: the active implementation plan still described validation and freeze as pending, and the bounded R3 contract allowed the evaluated checkout to rely on a repository-local declaration.
+
+The repair is intentionally narrow. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must be supplied by the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts, but they cannot promote those facts to authority.
+
+The read-only result contract is exactly:
+
+```text
+PASS_CURRENT
+REDIRECT — exact path/ref/commit
+CUSTODY_REQUIRED — product bytes lack a named Git authority
+BLOCK — trusted expected identity is absent or contradictory
+```
+
+Pinned Node `25.2.1` validation is complete, the sole D088-R1 repair candidate on `codex/candidate-d088-thin-loop` is frozen and pushed, and exact-commit re-audit is the current gate. D085/D086 and `ROADMAP_PROOF_SCORE = 30 / 100` remain canonical. No D089 activation, R3 implementation, new worktree, cleanup, migration, registry, daemon, dashboard, database, scheduler, queue, or router is authorized by this repair.
+
 ## D088 (candidate): Make Thin Cross-Repository Usefulness the Next Product Proof
 
 Candidate decision:

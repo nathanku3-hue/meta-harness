@@ -234,7 +234,7 @@ The proof must show that distinct product contexts produce distinct recommendati
 
 ### R2C — Common bottleneck and smallest response
 
-Candidate selection is complete pending exact-commit audit. The common defect is `ENTRY_AUTHORITY_AMBIGUITY`; the selected response is one read-only `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface. It must fail closed with one exact authoritative path/ref/commit or product-custody action and must create no worktree, ref, registry, daemon, database, scheduler, dashboard, queue, or router.
+Candidate selection is complete pending exact-commit audit. The common defect is `ENTRY_AUTHORITY_AMBIGUITY`; the selected response is one read-only `ENTRY_AUTHORITY_INVARIANT` integrated into the existing readiness/entry surface. The checkout under evaluation cannot declare itself authoritative. Trusted expected repository identity must come from the controller-authorized RunSpec, explicit trusted operator input, a signed canonical event or receipt, or independently anchored immutable evidence. Repository files may supply observed facts only; they cannot promote those facts to authority. The check returns exactly `PASS_CURRENT`, `REDIRECT` with one exact path/ref/commit, `CUSTODY_REQUIRED` when product bytes lack a named Git authority, or `BLOCK` when trusted expected identity is absent or contradictory. It must create no worktree, ref, registry, daemon, database, scheduler, dashboard, queue, or router.
 
 Identify one common deficiency evidenced in at least two proving repositories. Compare at least three responses, including `NO_BUILD`, and bind only the smallest accepted implementation and verification contract.
 
