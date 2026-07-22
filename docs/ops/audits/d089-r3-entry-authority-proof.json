@@ -1,6 +1,6 @@
 {
-  "schemaVersion": "meta-harness-entry-authority-proof/v1",
-  "generatedAt": "2026-07-22T16:15:31.816Z",
+  "schemaVersion": "meta-harness-entry-authority-proof/v2",
+  "generatedAt": "2026-07-22T16:43:52.269Z",
   "status": "candidate-proof-complete-pending-independent-exact-commit-audit",
   "canonicalAuthority": {
     "decision": "D089",
@@ -9,8 +9,9 @@
     "externalLoopsShipped": "0 / 1"
   },
   "implementation": {
-    "commit": "386e13b97e8be96b997124c3db30ed31cfa8111c",
-    "tree": "6a2c00d20dc12ce2516f645cf1df52b2583b992d",
+    "evaluatorCommit": "386e13b97e8be96b997124c3db30ed31cfa8111c",
+    "collectorCommit": "a80ebd3bc9ebb2d04be89f2e76301f32e4543f95",
+    "collectorTree": "d4f0aebc9382d316fd129cecb810e0b5a12224c4",
     "runtime": {
       "node": "25.2.1",
       "npm": "11.16.0",
@@ -20,24 +21,28 @@
     "ownedFiles": [
       "lib/contracts/entry-authority.js",
       "lib/contracts/execution-readiness-facts.js",
+      "lib/entry-authority.js",
       "lib/worker-entry-gate.js",
-      "tests/entry-authority.test.js"
+      "lib/repo-rollup.js",
+      "tests/entry-authority.test.js",
+      "tests/entry-authority-runtime.test.js"
     ],
     "shape": [
       "extract the existing repository identity comparison from execution-readiness facts",
-      "evaluate externally trusted expected identity against read-only observed checkout facts",
-      "return exactly PASS_CURRENT, REDIRECT, CUSTODY_REQUIRED, or BLOCK",
-      "recompute the result inside the existing worker-entry gate when raw entry input is supplied"
+      "collect repository identity, HEAD, ref, cleanliness, and explicit product-path custody through read-only Git inspection",
+      "evaluate externally trusted expected identity against observed checkout facts through one pure comparator",
+      "return and render exactly PASS_CURRENT, REDIRECT, CUSTODY_REQUIRED, or BLOCK",
+      "attach raw observed input to the existing rollup and recompute it inside the worker-entry gate"
     ],
     "safety": {
+      "publicCommandAdded": false,
+      "evaluatorExecutesChildCommands": false,
+      "collectorExecutesReadOnlyGitCommands": true,
       "mutates": false,
       "writesFiles": false,
-      "executesChildCommands": false,
-      "spawnsProcess": false,
       "network": false,
       "createsWorktree": false,
-      "createsRef": false,
-      "publicCommandAdded": false
+      "createsRef": false
     }
   },
   "proofCases": [
@@ -50,11 +55,12 @@
       "expectedAuthority": {
         "path": "E:/Code/meta-harness-s001r5",
         "ref": "refs/heads/codex/candidate-d088-thin-loop",
-        "commit": "386e13b97e8be96b997124c3db30ed31cfa8111c"
+        "commit": "a80ebd3bc9ebb2d04be89f2e76301f32e4543f95"
       },
       "result": "REDIRECT",
-      "elapsedMilliseconds": 809.566,
-      "inputContextBytes": 716,
+      "rendered": "REDIRECT — E:/Code/meta-harness-s001r5 refs/heads/codex/candidate-d088-thin-loop a80ebd3bc9ebb2d04be89f2e76301f32e4543f95",
+      "elapsedMilliseconds": 945.106,
+      "inputContextBytes": 717,
       "authorityResolutionHops": 1,
       "humanQuestions": 0,
       "recoveredProductNextAction": "continue R3 validation and candidate freeze at the exact D089 authority"
@@ -62,15 +68,18 @@
     {
       "id": "meta-authority-pass",
       "checkout": "E:/Code/meta-harness-s001r5",
-      "observedHead": "386e13b97e8be96b997124c3db30ed31cfa8111c",
+      "observedHead": "a80ebd3bc9ebb2d04be89f2e76301f32e4543f95",
       "observedRef": "refs/heads/codex/candidate-d088-thin-loop",
       "dirtyEntries": 0,
+      "productFileCount": 2,
+      "unreachableProductFileCount": 0,
       "result": "PASS_CURRENT",
-      "elapsedMilliseconds": 795.605,
+      "rendered": "PASS_CURRENT",
+      "elapsedMilliseconds": 1439.841,
       "inputContextBytes": 748,
       "authorityResolutionHops": 0,
       "humanQuestions": 0,
-      "recoveredProductNextAction": "continue R3 validation and candidate freeze"
+      "recoveredProductNextAction": "freeze the exact R3 candidate and stop for independent audit"
     },
     {
       "id": "meta-checkout-self-claim-block",
@@ -78,8 +87,8 @@
       "untrustedSource": "checkout_local",
       "result": "BLOCK",
       "reasonCode": "TRUST_SOURCE_UNTRUSTED",
-      "elapsedMilliseconds": 848.605,
-      "inputContextBytes": 757,
+      "elapsedMilliseconds": 833.692,
+      "inputContextBytes": 758,
       "authorityResolutionHops": 0,
       "humanQuestions": 0,
       "recoveredProductNextAction": "obtain externally verified authority; do not plan from checkout-local claims"
@@ -96,8 +105,9 @@
         "commit": "e156c664fbbd6af96f2fbc46d4a7e23c6c6933a6"
       },
       "result": "REDIRECT",
-      "elapsedMilliseconds": 18075.453,
-      "inputContextBytes": 730,
+      "rendered": "REDIRECT — E:/Code/Quant/.worktrees/Quant_c0x_m7f4_v8-3be41171 DETACHED e156c664fbbd6af96f2fbc46d4a7e23c6c6933a6",
+      "elapsedMilliseconds": 18830.292,
+      "inputContextBytes": 731,
       "authorityResolutionHops": 1,
       "humanQuestions": 0,
       "recoveredProductNextAction": "open F1B only and pass NO_POSITION through the identical book, certification, and adapter path",
@@ -110,8 +120,9 @@
       "observedRef": "DETACHED",
       "dirtyEntries": 0,
       "result": "PASS_CURRENT",
-      "elapsedMilliseconds": 1227.232,
-      "inputContextBytes": 760,
+      "rendered": "PASS_CURRENT",
+      "elapsedMilliseconds": 968.708,
+      "inputContextBytes": 761,
       "authorityResolutionHops": 0,
       "humanQuestions": 0,
       "recoveredProductNextAction": "open F1B only and pass NO_POSITION through the identical book, certification, and adapter path"
@@ -122,10 +133,12 @@
       "observedHead": "56797f45367b7b8fa115f1e874c5d618edaf9226",
       "observedRef": "refs/heads/codex/system1-panic-cascade",
       "dirtyEntries": 140,
-      "untrackedAlphaRelatedPaths": 72,
       "namedBase": "e8fd08d77e5a138d4811de549496d10e3ee8555e",
+      "productFileCount": 30,
+      "unreachableProductFileCount": 30,
       "result": "CUSTODY_REQUIRED",
-      "elapsedMilliseconds": 1213.566,
+      "rendered": "CUSTODY_REQUIRED — product bytes lack named Git authority",
+      "elapsedMilliseconds": 6021.46,
       "inputContextBytes": 737,
       "authorityResolutionHops": 0,
       "humanQuestions": 0,
@@ -135,23 +148,23 @@
   "measurement": {
     "casesPassed": 6,
     "casesFailed": 0,
-    "totalInputContextBytes": 4448,
-    "totalElapsedMilliseconds": 22970.027,
+    "totalInputContextBytes": 4452,
+    "totalElapsedMilliseconds": 29039.099,
     "humanQuestions": 0,
-    "claimCeiling": "The proof establishes correct differentiated entry outcomes and exact continuation recovery. It does not claim that contaminated-repository Git status inspection is uniformly fast."
+    "claimCeiling": "The proof establishes correct differentiated entry outcomes, tracked live-fact collection, exact result rendering, and exact continuation recovery. It does not claim that status inspection of a checkout with nearly one hundred thousand dirty entries is fast."
   },
   "validation": {
-    "focusedEntryAndReadiness": {
-      "tests": 64,
-      "passed": 64,
+    "focusedEvaluatorCollectorRollup": {
+      "tests": 62,
+      "passed": 62,
       "failed": 0
     },
     "completeSuite": {
-      "testFiles": 124,
+      "testFiles": 125,
       "failed": 0,
-      "durationSeconds": 198.0,
+      "durationSeconds": 212.9,
       "execution": "canonical scripts/run-tests.js wrapper under pinned Node 25.2.1 with six-file concurrency and serialized risk tests on the reconciled candidate tree",
-      "transport": "The command channel returned early while the underlying process continued. Final zero-failure evidence was read from the redirected local log after process completion."
+      "transport": "Command-channel transport is not treated as test evidence; final results are read from the redirected local log after process completion."
     }
   },
   "forbiddenScopeObserved": {
@@ -168,6 +181,7 @@
   },
   "exit": {
     "implementationComplete": true,
+    "trackedLiveCollectorComplete": true,
     "threeRepositoryProofComplete": true,
     "independentAcceptance": false,
     "scoreBanked": "40 / 100",

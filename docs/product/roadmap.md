@@ -368,15 +368,16 @@ R2C exit contract:
 
 **Status: CANDIDATE COMPLETE — INDEPENDENT EXACT-COMMIT ACCEPTANCE REQUIRED**
 
-The candidate implements only the exact reusable capability named by R2C. It extracts the existing repository identity comparison, adds one pure four-result evaluator, and recomputes raw entry inputs inside the existing worker-entry gate. No second authority architecture or public command was added.
+The candidate implements only the exact reusable capability named by R2C. It extracts the existing repository identity comparison, adds one pure four-result evaluator, and adds one tracked read-only collector for live repository identity, HEAD, ref, cleanliness, and explicit product-path custody. The collector attaches raw observed inputs to the existing rollup; the worker-entry gate recomputes the result instead of trusting a claimed verdict. No second authority architecture or public command was added.
 
 Candidate evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` shows:
 
 - Meta-Harness primary `REDIRECT`, exact authority `PASS_CURRENT`, and checkout-local self-claim `BLOCK`;
 - Quant primary `REDIRECT` and exact F1A authority `PASS_CURRENT`;
 - Leningrad Alpha 0 state `CUSTODY_REQUIRED`;
-- six of six proof cases correct, 4,448 input-context bytes, zero human questions, and measured elapsed time;
-- focused affected surface 64/64 and complete pinned-Node suite 124/124 test files;
+- six of six proof cases correct through the tracked collector, 4,452 input-context bytes, zero human questions, and measured elapsed time;
+- Leningrad custody derived from 30 Alpha 0 product files absent from the named base authority;
+- focused evaluator, collector, rollup, and worker-entry contracts pass 62/62; the complete pinned-Node suite passes 125/125 test files in 212.9 seconds;
 - no bulky control surface and a clear deletion or shrink path.
 
 These are candidate results only. The score remains `40 / 100` and R4 remains blocked until independent exact-commit acceptance.

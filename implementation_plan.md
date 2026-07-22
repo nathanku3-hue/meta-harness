@@ -101,11 +101,12 @@ Delivered:
 
 - extracted the existing repository identity comparator from execution-readiness facts;
 - added one pure evaluator returning only `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`;
-- recomputes raw entry inputs in the existing worker-entry gate rather than trusting a claimed verdict;
+- added one tracked runtime collector for repository identity, HEAD, ref, cleanliness, and explicit product-path custody through read-only Git inspection;
+- attaches raw observed inputs to the existing rollup and recomputes them in the worker-entry gate rather than trusting a claimed verdict;
 - added no public command or second authority architecture;
-- performs no mutation, process execution, network access, ref creation, or worktree creation.
+- performs no mutation, network access, ref creation, or worktree creation.
 
-Evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` records Meta-Harness redirect/pass/self-claim block, Quant redirect/pass, Leningrad custody required, 4,448 input-context bytes, zero human questions, focused 64/64, and complete suite 124/124.
+Evidence in `docs/ops/audits/d089-r3-entry-authority-proof.json` records Meta-Harness redirect/pass/self-claim block, Quant redirect/pass, Leningrad custody required from 30 Alpha 0 files absent from named authority, 4,452 input-context bytes, zero human questions, focused contracts 62/62, and complete suite 125/125 test files in 212.9 seconds.
 
 ## R4 — Select and ship one real product slice
 

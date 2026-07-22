@@ -24,9 +24,10 @@ Implementation:
 
 - extracted the existing repository identity comparison from execution-readiness facts rather than creating a second rules engine;
 - added one pure evaluator that consumes externally trusted expected identity plus read-only observed checkout facts;
-- returns exactly `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`;
-- recomputes the outcome inside the existing worker-entry gate when raw entry inputs are supplied;
-- adds no public command and performs no mutation, process execution, network access, ref creation, or worktree creation.
+- added one tracked runtime collector that derives repository identity, HEAD, ref, cleanliness, and explicit product-path custody through read-only Git inspection;
+- returns and renders exactly `PASS_CURRENT`, `REDIRECT`, `CUSTODY_REQUIRED`, or `BLOCK`;
+- attaches raw observed inputs to the existing rollup and recomputes the outcome inside the existing worker-entry gate;
+- adds no public command; the evaluator performs no process execution, and the collector performs no mutation, network access, ref creation, or worktree creation.
 
 Candidate proof:
 
@@ -36,9 +37,10 @@ Candidate proof:
 - Quant primary → `REDIRECT` to exact F1A authority;
 - Quant exact F1A authority → `PASS_CURRENT`;
 - Leningrad unversioned Alpha 0 state → `CUSTODY_REQUIRED`;
-- six cases passed with 4,448 input-context bytes, zero human questions, and measured elapsed time;
-- focused affected surface 64/64;
-- complete pinned-Node suite 124/124 test files.
+- the tracked runtime collector reproduced all six cases with 4,452 input-context bytes, zero human questions, and measured elapsed time;
+- Leningrad custody was derived from 30 Alpha 0 product files, all 30 absent from the named base authority;
+- focused evaluator, collector, rollup, and worker-entry contracts pass 62/62;
+- complete pinned-Node suite passes 125/125 test files in 212.9 seconds.
 
 Evidence:
 

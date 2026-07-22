@@ -92,9 +92,10 @@ test("D089 banks the complete R2 exit and keeps R3 thin", () => {
   assert.match(r3, /CANDIDATE COMPLETE — INDEPENDENT EXACT-COMMIT ACCEPTANCE REQUIRED/i);
   assert.match(r3, /existing repository identity comparison/i);
   assert.match(r3, /pure four-result evaluator/i);
+  assert.match(r3, /tracked read-only collector/i);
   assert.match(r3, /No second authority architecture or public command/i);
-  assert.match(r3, /six of six proof cases correct/i);
-  assert.match(r3, /complete pinned-Node suite 124\/124 test files/i);
+  assert.match(r3, /six of six proof cases correct through the tracked collector/i);
+  assert.match(r3, /Leningrad custody derived from 30 Alpha 0 product files/i);
   assert.match(r3, /clear deletion or shrink path/i);
 
   assert.match(r4, /BLOCKED ON R3/i);
@@ -160,9 +161,15 @@ test("D088 proof remains exact and authority stays external", () => {
   assert.equal(r3Proof.measurement.casesPassed, 6);
   assert.equal(r3Proof.measurement.casesFailed, 0);
   assert.equal(r3Proof.measurement.humanQuestions, 0);
-  assert.equal(r3Proof.validation.focusedEntryAndReadiness.passed, 64);
-  assert.equal(r3Proof.validation.completeSuite.testFiles, 124);
+  assert.equal(r3Proof.measurement.totalInputContextBytes, 4452);
+  assert.equal(r3Proof.implementation.collectorCommit, "a80ebd3bc9ebb2d04be89f2e76301f32e4543f95");
+  assert.equal(r3Proof.implementation.safety.publicCommandAdded, false);
+  assert.equal(r3Proof.implementation.safety.evaluatorExecutesChildCommands, false);
+  assert.equal(r3Proof.implementation.safety.collectorExecutesReadOnlyGitCommands, true);
+  assert.equal(r3Proof.validation.focusedEvaluatorCollectorRollup.passed, 62);
+  assert.equal(r3Proof.validation.completeSuite.testFiles, 125);
   assert.equal(r3Proof.validation.completeSuite.failed, 0);
+  assert.equal(r3Proof.validation.completeSuite.durationSeconds, 212.9);
   assert.deepEqual(r3Proof.proofCases.map((item) => item.result), [
     "REDIRECT",
     "PASS_CURRENT",
@@ -171,6 +178,9 @@ test("D088 proof remains exact and authority stays external", () => {
     "PASS_CURRENT",
     "CUSTODY_REQUIRED",
   ]);
+  assert.equal(r3Proof.proofCases.at(-1).productFileCount, 30);
+  assert.equal(r3Proof.proofCases.at(-1).unreachableProductFileCount, 30);
+  assert.equal(r3Proof.exit.trackedLiveCollectorComplete, true);
   assert.equal(r3Proof.exit.independentAcceptance, false);
 });
 
