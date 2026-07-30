@@ -24,6 +24,7 @@ const READY_JSON_CHECK_IDS = Object.freeze([
   "MH_NPM_SCRIPTS_001",
   "MH_REPRO_001",
   "MH_STATE_ROOT_LEAK_001",
+  "MH_WORKTREE_001",
   "MH_GITCHECK_001",
   "MH_PACKAGE_001",
   "MH_GITHUB_SETTINGS_001",
@@ -118,7 +119,7 @@ test("ready command pregenerated ready.json override", () => {
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 21, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: READY_JSON_CHECK_IDS.length, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks({
       MH_TEST_001: { reason: "overridden test", next_action: "" },
@@ -169,7 +170,7 @@ test("stale ready.json is rejected due to git_commit mismatch (non-git target ex
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 21, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: READY_JSON_CHECK_IDS.length, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks()
   }), "utf8");
@@ -202,7 +203,7 @@ test("stale ready.json is rejected due to git_commit mismatch (git target compar
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 21, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: READY_JSON_CHECK_IDS.length, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks()
   }), "utf8");
@@ -424,3 +425,4 @@ test("worktree Git detection integration test", () => {
   const gitCheckRes = data.checks.find(c => c.id === "MH_GITCHECK_001");
   assert.equal(gitCheckRes.status, "pass");
 });
+

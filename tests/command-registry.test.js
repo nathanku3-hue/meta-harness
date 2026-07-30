@@ -42,10 +42,12 @@ test("public command and check registries are deterministic metadata surfaces", 
 
   const checks = checkIdRegistry();
   assert.deepEqual(checks.map((item) => item.id), checks.map((item) => item.id).slice().sort());
-  assert.equal(checks.length, 21);
+  assert.equal(checks.length, 22);
   assert.equal(checks.some((item) => item.id === "MH_CONTEXT_GATE_001"), true);
   assert.equal(checks.some((item) => item.id === "MH_TRANSITION_GRAPH_001"), true);
   assert.equal(checks.some((item) => item.id === "MH_TRUTH_001"), true);
+  assert.equal(checks.some((item) => item.id === "MH_WORKTREE_001"), true);
+  assert.equal(STRICT_REQUIRED_CHECK_IDS.includes("MH_WORKTREE_001"), true);
   assert.equal(new Set(checks.map((item) => item.id)).size, checks.length);
   assert.equal(checks.every((item) => /^MH_[A-Z0-9_]+_\d{3}$/.test(item.id)), true);
   assert.deepEqual(READY_CHECK_IDS, READY_INCLUDED_CHECK_IDS);
@@ -92,3 +94,4 @@ test("help text is generated from registry usage lines", () => {
   assert.match(help, /meta-harness context ask <round-id>/);
   assert.match(help, /Streams: coding, research, writing, review/);
 });
+
