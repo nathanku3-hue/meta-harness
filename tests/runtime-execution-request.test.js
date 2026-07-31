@@ -1,183 +1,205 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 
 const {
-  EXECUTION_REQUEST_SCHEMA,
+  ACTIONS,
+  PAYLOAD_KEYS,
+  REQUEST_SCHEMA,
   loadExecutionRequestEnvelope,
   validateExecutionRequest,
-  validateLocalBindings,
 } = require("../lib/execution-custody/execute");
-const { absNorm, sha256File } = require("../lib/execution-custody/support");
-const {
-  createFixtureLayout,
-  buildRunRequest,
-  buildControllerConfig,
-} = require("./helpers/execution-custody-fixture");
 
-function publicRequest(layout, options = {}) {
-  const config = buildControllerConfig(layout);
-  const parent = options.custodyParent || fs.mkdtempSync(path.join(os.tmpdir(), "execution-request-parent-"));
+function authorization() {
   return {
-    schemaVersion: EXECUTION_REQUEST_SCHEMA,
-    executionId: options.executionId || "public-request-001",
-    sourceRepositoryPath: layout.repositoryPath,
-    custodyRoot: options.custodyRoot || absNorm(path.join(parent, "custody")),
-    expectedBaseTree: layout.expectedBaseTree,
-    runRequest: buildRunRequest(layout, {
-      approvedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    }),
-    agentProgram: {
-      nodeExecutablePath: config.agentProgram.nodeExecutablePath,
-      expectedNodeSha256: config.agentProgram.expectedNodeSha256,
-      launcherScriptPath: config.agentProgram.launcherScriptPath,
-      expectedLauncherSha256: config.agentProgram.expectedLauncherSha256,
-      nativeExecutablePath: config.agentProgram.nativeExecutablePath,
-      expectedNativeSha256: config.agentProgram.expectedNativeSha256,
-      expectedVersion: config.agentProgram.expectedVersion,
-      codexHome: config.agentProgram.codexHome,
-    },
-    validationProgram: {
-      commandName: config.validationProgram.commandName,
-      executablePath: config.validationProgram.executablePath,
-      expectedExecutableSha256: config.validationProgram.expectedExecutableSha256,
-      hostEnv: config.validationProgram.hostEnv,
-      sensitiveValues: [],
-    },
+    schemaVersion: "slice-authorization/v1",
+    sliceId: "SLICE-REQUEST-TEST",
+    generation: 1,
   };
 }
 
-function writeRequest(root, value) {
-  const requestPath = absNorm(path.join(root, "request.json"));
-  const bytes = Buffer.from(`${JSON.stringify(value, null, 2)}\n`, "utf8");
-  fs.writeFileSync(requestPath, bytes);
-  return { requestPath, bytes };
+function request(action = "ACTIVATE_SLICE", payload = {}) {
+  return {
+    schemaVersion: REQUEST_SCHEMA,
+    action,
+    sliceAuthorization: authorization(),
+    payload,
+  };
 }
 
-test("public execution request has one exact sealed shape and exact-byte digest", () => {
-  const layout = createFixtureLayout({ label: "public-request-shape" });
-  const requestRoot = fs.mkdtempSync(path.join(os.tmpdir(), "public-request-file-"));
-  try {
-    const request = publicRequest(layout);
-    assert.equal(validateExecutionRequest(request).schemaVersion, EXECUTION_REQUEST_SCHEMA);
-    const { requestPath, bytes } = writeRequest(requestRoot, request);
-    const envelope = loadExecutionRequestEnvelope(requestPath);
-    assert.equal(
-      envelope.requestDigest,
-      `sha256:${crypto.createHash("sha256").update(bytes).digest("hex")}`,
-    );
-    assert.deepEqual(envelope.request, request);
-  } finally {
-    layout.cleanup();
-    fs.rmSync(requestRoot, { recursive: true, force: true });
-  }
+function placeholderPayload(action) {
+  return Object.fromEntries(PAYLOAD_KEYS[action].map((key) => {
+    if (key === "mechanicsAssessments" || key === "reviewerAssessments") return [key, []];
+    if (key === "implementationProcessId") return [key, "process-request-test"];
+    return [key, { schemaVersion: `${key}/test` }];
+  }));
+}
+
+function writeRequest(root, value) {
+  const requestPath = path.resolve(root, "request.json");
+  fs.writeFileSync(requestPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  return requestPath;
+}
+
+test("v2 public execution request has one exact top-level shape", () => {
+  const value = request();
+  const validated = validateExecutionRequest(value);
+  assert.deepEqual(validated, value);
+  assert.equal(validated.schemaVersion, "meta-harness-execution-request/v2");
+  assert.deepEqual(Object.keys(validated).sort(), [
+    "action",
+    "payload",
+    "schemaVersion",
+    "sliceAuthorization",
+  ]);
+  assert.equal(Object.isFrozen(validated), true);
+  assert.equal(Object.isFrozen(validated.payload), true);
 });
 
-test("public request rejects the private schema and all extra or missing fields", () => {
-  const layout = createFixtureLayout({ label: "public-request-reject" });
-  try {
-    const oldSchema = publicRequest(layout);
-    oldSchema.schemaVersion = "execution-custody-operator-request/v1";
-    assert.throws(() => validateExecutionRequest(oldSchema), /schemaVersion must be meta-harness-execution-request\/v1/);
-
-    const extra = publicRequest(layout);
-    extra.compatibility = true;
-    assert.throws(() => validateExecutionRequest(extra), /top-level shape invalid/);
-
-    const missing = publicRequest(layout);
-    delete missing.agentProgram.expectedNodeSha256;
-    assert.throws(() => validateExecutionRequest(missing), /agentProgram shape invalid/);
-
-    const nestedExtra = publicRequest(layout);
-    nestedExtra.runRequest.authorizationRequest.retry = true;
-    assert.throws(() => validateExecutionRequest(nestedExtra), /authorizationRequest must be exactly/);
-  } finally {
-    layout.cleanup();
-  }
+test("v2 request rejects retired schemas and all extra or missing fields", () => {
+  assert.throws(
+    () => validateExecutionRequest({ ...request(), schemaVersion: "meta-harness-execution-request/v1" }),
+    (error) => error.code === "UNSUPPORTED_SCHEMA",
+  );
+  assert.throws(
+    () => validateExecutionRequest({ ...request(), compatibility: true }),
+    (error) => error.code === "EXECUTION_REQUEST_SHAPE",
+  );
+  const missing = request();
+  delete missing.payload;
+  assert.throws(
+    () => validateExecutionRequest(missing),
+    (error) => error.code === "EXECUTION_REQUEST_SHAPE",
+  );
+  assert.throws(
+    () => validateExecutionRequest({ ...request(), action: "RUN_WORKER" }),
+    (error) => error.code === "EXECUTION_ACTION_UNSUPPORTED",
+  );
 });
 
-test("public request binds Node, launcher, native agent, and validation bytes before custody creation", () => {
-  const layout = createFixtureLayout({ label: "public-request-hashes" });
-  const requestRoot = fs.mkdtempSync(path.join(os.tmpdir(), "public-request-hash-file-"));
-  try {
-    const request = publicRequest(layout);
-    const { requestPath } = writeRequest(requestRoot, request);
-    const envelope = loadExecutionRequestEnvelope(requestPath);
-    const bindings = validateLocalBindings(envelope);
-    assert.equal(bindings.tools.node.observedSha256, request.agentProgram.expectedNodeSha256);
-    assert.equal(bindings.tools.launcher.observedSha256, request.agentProgram.expectedLauncherSha256);
-    assert.equal(bindings.tools.native.observedSha256, request.agentProgram.expectedNativeSha256);
-    assert.equal(bindings.tools.validation.observedSha256, request.validationProgram.expectedExecutableSha256);
-    assert.equal(fs.existsSync(request.custodyRoot), false);
+test("every v2 action enforces its exact payload keys", () => {
+  for (const action of ACTIONS) {
+    const payload = placeholderPayload(action);
+    assert.equal(validateExecutionRequest(request(action, payload)).action, action);
 
-    const mismatch = publicRequest(layout);
-    mismatch.agentProgram.expectedNodeSha256 = "0".repeat(64);
-    const bad = writeRequest(requestRoot, mismatch);
-    const badEnvelope = loadExecutionRequestEnvelope(bad.requestPath);
-    assert.throws(() => validateLocalBindings(badEnvelope), /nodeExecutablePath sha256 mismatch/);
-    assert.equal(fs.existsSync(mismatch.custodyRoot), false);
-  } finally {
-    layout.cleanup();
-    fs.rmSync(requestRoot, { recursive: true, force: true });
-  }
-});
-
-test("custody root requires one absent final directory under an existing non-symlink parent", () => {
-  const layout = createFixtureLayout({ label: "public-request-root" });
-  const requestRoot = fs.mkdtempSync(path.join(os.tmpdir(), "public-request-root-file-"));
-  const parent = fs.mkdtempSync(path.join(os.tmpdir(), "public-request-root-parent-"));
-  try {
-    const existingRoot = absNorm(path.join(parent, "existing"));
-    fs.mkdirSync(existingRoot);
-    const existing = publicRequest(layout, { custodyRoot: existingRoot });
     assert.throws(
-      () => validateLocalBindings(loadExecutionRequestEnvelope(writeRequest(requestRoot, existing).requestPath)),
-      /create-only custody root already exists/,
+      () => validateExecutionRequest(request(action, { ...payload, extra: true })),
+      (error) => error.code === "EXECUTION_PAYLOAD_SHAPE",
+      `${action} must reject extra payload keys`,
     );
 
-    const missingParentRoot = absNorm(path.join(parent, "missing-parent", "custody"));
-    const missingParent = publicRequest(layout, { custodyRoot: missingParentRoot });
-    assert.throws(
-      () => validateLocalBindings(loadExecutionRequestEnvelope(writeRequest(requestRoot, missingParent).requestPath)),
-      /realpath failed|ENOENT/,
-    );
-
-    const overlap = publicRequest(layout, {
-      custodyRoot: absNorm(path.join(layout.repositoryPath, "custody")),
-    });
-    assert.throws(
-      () => validateLocalBindings(loadExecutionRequestEnvelope(writeRequest(requestRoot, overlap).requestPath)),
-      /must be separated/,
-    );
-  } finally {
-    layout.cleanup();
-    fs.rmSync(requestRoot, { recursive: true, force: true });
-    fs.rmSync(parent, { recursive: true, force: true });
+    if (PAYLOAD_KEYS[action].length > 0) {
+      const incomplete = { ...payload };
+      delete incomplete[PAYLOAD_KEYS[action][0]];
+      assert.throws(
+        () => validateExecutionRequest(request(action, incomplete)),
+        (error) => error.code === "EXECUTION_PAYLOAD_SHAPE",
+        `${action} must reject missing payload keys`,
+      );
+    }
   }
 });
 
-test("request file must itself be a regular non-symlink file", () => {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "public-request-not-file-"));
+test("public request cannot submit successful mechanics, proof, reviewer, or terminal evidence", () => {
+  assert.throws(
+    () => validateExecutionRequest(request("RECORD_MECHANICS", {
+      runSpec: { schemaVersion: "run-spec/v2" },
+      expectedContributedRevision: "2".repeat(40),
+      mechanicsAssessment: { verdict: "MECHANICS_VERIFIED" },
+    })),
+    (error) => error.code === "EXECUTION_PAYLOAD_SHAPE",
+  );
+  assert.throws(
+    () => validateExecutionRequest(request("RECORD_TERMINAL_CANDIDATE", {
+      integratedCandidate: {},
+      packageCandidate: {},
+      releaseCandidate: {},
+      proofRequest: {},
+      blackBoxProof: { proofDigest: "sha256:caller" },
+      reviewerAssessments: [],
+      terminalAssessment: { verdict: "TERMINAL_SLICE_VERIFIED" },
+    })),
+    (error) => error.code === "EXECUTION_PAYLOAD_SHAPE",
+  );
+  assert.throws(
+    () => validateExecutionRequest(request("CERTIFY_CANDIDATE", {
+      integratedCandidate: {},
+      certificationRequest: {},
+      certificationProof: { proofDigest: "sha256:caller" },
+      reviewerAssessments: [],
+    })),
+    (error) => error.code === "EXECUTION_PAYLOAD_SHAPE",
+  );
+});
+
+test("request cannot select controller state, repository identity, policy, or clock", () => {
+  const probes = [
+    ["stateRoot", "/tmp/state", "CALLER_STATE_ROOT_FORBIDDEN"],
+    ["custodyRoot", "/tmp/custody", "CALLER_STATE_ROOT_FORBIDDEN"],
+    ["repositoryId", "caller-repository", "REQUEST_REPOSITORY_ID_FORBIDDEN"],
+    ["controllerPolicyDigest", "sha256:caller", "EXECUTION_REQUEST_FORBIDDEN_FIELD"],
+    ["now", "2000-01-01T00:00:00.000Z", "REQUEST_CLOCK_FORBIDDEN"],
+    ["clock", "caller-clock", "REQUEST_CLOCK_FORBIDDEN"],
+  ];
+  for (const [field, value, code] of probes) {
+    assert.throws(
+      () => validateExecutionRequest({ ...request(), [field]: value }),
+      (error) => error.code === code,
+      `${field} must fail with ${code}`,
+    );
+  }
+  assert.throws(
+    () => validateExecutionRequest(request("ACTIVATE_SLICE", { now: "2000-01-01T00:00:00.000Z" })),
+    (error) => error.code === "REQUEST_CLOCK_FORBIDDEN",
+  );
+});
+
+test("request envelope reads only a regular non-symlink absolute JSON file", (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "execution-request-v2-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+
+  const requestPath = writeRequest(root, request());
+  assert.deepEqual(loadExecutionRequestEnvelope(requestPath), request());
+
+  assert.throws(
+    () => loadExecutionRequestEnvelope(root),
+    /regular non-symlink file/,
+  );
+  assert.throws(
+    () => loadExecutionRequestEnvelope(path.relative(process.cwd(), requestPath)),
+    (error) => error.code === "EXECUTION_REQUEST_PATH",
+  );
+
+  const invalidPath = path.join(root, "invalid.json");
+  fs.writeFileSync(invalidPath, "{not-json}\n", "utf8");
+  assert.throws(
+    () => loadExecutionRequestEnvelope(invalidPath),
+    (error) => error.code === "EXECUTION_REQUEST_JSON",
+  );
+
+  const symlinkPath = path.join(root, "request-link.json");
   try {
-    assert.throws(() => loadExecutionRequestEnvelope(absNorm(directory)), /regular non-symlink file/);
-  } finally {
-    fs.rmSync(directory, { recursive: true, force: true });
+    fs.symlinkSync(requestPath, symlinkPath, "file");
+    assert.throws(
+      () => loadExecutionRequestEnvelope(symlinkPath),
+      (error) => error.code === "EXECUTION_REQUEST_FILE",
+    );
+  } catch (error) {
+    if (!["EPERM", "EACCES", "ENOSYS"].includes(error.code)) throw error;
   }
 });
 
-test("declared executable hashes are lowercase sha256 values", () => {
-  const layout = createFixtureLayout({ label: "public-request-hash-shape" });
-  try {
-    const request = publicRequest(layout);
-    assert.equal(request.agentProgram.expectedNodeSha256, sha256File(process.execPath));
-    request.validationProgram.expectedExecutableSha256 = "A".repeat(64);
-    assert.throws(() => validateExecutionRequest(request), /64 lowercase hex chars/);
-  } finally {
-    layout.cleanup();
-  }
+test("v2 request rejects non-plain authorization and payload objects", () => {
+  assert.throws(
+    () => validateExecutionRequest({ ...request(), sliceAuthorization: [] }),
+    (error) => error.code === "EXECUTION_REQUEST_OBJECT",
+  );
+  assert.throws(
+    () => validateExecutionRequest({ ...request(), payload: [] }),
+    (error) => error.code === "EXECUTION_REQUEST_OBJECT",
+  );
 });

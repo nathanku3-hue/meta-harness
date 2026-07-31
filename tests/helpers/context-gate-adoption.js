@@ -3,7 +3,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { run, runRaw, tempDir, writeFile } = require("./cli");
-const { mintReceiptForTarget } = require("./truth-authority");
 
 const SCORE_DIMENSIONS = Object.freeze([
   "product_outcome",
@@ -59,18 +58,37 @@ function initAdoptedRepo(phase = "plan") {
 }
 
 function writeStatusPhase(root, phase) {
-  const issuedAt = new Date().toISOString();
-  const receipt = mintReceiptForTarget(root, {
+  writeFile(root, ".meta-harness/status.md", [
+    "# Status",
+    "",
+    "Goal:",
+    "Adopt context gate enforcement.",
+    "",
+    "Phase:",
     phase,
-    action: "set context adoption truth",
-    goal: "Adopt context gate enforcement.",
-    result: "Testing Phase 13C adoption.",
-    next_action: "Run context gate readiness.",
-    stop_criteria: "Stop on blocked required gates.",
-    occurred_at: issuedAt,
-  });
-  const receiptPath = writeFile(root, ".meta-harness/local/context-adoption-authority-receipt.json", `${JSON.stringify(receipt)}\n`);
-  run(root, ["event", "--canonical", "--authority-receipt-file", receiptPath]);
+    "",
+    "Current truth:",
+    "Testing Phase 13C adoption.",
+    "",
+    "Scope:",
+    "Context gate readiness and provenance only.",
+    "",
+    "Evidence required:",
+    "Run the context gate readiness checks.",
+    "",
+    "Next action:",
+    "Run context gate readiness.",
+    "",
+    "Stop criteria:",
+    "Stop on blocked required gates.",
+    "",
+    "Freshness:",
+    "Current test fixture.",
+    "",
+    "Handoff:",
+    "Ready result explains the next step.",
+    "",
+  ].join("\n"));
 }
 
 function writeContextArtifact(root, roundId, content) {

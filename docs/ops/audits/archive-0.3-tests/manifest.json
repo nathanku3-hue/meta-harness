@@ -139,6 +139,24 @@
       "archivedPath": "docs/ops/audits/archive-0.3-tests/truth-reconciler.test.js",
       "contentDigest": "sha256:661bd116b41e5df94ecb35a0bdee4cac2e62180df322ece2c9e7cc3c425e06ea",
       "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/cli-ready-truth.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/cli-ready-truth.test.js",
+      "contentDigest": "sha256:2e0aae283971ae6b709b92d9f0077e64e0f928906783bcd6438eff427217f421",
+      "reason": "The pre-0.4 canonical truth readiness gate was removed; release authority is now produced only by the 0.4 semantic kernel."
+    },
+    {
+      "originalPath": "tests/context-truth-pregate.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/context-truth-pregate.test.js",
+      "contentDigest": "sha256:6928821559d126e2ec68f1cf5ef53354116eccc1e82c0f8faebbc8085b1c6f9b",
+      "reason": "The pre-0.4 truth-authority context pre-gate was removed; advisory context scoring no longer claims canonical authority."
+    },
+    {
+      "originalPath": "tests/contracts-authority-start.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/contracts-authority-start.test.js",
+      "contentDigest": "sha256:1ba76b7f543e89dfbb0534379576d484efa3d3c58aab47add53372c13ded4327",
+      "reason": "Legacy RunSpec approval and start authorization were retired by the 0.4 execution-request hard cut."
     }
   ]
 }

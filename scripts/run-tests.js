@@ -34,6 +34,18 @@ function collectTests(directory, out = []) {
   return out.sort((left, right) => left.localeCompare(right));
 }
 
+function dotReporterCounts(stdout) {
+  let tests = 0;
+  let failedTests = 0;
+  for (const line of String(stdout || "").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!/^[.X]+$/.test(trimmed)) continue;
+    tests += trimmed.length;
+    failedTests += [...trimmed].filter((entry) => entry === "X").length;
+  }
+  return { tests, failedTests };
+}
+
 function runFile(testFile) {
   const relative = toSlash(path.relative(root, testFile));
   const args = ["--test", "--test-reporter=dot"];
@@ -59,11 +71,30 @@ function runFile(testFile) {
     child.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
     child.on("error", (error) => {
       clearTimeout(timer);
-      resolve({ file: relative, status: 1, signal: null, elapsedMs: Date.now() - started, stdout, stderr, error, timedOut });
+      resolve({
+        file: relative,
+        status: 1,
+        signal: null,
+        elapsedMs: Date.now() - started,
+        stdout,
+        stderr,
+        error,
+        timedOut,
+        ...dotReporterCounts(stdout),
+      });
     });
     child.on("exit", (status, signal) => {
       clearTimeout(timer);
-      resolve({ file: relative, status: status === null ? 1 : status, signal, elapsedMs: Date.now() - started, stdout, stderr, timedOut });
+      resolve({
+        file: relative,
+        status: status === null ? 1 : status,
+        signal,
+        elapsedMs: Date.now() - started,
+        stdout,
+        stderr,
+        timedOut,
+        ...dotReporterCounts(stdout),
+      });
     });
   });
 }
@@ -119,7 +150,11 @@ async function main() {
     results.push(...await runSerial(serialTests));
   }
   const failed = results.filter((result) => result.status !== 0 || result.timedOut || result.error);
-  console.error(`# test files: ${results.length}; failed: ${failed.length}; duration: ${((Date.now() - started) / 1000).toFixed(1)}s`);
+  const testCount = results.reduce((sum, result) => sum + (result.tests || 0), 0);
+  const failedTestCount = results.reduce((sum, result) => sum + (result.failedTests || 0), 0);
+  console.error(
+    `# test files: ${results.length}; failed files: ${failed.length}; tests: ${testCount}; failed tests: ${failedTestCount}; duration: ${((Date.now() - started) / 1000).toFixed(1)}s`,
+  );
   process.exitCode = failed.length > 0 ? 1 : 0;
 }
 

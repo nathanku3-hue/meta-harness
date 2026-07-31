@@ -180,6 +180,7 @@ function makeAuthorization(owner, changes = {}) {
     repositoryId: owner.pin.repositoryId,
     sliceId: "S-SEMANTIC-KERNEL-1",
     initialBaseRevision: objectId("1"),
+    sliceMode: "DELIVERY",
     sliceAcceptance: acceptance,
     controllerBinding: {
       controllerProgramDigest: digest("controller-program"),
@@ -201,18 +202,21 @@ function makeAuthorization(owner, changes = {}) {
     },
     reviewPolicy: {
       product: {
+        executableIdentity: "tests/reviewers/product-reviewer.js",
         executableDigest: digest("reviewer-product-executable"),
         policyDigest: digest("reviewer-product-policy"),
         environmentPolicyDigest: digest("reviewer-product-environment"),
         networkPolicy: "none",
       },
       domain: {
+        executableIdentity: "tests/reviewers/domain-reviewer.js",
         executableDigest: digest("reviewer-domain-executable"),
         policyDigest: digest("reviewer-domain-policy"),
         environmentPolicyDigest: digest("reviewer-domain-environment"),
         networkPolicy: "none",
       },
       custody: {
+        executableIdentity: "tests/reviewers/custody-reviewer.js",
         executableDigest: digest("reviewer-custody-executable"),
         policyDigest: digest("reviewer-custody-policy"),
         environmentPolicyDigest: digest("reviewer-custody-environment"),
@@ -604,6 +608,44 @@ test("one owner authorization binds the complete mechanics-to-terminal chain", (
   assert.equal(terminal.verdict, "TERMINAL_SLICE_VERIFIED");
 });
 
+test("DELIVERY and CERTIFICATION have disjoint terminal requirements", () => {
+  const owner = createOwner();
+  const delivery = makeAuthorization(owner);
+  assert.equal(validateSliceAuthorization(delivery, owner.pin).sliceMode, "DELIVERY");
+
+  const certificationBody = clone(delivery);
+  delete certificationBody.ownerKeyId;
+  delete certificationBody.authorizationDigest;
+  delete certificationBody.ownerSignature;
+  certificationBody.sliceMode = "CERTIFICATION";
+  certificationBody.sliceAcceptance.shippingTarget = "repository-application";
+  certificationBody.publicationPolicy = null;
+  const certification = signAuthorization(certificationBody, owner);
+  const validated = validateSliceAuthorization(certification, owner.pin);
+  assert.equal(validated.sliceMode, "CERTIFICATION");
+  assert.equal(validated.publicationPolicy, null);
+  assert.equal(Object.prototype.hasOwnProperty.call(validated, "packageCandidate"), false);
+
+  const fakeNpmCertificationBody = clone(certificationBody);
+  fakeNpmCertificationBody.publicationPolicy = clone(delivery.publicationPolicy);
+  const fakeNpmCertification = signAuthorization(fakeNpmCertificationBody, owner);
+  assert.throws(
+    () => validateSliceAuthorization(fakeNpmCertification, owner.pin),
+    (error) => error.code === "SLICE_CERTIFICATION_PUBLICATION_FORBIDDEN",
+  );
+
+  const missingDeliveryPublicationBody = clone(delivery);
+  delete missingDeliveryPublicationBody.ownerKeyId;
+  delete missingDeliveryPublicationBody.authorizationDigest;
+  delete missingDeliveryPublicationBody.ownerSignature;
+  missingDeliveryPublicationBody.publicationPolicy = null;
+  const missingDeliveryPublication = signAuthorization(missingDeliveryPublicationBody, owner);
+  assert.throws(
+    () => validateSliceAuthorization(missingDeliveryPublication, owner.pin),
+    (error) => error.code === "CONTRACT_OBJECT_REQUIRED",
+  );
+});
+
 test("any acceptance byte change requires owner-signed G-SCOPE", () => {
   const owner = createOwner();
   const prior = makeAuthorization(owner);
@@ -765,6 +807,7 @@ test("candidate mutation advances generation and invalidates earlier terminal ev
     activationDigest: digest("activation"),
     terminalCandidateDigest: chain.integrated.candidateDigest,
     releaseCandidateDigest: chain.releaseCandidate.releaseCandidateDigest,
+    certificationCandidateDigest: null,
     terminalAssessmentDigest: chain.terminal.terminalAssessmentDigest,
     publicationObservationDigest: null,
     priorStateDigest: digest("prior-state"),
@@ -783,6 +826,7 @@ test("candidate mutation advances generation and invalidates earlier terminal ev
     activationDigest: prior.activationDigest,
     terminalCandidateDigest: null,
     releaseCandidateDigest: null,
+    certificationCandidateDigest: null,
     terminalAssessmentDigest: null,
     publicationObservationDigest: null,
     priorStateDigest: prior.stateDigest,

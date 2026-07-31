@@ -71,8 +71,8 @@ Any acceptance byte change requires a separately owner-signed G-SCOPE replacemen
 - `ACTIVATE_SLICE`
 - `SEAL_RUN_SPEC`
 - `RECORD_MECHANICS`
+- `CERTIFY_CANDIDATE`
 - `RECORD_TERMINAL_CANDIDATE`
-- `RECORD_TERMINAL_ASSESSMENT`
 - `RECORD_PUBLICATION_OBSERVATION`
 - `CLOSE_SLICE`
 
@@ -123,11 +123,24 @@ Local command success is non-authoritative. Closure requires an independent regi
 
 The package `prepublishOnly` hook runs publication verification only. It performs zero `npm pack` operations.
 
+## Delivery versus certification
+
+Every owner authorization selects one exact terminal mode:
+
+- `DELIVERY` is for Meta-Harness package shipment. It requires the exact npm package candidate, installed-package proof, Product/Domain/Custody review, terminal assessment, tag, publication observation, and canonical closure.
+- `CERTIFICATION` is for a repository application such as Quant. It binds the exact Git commit and tree, installed Python environment identity, dependency-lock digest, application entry point, operator-visible proof, and Product/Domain/Custody review. It forbids npm package, registry, Git tag, and publication fields and emits `CERTIFICATION_VERIFIED`, not a shipment claim.
+
+Public execution requests cannot submit successful mechanics, proof, reviewer, or terminal assessment objects. The installed controller executes sealed validation commands, resolves and hashes evaluator/reviewer programs, launches their isolated processes, captures their output, and constructs the authoritative evidence objects.
+
+Fail-closed process and network isolation currently uses Linux user, mount, and network namespaces. Other hosts can validate contracts and run the portable regression suite, but they cannot produce authoritative mechanics, delivery, or certification evidence unless an equivalent controller-owned sandbox is available.
+
 ## Advisory repository files
 
 `meta-harness init` creates advisory `.meta-harness` status and template files. It does not install authority, accept a product result, or create canonical truth.
 
 Status prose, worker reports, words such as “complete,” decision IDs, and evidence headings have no product-authority effect.
+
+Generated worker-report artifacts follow one stable parsing contract: the first non-empty line is `Outcome:` and no title appears before those fields. This is an evidence-format rule only; it does not grant product authority.
 
 ## Development verification
 

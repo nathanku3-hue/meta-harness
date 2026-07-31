@@ -5,7 +5,6 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
-const { prepareInitInvocation } = require("./truth-authority");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const CLI = path.join(ROOT, "bin", "meta-harness.js");
@@ -14,12 +13,58 @@ function tempDir(prefix = "meta-harness-") {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
 }
 
+function installAdvisoryInitFixture(cwd, args) {
+  const goal = args.slice(1).filter((value) => !String(value).startsWith("--")).join(" ").trim();
+  if (!goal) return;
+  const harness = path.join(cwd, ".meta-harness");
+  const statusPath = path.join(harness, "status.md");
+  const eventsPath = path.join(harness, "events.jsonl");
+  const occurredAt = new Date().toISOString();
+  fs.writeFileSync(statusPath, [
+    "# Status",
+    "",
+    "Goal:",
+    goal,
+    "",
+    "Phase:",
+    "intake",
+    "",
+    "Current truth:",
+    "per-repo harness state created",
+    "",
+    "Scope:",
+    "Advisory repository context only; product acceptance remains semantic-kernel controlled.",
+    "",
+    "Next action:",
+    "Translate the goal into one bounded functional slice.",
+    "",
+    "Stop criteria:",
+    "Stop before claiming product acceptance without terminal semantic-kernel evidence.",
+    "",
+    "Updated:",
+    occurredAt,
+    "",
+  ].join("\n"), "utf8");
+  if (!fs.readFileSync(eventsPath, "utf8").trim()) {
+    fs.appendFileSync(eventsPath, `${JSON.stringify({
+      ts: occurredAt,
+      actor: "system",
+      stream: "coding",
+      phase: "intake",
+      action: "initialized advisory harness",
+      result: "per-repo harness state created",
+      next_action: "Translate the goal into one bounded functional slice.",
+    })}\n`, "utf8");
+  }
+}
+
 function run(cwd, args, options = {}) {
-  const invocation = prepareInitInvocation(cwd, args);
+  const invocation = args[0] === "init" ? ["init"] : args;
   const result = runRaw(cwd, invocation, options);
   if (result.status !== 0) {
     throw new Error(`Command failed: ${invocation.join(" ")}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
   }
+  if (args[0] === "init") installAdvisoryInitFixture(cwd, args);
   return result.stdout;
 }
 
