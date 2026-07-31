@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - repair/s-semantic-kernel-0.4-bootstrap-artifact
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -15,7 +18,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout exact H2 source
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5d6aeb4c2d9c7362e8dae4041e
         with:
           ref: 905197c31904a89657d24a453dbdea9a9872e4d9
           persist-credentials: false
