@@ -1,0 +1,87 @@
+name: H2 Bootstrap Artifact
+
+on:
+  push:
+    branches:
+      - repair/s-semantic-kernel-0.4-bootstrap-artifact
+  pull_request:
+    branches:
+      - repair/s-semantic-kernel-0.4-r2
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Exact H2 bootstrap tarball
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact H2 source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: 905197c31904a89657d24a453dbdea9a9872e4d9
+          persist-credentials: false
+
+      - name: Set up exact Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: 20.20.2
+
+      - name: Install exact npm
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global --ignore-scripts npm@11.16.0
+          test "$(node --version)" = "v20.20.2"
+          test "$(npm --version)" = "11.16.0"
+
+      - name: Build one bootstrap-only tarball
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "905197c31904a89657d24a453dbdea9a9872e4d9"
+          test "$(git rev-parse HEAD^{tree})" = "ea057bab7fd0471bdfbe3458229d8382af45ca3d"
+          mkdir -p bootstrap-artifact
+          npm pack --ignore-scripts --json --pack-destination bootstrap-artifact > bootstrap-artifact/pack-result.json
+          tarball=$(node -p 'require("./bootstrap-artifact/pack-result.json")[0].filename')
+          tarball_path="bootstrap-artifact/${tarball}"
+          test -f "${tarball_path}"
+          sha256=$(sha256sum "${tarball_path}" | awk '{print $1}')
+          integrity="sha512-$(openssl dgst -sha512 -binary "${tarball_path}" | base64 -w0)"
+          bytes=$(stat -c '%s' "${tarball_path}")
+          tar -tzf "${tarball_path}" | LC_ALL=C sort > bootstrap-artifact/packlist.txt
+          packlist_sha256=$(sha256sum bootstrap-artifact/packlist.txt | awk '{print $1}')
+          node - "${tarball}" "${sha256}" "${integrity}" "${bytes}" "${packlist_sha256}" <<'NODE' > bootstrap-artifact/h2-bootstrap-evidence.json
+          const [tarball, sha256, integrity, bytes, packlistSha256] = process.argv.slice(2);
+          process.stdout.write(`${JSON.stringify({
+            schemaVersion: "meta-harness-h2-bootstrap-artifact/v1",
+            classification: [
+              "BOOTSTRAP_TOOLING_ONLY",
+              "NOT_PACKAGE_CANDIDATE",
+              "NOT_RELEASE_CANDIDATE",
+              "NOT_PUBLICATION_BYTES"
+            ],
+            sourceCommit: "905197c31904a89657d24a453dbdea9a9872e4d9",
+            sourceTree: "ea057bab7fd0471bdfbe3458229d8382af45ca3d",
+            sourceRun: 30641773124,
+            nodeVersion: process.version,
+            npmVersion: "11.16.0",
+            buildCount: 1,
+            command: "npm pack --ignore-scripts --json --pack-destination bootstrap-artifact",
+            tarball,
+            tarballSha256: `sha256:${sha256}`,
+            tarballIntegrity: integrity,
+            tarballBytes: Number(bytes),
+            packlistSha256: `sha256:${packlistSha256}`
+          }, null, 2)}\n`);
+          NODE
+          cat bootstrap-artifact/h2-bootstrap-evidence.json
+
+      - name: Upload immutable bootstrap evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: h2-bootstrap-905197c-node20.20.2-npm11.16.0
+          path: bootstrap-artifact/
+          if-no-files-found: error
+          retention-days: 30
