@@ -15,7 +15,7 @@ permissions:
 jobs:
   test:
     name: Linux validation + authority Node ${{ matrix.node-version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     strategy:
       fail-fast: false
@@ -33,6 +33,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
 
+      - name: Record runtime versions
+        shell: bash
+        run: |
+          node --version
+          npm --version
+          unshare --version
+          uname -a
+
       - name: Record exact candidate identity
         shell: bash
         run: |
@@ -43,6 +51,27 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Provision authority namespace sandbox
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if sysctl kernel.apparmor_restrict_unprivileged_userns >/dev/null 2>&1; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+            test "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns)" = "0"
+          fi
+
+          unshare \
+            --user \
+            --map-root-user \
+            --mount \
+            --net \
+            -- \
+            sh -ceu '
+              test "$(id -u)" = "0"
+              test ! -s /proc/net/route
+            '
 
       - name: Run complete source, package, installed, and Linux authority gate
         run: npm test
