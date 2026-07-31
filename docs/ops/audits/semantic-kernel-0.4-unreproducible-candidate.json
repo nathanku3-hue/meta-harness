@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "meta-harness-unreproducible-candidate-audit/v1",
+  "recordedAtUtc": "2026-07-31T07:31:00.000Z",
+  "candidateCommit": "5016201c494828d2d79f894681ebb562780687f0",
+  "status": "UNREPRODUCIBLE",
+  "search": {
+    "configuredRemote": {
+      "searched": true,
+      "remote": "origin",
+      "matches": 0
+    },
+    "localObjectDatabase": {
+      "searched": true,
+      "commitObjectPresent": false
+    },
+    "registeredWorktrees": {
+      "searched": true,
+      "matches": 0
+    },
+    "nearbyRepositories": {
+      "searched": true,
+      "root": "E:/Code",
+      "matches": 0
+    }
+  },
+  "supersession": {
+    "replacementCommit": null,
+    "replacementTree": null,
+    "reason": "The replacement identity must be created only after the repair commit is green in a clean fresh checkout. Recording it in this commit would be false and would create a self-reference problem.",
+    "historicalClaimsInheritedByReplacement": []
+  },
+  "claimsNotInherited": [
+    "test counts",
+    "cross-platform parity",
+    "package identity",
+    "installed proof",
+    "reviewer results",
+    "terminal assessment",
+    "tag identity",
+    "publication",
+    "acceptance"
+  ]
+}

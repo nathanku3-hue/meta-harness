@@ -9,6 +9,7 @@ const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const { domainDigest } = require("../lib/contracts/digest");
+const { npmInvocation } = require("../lib/npm-command");
 const { ownerPublicKeyDigest } = require("../lib/semantic-kernel/owner-pin");
 const { validatePublicationException } = require("../lib/semantic-kernel/publication-exception");
 
@@ -96,10 +97,12 @@ test("offline owner tool produces deterministic cross-process signatures without
 });
 
 test("npm package excludes owner signing tools and retired authority paths", () => {
-  const result = spawnSync("npm", ["pack", "--ignore-scripts", "--dry-run", "--json"], {
+  const invocation = npmInvocation(["pack", "--ignore-scripts", "--dry-run", "--json"]);
+  const result = spawnSync(invocation.command, invocation.args, {
     cwd: ROOT,
     encoding: "utf8",
     windowsHide: true,
+    shell: process.platform === "win32" && invocation.command === "npm.cmd",
     timeout: 180000,
   });
   assert.equal(result.status, 0, result.stderr);

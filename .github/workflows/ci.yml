@@ -6,13 +6,15 @@ on:
     branches:
       - main
       - 'codex/**'
+      - 'repair/**'
+      - 'candidate/**'
 
 permissions:
   contents: read
 
 jobs:
   test:
-    name: Linux Node ${{ matrix.node-version }}
+    name: Linux validation + authority Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -31,14 +33,22 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
 
+      - name: Record exact candidate identity
+        shell: bash
+        run: |
+          echo "commit=$(git rev-parse HEAD)"
+          echo "tree=$(git rev-parse HEAD^{tree})"
+          echo "workflow_sha=${GITHUB_SHA}"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
+      - name: Run complete source, package, installed, and Linux authority gate
         run: npm test
 
   windows:
-    name: Windows Node ${{ matrix.node-version }}
+    name: Windows validation + packaging Node ${{ matrix.node-version }}
     runs-on: windows-latest
     timeout-minutes: 20
     strategy:
@@ -57,8 +67,18 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
 
+      - name: Record exact candidate identity
+        shell: pwsh
+        run: |
+          $head = git rev-parse HEAD
+          $tree = git rev-parse 'HEAD^{tree}'
+          Write-Output "commit=$head"
+          Write-Output "tree=$tree"
+          Write-Output "workflow_sha=$env:GITHUB_SHA"
+          if ($head -ne $env:GITHUB_SHA) { throw "checkout is not bound to GITHUB_SHA" }
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
+      - name: Run complete portable, package, installed, and zero-side-effect gate
         run: npm test

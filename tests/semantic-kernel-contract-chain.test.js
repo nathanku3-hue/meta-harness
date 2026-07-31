@@ -181,6 +181,7 @@ function makeAuthorization(owner, changes = {}) {
     sliceId: "S-SEMANTIC-KERNEL-1",
     initialBaseRevision: objectId("1"),
     sliceMode: "DELIVERY",
+    authorityExecutionPlatform: "linux",
     sliceAcceptance: acceptance,
     controllerBinding: {
       controllerProgramDigest: digest("controller-program"),
@@ -611,7 +612,9 @@ test("one owner authorization binds the complete mechanics-to-terminal chain", (
 test("DELIVERY and CERTIFICATION have disjoint terminal requirements", () => {
   const owner = createOwner();
   const delivery = makeAuthorization(owner);
-  assert.equal(validateSliceAuthorization(delivery, owner.pin).sliceMode, "DELIVERY");
+  const validatedDelivery = validateSliceAuthorization(delivery, owner.pin);
+  assert.equal(validatedDelivery.sliceMode, "DELIVERY");
+  assert.equal(validatedDelivery.authorityExecutionPlatform, "linux");
 
   const certificationBody = clone(delivery);
   delete certificationBody.ownerKeyId;
@@ -625,6 +628,17 @@ test("DELIVERY and CERTIFICATION have disjoint terminal requirements", () => {
   assert.equal(validated.sliceMode, "CERTIFICATION");
   assert.equal(validated.publicationPolicy, null);
   assert.equal(Object.prototype.hasOwnProperty.call(validated, "packageCandidate"), false);
+
+  const windowsAuthorityBody = clone(delivery);
+  delete windowsAuthorityBody.ownerKeyId;
+  delete windowsAuthorityBody.authorizationDigest;
+  delete windowsAuthorityBody.ownerSignature;
+  windowsAuthorityBody.authorityExecutionPlatform = "win32";
+  const windowsAuthority = signAuthorization(windowsAuthorityBody, owner);
+  assert.throws(
+    () => validateSliceAuthorization(windowsAuthority, owner.pin),
+    (error) => error.code === "SLICE_AUTHORITY_EXECUTION_PLATFORM_INVALID",
+  );
 
   const fakeNpmCertificationBody = clone(certificationBody);
   fakeNpmCertificationBody.publicationPolicy = clone(delivery.publicationPolicy);

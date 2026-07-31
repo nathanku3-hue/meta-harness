@@ -15,6 +15,12 @@ const {
   produceDeliveryTerminalEvidence,
   sha256Bytes,
 } = require("../lib/semantic-kernel/evidence-runtime");
+const {
+  certifyCandidate,
+  recordMechanicsAssessment,
+  recordTerminalCandidate,
+  reserveExecutionAttempt,
+} = require("../lib/semantic-kernel/semantic-controller");
 const { computeRunSpecDigest } = require("../lib/semantic-kernel/run-spec-v2");
 const { computeSliceAcceptanceDigest } = require("../lib/semantic-kernel/slice-authorization");
 const {
@@ -246,6 +252,7 @@ function deliveryFixture(t) {
     sliceId: "S-DELIVERY-TEST",
     initialBaseRevision: base,
     sliceMode: "DELIVERY",
+    authorityExecutionPlatform: "linux",
     sliceAcceptance: acceptance,
     controllerBinding: {
       controllerProgramDigest: digest("delivery-controller-program"),
@@ -431,6 +438,7 @@ function certificationFixture(t) {
     sliceId: "S-CERTIFICATION-TEST",
     initialBaseRevision: base,
     sliceMode: "CERTIFICATION",
+    authorityExecutionPlatform: "linux",
     sliceAcceptance: acceptance,
     controllerBinding: {
       controllerProgramDigest: digest("controller-program"),
@@ -541,6 +549,7 @@ test("controller constructs mechanics from observed Git and sealed command execu
   };
   const authorization = {
     sliceId: "S-MECHANICS-TEST",
+    authorityExecutionPlatform: "linux",
     authorizationDigest: digest("mechanics-authorization"),
     sliceAcceptance: acceptance,
     executionLimits: { mustCompleteBy: "2099-01-01T00:00:00.000Z" },
@@ -648,4 +657,36 @@ test("Python environment identity is controller-observed and stable for unchange
   assert.equal(first.installedEnvironmentIdentityDigest, second.installedEnvironmentIdentityDigest);
   assert.equal(first.environmentManifestDigest, second.environmentManifestDigest);
   assert.match(first.executableDigest, /^sha256:[a-f0-9]{64}$/);
+});
+
+test("Windows authoritative evidence operations fail before spawn, counters, bundles, state, or repository mutation", { skip: process.platform !== "win32" }, (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "semantic-windows-fail-closed-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const authorization = { authorityExecutionPlatform: "linux" };
+  const before = fs.readdirSync(root);
+  const operations = [
+    () => constructMechanicsAssessment({ repositoryPath: root, runSpec: null, sliceAuthorization: authorization, expectedContributedRevision: "0".repeat(40) }),
+    () => produceDeliveryTerminalEvidence({ repositoryPath: root, sliceAuthorization: authorization }),
+    () => produceCertificationEvidence({ repositoryPath: root, sliceAuthorization: authorization }),
+    () => reserveExecutionAttempt({ repositoryPath: root, sliceAuthorization: authorization }),
+    () => recordMechanicsAssessment({ repositoryPath: root, sliceAuthorization: authorization }),
+    () => recordTerminalCandidate({ repositoryPath: root, sliceAuthorization: authorization }),
+    () => certifyCandidate({ repositoryPath: root, sliceAuthorization: authorization }),
+  ];
+  for (const operation of operations) {
+    assert.throws(operation, (error) => {
+      assert.equal(error.code, "AUTHORITY_EXECUTION_PLATFORM_UNSUPPORTED");
+      assert.equal(error.details.authorityExecutionPlatform, "linux");
+      assert.equal(error.details.currentPlatform, "win32");
+      assert.deepEqual(error.details.sideEffects, {
+        processSpawned: false,
+        attemptOrRunCounterChanged: false,
+        operationBundlePublished: false,
+        stateTransitioned: false,
+        repositoryMutated: false,
+      });
+      return true;
+    });
+  }
+  assert.deepEqual(fs.readdirSync(root), before);
 });

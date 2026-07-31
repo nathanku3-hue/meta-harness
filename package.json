@@ -38,6 +38,8 @@
     "!lib/execution-custody/terminal-evidence.js",
     "!lib/release-check.js",
     "!lib/release-package-check.js",
+    "!lib/semantic-kernel/package-closure.js",
+    "!lib/semantic-kernel/release-negative-scan.js",
     "!lib/truth-authority-contract.js",
     "!lib/truth-authority.js",
     "!lib/truth-mutation.js",

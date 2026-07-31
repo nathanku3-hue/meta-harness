@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "meta-harness-repair-gate-evidence/v1",
+  "recordedAtUtc": "2026-07-31T08:46:39Z",
+  "classification": "PRE_CANDIDATE_REPAIR_EVIDENCE",
+  "claims": {
+    "releaseCandidate": false,
+    "ownerAuthorized": false,
+    "accepted": false,
+    "published": false,
+    "scoreIncrease": false
+  },
+  "checkpoint": {
+    "branch": "repair/s-semantic-kernel-0.4-r1",
+    "unverifiedCheckpointCommit": "98f65a2596e26a2ec45fcd4247d9277b752d8222"
+  },
+  "platformContract": {
+    "authorityExecutionPlatform": "linux",
+    "windowsAuthorityExecution": "FAIL_CLOSED_BEFORE_SIDE_EFFECTS",
+    "accurateClaim": "Cross-platform validation and packaging; Linux-only authoritative evidence production."
+  },
+  "windowsSourceGate": {
+    "runtime": "Windows Node v25.2.1",
+    "npm": "11.6.2",
+    "command": "cmd.exe /d /s /c set META_HARNESS_TEST_CONCURRENCY=6&&D:\\nodejs\\node.exe D:\\nodejs\\node_modules\\npm\\bin\\npm-cli.js test",
+    "parallelConcurrency": 6,
+    "serialSensitiveFiles": 6,
+    "testFiles": 101,
+    "individualTests": 707,
+    "failedFiles": 0,
+    "failedTests": 0,
+    "exitCode": 0,
+    "durationSeconds": 102.7,
+    "countDeltaFromHandoff": {
+      "testFiles": 1,
+      "individualTests": 4,
+      "reason": "Added one three-test package-closure file and one Windows zero-side-effect authority-platform test."
+    }
+  },
+  "packageGate": {
+    "version": "0.4.0",
+    "actualTarballCount": 1,
+    "tarballName": "nkgss-meta-harness-0.4.0.tgz",
+    "tarballSha256": "896c9bba1f1fa02073373362533c3925eb635877a04fb959ef5f6dae8e5ad5ea",
+    "tarballBytes": 324484,
+    "packlistEntries": 223,
+    "packlistSha256": "b1c142c58af0c58d80f14d20791efde84008986b8eef97019f734e179ed7fd70",
+    "dryRunActualPacklistsEqual": true,
+    "shippedJavascriptEntries": 193,
+    "staticRelativeDependenciesResolved": 527,
+    "retiredAuthorityTokenScan": "PASS",
+    "sourceOnlyGateToolsExcluded": [
+      "lib/semantic-kernel/package-closure.js",
+      "lib/semantic-kernel/release-negative-scan.js"
+    ],
+    "installedCommandsLoaded": 29,
+    "installedCliHelp": "PASS",
+    "offlineInstall": "PASS"
+  },
+  "otherGates": {
+    "gitDiffCheck": "PASS",
+    "templateSync": {
+      "status": "PASS",
+      "checked": 30
+    },
+    "archiveManifest": {
+      "status": "PASS",
+      "entries": 26
+    },
+    "historicalCandidateAudit": "docs/ops/audits/semantic-kernel-0.4-unreproducible-candidate.json"
+  },
+  "nonGatingInheritedFinding": {
+    "qualityCommand": "meta-harness quality check",
+    "status": "BLOCK",
+    "reason": "The tracked quality baseline was generated for the July 15 0.2.0 state and treats the already-inherited 0.4 semantic-kernel and archived-test files as new debt.",
+    "repairAction": "NONE",
+    "whyNoMutation": "Refreshing a governance baseline is outside this explicitly bounded reproducibility slice and would require separate authority."
+  },
+  "nextGate": "Commit and push the complete repair, verify a clean fresh checkout of that exact commit, then create immutable candidate branch and annotated tag at the same commit."
+}

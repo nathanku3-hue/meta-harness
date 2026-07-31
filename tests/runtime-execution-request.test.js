@@ -170,7 +170,7 @@ test("request envelope reads only a regular non-symlink absolute JSON file", (t)
     /regular non-symlink file/,
   );
   assert.throws(
-    () => loadExecutionRequestEnvelope(path.relative(process.cwd(), requestPath)),
+    () => loadExecutionRequestEnvelope(path.join("relative", "request.json")),
     (error) => error.code === "EXECUTION_REQUEST_PATH",
   );
 
