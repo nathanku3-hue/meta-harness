@@ -49,7 +49,13 @@ function assertCoreContract(relativePath) {
     assert.match(text, new RegExp("\\b" + type + "\\b"));
   }
   assert.match(text, /Status-only artifacts are not shipped progress/i);
-  assert.match(text, /must not create another status-only packet as progress/i);
+  assert.match(text, /must not create another status-only packet[\s\S]+lifecycle fragment as progress/i);
+  assert.match(text, /Product Result/i);
+  assert.match(text, /Terminal Closure/i);
+  assert.match(text, /exact active SliceAcceptance digest|exact owner-authorized/i);
+  assert.match(text, /acceptance-only, integration-only, evidence-banking, authority-update, packaging-only, review-only, and documentation-only/i);
+  assert.match(text, /lifecycle stages inside the owning functional slice/i);
+  assert.match(text, /installed proof[\s\S]+isolated A\/B\/C[\s\S]+terminal assessment[\s\S]+exact publication/i);
   assert.match(text, /PM closure is the chat answer, not the worker-report artifact/i);
   assert.match(text, /hide .*Outcome.*Round.*Progress.*Confidence/i);
   assert.match(text, /approval text/i);
@@ -61,7 +67,7 @@ function assertCoreContract(relativePath) {
 test("canonical SOP separates closure, handover, and worker evidence", () => {
   const sop = read("docs/sop/meta-harness-sop.md");
   assert.match(sop, /^Status: canonical$/m);
-  assert.match(sop, /canonical contract for agent-level .*ship-fast/);
+  assert.match(sop, /canonical human-facing contract for .*ship-fast/);
   const contract = sop.slice(sop.indexOf("### PM Output Contract"), sop.indexOf("## Status Truth Template"));
   assert.match(contract, /FAST/);
   assert.match(contract, /REVIEW/);
@@ -81,9 +87,20 @@ test("canonical SOP separates closure, handover, and worker evidence", () => {
   assert.match(contract, /affirmative signal[\s\S]+closes only a pure .*HUMAN_TASTE/i);
 });
 
-test("router and decision gate are independently distributable", () => {
+test("router, decision gate, and scope selector preserve one complete functional slice", () => {
   assertCoreContract("templates/skills/ship-fast-decision-router.md");
   assertCoreContract("templates/contracts/ship-fast-decision-gate.md");
+  const selector = read("templates/skills/scope-selector.md");
+  assert.match(selector, /Authority-Ordered Inputs/);
+  assert.match(selector, /Locked product intent and explicit owner decisions/);
+  assert.match(selector, /active owner-signed `SliceAuthorization`/);
+  assert.match(selector, /status\.md.*summaries last/is);
+  assert.match(selector, /Status, events, reports, objectives, and summaries are advisory/);
+  assert.match(selector, /^Acceptance Digest: <exact immutable SliceAcceptance digest>$/m);
+  assert.match(selector, /^Product Result: <observable end-to-end capability or restored user flow>$/m);
+  assert.match(selector, /^Terminal Closure: <verification -> acceptance -> integration -> package -> installed proof -> A\/B\/C -> terminal assessment -> exact publication -> deterministic closure, or one named protected-boundary gate>$/m);
+  assert.match(selector, /Any byte change requires a new owner-signed G-SCOPE replacement/);
+  assert.match(selector, /do not optimize for the smallest lifecycle fragment/);
 });
 
 test("worker contract preserves dense handover and internal SLOW evidence", () => {

@@ -1,0 +1,144 @@
+{
+  "schemaVersion": "meta-harness-retired-test-archive/v1",
+  "protocolCut": "meta-harness/0.4",
+  "archived": [
+    {
+      "originalPath": "tests/cli-execute.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/cli-execute.test.js",
+      "contentDigest": "sha256:7b0c2b83e94eccf5b46c0ea5eded5f933332825e46a81892643d0bfc08465ce4",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/cli-truth-bootstrap.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/cli-truth-bootstrap.test.js",
+      "contentDigest": "sha256:bda3ad42e2de74713e34e5029b7e82386e10d679cf871d8daeee0b99c51e29d7",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/cli-truth-ledger-custody.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/cli-truth-ledger-custody.test.js",
+      "contentDigest": "sha256:693f82059cda3a4170c44e8bfc6867f727f436b2b659d0710ed50c88c5c3941f",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/cli-truth.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/cli-truth.test.js",
+      "contentDigest": "sha256:61c3a49aaf863ed7df469e845ad62538677006e381ad3022e3b0786df4e6f925",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/contracts-authority-authorization.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/contracts-authority-authorization.test.js",
+      "contentDigest": "sha256:dd506eeac3cb40b78f0a7438d5c401826c2f5e188295fe41c86ab7bed2f3aa53",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/contracts-authority-final-adversarial.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/contracts-authority-final-adversarial.test.js",
+      "contentDigest": "sha256:ff6f1b7fc883c8cd0226890467702b19012fc7634878fe7bc796a7d7490230ec",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/contracts-authority-implementation.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/contracts-authority-implementation.test.js",
+      "contentDigest": "sha256:10ab909e16cc9fe965bcd5d0cb01c2d9e5df56691c4f731e949edfbaabde1b67",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/contracts-authority-run-spec-approval.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/contracts-authority-run-spec-approval.test.js",
+      "contentDigest": "sha256:59f359018770b615c4670038e00a2da186f6a447b3b74e15c5b3563bdf8f4885",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/contracts-authority-strict-json.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/contracts-authority-strict-json.test.js",
+      "contentDigest": "sha256:a129aaa14eeb22345ed1aa2083695ad3bed63f1a05bd9b332e5271d900dbac2d",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/contracts-d068-truth.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/contracts-d068-truth.test.js",
+      "contentDigest": "sha256:3d8746002ffe3390824802f0b68ecb3b9254002c04a9b39edc22c7227be0a60b",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/contracts-execution-custody-truth.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/contracts-execution-custody-truth.test.js",
+      "contentDigest": "sha256:f0d1ee228a4c62bcb4a4577fcc62c5ad03801b278c7faf5a03faa071dac52971",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/governance-release-check.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/governance-release-check.test.js",
+      "contentDigest": "sha256:276f17e5e411a7cfe872f86a1a41c52202b8280cd3cd8c84ecda60bf69af592c",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/installed-execution-custody.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/installed-execution-custody.test.js",
+      "contentDigest": "sha256:410537168e064e57214da0299d7bd306a6eee7f84c58a750ede5bde6681e0a06",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/meta-harness-decisions.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/meta-harness-decisions.test.js",
+      "contentDigest": "sha256:590de1984c18187f4972cd30e87f2aee322dfc1a82408b966de08cae19a80a6c",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/meta-harness-dirty.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/meta-harness-dirty.test.js",
+      "contentDigest": "sha256:236548e41fe06514a8294589e7e83102bd799eaa0ca6a7699af92f321f6cc7e6",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/meta-harness-errors.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/meta-harness-errors.test.js",
+      "contentDigest": "sha256:87cf8d2e13c2d08525936f7c9ea9a4b20c22d2be68c90487e59f8ef0461f7a26",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/meta-harness-worker-report.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/meta-harness-worker-report.test.js",
+      "contentDigest": "sha256:ac1fe58ee37958c5f69aefcd075349b801168b391ead7937b3d4bb6253382097",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/release-check-evidence.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/release-check-evidence.test.js",
+      "contentDigest": "sha256:1ec9c0129237543097f1add69c1d242835593aa37c6a8852fd58422e0b59a7b5",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/release-check.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/release-check.test.js",
+      "contentDigest": "sha256:8b746a10d921d4de69c6e6c5e44337a7da7d6ad21b87d01ce93ea34b54a79d95",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/runtime-execution-custody-artifact.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/runtime-execution-custody-artifact.test.js",
+      "contentDigest": "sha256:0a40c262d63762a4429c567f35d6703b8f24ede09ed12863944048ad80b45ff3",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/runtime-execution-custody-process-tree.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/runtime-execution-custody-process-tree.test.js",
+      "contentDigest": "sha256:d85e68b82535ea77ff79c267eb3d9477a8ef0dd95e6ed0b0c5d642cc449a303f",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/runtime-execution-custody.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/runtime-execution-custody.test.js",
+      "contentDigest": "sha256:858267ddb5ddaec07d6016139ba687ec3e527cb3a17a1fd060ae2caeffc27c28",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    },
+    {
+      "originalPath": "tests/truth-reconciler.test.js",
+      "archivedPath": "docs/ops/audits/archive-0.3-tests/truth-reconciler.test.js",
+      "contentDigest": "sha256:661bd116b41e5df94ecb35a0bdee4cac2e62180df322ece2c9e7cc3c425e06ea",
+      "reason": "Pre-0.4 execution, truth-authority, release-rebuild, replay, or compatibility expectation retired by the hard cut."
+    }
+  ]
+}

@@ -5,7 +5,6 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 const { spawnSync } = require("node:child_process");
-const { prepareInitInvocation } = require("./helpers/truth-authority");
 const {
   checkTemplateSync,
   scanContracts,
@@ -242,7 +241,7 @@ test("templates install/upgrade round-trip integration test", () => {
   const targetRoot = tempDir();
 
   // 1. Run templates install command (requires init first)
-  const resultInit = spawnSync(process.execPath, [CLI, ...prepareInitInvocation(targetRoot, ["init", "Roundtrip test"])], { cwd: targetRoot });
+  const resultInit = spawnSync(process.execPath, [CLI, "init"], { cwd: targetRoot });
   assert.equal(resultInit.status, 0);
 
   const resultInstall = spawnSync(process.execPath, [CLI, "templates", "install", "--allow-dirty"], { cwd: targetRoot });
@@ -269,9 +268,11 @@ test("templates install/upgrade round-trip integration test", () => {
   const resultCheck3 = spawnSync(process.execPath, [CLI, "sync", "check", "--target", targetRoot], { cwd: targetRoot });
   assert.equal(resultCheck3.status, 0);
 
-  // 7. Confirms no local state leaks
+  // 7. Init remains advisory and does not mint canonical authority.
   const eventsContent = fs.readFileSync(path.join(targetRoot, ".meta-harness", "events.jsonl"), "utf8");
-  assert.ok(eventsContent.includes("initialized harness"));
+  const statusContent = fs.readFileSync(path.join(targetRoot, ".meta-harness", "status.md"), "utf8");
+  assert.equal(eventsContent, "");
+  assert.match(statusContent, /Product acceptance:\nNot evaluated\./);
 });
 
 test("templates install failure rollback test", () => {
@@ -279,7 +280,7 @@ test("templates install failure rollback test", () => {
   const CLI = path.join(ROOT, "bin", "meta-harness.js");
   const targetRoot = tempDir();
 
-  const resultInit = spawnSync(process.execPath, [CLI, ...prepareInitInvocation(targetRoot, ["init", "Rollback test"])], { cwd: targetRoot });
+  const resultInit = spawnSync(process.execPath, [CLI, "init"], { cwd: targetRoot });
   assert.equal(resultInit.status, 0);
 
   const resultInstall = spawnSync(process.execPath, [CLI, "templates", "install", "--allow-dirty"], { cwd: targetRoot });

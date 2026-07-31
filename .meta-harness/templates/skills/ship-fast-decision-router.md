@@ -33,7 +33,7 @@ Never emit `SLOW` in ship-fast. Compress a would-be slow case to `REVIEW` when o
 
 ## 4. Terminal Outcomes
 
-- `SHIP`: work is complete, nearest evidence supports it, and no approval boundary is crossed.
+- `SHIP`: the observable `Product Result` in the exact active SliceAcceptance is delivered and `Terminal Closure` is complete through mechanics evidence, deterministic integration, exact package, installed proof, isolated A/B/C, terminal assessment, exact publication observation, deterministic canonical projection, and continuation. A status-only artifact or lifecycle fragment cannot `SHIP`.
 - `REVIEW`: work is ready for review and is not self-approved as shipped.
 - `DECISION_NEEDED`: a PM, owner, or authority holder must decide before progress or approval.
 - `BLOCKED`: work cannot proceed without external action, access, dependency, or scope change.
@@ -47,7 +47,15 @@ Never emit `SLOW` in ship-fast. Compress a would-be slow case to `REVIEW` when o
 
 Declare exactly one artifact type. Never embed a specimen or materialized implementation in a PM closure. A blocker is a status artifact, not an audit packet or implementation plan.
 
-Status-only artifacts are not shipped progress unless the user explicitly requested status or reporting as the product. Expert packets, approval packets, PM status, and dashboards that only restate current truth may advance a `REVIEW` or `BLOCK` gate, but they do not move implementation progress or terminal outcome to `SHIP`. After approval, the next ship-fast round must either materialize the smallest owned, reversible, locally verifiable slice or emit the bounded gate closure; it must not create another status-only packet as progress.
+Status-only artifacts are not shipped progress unless the user explicitly requested status or reporting as the product. Expert packets, approval packets, PM status, and dashboards that only restate current truth may advance a `REVIEW` or `BLOCK` gate, but they do not move implementation progress or terminal outcome to `SHIP`.
+
+Scope selection must name both `Product Result` and `Terminal Closure` and preserve the exact active SliceAcceptance digest. Reject acceptance-only, integration-only, evidence-banking, authority-update, packaging-only, review-only, and documentation-only rounds as standalone scopes; they are lifecycle stages inside the owning functional slice.
+
+Complete lifecycle closure belongs in the same logical functional slice: implementation or repair, verification, deterministic integration, exact package, installed proof, isolated A/B/C, terminal assessment, exact publication, deterministic canonical projection, and continuation.
+
+A closure-repair scope is allowed only for an observable user-flow defect in a previously materialized functional slice. It must restore the user flow, rerun the original functional-slice exit, and repeat every affected closure stage; generic cleanup, evidence refresh, documentation, or governance work does not qualify.
+
+After approval, the next ship-fast round must either materialize the smallest owner-authorized end-to-end slice or emit the bounded protected-boundary gate; it must not create another status-only packet or lifecycle fragment as progress.
 
 The PM closure is the chat answer, not the worker-report artifact. Translate internal state into plain language and hide `Outcome`, `Round`, `Progress`, `Confidence`, `Ship gate tier`, SAW/ClosurePacket internals, hashes, absolute paths, file allowlists, command logs, and accountability booleans unless the user asks for evidence. If the user asks for approval text, emit only the pasteable approval block.
 
@@ -62,6 +70,8 @@ The PM closure is the chat answer, not the worker-report artifact. Translate int
 7. Create expert packets only after the pre-route decision says outside judgment is needed.
 8. When outcome is `BLOCKED`, the Next field must name the next forward gate, not a wait state. Write "Gate N — <pass condition>" not "Status remains <WAIT_LABEL>". Audit and security packets use a named gate sequence (G0, G1, …); the current gate is always open and actionable.
 9. An affirmative signal such as `ok`, `ship`, `approved`, or `好` closes only a pure `HUMAN_TASTE` gate: the active pre-route is exactly `HUMAN_TASTE`, with no authority, security, evidence, scope, safety, git, or implementation gate left. It resolves taste only and never claims pending materialization occurred.
+10. For planning, implementation, closure, or next-scope routing, apply the scope selector and refuse a standalone lifecycle fragment. Route `SHIP` only when its named `Product Result`, exact acceptance digest, and full `Terminal Closure` are evidenced.
+11. Route a closure repair only when an observable user-flow defect qualifies; require the original functional-slice exit and all affected closure stages to pass again before `SHIP`.
 
 ## 7. Output Contract
 

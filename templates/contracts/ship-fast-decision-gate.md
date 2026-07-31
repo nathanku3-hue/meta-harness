@@ -30,7 +30,7 @@ Route meanings:
 - `REVIEW`: one bounded specimen or reusable decision can safely advance the work.
 - `BLOCK`: authority, access, audit, clean-worktree, fresh-base, dependency, or required evidence is missing.
 
-Terminal outcomes are `SHIP` (complete and evidenced), `REVIEW` (ready but not self-approved), `DECISION_NEEDED` (one owner decision), `BLOCKED` (external gate), and `FOLLOW_UP_QUEUED` (bounded residue outside this loop).
+Terminal outcomes are `SHIP` (an observable `Product Result` is delivered and the exact owner-authorized `Terminal Closure` is evidenced), `REVIEW` (ready but not self-approved), `DECISION_NEEDED` (one owner decision), `BLOCKED` (external gate), and `FOLLOW_UP_QUEUED` (bounded residue outside this loop). `SHIP` requires the active SliceAcceptance, mechanics evidence, deterministic integration, exact package, installed proof, isolated A/B/C, terminal assessment, exact publication observation, deterministic canonical projection, and explicit continuation state.
 
 ## Artifact Rules
 
@@ -39,7 +39,11 @@ Terminal outcomes are `SHIP` (complete and evidenced), `REVIEW` (ready but not s
 - `MATERIALIZED_IMPLEMENTATION` is code, files, configuration, or a full audit artifact and is allowed only after every gate passes.
 - Declare one type. Never embed a specimen or implementation in a PM closure.
 - Status-only artifacts are not shipped progress unless the user explicitly requested status or reporting as the product. Expert packets, approval packets, PM status, and dashboards that only restate current truth may advance a `REVIEW` or `BLOCK` gate, but they do not move implementation progress or terminal outcome to `SHIP`.
-- After approval, the next ship-fast round must either materialize the smallest owned, reversible, locally verifiable slice or emit the bounded gate closure; it must not create another status-only packet as progress.
+- Scope selection must name both `Product Result` and `Terminal Closure` and bind the exact active SliceAcceptance digest.
+- Reject acceptance-only, integration-only, evidence-banking, authority-update, packaging-only, review-only, and documentation-only rounds as standalone product scopes. They are lifecycle stages inside the owning functional slice and cannot produce `SHIP`.
+- Complete lifecycle closure belongs in the same logical functional slice: implementation or repair, verification, deterministic integration, exact package, installed proof, isolated A/B/C, terminal assessment, exact publication, deterministic canonical projection, and continuation.
+- A closure-repair scope is allowed only for an observable user-flow defect in a previously materialized functional slice. It must restore that user flow, rerun the original functional-slice exit, and repeat every affected closure stage; generic cleanup, evidence refresh, documentation, or governance work does not qualify.
+- After approval, the next ship-fast round must either materialize the smallest owner-authorized end-to-end slice or emit the bounded protected-boundary gate; it must not create another status-only packet or lifecycle fragment as progress.
 - The PM closure is the chat answer, not the worker-report artifact. Translate internal state into plain language and hide `Outcome`, `Round`, `Progress`, `Confidence`, `Ship gate tier`, SAW/ClosurePacket internals, hashes, absolute paths, file allowlists, command logs, and accountability booleans unless the user asks for evidence.
 - Approval text requests return only the pasteable approval block.
 

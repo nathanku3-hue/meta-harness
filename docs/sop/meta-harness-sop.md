@@ -318,7 +318,7 @@ Remote/public skills, connectors, MCP servers, or external patterns may inspire 
 
 ### Baseline Risk Routes
 
-These routes describe the existing general and machine-facing vocabulary. The canonical agent-level `ship-fast` rules below narrow that vocabulary without changing any Python or Node runtime behavior.
+These routes describe the human-facing vocabulary. Meta-Harness 0.4 additionally enforces one repository-global active functional slice and rejects pre-0.4 execution or truth authority before mutation.
 
 | Route | Use when |
 | --- | --- |
@@ -331,7 +331,7 @@ These routes describe the existing general and machine-facing vocabulary. The ca
 
 | Outcome | Means |
 | --- | --- |
-| `SHIP` | Work is complete and nearest evidence supports it. |
+| `SHIP` | The exact owner-authorized `Product Result` is delivered and `Terminal Closure` is evidenced through mechanics, deterministic integration, exact package, installed proof, isolated A/B/C, terminal assessment, exact publication observation, deterministic canonical projection, and continuation. |
 | `REVIEW` | Work is ready for review but is not self-approved as shipped. |
 | `DECISION_NEEDED` | A PM, owner, or authority holder must decide before progress or approval. |
 | `BLOCKED` | Work cannot proceed without external action, access, dependency, or scope change. |
@@ -339,7 +339,7 @@ These routes describe the existing general and machine-facing vocabulary. The ca
 
 ### PM Output Contract
 
-This section is the canonical contract for agent-level `ship-fast`. It is a prompt and artifact discipline only: it adds no command, daemon, Python behavior, Node behavior, or machine-enforced route.
+This section is the canonical human-facing contract for `ship-fast`. The 0.4 semantic kernel separately machine-enforces authority, repository-global slice ownership, exact acceptance inheritance, mechanics-only execution results, and terminal closure.
 
 Classify the scenario before planning or editing: `IDEA`, `PLAN`, `AUDIT`, `IMPLEMENT`, `DIRTY_WORKTREE`, `STALE_MAIN`, `WORKER_PATCH`, `PR_REVIEW`, `MERGE`, or `INSTALL_SMOKE`. Read the applicable operations contract, enforce its hard gates, and move exactly one state forward.
 
@@ -365,7 +365,17 @@ Three distinct information channels exist:
 - `ORCHESTRATOR_HANDOVER`: dense continuation state for the next orchestrator;
 - `WORKER_REPORT`: exhaustive execution, validation, accountability, and evidence record.
 
-Status-only artifacts are not shipped progress unless the user explicitly requested status or reporting as the product. Expert packets, approval packets, PM status, and dashboards that only restate current truth may advance a `REVIEW` or `BLOCK` gate, but they do not move implementation progress or terminal outcome to `SHIP`. After approval, the next ship-fast round must either materialize the smallest owned, reversible, locally verifiable slice or emit the bounded gate closure; it must not create another status-only packet as progress.
+Status-only artifacts are not shipped progress unless the user explicitly requested status or reporting as the product. Expert packets, approval packets, PM status, and dashboards that only restate current truth may advance a `REVIEW` or `BLOCK` gate, but they do not move implementation progress or terminal outcome to `SHIP`.
+
+Scope selection must name both `Product Result` and `Terminal Closure`, preserve the exact active SliceAcceptance digest, and follow the authority order defined by the scope selector. Status and worker reports are advisory only.
+
+Acceptance-only, integration-only, evidence-banking, authority-update, packaging-only, review-only, and documentation-only rounds are lifecycle stages inside the owning functional slice, not standalone scopes or shipped progress.
+
+Complete lifecycle closure belongs in the same logical slice: implementation or repair, verification, deterministic integration, exact package, installed proof, isolated A/B/C, terminal assessment, exact publication, deterministic canonical projection, and continuation.
+
+A closure-repair scope is allowed only for an observable user-flow defect. It must restore that user flow, rerun the original functional-slice exit, and repeat every affected closure stage; generic cleanup, evidence refresh, documentation, or governance work does not qualify.
+
+After approval, the next ship-fast round must either materialize the smallest owner-authorized end-to-end slice or emit the bounded protected-boundary gate; it must not create another status-only packet or lifecycle fragment as progress.
 
 The PM closure is the chat answer, not the worker-report artifact. Translate internal state into plain language and hide `Outcome`, `Round`, `Progress`, `Confidence`, `Ship gate tier`, SAW/ClosurePacket internals, hashes, absolute paths, file allowlists, command logs, and accountability booleans unless the user asks for evidence. If the user asks for approval text, emit only the pasteable approval block.
 

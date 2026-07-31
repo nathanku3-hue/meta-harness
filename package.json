@@ -1,7 +1,7 @@
 {
   "name": "@nkgss/meta-harness",
-  "version": "0.3.0",
-  "description": "Authority-bound installed execution custody for approved one-shot repository changes.",
+  "version": "0.4.0",
+  "description": "Fail-closed semantic authority, mechanics custody, and terminal slice verification.",
   "license": "MIT",
   "type": "commonjs",
   "repository": {
@@ -12,16 +12,42 @@
     "meta-harness": "bin/meta-harness.js"
   },
   "files": [
-    "bin/",
-    "lib/",
-    "docs/product/",
-    "docs/sop/",
-    "templates/",
+    "bin/meta-harness.js",
+    "lib/**/*.js",
+    "!lib/contracts/attempt-authorization.js",
+    "!lib/contracts/authorize.js",
+    "!lib/contracts/execution-readiness-facts.js",
+    "!lib/contracts/implementation-assessment.js",
+    "!lib/contracts/implementation-facts.js",
+    "!lib/contracts/retired-contract.js",
+    "!lib/contracts/run-spec-approval.js",
+    "!lib/contracts/workspace-attestation.js",
+    "!lib/contracts/workspace-start.js",
+    "!lib/execution-custody/agent-custody.js",
+    "!lib/execution-custody/agent-process.js",
+    "!lib/execution-custody/attempt.js",
+    "!lib/execution-custody/change-artifact.js",
+    "!lib/execution-custody/controller-process.js",
+    "!lib/execution-custody/custody-export.js",
+    "!lib/execution-custody/custody-replay.js",
+    "!lib/execution-custody/execution-bindings.js",
+    "!lib/execution-custody/git-ops.js",
+    "!lib/execution-custody/implement.js",
+    "!lib/execution-custody/portable-verifier.js",
+    "!lib/execution-custody/retired-runtime.js",
+    "!lib/execution-custody/terminal-evidence.js",
+    "!lib/release-check.js",
+    "!lib/release-package-check.js",
+    "!lib/truth-authority-contract.js",
+    "!lib/truth-authority.js",
+    "!lib/truth-mutation.js",
+    "templates/**/*.md",
+    "templates/manifest.json",
     "README.md"
   ],
   "scripts": {
     "test": "node scripts/run-tests.js",
-    "prepublishOnly": "node bin/meta-harness.js release check --publish --json"
+    "prepublishOnly": "node bin/meta-harness.js release candidate verify-publication --from-env --json"
   },
   "packageManager": "npm@11.16.0",
   "engines": {
