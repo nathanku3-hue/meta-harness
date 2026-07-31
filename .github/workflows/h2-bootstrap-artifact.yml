@@ -6,7 +6,7 @@ on:
       - repair/s-semantic-kernel-0.4-bootstrap-artifact
   pull_request:
     branches:
-      - main
+      - repair/s-semantic-kernel-0.4-r2
 
 permissions:
   contents: read
