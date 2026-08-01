@@ -98,20 +98,27 @@ jobs:
           for (const reportPath of reports) {
             const text = fs.readFileSync(reportPath, "utf8").replace(/\r\n/g, "\n");
             const lines = text.split("\n").filter((line) => line.trim());
-            if (!/^Outcome: (DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED)$/.test(lines[0] || "")) throw new Error(`${reportPath}: first visible line must be Outcome`);
-            if (!/^Round: /.test(lines[1] || "")) throw new Error(`${reportPath}: Round must be second visible field`);
-            if (!/^Progress: /.test(lines[2] || "")) throw new Error(`${reportPath}: Progress must be third visible field`);
-            if (!/^Confidence: /.test(lines[3] || "")) throw new Error(`${reportPath}: Confidence must be fourth visible field`);
+            const leading = [
+              "User journey executed:",
+              "Observable result produced:",
+              "User accomplished or learned:",
+              "Product blocker:",
+              "Next executable product action:",
+            ];
+            leading.forEach((prefix, index) => {
+              if (!(lines[index] || "").startsWith(prefix)) throw new Error(`${reportPath}: visible field ${index + 1} must be ${prefix}`);
+            });
+            if (!/^Outcome: (DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED)$/.test(lines[5] || "")) throw new Error(`${reportPath}: Outcome must follow the five product fields`);
             for (const section of ["## What changed", "## Why it matters", "## What is blocked", "## What decision is needed", "## Next action", "## Evidence", "## Accountability"]) {
               if (!text.includes(section)) throw new Error(`${reportPath}: missing ${section}`);
             }
             const requested = text.match(/^requested_work_type: (.+)$/m)?.[1]?.trim();
             const actual = text.match(/^actual_work_type_performed: (.+)$/m)?.[1]?.trim();
             if (!requested || !actual) throw new Error(`${reportPath}: missing work type accountability`);
-            if (lines[0] === "Outcome: DONE" && risky.has(requested) && ["docs", "none"].includes(actual)) {
+            if (lines[5] === "Outcome: DONE" && risky.has(requested) && ["docs", "none"].includes(actual)) {
               throw new Error(`${reportPath}: silent docs-only fallback is forbidden`);
             }
-            const evidenceAt = text.indexOf("\n## Evidence");
+            const evidenceAt = text.indexOf("\n## Validation / evidence");
             for (const token of ["SAW Verdict:", "ClosurePacket:", "ClosureValidation:", "SAWBlockValidation:"]) {
               const tokenAt = text.indexOf(token);
               if (tokenAt !== -1 && (evidenceAt === -1 || tokenAt < evidenceAt)) throw new Error(`${reportPath}: ${token} must stay under Evidence`);
