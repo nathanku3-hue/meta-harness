@@ -6,7 +6,7 @@ const path = require("node:path");
 
 const REQUIRED_PREDICATES = Object.freeze([
   "D1", "D2", "D3", "D4", "D5", "D6", "D7",
-  "D8", "D9", "D10", "D11", "D12", "D13", "D14",
+  "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15",
 ]);
 const PROOF_PREDICATE_ORDER = Object.freeze([...REQUIRED_PREDICATES].sort());
 const OPERATOR_FLOW = Object.freeze(["install", "activate", "execute", "inspect", "reject-drift", "accept-control"]);
@@ -119,6 +119,17 @@ function verifyFixture(fixture, { verifyRepositoryPrograms = false } = {}) {
   assert(fixture.fixtureDigest === fixtureDigest(fixture), "fixture manifest digest mismatch");
   assert(fixture.fixtureMaterialDigest === fixtureMaterialDigest(fixture), "fixture material digest mismatch");
   assert(fixture.outcomeFirstFixtureDigest === outcomeFirstFixtureDigest(fixture), "outcome-first fixture digest mismatch");
+  assert(
+    fixture.outcomeFirstFixtures.leningrad.conditionDigest
+      === sha256Bytes(Buffer.from(fixture.outcomeFirstFixtures.leningrad.condition, "utf8")),
+    "Leningrad condition digest mismatch",
+  );
+  assert(
+    fixture.outcomeFirstFixtures.livePlanner.scenarioDigest
+      === terminalScenarioDigest(fixture.outcomeFirstFixtures.livePlanner.scenario),
+    "live planner scenario digest mismatch",
+  );
+  verifyContinuationFixture(fixture);
   assert(JSON.stringify(fixture.proofPredicateOrder) === JSON.stringify(PROOF_PREDICATE_ORDER), "fixture predicate order mismatch");
   assert(REQUIRED_PREDICATES.every((id) => typeof fixture.predicates[id] === "string"), "fixture predicates incomplete");
   assert(fixture.proofInputPolicyDigest === sha256Bytes(canonicalBytes(fixture.proofInputSchema)), "proof input policy digest mismatch");
@@ -218,8 +229,32 @@ function exactDecisionTrial(trial, expected) {
     && trial.additionalBlockingGates.length === 0;
 }
 
+function exactStringArray(actual, expected) {
+  return Array.isArray(actual)
+    && JSON.stringify(actual) === JSON.stringify(expected);
+}
+
+function validBlockingFinding(finding, expected) {
+  return finding
+    && typeof finding.finding === "string"
+    && typeof finding.evidenceSource === "string"
+    && finding.evidenceSource.trim().length > 0
+    && expected.validBlockingImpacts.includes(finding.impact)
+    && !expected.nonBlockingFindings.includes(finding.finding);
+}
+
 function leningradTrialPasses(input, fixture) {
-  return exactDecisionTrial(input.leningradTrial, fixture.outcomeFirstFixtures.leningrad);
+  const trial = input.leningradTrial;
+  const expected = fixture.outcomeFirstFixtures.leningrad;
+  return trial?.conditionDigest === expected.conditionDigest
+    && Number.isInteger(trial.preExecutionAuditRepairRounds)
+    && trial.preExecutionAuditRepairRounds >= 0
+    && trial.preExecutionAuditRepairRounds <= expected.maxPreExecutionAuditRepairRounds
+    && trial.primaryAction === expected.requiredPrimaryAction
+    && Array.isArray(trial.blockingFindings)
+    && trial.blockingFindings.length === 0
+    && trial.blockingFindings.every((finding) => validBlockingFinding(finding, expected))
+    && exactStringArray(trial.nonBlockingFindings, expected.nonBlockingFindings);
 }
 
 function quantTrialPasses(input, fixture) {
@@ -275,15 +310,35 @@ function validExactTimestamp(value) {
   return typeof value === "string" && new Date(value).toISOString() === value;
 }
 
-function liveResponseContractPasses(observation, fixture) {
-  const expected = fixture.outcomeFirstFixtures.livePlanner.requiredResponseContract;
-  const actual = observation?.responseContract;
-  return actual?.leadsWithProductResult === expected.leadsWithProductResult
-    && actual?.executableActionCount === expected.executableActionCount
-    && actual?.unsupportedGateCount === expected.unsupportedGateCount
-    && actual?.newScoreOrEvidenceCategoryCount === expected.newScoreOrEvidenceCategoryCount
-    && actual?.reusedUnaffectedEvidence === expected.reusedUnaffectedEvidence
-    && actual?.stopsWhenProductClosed === expected.stopsWhenProductClosed;
+function normalizedPlannerResponse(value) {
+  if (typeof value !== "string") return null;
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
+function terminalScenarioDigest(value) {
+  return sha256Bytes(canonicalBytes(value));
+}
+
+function deriveTerminalPlannerClassification(observation, fixture) {
+  const expected = fixture.outcomeFirstFixtures.livePlanner;
+  if (!observation || typeof observation !== "object") return null;
+  if (Object.prototype.hasOwnProperty.call(observation, "responseContract")) return null;
+  if (Object.prototype.hasOwnProperty.call(observation, "stopsWhenProductClosed")) return null;
+  if (!canonicalBytes(observation.scenario).equals(canonicalBytes(expected.scenario))) return null;
+  if (observation.scenarioDigest !== expected.scenarioDigest) return null;
+  if (terminalScenarioDigest(observation.scenario) !== expected.scenarioDigest) return null;
+  if (normalizedPlannerResponse(observation.response) !== expected.requiredResponse) return null;
+  return { ...expected.requiredClassification };
+}
+
+function terminalPlannerResponsePasses(observation, fixture) {
+  const actual = deriveTerminalPlannerClassification(observation, fixture);
+  const expected = fixture.outcomeFirstFixtures.livePlanner.requiredClassification;
+  return actual !== null && canonicalBytes(actual).equals(canonicalBytes(expected));
 }
 
 function sourceTemplatePath(installedPath) {
@@ -338,14 +393,156 @@ function livePlannerObservationPasses(input, fixture) {
       observation.installedTemplateHashes,
       fixture.outcomeFirstFixtures.livePlanner.requiredTemplatePaths,
     )
-    && liveResponseContractPasses(observation, fixture);
+    && terminalPlannerResponsePasses(observation, fixture);
+}
+
+function observedUseWarrantComplete(warrant, expected) {
+  if (!warrant || warrant.type !== "OBSERVED_USE_DEFECT") return false;
+  const actualFields = Object.keys(warrant).filter((key) => key !== "type").sort();
+  const expectedFields = [...expected.observedUseWarrantRequiredFields].sort();
+  if (JSON.stringify(actualFields) !== JSON.stringify(expectedFields)) return false;
+  return expected.observedUseWarrantRequiredFields.every((field) => {
+    const value = warrant[field];
+    return typeof value === "string"
+      && value.trim().length > 0
+      && value.trim().toLowerCase() !== "unspecified";
+  });
+}
+
+function noBuildContinuationResult() {
+  return {
+    preRoute: "NO_BUILD",
+    primaryAction: "USE_PRODUCT",
+    recommendedRepair: null,
+    activatedSuccessorSliceCount: 0,
+    newReviewCount: 0,
+    newEvidenceGateCount: 0,
+    ownerAuthorizationRequestCount: 0,
+  };
+}
+
+function ownerScopeChangeResult() {
+  return {
+    preRoute: "OWNER_DECISION_REQUIRED",
+    primaryAction: "REQUEST_OWNER_AUTHORIZATION",
+    recommendedRepair: null,
+    activatedSuccessorSliceCount: 0,
+    newReviewCount: 0,
+    newEvidenceGateCount: 0,
+    ownerAuthorizationRequestCount: 1,
+  };
+}
+
+function observedDefectResult(warrant) {
+  return {
+    preRoute: "BUILD_RECOMMENDED",
+    primaryAction: "SELECT_SMALLEST_REPAIR",
+    recommendedRepair: warrant.smallestRepair,
+    activatedSuccessorSliceCount: 0,
+    newReviewCount: 0,
+    newEvidenceGateCount: 0,
+    ownerAuthorizationRequestCount: 0,
+  };
+}
+
+function terminalAuthorityState(facts) {
+  return facts?.shippingState === "SHIPPED"
+    || facts?.valueState === "VALUE_CONFIRMED"
+    || facts?.operatingState === "MAINTENANCE"
+    || facts?.activeSlice === null;
+}
+
+function deriveContinuationResult(facts, expected) {
+  if (!terminalAuthorityState(facts)) return null;
+  const warrant = facts.continuationWarrant;
+  if (warrant && typeof warrant === "object" && warrant.type === "OWNER_SCOPE_CHANGE") {
+    return ownerScopeChangeResult();
+  }
+  if (observedUseWarrantComplete(warrant, expected)) {
+    return observedDefectResult(warrant);
+  }
+  return noBuildContinuationResult();
+}
+
+function expectedContinuationCaseResults(fixture) {
+  const expected = fixture.outcomeFirstFixtures.continuationControl;
+  return expected.cases.map((entry) => ({
+    caseId: entry.caseId,
+    result: deriveContinuationResult(entry.facts, expected),
+  }));
+}
+
+function verifyContinuationFixture(fixture) {
+  const expected = fixture.outcomeFirstFixtures.continuationControl;
+  const requiredPrecedence = [
+    "LOCKED_INTENT_AND_OWNER_AUTHORITY",
+    "IMMUTABLE_PRODUCT_OR_CLOSURE_EVIDENCE",
+    "GIT_FACTS",
+    "STATUS_ROADMAP_REPORTS",
+  ];
+  assert(JSON.stringify(expected.truthPrecedence) === JSON.stringify(requiredPrecedence), "continuation truth precedence mismatch");
+  assert(expected.scopeBoundary?.plannerDecisionOnly === true, "continuation scope must be planner-only");
+  assert(expected.scopeBoundary?.successorActivationClaimed === false, "continuation scope must not claim successor activation");
+  assert(Array.isArray(expected.cases) && expected.cases.length === 9, "continuation case table must contain nine cases");
+  assert(new Set(expected.cases.map((entry) => entry.caseId)).size === expected.cases.length, "continuation case IDs must be unique");
+  for (const entry of expected.cases) {
+    const derived = deriveContinuationResult(entry.facts, expected);
+    assert(derived !== null, `continuation case is not terminal: ${entry.caseId}`);
+    assert(canonicalBytes(derived).equals(canonicalBytes(entry.requiredResult)), `continuation case result mismatch: ${entry.caseId}`);
+    assert(derived.activatedSuccessorSliceCount === 0, `continuation case claims successor activation: ${entry.caseId}`);
+    assert(derived.primaryAction !== "FOLLOW_UP_QUEUED", `continuation case queues follow-up after NO_BUILD: ${entry.caseId}`);
+  }
+  const valid = expected.cases.find((entry) => entry.caseId === "observed-supported-use-defect");
+  const invalid = expected.cases.find((entry) => entry.caseId === "incomplete-observed-defect");
+  assert(observedUseWarrantComplete(valid?.facts?.continuationWarrant, expected), "valid observed-use warrant is incomplete");
+  assert(!observedUseWarrantComplete(invalid?.facts?.continuationWarrant, expected), "incomplete observed-use warrant was accepted");
+}
+
+function continuationControlPasses(input, fixture) {
+  const trial = input.continuationControlTrial;
+  const expected = fixture.outcomeFirstFixtures.continuationControl;
+  if (!trial) return false;
+  return canonicalBytes(trial.truthPrecedence).equals(canonicalBytes(expected.truthPrecedence))
+    && canonicalBytes(trial.caseResults).equals(canonicalBytes(expectedContinuationCaseResults(fixture)))
+    && trial.successorActivationClaimed === false
+    && trial.runtimeResidue === expected.scopeBoundary.nonBlockingResidue;
+}
+
+function continuationResultById(input, caseId) {
+  const rows = input.continuationControlTrial?.caseResults;
+  return Array.isArray(rows) ? rows.find((entry) => entry.caseId === caseId)?.result : null;
+}
+
+function semanticDiscriminators(input, fixture, outcomes) {
+  const noBuildCaseIds = fixture.outcomeFirstFixtures.continuationControl.cases
+    .filter((entry) => entry.requiredResult.preRoute === "NO_BUILD")
+    .map((entry) => entry.caseId);
+  const noBuildResults = noBuildCaseIds.map((caseId) => continuationResultById(input, caseId));
+  const staleStatus = continuationResultById(input, "stale-status-optimization");
+  const validDefect = continuationResultById(input, "observed-supported-use-defect");
+  const invalidDefect = continuationResultById(input, "incomplete-observed-defect");
+  return {
+    terminalDecisionDerivedFromScenarioAndResponse: outcomes.D14,
+    noQueuedFollowUpAfterNoBuild: outcomes.D15
+      && noBuildResults.every((result) => result?.preRoute === "NO_BUILD" && result?.primaryAction === "USE_PRODUCT"),
+    staleStatusCannotCreateSlice: outcomes.D15
+      && staleStatus?.preRoute === "NO_BUILD"
+      && staleStatus?.activatedSuccessorSliceCount === 0,
+    invalidObservedDefectWarrantRejected: outcomes.D15
+      && validDefect?.primaryAction === "SELECT_SMALLEST_REPAIR"
+      && invalidDefect?.preRoute === "NO_BUILD",
+    optionalFindingsRemainNonBlocking: outcomes.D11
+      && input.leningradTrial?.blockingFindings?.length === 0,
+    successorActivationNotClaimed: outcomes.D15
+      && input.continuationControlTrial?.successorActivationClaimed === false,
+  };
 }
 
 function evaluate(input, fixture, evaluatorDigest) {
   verifyProofInput(input.proofInput, fixture);
 
   const originalAcceptanceBound = exactAcceptance(input.sliceAcceptance, fixture, evaluatorDigest);
-  assert(originalAcceptanceBound, "owner-signed slice acceptance differs from the exact B1R1 fixture");
+  assert(originalAcceptanceBound, "owner-signed slice acceptance differs from the exact B1R2 fixture");
   const negativeRejected = negativeIsIncomplete(fixture)
     && input.negativeProbe?.verdict === "REJECTED"
     && input.negativeProbe?.evaluatorExecutableDigest === evaluatorDigest;
@@ -372,10 +569,12 @@ function evaluate(input, fixture, evaluatorDigest) {
     D12: quantTrialPasses(input, fixture),
     D13: workerReportTrialPasses(input, fixture),
     D14: livePlannerObservationPasses(input, fixture),
+    D15: continuationControlPasses(input, fixture),
   };
 
   return {
     schemaVersion: "proof-evaluator-output/v1",
+    semanticDiscriminators: semanticDiscriminators(input, fixture, outcomes),
     operatorActions: OPERATOR_FLOW.map((action, index) => ({
       sequence: index + 1,
       actionId: `action-${index + 1}`,
@@ -404,15 +603,31 @@ function fixturePath() {
 function runSelfTest() {
   const fixture = readJson(fixturePath(), "fixture manifest");
   verifyFixture(fixture, { verifyRepositoryPrograms: true });
+  const leningrad = fixture.outcomeFirstFixtures.leningrad;
   const negativeLeningrad = {
-    conditionDigest: fixture.outcomeFirstFixtures.leningrad.conditionDigest,
-    primaryAction: fixture.outcomeFirstFixtures.leningrad.rejectedOldPlannerAction,
-    additionalBlockingGates: ["another receipt"],
+    conditionDigest: leningrad.conditionDigest,
+    preExecutionAuditRepairRounds: 1,
+    primaryAction: leningrad.rejectedOldPlannerAction,
+    blockingFindings: [],
+    nonBlockingFindings: leningrad.nonBlockingFindings,
+  };
+  const optionalBlockerLeningrad = {
+    conditionDigest: leningrad.conditionDigest,
+    preExecutionAuditRepairRounds: 1,
+    primaryAction: leningrad.requiredPrimaryAction,
+    blockingFindings: [{
+      finding: "reviewer preference",
+      impact: "JOURNEY_PREVENTION",
+      evidenceSource: "review comment",
+    }],
+    nonBlockingFindings: leningrad.nonBlockingFindings,
   };
   const positiveLeningrad = {
-    conditionDigest: fixture.outcomeFirstFixtures.leningrad.conditionDigest,
-    primaryAction: fixture.outcomeFirstFixtures.leningrad.requiredPrimaryAction,
-    additionalBlockingGates: [],
+    conditionDigest: leningrad.conditionDigest,
+    preExecutionAuditRepairRounds: 1,
+    primaryAction: leningrad.requiredPrimaryAction,
+    blockingFindings: [],
+    nonBlockingFindings: leningrad.nonBlockingFindings,
   };
   const positiveQuant = {
     conditionDigest: fixture.outcomeFirstFixtures.quant.conditionDigest,
@@ -421,8 +636,38 @@ function runSelfTest() {
     reusesUnaffectedEvidence: true,
     reopenedPassedGateCount: 0,
   };
-  assert(!exactDecisionTrial(negativeLeningrad, fixture.outcomeFirstFixtures.leningrad), "old planner fixture was not rejected");
-  assert(exactDecisionTrial(positiveLeningrad, fixture.outcomeFirstFixtures.leningrad), "outcome-first Leningrad fixture failed");
+  const livePlanner = fixture.outcomeFirstFixtures.livePlanner;
+  const positiveTerminalObservation = {
+    scenario: livePlanner.scenario,
+    scenarioDigest: livePlanner.scenarioDigest,
+    response: livePlanner.requiredResponse,
+  };
+  const booleanOnlyTerminalObservation = {
+    scenario: livePlanner.scenario,
+    scenarioDigest: livePlanner.scenarioDigest,
+    response: "Open an optimization slice.",
+    responseContract: { stopsWhenProductClosed: true },
+  };
+  const continuation = fixture.outcomeFirstFixtures.continuationControl;
+  const positiveContinuationTrial = {
+    truthPrecedence: continuation.truthPrecedence,
+    caseResults: expectedContinuationCaseResults(fixture),
+    successorActivationClaimed: false,
+    runtimeResidue: continuation.scopeBoundary.nonBlockingResidue,
+  };
+  const queuedContinuationTrial = JSON.parse(JSON.stringify(positiveContinuationTrial));
+  queuedContinuationTrial.caseResults.find((entry) => entry.caseId === "terminal-no-warrant").result.primaryAction = "FOLLOW_UP_QUEUED";
+
+  assert(!leningradTrialPasses({ leningradTrial: negativeLeningrad }, fixture), "old planner fixture was not rejected");
+  assert(!leningradTrialPasses({ leningradTrial: optionalBlockerLeningrad }, fixture), "optional finding was accepted as a blocker");
+  assert(leningradTrialPasses({ leningradTrial: positiveLeningrad }, fixture), "outcome-first Leningrad fixture failed");
+  for (const impact of leningrad.validBlockingImpacts) {
+    assert(validBlockingFinding({
+      finding: `demonstrated ${impact}`,
+      impact,
+      evidenceSource: "retained product evidence",
+    }, leningrad), `valid blocker impact was rejected: ${impact}`);
+  }
   assert(quantTrialPasses({ quantTrial: positiveQuant }, fixture), "outcome-first Quant fixture failed");
   assert(JSON.stringify(fixture.outcomeFirstFixtures.workerReport.leadingFields) === JSON.stringify([
     "User journey executed",
@@ -431,9 +676,10 @@ function runSelfTest() {
     "Product blocker",
     "Next executable product action",
   ]), "worker-report leading fields drifted");
-  assert(liveResponseContractPasses({
-    responseContract: fixture.outcomeFirstFixtures.livePlanner.requiredResponseContract,
-  }, fixture), "live response contract fixture failed");
+  assert(terminalPlannerResponsePasses(positiveTerminalObservation, fixture), "terminal planner response fixture failed");
+  assert(!terminalPlannerResponsePasses(booleanOnlyTerminalObservation, fixture), "boolean-only terminal assertion was accepted");
+  assert(continuationControlPasses({ continuationControlTrial: positiveContinuationTrial }, fixture), "continuation control table failed");
+  assert(!continuationControlPasses({ continuationControlTrial: queuedContinuationTrial }, fixture), "queued follow-up after NO_BUILD was accepted");
   assert(exactReviewerBindings({
     proofInput: { reviewerBindings: fixture.outcomeFirstFixtures.reviewerBindings },
   }, fixture), "reviewer binding fixture failed");
@@ -445,6 +691,9 @@ function runSelfTest() {
     fixtureDigest: fixture.fixtureDigest,
     predicates: PROOF_PREDICATE_ORDER,
     oldPlannerRejected: true,
+    optionalBlockerRejected: true,
+    booleanOnlyTerminalRejected: true,
+    continuationTableAccepted: true,
     outcomeFirstFixturesAccepted: true,
   })}\n`);
 }

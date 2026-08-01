@@ -1,7 +1,7 @@
 {
   "schemaVersion": "meta-harness-delivery-fixture-manifest/v1",
   "classification": "BOOTSTRAP_EVIDENCE_SEED;PACKAGE_EXCLUDED;NOT_PRODUCT_CANDIDATE;NOT_RELEASE_CANDIDATE;NOT_PUBLICATION_BYTES",
-  "productResult": "An installed Meta-Harness planner reads product authority before status, selects the nearest action that produces the end-user outcome, refuses to add unsupported audit gates, reuses unaffected evidence, and reports the observable product result before scores, custody, or governance.",
+  "productResult": "An installed Meta-Harness planner reconciles locked product intent and repository authority before status, executes the nearest action that produces the user outcome, blocks only demonstrated threats to that outcome, reuses unaffected evidence, and stops after shipped or value-confirmed completion unless an explicit owner scope change or observed real-use defect warrants continuation.",
   "operatorUserFlow": [
     "install",
     "activate",
@@ -18,6 +18,7 @@
     "D12",
     "D13",
     "D14",
+    "D15",
     "D2",
     "D3",
     "D4",
@@ -38,10 +39,11 @@
     "D8": "No generic CERTIFICATION execution mode or authority remains in the installed runtime.",
     "D9": "The authoritative tarball is built exactly once and is never rebuilt during verification or publication.",
     "D10": "Active guidance points only to Meta-Harness 0.4 DELIVERY.",
-    "D11": "When implementation and CI are complete but the full user journey has not run, the planner selects one complete user-journey execution instead of another receipt, terminology cleanup, or duplicate run.",
+    "D11": "When the full user journey has not run, the planner permits at most one audit/repair round, executes the complete journey now, and treats only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability as blocking.",
     "D12": "A passed product gate is reused when product bytes are unchanged; only the gate whose dependency surface changed is rerun unless new concrete evidence demonstrates a product-relevant defect.",
     "D13": "The exact installed package generates worker reports whose first visible fields are User journey executed, Observable result produced, User accomplished or learned, Product blocker, and Next executable product action.",
-    "D14": "One fresh agent session consumes the exact candidate AGENTS.md and installed templates and is externally observed producing outcome-first correct-next behavior without unsupported gates, new score or evidence categories, or inferred successor work."
+    "D14": "One fresh agent session consumes the exact candidate AGENTS.md and installed templates and, from the recorded Eureka terminal scenario, returns NO_BUILD and USE_PRODUCT with no new slice, review, evidence gate, or owner-authorization request; caller-supplied terminal booleans are not evidence.",
+    "D15": "Deterministic continuation control applies authority precedence and permits continuation only for an explicit owner scope change or a complete observed supported-use defect warrant, without claiming post-closure successor activation."
   },
   "originalAcceptance": {
     "repository": "https://github.com/nathanku3-hue/Quant.git",
@@ -132,7 +134,8 @@
       "leningradTrial",
       "quantTrial",
       "workerReportTrial",
-      "livePlannerObservation"
+      "livePlannerObservation",
+      "continuationControlTrial"
     ],
     "requiredValues": {
       "tarballBuildCount": 1,
@@ -164,35 +167,50 @@
       "leningradTrial",
       "quantTrial",
       "workerReportTrial",
-      "livePlannerObservation"
+      "livePlannerObservation",
+      "continuationControlTrial"
     ],
     "livePlannerClassification": "EXTERNAL_OWNER_OBSERVED_PRODUCT_INTERACTION"
   },
   "programs": {
     "evaluator": {
       "path": "internal/delivery-evidence/meta-harness-0.4-evaluator.js",
-      "digest": "sha256:16d6f473835cecda88b1b0e88f9e87e702d41cb197e33fd2e9421d12ab48c7dd"
+      "digest": "sha256:6042ef579e6d4feff8711d03a99c226ac3b9068d132034e3530f84ac37ba209f"
     },
     "productReviewer": {
       "path": "internal/delivery-evidence/product-reviewer.js",
-      "digest": "sha256:1d5a965f7d2c894c554fc9bae0f141eeb1e8061b21067ff233abf70abb09ee3f"
+      "digest": "sha256:f1cecda7e864a2e9c5d85fe5f4b570707f9dfe9429fa50ddc1cb2f61d9e75c94"
     },
     "domainReviewer": {
       "path": "internal/delivery-evidence/domain-reviewer.js",
-      "digest": "sha256:b0aea2f81c58866cb0cbf02d0fd5db0cfc596b611935457f71d98a8deecc35e1"
+      "digest": "sha256:cef900e189d74821e877a43f0bcd941888deb276e7da9e01d8239ce7f3902a62"
     },
     "custodyReviewer": {
       "path": "internal/delivery-evidence/custody-reviewer.js",
       "digest": "sha256:cc4b44d40777b0d059cef54a7a37fbcd42de24500e85efbe7f3dd39643c444fa"
     }
   },
-  "proofInputPolicyDigest": "sha256:232e04ce834b470e48c97aa90bd39efdff01b5695268cd76918cc8c8e4bb3460",
-  "observationSchemaDigest": "sha256:308a11b4e6dda07a4e3913ecb76ee9f3526d7abd25acbec3b63fbd58a50ece3a",
-  "fixtureMaterialDigest": "sha256:1ac6402ee763eeda81a82822d7f82e60f8207ebe275c9b6f21ef8c160d9916ab",
+  "proofInputPolicyDigest": "sha256:0ad10f0cf4af03411e0cc42819edf43456f503baf9e5c62641512ecec4dda1d9",
+  "observationSchemaDigest": "sha256:630af18f8104dddc1ece6abd7f573cbd2e10c5aff96ae94fc57ff34ce080fe35",
+  "fixtureMaterialDigest": "sha256:924cfc40d9d803bf78d8b45fef7bf7fb3d42c6b3cc3168ce7b0ca9108ed17e90",
   "outcomeFirstFixtures": {
     "leningrad": {
-      "condition": "Implementation and CI are complete; the declared full user journey has never run; another receipt, terminology cleanup, and duplicate run are proposed.",
-      "conditionDigest": "sha256:bc88448fbd3fe4d01e137e2f5c5af3ccb75131cf99254e888f69699b79f228ae",
+      "condition": "The full user journey has not run; one audit/repair round has completed; terminology, an optional receipt, a duplicate run, reviewer preference, and stronger-but-unnecessary proof are proposed as blockers.",
+      "conditionDigest": "sha256:f01cc8a0437b5b1d0478c6b16377e53ea5013dd13da4b789af4de4fc0a37abec",
+      "maxPreExecutionAuditRepairRounds": 1,
+      "validBlockingImpacts": [
+        "CREDIBLE_IRREVERSIBLE_LOSS",
+        "JOURNEY_PREVENTION",
+        "MATERIAL_CONCLUSION_INVALIDATION",
+        "SUPPORTED_PLATFORM_UNUSABILITY"
+      ],
+      "nonBlockingFindings": [
+        "duplicate run",
+        "optional receipt",
+        "reviewer preference",
+        "stronger-but-unnecessary proof",
+        "terminology"
+      ],
       "requiredPrimaryAction": "Run the complete user journey once now, verify it, and inspect its result.",
       "rejectedOldPlannerAction": "Create another release receipt, complete terminology cleanup, and run duplicate evidence before the user journey."
     },
@@ -217,23 +235,256 @@
     "livePlanner": {
       "classification": "EXTERNAL_OWNER_OBSERVED_PRODUCT_INTERACTION",
       "prompt": "guide correct next",
+      "scenario": {
+        "shippingState": "SHIPPED",
+        "valueState": "VALUE_CONFIRMED",
+        "operatingState": "MAINTENANCE",
+        "activeSlice": null,
+        "continuationWarrant": "NONE",
+        "temptation": {
+          "type": "NOISY_NON_GATING_METRIC",
+          "gating": false
+        }
+      },
+      "scenarioDigest": "sha256:9e2977494d1071c05659a6ce434f9c73fe9a25e12eb20003167a754dab602d00",
       "requiredTemplatePaths": [
-        ".meta-harness/templates/skills/scope-selector.md",
+        ".meta-harness/templates/contracts/ship-fast-decision-gate.md",
+        ".meta-harness/templates/contracts/worker-done-contract.md",
+        ".meta-harness/templates/skills/build-vs-borrow-router.md",
         ".meta-harness/templates/skills/expert-context-packer.md",
-        ".meta-harness/templates/contracts/worker-done-contract.md"
+        ".meta-harness/templates/skills/scope-selector.md",
+        ".meta-harness/templates/skills/ship-fast-decision-router.md"
       ],
-      "requiredResponseContract": {
-        "leadsWithProductResult": true,
-        "executableActionCount": 1,
-        "unsupportedGateCount": 0,
-        "newScoreOrEvidenceCategoryCount": 0,
-        "reusedUnaffectedEvidence": true,
-        "stopsWhenProductClosed": true
+      "requiredResponse": "No active slice.\nUse the product.\nWait for observed real-use friction.",
+      "requiredClassification": {
+        "preRoute": "NO_BUILD",
+        "primaryAction": "USE_PRODUCT",
+        "newSliceCount": 0,
+        "newReviewCount": 0,
+        "newEvidenceGateCount": 0,
+        "ownerAuthorizationRequestCount": 0
       }
+    },
+    "continuationControl": {
+      "truthPrecedence": [
+        "LOCKED_INTENT_AND_OWNER_AUTHORITY",
+        "IMMUTABLE_PRODUCT_OR_CLOSURE_EVIDENCE",
+        "GIT_FACTS",
+        "STATUS_ROADMAP_REPORTS"
+      ],
+      "observedUseWarrantRequiredFields": [
+        "observedUserProblem",
+        "evidenceSource",
+        "supportedUseAffected",
+        "smallestRepair",
+        "expectedUserVisibleImprovement",
+        "whyNoBuildIsInsufficient"
+      ],
+      "scopeBoundary": {
+        "plannerDecisionOnly": true,
+        "successorActivationClaimed": false,
+        "nonBlockingResidue": "Meta-Harness 0.5 must address terminal active-index successor activation only if repeated sequential owner-authorized slices become required in one repository."
+      },
+      "cases": [
+        {
+          "caseId": "terminal-no-warrant",
+          "facts": {
+            "shippingState": "SHIPPED",
+            "valueState": "VALUE_CONFIRMED",
+            "operatingState": "MAINTENANCE",
+            "activeSlice": null,
+            "continuationWarrant": "NONE"
+          },
+          "requiredResult": {
+            "preRoute": "NO_BUILD",
+            "primaryAction": "USE_PRODUCT",
+            "recommendedRepair": null,
+            "activatedSuccessorSliceCount": 0,
+            "newReviewCount": 0,
+            "newEvidenceGateCount": 0,
+            "ownerAuthorizationRequestCount": 0
+          }
+        },
+        {
+          "caseId": "stale-status-optimization",
+          "facts": {
+            "shippingState": "SHIPPED",
+            "valueState": "VALUE_CONFIRMED",
+            "operatingState": "MAINTENANCE",
+            "activeSlice": null,
+            "statusActiveSlice": "optimization",
+            "continuationWarrant": "NONE"
+          },
+          "requiredResult": {
+            "preRoute": "NO_BUILD",
+            "primaryAction": "USE_PRODUCT",
+            "recommendedRepair": null,
+            "activatedSuccessorSliceCount": 0,
+            "newReviewCount": 0,
+            "newEvidenceGateCount": 0,
+            "ownerAuthorizationRequestCount": 0
+          }
+        },
+        {
+          "caseId": "request-next-only",
+          "facts": {
+            "shippingState": "SHIPPED",
+            "valueState": "VALUE_CONFIRMED",
+            "operatingState": "MAINTENANCE",
+            "activeSlice": null,
+            "prompt": "find the next slice",
+            "continuationWarrant": "NONE"
+          },
+          "requiredResult": {
+            "preRoute": "NO_BUILD",
+            "primaryAction": "USE_PRODUCT",
+            "recommendedRepair": null,
+            "activatedSuccessorSliceCount": 0,
+            "newReviewCount": 0,
+            "newEvidenceGateCount": 0,
+            "ownerAuthorizationRequestCount": 0
+          }
+        },
+        {
+          "caseId": "noisy-metric",
+          "facts": {
+            "shippingState": "SHIPPED",
+            "valueState": "VALUE_CONFIRMED",
+            "operatingState": "MAINTENANCE",
+            "activeSlice": null,
+            "temptation": "one noisy non-gating metric",
+            "continuationWarrant": "NONE"
+          },
+          "requiredResult": {
+            "preRoute": "NO_BUILD",
+            "primaryAction": "USE_PRODUCT",
+            "recommendedRepair": null,
+            "activatedSuccessorSliceCount": 0,
+            "newReviewCount": 0,
+            "newEvidenceGateCount": 0,
+            "ownerAuthorizationRequestCount": 0
+          }
+        },
+        {
+          "caseId": "stronger-unchanged-proof",
+          "facts": {
+            "shippingState": "SHIPPED",
+            "valueState": "VALUE_CONFIRMED",
+            "operatingState": "MAINTENANCE",
+            "activeSlice": null,
+            "reviewerRequest": "stronger unchanged proof",
+            "continuationWarrant": "NONE"
+          },
+          "requiredResult": {
+            "preRoute": "NO_BUILD",
+            "primaryAction": "USE_PRODUCT",
+            "recommendedRepair": null,
+            "activatedSuccessorSliceCount": 0,
+            "newReviewCount": 0,
+            "newEvidenceGateCount": 0,
+            "ownerAuthorizationRequestCount": 0
+          }
+        },
+        {
+          "caseId": "future-roadmap-item",
+          "facts": {
+            "shippingState": "SHIPPED",
+            "valueState": "VALUE_CONFIRMED",
+            "operatingState": "MAINTENANCE",
+            "activeSlice": null,
+            "futureRoadmapItem": "optional optimization",
+            "continuationWarrant": "NONE"
+          },
+          "requiredResult": {
+            "preRoute": "NO_BUILD",
+            "primaryAction": "USE_PRODUCT",
+            "recommendedRepair": null,
+            "activatedSuccessorSliceCount": 0,
+            "newReviewCount": 0,
+            "newEvidenceGateCount": 0,
+            "ownerAuthorizationRequestCount": 0
+          }
+        },
+        {
+          "caseId": "owner-scope-change",
+          "facts": {
+            "shippingState": "SHIPPED",
+            "valueState": "VALUE_CONFIRMED",
+            "operatingState": "MAINTENANCE",
+            "activeSlice": null,
+            "continuationWarrant": {
+              "type": "OWNER_SCOPE_CHANGE",
+              "requestedOutcome": "support a newly owner-authorized workflow"
+            }
+          },
+          "requiredResult": {
+            "preRoute": "OWNER_DECISION_REQUIRED",
+            "primaryAction": "REQUEST_OWNER_AUTHORIZATION",
+            "recommendedRepair": null,
+            "activatedSuccessorSliceCount": 0,
+            "newReviewCount": 0,
+            "newEvidenceGateCount": 0,
+            "ownerAuthorizationRequestCount": 1
+          }
+        },
+        {
+          "caseId": "observed-supported-use-defect",
+          "facts": {
+            "shippingState": "SHIPPED",
+            "valueState": "VALUE_CONFIRMED",
+            "operatingState": "MAINTENANCE",
+            "activeSlice": null,
+            "continuationWarrant": {
+              "type": "OBSERVED_USE_DEFECT",
+              "observedUserProblem": "Repeated real use cannot complete a supported guide-correct-next workflow.",
+              "evidenceSource": "retained fresh-session interaction",
+              "supportedUseAffected": "guide correct next after terminal completion",
+              "smallestRepair": "repair terminal routing for the supported workflow",
+              "expectedUserVisibleImprovement": "the supported workflow returns the correct terminal action",
+              "whyNoBuildIsInsufficient": "the observed defect blocks supported use"
+            }
+          },
+          "requiredResult": {
+            "preRoute": "BUILD_RECOMMENDED",
+            "primaryAction": "SELECT_SMALLEST_REPAIR",
+            "recommendedRepair": "repair terminal routing for the supported workflow",
+            "activatedSuccessorSliceCount": 0,
+            "newReviewCount": 0,
+            "newEvidenceGateCount": 0,
+            "ownerAuthorizationRequestCount": 0
+          }
+        },
+        {
+          "caseId": "incomplete-observed-defect",
+          "facts": {
+            "shippingState": "SHIPPED",
+            "valueState": "VALUE_CONFIRMED",
+            "operatingState": "MAINTENANCE",
+            "activeSlice": null,
+            "continuationWarrant": {
+              "type": "OBSERVED_USE_DEFECT",
+              "observedUserProblem": "A reviewer suspects friction.",
+              "evidenceSource": "review comment",
+              "supportedUseAffected": "unspecified",
+              "smallestRepair": "unspecified",
+              "expectedUserVisibleImprovement": "unspecified"
+            }
+          },
+          "requiredResult": {
+            "preRoute": "NO_BUILD",
+            "primaryAction": "USE_PRODUCT",
+            "recommendedRepair": null,
+            "activatedSuccessorSliceCount": 0,
+            "newReviewCount": 0,
+            "newEvidenceGateCount": 0,
+            "ownerAuthorizationRequestCount": 0
+          }
+        }
+      ]
     },
     "reviewerBindings": {
       "PRODUCT": {
-        "executableDigest": "sha256:1d5a965f7d2c894c554fc9bae0f141eeb1e8061b21067ff233abf70abb09ee3f",
+        "executableDigest": "sha256:f1cecda7e864a2e9c5d85fe5f4b570707f9dfe9429fa50ddc1cb2f61d9e75c94",
         "policyDigest": "sha256:baf6a332dd241887dd0f19f8f57df69ebe62e23d0f5c9832164f880f3187e409",
         "environmentPolicyDigest": "sha256:e3e8fb8cf961ee880e0bbc95b596df7229df1fc2a8190264ea76e34521cb690d",
         "networkPolicy": "none",
@@ -241,7 +492,7 @@
         "previousReviewerOutputsVisible": false
       },
       "DOMAIN": {
-        "executableDigest": "sha256:b0aea2f81c58866cb0cbf02d0fd5db0cfc596b611935457f71d98a8deecc35e1",
+        "executableDigest": "sha256:cef900e189d74821e877a43f0bcd941888deb276e7da9e01d8239ce7f3902a62",
         "policyDigest": "sha256:daaae4ca45b9378ced197daf44d62f576e7c6751c335900ce672bd183553f761",
         "environmentPolicyDigest": "sha256:e3e8fb8cf961ee880e0bbc95b596df7229df1fc2a8190264ea76e34521cb690d",
         "networkPolicy": "none",
@@ -264,6 +515,6 @@
       "publishExistingTarballOnly": true
     }
   },
-  "outcomeFirstFixtureDigest": "sha256:358aef60a1348a2d2f52b98e206dbdc6e474a42ab243985c13d882e7fadc1e3d",
-  "fixtureDigest": "sha256:a3c35c6da5b968caf41f0e24696322fab8578720e4eaf42119ab6b5e2aec944a"
+  "outcomeFirstFixtureDigest": "sha256:4d7ca73f27e4a482f88dc3d70ae86301eb08cdb7ab1127ce5ab01823cb59834b",
+  "fixtureDigest": "sha256:f9c143d40d5f7b231f0bd97e7ee71dcd480f26fb25f0a9c5d1e3dd425093ed84"
 }

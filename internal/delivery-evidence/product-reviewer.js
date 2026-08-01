@@ -2,10 +2,10 @@
 
 const REQUIRED_PREDICATES = Object.freeze([
   "D1", "D2", "D3", "D4", "D5", "D6", "D7",
-  "D8", "D9", "D10", "D11", "D12", "D13", "D14",
+  "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15",
 ]);
 const EXPECTED_OPERATOR_FLOW = Object.freeze(["install", "activate", "execute", "inspect", "reject-drift", "accept-control"]);
-const EXPECTED_PRODUCT_RESULT = "An installed Meta-Harness planner reads product authority before status, selects the nearest action that produces the end-user outcome, refuses to add unsupported audit gates, reuses unaffected evidence, and reports the observable product result before scores, custody, or governance.";
+const EXPECTED_PRODUCT_RESULT = "An installed Meta-Harness planner reconciles locked product intent and repository authority before status, executes the nearest action that produces the user outcome, blocks only demonstrated threats to that outcome, reuses unaffected evidence, and stops after shipped or value-confirmed completion unless an explicit owner scope change or observed real-use defect warrants continuation.";
 
 function readInput() {
   return new Promise((resolve, reject) => {
@@ -48,8 +48,8 @@ function review(manifest) {
     schemaVersion: "reviewer-output/v1",
     result: passed ? "PASS" : "FAIL",
     findings: passed
-      ? "Product review confirms the exact installed outcome-first Meta-Harness 0.4 operator flow and complete D1-D14 behavior."
-      : "Product review rejected the product result, operator flow, or D1-D14 predicate set.",
+      ? "Product review confirms the exact installed terminal-aware Meta-Harness 0.4 operator flow and complete D1-D15 behavior."
+      : "Product review rejected the terminal product result, operator flow, or D1-D15 predicate set.",
   };
 }
 
@@ -69,12 +69,12 @@ function syntheticManifest(predicateIds = REQUIRED_PREDICATES, productResult = E
 
 function selfTest() {
   const positive = review(syntheticManifest());
-  const oldPlanner = review(syntheticManifest(REQUIRED_PREDICATES.slice(0, 10)));
+  const missingD15 = review(syntheticManifest(REQUIRED_PREDICATES.filter((predicateId) => predicateId !== "D15")));
   const wrongResult = review(syntheticManifest(REQUIRED_PREDICATES, "Meta-Harness 0.4 installed package is complete."));
-  if (positive.result !== "PASS" || oldPlanner.result !== "FAIL" || wrongResult.result !== "FAIL") {
+  if (positive.result !== "PASS" || missingD15.result !== "FAIL" || wrongResult.result !== "FAIL") {
     throw new Error("product reviewer positive/negative self-test failed");
   }
-  process.stdout.write(`${JSON.stringify({ ok: true, positive: "PASS", oldPlanner: "FAIL", wrongResult: "FAIL" })}\n`);
+  process.stdout.write(`${JSON.stringify({ ok: true, positive: "PASS", missingD15: "FAIL", wrongResult: "FAIL" })}\n`);
 }
 
 if (process.argv.includes("--self-test")) {
