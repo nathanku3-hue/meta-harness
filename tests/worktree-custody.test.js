@@ -15,6 +15,10 @@ const {
   deriveManagedWorktreePath,
   checkWorktreeCustody,
   getContractDocument,
+  nativePath,
+  gitPath,
+  comparisonKey,
+  pathsEqual,
 } = require("../lib/worktree-custody");
 
 function tempDir() {
@@ -77,11 +81,45 @@ test("deriveManagedWorktreePath builds under .worktrees", () => {
     dest.toLowerCase().includes(".worktrees/bounded-1"));
 });
 
-test("checkWorktreeCustody fails without exclude", () => {
+test("path dialect adapter separates native, Git, and comparison identities", () => {
+  const windowsForm = "E:/Code/meta-harness";
+  const wslForm = "/mnt/e/Code/meta-harness";
+  const native = nativePath(windowsForm);
+
+  assert.equal(pathsEqual(windowsForm, wslForm), true);
+  assert.equal(comparisonKey(windowsForm), comparisonKey(wslForm));
+  if (process.platform === "win32") {
+    assert.match(native, /^E:[\\/]Code[\\/]meta-harness$/i);
+  } else {
+    assert.equal(native, wslForm);
+    assert.equal(gitPath(native, "C:/Program Files/Git/bin/git.exe"), windowsForm);
+  }
+
+  const repoLocal = assertManagedDestination(
+    wslForm,
+    `${wslForm}/.worktrees/unit-a`,
+  );
+  assert.equal(repoLocal.ok, true, JSON.stringify(repoLocal.findings));
+});
+
+test("checkWorktreeCustody fails without exclude when managed worktrees are enabled", () => {
   const cwd = initRepo();
-  const res = checkWorktreeCustody({ targetRoot: cwd, mode: "local" });
+  fs.mkdirSync(path.join(cwd, ".worktrees"), { recursive: true });
+  const res = checkWorktreeCustody({ targetRoot: cwd, mode: "local", auditCreatorRoots: false });
   assert.equal(res.status, "fail");
   assert.match(res.reason, /exclude|MISSING_LOCAL_EXCLUDE|missing/i);
+});
+
+test("checkWorktreeCustody does not require an exclude before managed worktrees exist", () => {
+  const cwd = initRepo();
+  const res = checkWorktreeCustody({
+    targetRoot: cwd,
+    mode: "local",
+    auditCreatorRoots: false,
+  });
+  assert.equal(res.status, "pass", res.reason);
+  assert.equal(res.details.local_exclude_required, false);
+  assert.equal(res.details.local_exclude, false);
 });
 
 test("checkWorktreeCustody passes clean repo with exclude and no linked worktrees", () => {
