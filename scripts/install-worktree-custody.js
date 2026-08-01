@@ -22,6 +22,8 @@ const {
   listWorktreesPorcelain,
   isApprovedLinkedPath,
   resolveOwner,
+  nativePath,
+  pathsEqual,
 } = require("../lib/worktree-custody");
 
 const MH_ROOT = path.resolve(__dirname, "..");
@@ -48,6 +50,7 @@ function isGitRepo(dir) {
 }
 
 function discoverRepos(codeRoot) {
+  codeRoot = nativePath(codeRoot);
   const found = [];
   const top = fs.readdirSync(codeRoot, { withFileTypes: true });
   for (const ent of top) {
@@ -72,7 +75,8 @@ function discoverRepos(codeRoot) {
   return found.sort();
 }
 
-function installProjection(repoRoot, { stampLifecycle = true } = {}) {
+function installProjection(repoRoot, { stampLifecycle = true, auditCreatorRoots = true } = {}) {
+  repoRoot = nativePath(repoRoot);
   const contract = getContractDocument();
   const contractJson = `${JSON.stringify(contract, null, 2)}\n`;
   const policyHash = sha256Text(contractJson);
@@ -109,7 +113,7 @@ function installProjection(repoRoot, { stampLifecycle = true } = {}) {
       const listed = listWorktreesPorcelain(owner.ownerRoot);
       if (listed.ok) {
         for (const entry of listed.entries) {
-          if (path.resolve(entry.path).toLowerCase() === path.resolve(owner.ownerRoot).toLowerCase()) continue;
+          if (pathsEqual(entry.path, owner.ownerRoot)) continue;
           if (!fs.existsSync(entry.path)) continue;
           const approved = isApprovedLinkedPath(entry.path, owner.ownerRoot);
           if (!approved.approved) continue;
@@ -157,7 +161,16 @@ function installProjection(repoRoot, { stampLifecycle = true } = {}) {
   });
   const negativeAllRefuse = negative.every((n) => n.refused);
 
-  const custodyCheck = checkWorktreeCustody({ targetRoot: repoRoot, mode: "local", requireLifecycle: true });
+  const custodyCheck = checkWorktreeCustody({
+    targetRoot: repoRoot,
+    mode: "ci",
+    requireLifecycle: true,
+    auditCreatorRoots,
+  });
+  const projected = true;
+  const projectionTestsPassed = positive.ok && negativeAllRefuse;
+  const compliant = custodyCheck.status === "pass";
+  const installed = projected && projectionTestsPassed && compliant;
 
   return {
     repository: repoRoot,
@@ -170,21 +183,33 @@ function installProjection(repoRoot, { stampLifecycle = true } = {}) {
     exclude_path: excludePath,
     positive_test: positive,
     negative_test: { all_refuse: negativeAllRefuse, cases: negative },
+    projected,
+    projection_tests_passed: projectionTestsPassed,
     custody_check_status: custodyCheck.status,
     custody_check_reason: custodyCheck.reason || "",
+    compliant,
     exemption: null,
-    installed: true,
+    installed,
+  };
+}
+
+function summarizeRecords(records) {
+  return {
+    repositories_installed: records.filter((r) => r.installed).length,
+    repositories_exempted: records.filter((r) => r.exemption).length,
+    repositories_failed: records.filter((r) => !r.installed && !r.exemption).length,
   };
 }
 
 function main() {
   const args = process.argv.slice(2);
-  const codeRoot = args.find((a) => !a.startsWith("--")) || "E:\\Code";
-  const inventoryPath =
-    args.find((a) => a.startsWith("--inventory="))?.slice("--inventory=".length) ||
-    path.join(codeRoot, "devspace", "worktree-inventory", "worktree-custody-install-inventory.json");
-  const exemptionsPath =
-    args.find((a) => a.startsWith("--exemptions="))?.slice("--exemptions=".length) || "";
+  const codeRoot = nativePath(args.find((a) => !a.startsWith("--")) || "E:\\Code");
+  const inventoryArg = args.find((a) => a.startsWith("--inventory="))?.slice("--inventory=".length);
+  const inventoryPath = nativePath(
+    inventoryArg || path.join(codeRoot, "devspace", "worktree-inventory", "worktree-custody-install-inventory.json"),
+  );
+  const exemptionsArg = args.find((a) => a.startsWith("--exemptions="))?.slice("--exemptions=".length) || "";
+  const exemptionsPath = exemptionsArg ? nativePath(exemptionsArg) : "";
 
   let exemptions = {};
   if (exemptionsPath && fs.existsSync(exemptionsPath)) {
@@ -208,9 +233,9 @@ function main() {
     try {
       const rec = installProjection(repo);
       records.push(rec);
-      console.log(
-        `INSTALL ${repo} exclude=${rec.local_exclude_present} positive=${rec.positive_test.ok} negative=${rec.negative_test.all_refuse} custody=${rec.custody_check_status}`,
-      );
+      const report = `${rec.installed ? "INSTALL" : "FAIL"} ${repo} installed=${rec.installed} exclude=${rec.local_exclude_present} positive=${rec.positive_test.ok} negative=${rec.negative_test.all_refuse} custody=${rec.custody_check_status}`;
+      if (rec.installed) console.log(report);
+      else console.error(report);
     } catch (error) {
       records.push({
         repository: repo,
@@ -222,7 +247,8 @@ function main() {
     }
   }
 
-  // Ensure every discovered repo is installed or exempted
+  // Ensure every discovered repo is installed and compliant, or explicitly exempted.
+  const counts = summarizeRecords(records);
   const inventory = {
     phase: "WORKTREE-CONFINEMENT-AND-C-MIGRATION-0",
     generated_at: new Date().toISOString(),
@@ -231,9 +257,7 @@ function main() {
     meta_harness_commit: MH_COMMIT,
     code_root: path.resolve(codeRoot),
     repositories_discovered: repos.length,
-    repositories_installed: records.filter((r) => r.installed).length,
-    repositories_exempted: records.filter((r) => r.exemption).length,
-    repositories_failed: records.filter((r) => !r.installed && !r.exemption).length,
+    ...counts,
     records,
   };
 
@@ -250,4 +274,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { installProjection, discoverRepos };
+module.exports = { installProjection, discoverRepos, summarizeRecords };
