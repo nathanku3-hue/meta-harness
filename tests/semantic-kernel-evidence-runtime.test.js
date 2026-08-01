@@ -8,15 +8,14 @@ const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const { domainDigest } = require("../lib/contracts/digest");
+const evidenceRuntime = require("../lib/semantic-kernel/evidence-runtime");
 const {
   constructMechanicsAssessment,
-  observePythonEnvironment,
-  produceCertificationEvidence,
   produceDeliveryTerminalEvidence,
   sha256Bytes,
-} = require("../lib/semantic-kernel/evidence-runtime");
+} = evidenceRuntime;
+const semanticController = require("../lib/semantic-kernel/semantic-controller");
 const {
-  certifyCandidate,
   recordMechanicsAssessment,
   recordTerminalCandidate,
   reserveExecutionAttempt,
@@ -616,47 +615,30 @@ test("controller installs exact delivery tarball and launches proof plus three r
   assert.equal(new Set(evidence.reviews.map((review) => review.processId)).size, 3);
 });
 
-test("controller launches Python certification evaluator and three isolated read-only reviewers", { skip: process.platform !== "linux" }, (t) => {
-  const fixture = certificationFixture(t);
-  const evidence = produceCertificationEvidence({
-    repositoryPath: fixture.root,
-    sliceAuthorization: fixture.authorization,
-    integratedCandidate: fixture.integratedCandidate,
-    certificationRequest: fixture.request,
-  });
-  assert.equal(evidence.assessment.verdict, "CERTIFICATION_VERIFIED");
-  assert.equal(evidence.certificationCandidate.applicationEntryPoint, "app.py");
-  assert.equal(evidence.proof.executionSurface.type, "repository-application");
-  assert.equal(evidence.proof.quantitativeEvaluations[0].actual, 30);
-  assert.deepEqual(evidence.reviews.map((review) => review.role).sort(), ["CUSTODY", "DOMAIN", "PRODUCT"]);
-  assert.equal(new Set(evidence.reviews.map((review) => review.processId)).size, 3);
-  assert.ok(evidence.reviews.every((review) => review.readOnlyCandidateAccess));
+test("offline evidence installation disables npm bin links before manifesting", () => {
+  const source = fs.readFileSync(path.join(__dirname, "..", "lib", "semantic-kernel", "evidence-runtime.js"), "utf8");
+  assert.match(source, /"--bin-links=false"/);
+  assert.match(source, /const installedManifestDigest = directoryManifestDigest\(installRoot\)/);
 });
 
-test("substituted evaluator bytes are rejected before certification execution", { skip: process.platform !== "linux" }, (t) => {
-  const fixture = certificationFixture(t);
-  const authorization = JSON.parse(JSON.stringify(fixture.authorization));
-  authorization.sliceAcceptance.proofOracle.evaluatorArtifactDigest = digest("substituted-evaluator");
-  assert.throws(
-    () => produceCertificationEvidence({
-      repositoryPath: fixture.root,
-      sliceAuthorization: authorization,
-      integratedCandidate: fixture.integratedCandidate,
-      certificationRequest: fixture.request,
-    }),
-    (error) => error.code === "EVIDENCE_EXECUTABLE_DIGEST_MISMATCH",
-  );
-});
-
-test("Python environment identity is controller-observed and stable for unchanged bytes", { skip: process.platform !== "linux" }, (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "semantic-python-environment-"));
-  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-  const environmentRoot = createPythonEnvironmentRoot(root);
-  const first = observePythonEnvironment(environmentRoot);
-  const second = observePythonEnvironment(environmentRoot);
-  assert.equal(first.installedEnvironmentIdentityDigest, second.installedEnvironmentIdentityDigest);
-  assert.equal(first.environmentManifestDigest, second.environmentManifestDigest);
-  assert.match(first.executableDigest, /^sha256:[a-f0-9]{64}$/);
+test("alternate execution authority is absent from the evidence runtime and controller", () => {
+  assert.equal(Object.prototype.hasOwnProperty.call(evidenceRuntime, "produceCertificationEvidence"), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(evidenceRuntime, "observePythonEnvironment"), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(semanticController, "certifyCandidate"), false);
+  const executableSource = [
+    fs.readFileSync(path.join(__dirname, "..", "lib", "semantic-kernel", "evidence-runtime.js"), "utf8"),
+    fs.readFileSync(path.join(__dirname, "..", "lib", "semantic-kernel", "semantic-controller.js"), "utf8"),
+    fs.readFileSync(path.join(__dirname, "..", "lib", "execution-custody", "execute.js"), "utf8"),
+  ].join("\n");
+  for (const token of [
+    "CERTIFICATION_PREPARE",
+    "CERTIFICATION_ASSESS",
+    "CERTIFICATION_VERIFIED",
+    "certification-candidate/v1",
+    "certification-proof/v1",
+    "produceCertificationEvidence",
+    "repository-application",
+  ]) assert.doesNotMatch(executableSource, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
 test("Windows authoritative evidence operations fail before spawn, counters, bundles, state, or repository mutation", { skip: process.platform !== "win32" }, (t) => {
@@ -667,11 +649,9 @@ test("Windows authoritative evidence operations fail before spawn, counters, bun
   const operations = [
     () => constructMechanicsAssessment({ repositoryPath: root, runSpec: null, sliceAuthorization: authorization, expectedContributedRevision: "0".repeat(40) }),
     () => produceDeliveryTerminalEvidence({ repositoryPath: root, sliceAuthorization: authorization }),
-    () => produceCertificationEvidence({ repositoryPath: root, sliceAuthorization: authorization }),
     () => reserveExecutionAttempt({ repositoryPath: root, sliceAuthorization: authorization }),
     () => recordMechanicsAssessment({ repositoryPath: root, sliceAuthorization: authorization }),
     () => recordTerminalCandidate({ repositoryPath: root, sliceAuthorization: authorization }),
-    () => certifyCandidate({ repositoryPath: root, sliceAuthorization: authorization }),
   ];
   for (const operation of operations) {
     assert.throws(operation, (error) => {

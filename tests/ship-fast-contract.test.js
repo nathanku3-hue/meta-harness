@@ -11,121 +11,74 @@ function read(relativePath) {
   return fs.readFileSync(path.join(ROOT, ...relativePath.split("/")), "utf8").replace(/\r\n/g, "\n");
 }
 
-function assertAdaptiveClosurePolicy(text) {
-  assert.match(text, /canonical user-visible closure policy/i);
-  assert.match(text, /result and practical effect/i);
-  assert.match(text, /nearest evidence/i);
-  assert.match(text, /next action when work remains/i);
-  assert.match(text, /highest-priority user decision when one is required/i);
-  assert.match(text, /Omit empty or .*none.* items/i);
-  assert.match(text, /four applicable semantic items/i);
-  assert.match(text, /budget applies only to normal human-facing closure/i);
-  assert.match(text, /separate surfaces[\s\S]+without converting .*PM_CLOSURE.* into an audit packet/i);
-  for (const owner of ["human: taste/acceptance", "expert: domain knowledge", "expert: system methodology"]) {
-    assert.ok(text.includes(`Decision needed (${owner}): <question>`));
-  }
-  assert.match(text, /Approval needed: <bounded authority, scope, and consequence, or none>/i);
-  assert.match(text, /not expert-decision tags/i);
-  assert.match(text, /machine_tier.*maps into .*closure_route.*user_visible_result/is);
-  assert.match(text, /Tier fields may remain in .*WORKER_REPORT.*accountability and evidence/i);
-  assert.doesNotMatch(text, /Artifact: PM_CLOSURE \| Route:/);
-  assert.doesNotMatch(text, /Route: BLOCK \| Outcome:/);
-  assert.doesNotMatch(text, /at most 3 non-empty lines/i);
-  assert.doesNotMatch(text, /at most 5 non-empty lines/i);
-  assert.doesNotMatch(text, /one physical line/i);
-  assert.doesNotMatch(text, /Mode:\s*one-liner/i);
+function assertOutcomeFirstPlanner(text) {
+  assert.match(text, /locked product intent|locked intent/i);
+  assert.match(text, /owner authority|owner-signed acceptance/i);
+  assert.match(text, /status[\s\S]*(?:last|cannot create|lower-precedence)/i);
+  assert.match(text, /at most one .*audit\/repair round/i);
+  assert.match(text, /journey prevention/i);
+  assert.match(text, /material conclusion invalidation/i);
+  assert.match(text, /credible irreversible loss/i);
+  assert.match(text, /supported-platform unusability/i);
+  assert.match(text, /reuse.*passed (?:evidence|gate)|passed gate remains passed/i);
+  assert.match(text, /NO_BUILD/);
+  assert.match(text, /USE_PRODUCT/);
+  assert.match(text, /owner (?:scope change|changes scope)/i);
+  assert.match(text, /observed supported-use defect warrant/i);
+  assert.match(text, /claim(?: post-closure)? successor activation/i);
 }
 
-function assertCoreContract(relativePath) {
-  const text = read(relativePath);
-  assert.match(text, /agent contract|agent-level .*ship-fast/i);
-  assert.match(text, /no Python, Node, CLI|does not add or alter Python, Node, CLI/i);
-  assert.match(text, /never emit(?:s)? .*SLOW/i);
-  assert.match(text, /compress[^\n]+REVIEW[^\n]+BLOCK/i);
-  assert.match(text, /FAST[^\n]+owned[^\n]+approval boundary/i);
-  assert.match(text, /REVIEW[^\n]+bounded[^\n]+decision/i);
-  assert.match(text, /BLOCK[^\n]+authority[^\n]+evidence/i);
-  for (const type of ["PM_CLOSURE", "REVIEW_SPECIMEN", "MATERIALIZED_IMPLEMENTATION"]) {
-    assert.match(text, new RegExp("\\b" + type + "\\b"));
-  }
-  assert.match(text, /Status-only artifacts are not shipped progress/i);
-  assert.match(text, /must not create another status-only packet[\s\S]+lifecycle fragment as progress/i);
-  assert.match(text, /Product Result/i);
-  assert.match(text, /Terminal Closure/i);
-  assert.match(text, /exact active SliceAcceptance digest|exact owner-authorized/i);
-  assert.match(text, /acceptance-only, integration-only, evidence-banking, authority-update, packaging-only, review-only, and documentation-only/i);
-  assert.match(text, /lifecycle stages inside the owning functional slice/i);
-  assert.match(text, /installed proof[\s\S]+isolated A\/B\/C[\s\S]+terminal assessment[\s\S]+exact publication/i);
-  assert.match(text, /PM closure is the chat answer, not the worker-report artifact/i);
-  assert.match(text, /hide .*Outcome.*Round.*Progress.*Confidence/i);
-  assert.match(text, /approval text/i);
-  assert.match(text, /affirmative signal[\s\S]+closes only a pure .*HUMAN_TASTE/i);
-  assert.match(text, /no authority, security, evidence, scope, safety, git, or implementation gate/i);
-  assertAdaptiveClosurePolicy(text);
-}
-
-test("canonical SOP separates closure, handover, and worker evidence", () => {
+test("canonical SOP defines outcome-first execution and terminal continuation", () => {
   const sop = read("docs/sop/meta-harness-sop.md");
-  assert.match(sop, /^Status: canonical$/m);
-  assert.match(sop, /canonical human-facing contract for .*ship-fast/);
-  const contract = sop.slice(sop.indexOf("### PM Output Contract"), sop.indexOf("## Status Truth Template"));
-  assert.match(contract, /FAST/);
-  assert.match(contract, /REVIEW/);
-  assert.match(contract, /BLOCK/);
-  assert.match(contract, /SLOW.*never emitted/i);
-  assert.match(contract, /one canonical user-visible closure policy/i);
-  assert.match(contract, /PM_CLOSURE.*adaptive human-facing status and decision surface/i);
-  assert.match(contract, /ORCHESTRATOR_HANDOVER.*dense continuation state/i);
-  assert.match(contract, /WORKER_REPORT.*exhaustive execution, validation, accountability, and evidence/i);
-  assert.match(contract, /Requested audits, reviews, safety evidence, and orchestrator handover state are separate surfaces/i);
-  assert.match(contract, /machine_tier.*maps into .*closure_route.*user_visible_result/is);
-  assert.match(contract, /Tier fields may remain in .*WORKER_REPORT/i);
-  assert.match(contract, /Status-only artifacts are not shipped progress/i);
-  assert.match(contract, /Expert packets, approval packets, PM status, and dashboards/i);
-  assert.match(contract, /PM closure is the chat answer, not the worker-report artifact/i);
-  assert.match(contract, /emit only the pasteable approval block/i);
-  assert.match(contract, /affirmative signal[\s\S]+closes only a pure .*HUMAN_TASTE/i);
+  assert.match(sop, /Meta-Harness 0\.4 Outcome-First SOP/);
+  assertOutcomeFirstPlanner(sop);
+  assert.match(sop, /five product fields/i);
+  assert.match(sop, /complete suite once/i);
+  assert.match(sop, /one clean canary/i);
+  assert.match(sop, /Never install directly into dirty checkouts/i);
 });
 
 test("router, decision gate, and scope selector preserve one complete functional slice", () => {
-  assertCoreContract("templates/skills/ship-fast-decision-router.md");
-  assertCoreContract("templates/contracts/ship-fast-decision-gate.md");
+  for (const relativePath of [
+    "templates/skills/ship-fast-decision-router.md",
+    "templates/contracts/ship-fast-decision-gate.md",
+    "templates/skills/scope-selector.md",
+  ]) assertOutcomeFirstPlanner(read(relativePath));
   const selector = read("templates/skills/scope-selector.md");
-  assert.match(selector, /Authority-Ordered Inputs/);
-  assert.match(selector, /Locked product intent and explicit owner decisions/);
-  assert.match(selector, /active owner-signed `SliceAuthorization`/);
-  assert.match(selector, /status\.md.*summaries last/is);
-  assert.match(selector, /Status, events, reports, objectives, and summaries are advisory/);
-  assert.match(selector, /^Acceptance Digest: <exact immutable SliceAcceptance digest>$/m);
-  assert.match(selector, /^Product Result: <observable end-to-end capability or restored user flow>$/m);
-  assert.match(selector, /^Terminal Closure: <verification -> acceptance -> integration -> package -> installed proof -> A\/B\/C -> terminal assessment -> exact publication -> deterministic closure, or one named protected-boundary gate>$/m);
-  assert.match(selector, /Any byte change requires a new owner-signed G-SCOPE replacement/);
-  assert.match(selector, /do not optimize for the smallest lifecycle fragment/);
+  assert.match(selector, /one functional slice/i);
+  assert.match(selector, /acceptance-only, integration-only, packaging-only, review-only, documentation-only, or evidence-refresh/i);
 });
 
-test("worker contract preserves dense handover and internal SLOW evidence", () => {
+test("candidate AGENTS maps terminal classification to exact user-facing guidance", () => {
+  const agents = read("AGENTS.md");
+  assert.match(agents, /classify internally as `NO_BUILD` and `USE_PRODUCT`/);
+  assert.match(agents, /```text\nNo active slice\.\nUse the product\.\nWait for observed real-use friction\.\n```/);
+});
+
+test("worker contract puts product evidence before internal metadata", () => {
   const worker = read("templates/contracts/worker-done-contract.md");
-  for (const channel of ["PM_CLOSURE", "ORCHESTRATOR_HANDOVER", "WORKER_REPORT"]) {
-    assert.match(worker, new RegExp("`" + channel + "`"));
+  const fields = [
+    "User journey executed:",
+    "Observable result produced:",
+    "User accomplished or learned:",
+    "Product blocker:",
+    "Next executable product action:",
+  ];
+  let prior = -1;
+  for (const field of fields) {
+    const index = worker.indexOf(field);
+    assert.ok(index > prior, `${field} must retain outcome-first order`);
+    prior = index;
   }
-  for (const field of [
-    "CurrentTruth",
-    "MaterialDelta",
-    "Validation",
-    "OpenRisks",
-    "BlockedBy",
-    "DecisionQueue",
-    "NextExecutableAction",
-    "Boundaries",
-    "HumanAuditState",
-    "HumanAuditScope",
-    "Provenance",
-  ]) {
-    assert.match(worker, new RegExp("^" + field + ":", "m"));
-  }
-  assert.match(worker, /ORCHESTRATOR_HANDOVER.*no arbitrary line cap/i);
-  assert.match(worker, /SLOW.*remain valid in worker-report accountability and evidence fields/i);
-  assert.match(worker, /must not appear in normal chat or .*PM_CLOSURE.* output/i);
+  assert.ok(worker.indexOf("Outcome:") > prior);
+  assert.match(worker, /journey prevention/i);
+  assert.match(worker, /material conclusion invalidation/i);
+  assert.match(worker, /credible irreversible loss/i);
+  assert.match(worker, /supported-platform unusability/i);
+  assert.match(worker, /Reuse passed evidence/i);
+  assert.match(worker, /return `USE_PRODUCT`/);
+  assert.match(worker, /observed supported-use defect warrant/i);
+  assert.match(worker, /No title, hash, command log, reviewer note, or status field may precede/i);
 });
 
 test("legacy gate is migration-only", () => {

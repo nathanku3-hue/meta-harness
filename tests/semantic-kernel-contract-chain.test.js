@@ -642,25 +642,26 @@ test("installed controller binding is exactly authorizable and unknown capabilit
   );
 });
 
-test("DELIVERY and CERTIFICATION have disjoint terminal requirements", () => {
+test("Meta-Harness 0.4 authorizes DELIVERY only", () => {
   const owner = createOwner();
   const delivery = makeAuthorization(owner);
   const validatedDelivery = validateSliceAuthorization(delivery, owner.pin);
   assert.equal(validatedDelivery.sliceMode, "DELIVERY");
   assert.equal(validatedDelivery.authorityExecutionPlatform, "linux");
+  assert.equal(validatedDelivery.sliceAcceptance.shippingTarget, "installed-package");
 
-  const certificationBody = clone(delivery);
-  delete certificationBody.ownerKeyId;
-  delete certificationBody.authorizationDigest;
-  delete certificationBody.ownerSignature;
-  certificationBody.sliceMode = "CERTIFICATION";
-  certificationBody.sliceAcceptance.shippingTarget = "repository-application";
-  certificationBody.publicationPolicy = null;
-  const certification = signAuthorization(certificationBody, owner);
-  const validated = validateSliceAuthorization(certification, owner.pin);
-  assert.equal(validated.sliceMode, "CERTIFICATION");
-  assert.equal(validated.publicationPolicy, null);
-  assert.equal(Object.prototype.hasOwnProperty.call(validated, "packageCandidate"), false);
+  const retiredModeBody = clone(delivery);
+  delete retiredModeBody.ownerKeyId;
+  delete retiredModeBody.authorizationDigest;
+  delete retiredModeBody.ownerSignature;
+  retiredModeBody.sliceMode = "CERTIFICATION";
+  retiredModeBody.sliceAcceptance.shippingTarget = "repository-application";
+  retiredModeBody.publicationPolicy = null;
+  const retiredMode = signAuthorization(retiredModeBody, owner);
+  assert.throws(
+    () => validateSliceAuthorization(retiredMode, owner.pin),
+    (error) => error.code === "SLICE_MODE_INVALID",
+  );
 
   const windowsAuthorityBody = clone(delivery);
   delete windowsAuthorityBody.ownerKeyId;
@@ -671,14 +672,6 @@ test("DELIVERY and CERTIFICATION have disjoint terminal requirements", () => {
   assert.throws(
     () => validateSliceAuthorization(windowsAuthority, owner.pin),
     (error) => error.code === "SLICE_AUTHORITY_EXECUTION_PLATFORM_INVALID",
-  );
-
-  const fakeNpmCertificationBody = clone(certificationBody);
-  fakeNpmCertificationBody.publicationPolicy = clone(delivery.publicationPolicy);
-  const fakeNpmCertification = signAuthorization(fakeNpmCertificationBody, owner);
-  assert.throws(
-    () => validateSliceAuthorization(fakeNpmCertification, owner.pin),
-    (error) => error.code === "SLICE_CERTIFICATION_PUBLICATION_FORBIDDEN",
   );
 
   const missingDeliveryPublicationBody = clone(delivery);
@@ -882,6 +875,14 @@ test("candidate mutation advances generation and invalidates earlier terminal ev
   };
   next.stateDigest = computeSliceStateDigest(next);
   assert.equal(validateSliceStateTransition(prior, next).generation, 2);
+
+  const retiredAuthorityEvidence = clone(next);
+  retiredAuthorityEvidence.certificationCandidateDigest = digest("retired-authority-evidence");
+  retiredAuthorityEvidence.stateDigest = computeSliceStateDigest(retiredAuthorityEvidence);
+  assert.throws(
+    () => validateSliceStateTransition(prior, retiredAuthorityEvidence),
+    (error) => error.code === "SLICE_STATE_RETIRED_AUTHORITY_EVIDENCE",
+  );
 
   const illegalReuse = clone(next);
   illegalReuse.terminalAssessmentDigest = chain.terminal.terminalAssessmentDigest;

@@ -1,32 +1,21 @@
-# Migration Note
+# Meta-Harness 0.4 Migration Note
 
-Phase 1 adds additive CLI commands for Dirty Work Autopilot:
+Meta-Harness 0.4 is a breaking outcome-first DELIVERY release.
 
-```text
-meta-harness dirty snapshot
-meta-harness dirty classify
-meta-harness gate scope
-```
+## Changed behavior
 
-Phase 1 command behavior and worker-report output shape were unchanged. The new dirty-work commands create audit artifacts, queue nonblocking dirt, and block or escalate decision-relevant scope dirt.
+- Locked product intent and owner authority outrank status and roadmap prose.
+- The planner executes the nearest complete user journey after at most one audit/repair round.
+- Only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability blocks.
+- Passed evidence is reused while its declared inputs are unchanged.
+- Worker reports begin with the five product fields before `Outcome:` or internal metadata.
+- Terminal completion returns `NO_BUILD` and `USE_PRODUCT` unless owner scope change or a complete observed supported-use defect warrant exists.
+- The installed runtime exposes DELIVERY authority only.
 
-Batch A updates the `worker-report` CLI contract. Worker reports now require:
+## Removed behavior
 
-```text
---outcome <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>
---requested-work-type <docs|code|test|provider_probe|commit|validation|execution|data_output>
---actual-work-type <docs|code|test|provider_probe|commit|validation|execution|data_output|none>
-```
+Historical alternate authority objects, executable paths, state stages, capabilities, and package surfaces are removed rather than migrated. Old tracked files remain inert historical evidence and have no authority effect.
 
-`PARTIAL_WITH_EXPLICIT_SCOPE`, `REJECTED`, and `--actual-work-type none` require `--blocker <reason>`. Generated worker reports are PM Brief artifacts and keep validations separate from evidence artifacts.
+## Adoption
 
-Phase 2 adds the Decision Router / Decision Inbox command surface:
-
-```text
-meta-harness decisions list --in .meta-harness/decision-inbox.json
-meta-harness decisions add --kind <kind> --question <text> --state-hash <hash>
-meta-harness decisions resolve --id <id> --resolution <approved|rejected|deferred>
-meta-harness brief pm --dirty .meta-harness/dirty-work.json --decisions .meta-harness/decision-inbox.json --out .meta-harness/pm-brief.md
-```
-
-Dirty-work `DECISION` classifications become memoized user decisions. `QUEUE`, `PASS`, `BLOCK`, and `ESCALATE` do not become reusable decisions; blockers and escalations appear only in the current PM brief.
+Do not install an older bootstrap tarball. Build the exact H3 package once, prove it in one clean canary, and reuse that package for every clean default-branch worktree. Inspect and integrate each repository separately. Existing dirty checkouts are not installation targets.

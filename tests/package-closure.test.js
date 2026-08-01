@@ -105,6 +105,7 @@ test("0.4 tarball has exact transitive package closure and loads every installed
   const retiredAuthorityIssues = retiredIssues.filter((issue) => issue.code === "RETIRED_TOKEN_PRESENT");
   assert.deepEqual(retiredAuthorityIssues, []);
   for (const sourceOnly of [
+    "lib/semantic-kernel/certification.js",
     "lib/semantic-kernel/package-closure.js",
     "lib/semantic-kernel/release-negative-scan.js",
   ]) assert.equal(dryFiles.includes(sourceOnly), false, sourceOnly);
@@ -141,6 +142,17 @@ test("0.4 tarball has exact transitive package closure and loads every installed
   const installedRoot = path.join(projectRoot, "node_modules", "@nkgss", "meta-harness");
   const installedPackage = JSON.parse(fs.readFileSync(path.join(installedRoot, "package.json"), "utf8"));
   assert.equal(installedPackage.version, "0.4.0");
+  assert.equal(fs.existsSync(path.join(installedRoot, "lib", "semantic-kernel", "certification.js")), false);
+  const installedExecutable = [
+    "lib/execution-custody/execute.js",
+    "lib/semantic-kernel/evidence-runtime.js",
+    "lib/semantic-kernel/semantic-controller.js",
+    "lib/semantic-kernel/slice-authorization.js",
+    "lib/semantic-kernel/slice-state.js",
+  ].map((relativePath) => fs.readFileSync(path.join(installedRoot, relativePath), "utf8")).join("\n");
+  for (const token of ["CERTIFICATION_PREPARE", "CERTIFICATION_ASSESS", "CERTIFICATION_VERIFIED", "produceCertificationEvidence", "repository-application"]) {
+    assert.equal(installedExecutable.includes(token), false, token);
+  }
   const registry = require(path.join(installedRoot, "lib", "command-registry.js"));
   for (const spec of registry.commandSpecs) {
     const resolved = registry.resolveCommand([spec.name]);
