@@ -12,12 +12,17 @@ const {
   signEd25519ForTests,
 } = require("../lib/semantic-kernel/contract-utils");
 const {
+  CONTROLLER_CAPABILITIES,
   SLICE_AUTHORIZATION_SIGNATURE_DOMAIN,
   authorizationSigningBody,
   computeSliceAcceptanceDigest,
   computeSliceAuthorizationDigest,
   validateSliceAuthorization,
 } = require("../lib/semantic-kernel/slice-authorization");
+const {
+  ALLOWED_CAPABILITIES,
+  resolveInstalledControllerBinding,
+} = require("../lib/semantic-kernel/controller-binding");
 const {
   G_SCOPE_SIGNATURE_DOMAIN,
   computeGScopeDigest,
@@ -607,6 +612,34 @@ test("one owner authorization binds the complete mechanics-to-terminal chain", (
     reviewerAssessments: reviews,
   });
   assert.equal(terminal.verdict, "TERMINAL_SLICE_VERIFIED");
+});
+
+test("installed controller binding is exactly authorizable and unknown capabilities remain rejected", () => {
+  assert.deepEqual(
+    [...CONTROLLER_CAPABILITIES].sort(),
+    [...ALLOWED_CAPABILITIES].sort(),
+  );
+
+  const owner = createOwner();
+  const delivery = makeAuthorization(owner);
+  const deliveryBody = clone(delivery);
+  delete deliveryBody.ownerKeyId;
+  delete deliveryBody.authorizationDigest;
+  delete deliveryBody.ownerSignature;
+  deliveryBody.controllerBinding = resolveInstalledControllerBinding();
+
+  const installedBindingAuthorization = signAuthorization(deliveryBody, owner);
+  const validated = validateSliceAuthorization(installedBindingAuthorization, owner.pin);
+  assert.deepEqual(validated.controllerBinding, resolveInstalledControllerBinding());
+
+  const unauthorizedBody = clone(deliveryBody);
+  unauthorizedBody.controllerBinding.allowedCapabilities.push("UNAUTHORIZED_CAPABILITY");
+  unauthorizedBody.controllerBinding.allowedCapabilities.sort();
+  const unauthorized = signAuthorization(unauthorizedBody, owner);
+  assert.throws(
+    () => validateSliceAuthorization(unauthorized, owner.pin),
+    (error) => error.code === "SLICE_CONTROLLER_CAPABILITY_INVALID",
+  );
 });
 
 test("DELIVERY and CERTIFICATION have disjoint terminal requirements", () => {
