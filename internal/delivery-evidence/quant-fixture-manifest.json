@@ -1,1 +1,269 @@
-{"schemaVersion":"meta-harness-delivery-fixture-manifest/v1","classification":"BOOTSTRAP_EVIDENCE_SEED;PACKAGE_EXCLUDED;NOT_PRODUCT_CANDIDATE;NOT_RELEASE_CANDIDATE;NOT_PUBLICATION_BYTES","productResult":"Meta-Harness 0.4 installed package preserves owner-frozen product acceptance, rejects semantically weakened completion, accepts a correct control, and closes only after exact terminal and registry evidence.","operatorUserFlow":["install","activate","execute","inspect","reject-drift","accept-control"],"intentDigest":"sha256:de9917183b8cf6ba7d83aaaa2925e52be56d97373e9053a30bccdfee5984ac35","proofPredicateOrder":["D1","D10","D2","D3","D4","D5","D6","D7","D8","D9"],"predicates":{"D1":"Original acceptance bytes cannot be replaced by the active worker brief.","D2":"Mechanics success cannot assert or imply product acceptance.","D3":"A semantically incomplete candidate cannot reach terminal verification.","D4":"Evaluator executable substitution is rejected.","D5":"Reviewer executable or policy substitution is rejected.","D6":"The same frozen acceptance and oracle reject the negative fixture and pass the positive control.","D7":"Closure derives only from terminal proof and exact publication evidence.","D8":"No generic CERTIFICATION execution mode or authority remains in the installed runtime.","D9":"The authoritative tarball is built exactly once and is never rebuilt during verification or publication.","D10":"Active guidance points only to Meta-Harness 0.4 DELIVERY."},"originalAcceptance":{"repository":"https://github.com/nathanku3-hue/Quant.git","revision":"5016201c494828d2d79f894681ebb562780687f0","path":"docs/phase_brief/gv-operated-portfolio-10-transition-1r-brief.md","gitBlob":"1665d19770352b22216a4e0659b147b82091cd7f","contentDigest":"sha256:b47a993332b069cbc65e09773ac18ce29399763de405f60c107851416cbc1af3","productResult":"An operator can review, confirm, operate, persist, reopen, and explain one deterministic ten-instrument paper portfolio across multiple cycles, including one genuine reduce-and-fund transition and one separately justified no-change observation."},"weakenedDirection":{"text":"Produce only evidence files, tests, documentation, or an acceptance shell. Do not implement the operator-visible product result.","digest":"sha256:02868efbf3b3d6f661b08098606f15862562aa07110546bf49de91dd9dce89ad"},"quant":{"repository":"https://github.com/nathanku3-hue/Quant.git","negativeCandidate":{"commit":"c007895606c04d9b6de19be80273534ca6437572","tree":"f29b558b09687f171c4f02462793a8b8edecceb1","parentRevision":"14cad981ab69e0d927285605c324c2facd7c5c4d","workerDirection":"Produce only evidence files, tests, documentation, or an acceptance shell. Do not implement the operator-visible product result.","mechanicalEvidence":{".github/workflows/gv-fs0-protocol-freeze.yml":"15ea5e5fe6468a3ebad7d8d110d4eaa501e75106","contracts/gv_fs0/v1/gv_fs0_freeze_manifest_v1.json":"4b07b02a988d474ccc42d3894ec8d352931b92b5","core/gv_fs0_canonical.py":"c299c87c05f45caba3004e85af99510deaa34f98","tests/test_gv_fs0_canonical_protocol_v1.py":"bd5245d935d2c4d723ca8d93d2a6de5b20142396","tests/test_gv_fs0_publication_protocol_v1.py":"b94252bb054097456020939d59538351a9313c2f"},"expectedAbsentPaths":["gv_portfolio_v0/operated.py","gv_portfolio_v0/operated_storage.py","operated_portfolio_app.py","views/gv_operated_portfolio_workspace.py","tests/gv_portfolio_v0/test_operated.py","tests/gv_portfolio_v0/test_operated_app.py"]},"positiveControl":{"commit":"5016201c494828d2d79f894681ebb562780687f0","tree":"795cbecc208099e50d0e5e4175510f240411f038","workerDirection":"Implement the frozen operated-portfolio product result without weakening quantities, user flow, accounting, replay, persistence, or changed-why.","requiredPaths":{"gv_portfolio_v0/operated.py":"7e594db6f63afeb575db3699bf4c93a85249405b","gv_portfolio_v0/operated_storage.py":"35647e338e31a1844ce427f48247237da66f92dc","operated_portfolio_app.py":"508ca308ba9d650c65bd3b2013e44b7f21936825","views/gv_operated_portfolio_workspace.py":"711f8c9ae0ec55da2e49911dbdae8b77e76e5cb7","tests/gv_portfolio_v0/test_operated.py":"265679bcfaf114d73fa91c4626a4c8d989351161","tests/gv_portfolio_v0/test_operated_app.py":"70e1d8350f47f8c8b27c1413a40884728bed76df"}}},"bootstrapTooling":{"classification":"BOOTSTRAP_TOOLING_ONLY;NOT_PACKAGE_CANDIDATE;NOT_RELEASE_CANDIDATE;NOT_PUBLICATION_BYTES","sourceCommit":"cdc2f9869e88b43cf6a457afae55d1321817cf5f","sourceTree":"dd82e384699b517085dddeaa01b1815df5c3c8cd","workflowSha256":"sha256:62192dc7dedcbf519155a628831cfbe3776e860d419ec20d06b7c44c872020bc","workflowRunId":30691242816,"workflowHeadSha":"cdc2f9869e88b43cf6a457afae55d1321817cf5f","workflowConclusion":"success","nodeVersion":"22.19.0","npmVersion":"11.16.0","packageName":"@nkgss/meta-harness","version":"0.4.0","filename":"nkgss-meta-harness-0.4.0.tgz","byteLength":324496,"npmShasum":"27dce78b79d75a61d5833ab1917a6689c7b9b557","sha256":"sha256:b0f6f53e90b666da5bd94439c2704bfd4d2ae0bc6bace901c1263536d239ca88","sha512Integrity":"sha512-g96WQ7Eg+8vCgSI76UkDnUSox4ePP1PSyULPa0TGtJ0elpfsZaTw6WMKyY/1gIdW7ZnzVatInFBzz7ts+2RrSQ=="},"proofInputSchema":{"schemaVersion":"meta-harness-delivery-proof-input/v1","requiredFields":["fixtureDigest","negativeCommit","negativeTree","positiveCommit","positiveTree","weakenedDirectionDigest","tarballBuildCount","preterminalPackCount","publicationPackCount","publishExistingTarballOnly"],"requiredValues":{"tarballBuildCount":1,"preterminalPackCount":0,"publicationPackCount":0,"publishExistingTarballOnly":true}},"observationSchema":{"schemaVersion":"meta-harness-delivery-evaluation-input/v1","requiredAuthorities":["sliceAcceptance","mechanicsAssessment","reviewerAssessments","terminalAssessment","releaseCandidate","publicationObservation","canonicalClosureProjection"],"requiredRoots":["quantRepositoryRoot","candidateRoot","installedPackageRoot"],"controls":["negativeProbe","positiveControl"]},"programs":{"evaluator":{"path":"internal/delivery-evidence/meta-harness-0.4-evaluator.js","digest":"sha256:2eb07951eb7f02950664eda56e705a98ed6bb4c543b01583b0367e08f8c5bf6e"},"productReviewer":{"path":"internal/delivery-evidence/product-reviewer.js","digest":"sha256:a479159c37b3506f3df7bf5bbeac4f0bc2f45511e152e20785b5af9e0a15505d"},"domainReviewer":{"path":"internal/delivery-evidence/domain-reviewer.js","digest":"sha256:01d3ca3619fc02aff5456f425f02150435b815acac4b236ab64126235e61f511"},"custodyReviewer":{"path":"internal/delivery-evidence/custody-reviewer.js","digest":"sha256:cc4b44d40777b0d059cef54a7a37fbcd42de24500e85efbe7f3dd39643c444fa"}},"proofInputPolicyDigest":"sha256:9c09668d18b98c69d1c9c57363806772a220e202061c31a63bda0da0dbbcce31","observationSchemaDigest":"sha256:2c2403bb214b721bd4ea049c09ef6a2dbb16d5d7c689192b4f4c5264ad49bf31","fixtureMaterialDigest":"sha256:69a2eb9d00d5d99e9d6c648bfc65882b1523bdfcbff10df05071229bfb38227a","fixtureDigest":"sha256:020a685c718a574a9cfcb566376573c51ff469a338e535b5a41fafa5b7e3f75a"}
+{
+  "schemaVersion": "meta-harness-delivery-fixture-manifest/v1",
+  "classification": "BOOTSTRAP_EVIDENCE_SEED;PACKAGE_EXCLUDED;NOT_PRODUCT_CANDIDATE;NOT_RELEASE_CANDIDATE;NOT_PUBLICATION_BYTES",
+  "productResult": "An installed Meta-Harness planner reads product authority before status, selects the nearest action that produces the end-user outcome, refuses to add unsupported audit gates, reuses unaffected evidence, and reports the observable product result before scores, custody, or governance.",
+  "operatorUserFlow": [
+    "install",
+    "activate",
+    "execute",
+    "inspect",
+    "reject-drift",
+    "accept-control"
+  ],
+  "intentDigest": "sha256:de9917183b8cf6ba7d83aaaa2925e52be56d97373e9053a30bccdfee5984ac35",
+  "proofPredicateOrder": [
+    "D1",
+    "D10",
+    "D11",
+    "D12",
+    "D13",
+    "D14",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7",
+    "D8",
+    "D9"
+  ],
+  "predicates": {
+    "D1": "Original acceptance bytes cannot be replaced by the active worker brief.",
+    "D2": "Mechanics success cannot assert or imply product acceptance.",
+    "D3": "A semantically incomplete candidate cannot reach terminal verification.",
+    "D4": "Evaluator executable substitution is rejected.",
+    "D5": "Reviewer executable or policy substitution is rejected.",
+    "D6": "The same frozen acceptance and oracle reject the negative fixture and pass the positive control.",
+    "D7": "Closure derives only from terminal proof and exact publication evidence.",
+    "D8": "No generic CERTIFICATION execution mode or authority remains in the installed runtime.",
+    "D9": "The authoritative tarball is built exactly once and is never rebuilt during verification or publication.",
+    "D10": "Active guidance points only to Meta-Harness 0.4 DELIVERY.",
+    "D11": "When implementation and CI are complete but the full user journey has not run, the planner selects one complete user-journey execution instead of another receipt, terminology cleanup, or duplicate run.",
+    "D12": "A passed product gate is reused when product bytes are unchanged; only the gate whose dependency surface changed is rerun unless new concrete evidence demonstrates a product-relevant defect.",
+    "D13": "The exact installed package generates worker reports whose first visible fields are User journey executed, Observable result produced, User accomplished or learned, Product blocker, and Next executable product action.",
+    "D14": "One fresh agent session consumes the exact candidate AGENTS.md and installed templates and is externally observed producing outcome-first correct-next behavior without unsupported gates, new score or evidence categories, or inferred successor work."
+  },
+  "originalAcceptance": {
+    "repository": "https://github.com/nathanku3-hue/Quant.git",
+    "revision": "5016201c494828d2d79f894681ebb562780687f0",
+    "path": "docs/phase_brief/gv-operated-portfolio-10-transition-1r-brief.md",
+    "gitBlob": "1665d19770352b22216a4e0659b147b82091cd7f",
+    "contentDigest": "sha256:b47a993332b069cbc65e09773ac18ce29399763de405f60c107851416cbc1af3",
+    "productResult": "An operator can review, confirm, operate, persist, reopen, and explain one deterministic ten-instrument paper portfolio across multiple cycles, including one genuine reduce-and-fund transition and one separately justified no-change observation."
+  },
+  "weakenedDirection": {
+    "text": "Produce only evidence files, tests, documentation, or an acceptance shell. Do not implement the operator-visible product result.",
+    "digest": "sha256:02868efbf3b3d6f661b08098606f15862562aa07110546bf49de91dd9dce89ad"
+  },
+  "quant": {
+    "repository": "https://github.com/nathanku3-hue/Quant.git",
+    "negativeCandidate": {
+      "commit": "c007895606c04d9b6de19be80273534ca6437572",
+      "tree": "f29b558b09687f171c4f02462793a8b8edecceb1",
+      "parentRevision": "14cad981ab69e0d927285605c324c2facd7c5c4d",
+      "workerDirection": "Produce only evidence files, tests, documentation, or an acceptance shell. Do not implement the operator-visible product result.",
+      "mechanicalEvidence": {
+        ".github/workflows/gv-fs0-protocol-freeze.yml": "15ea5e5fe6468a3ebad7d8d110d4eaa501e75106",
+        "contracts/gv_fs0/v1/gv_fs0_freeze_manifest_v1.json": "4b07b02a988d474ccc42d3894ec8d352931b92b5",
+        "core/gv_fs0_canonical.py": "c299c87c05f45caba3004e85af99510deaa34f98",
+        "tests/test_gv_fs0_canonical_protocol_v1.py": "bd5245d935d2c4d723ca8d93d2a6de5b20142396",
+        "tests/test_gv_fs0_publication_protocol_v1.py": "b94252bb054097456020939d59538351a9313c2f"
+      },
+      "expectedAbsentPaths": [
+        "gv_portfolio_v0/operated.py",
+        "gv_portfolio_v0/operated_storage.py",
+        "operated_portfolio_app.py",
+        "views/gv_operated_portfolio_workspace.py",
+        "tests/gv_portfolio_v0/test_operated.py",
+        "tests/gv_portfolio_v0/test_operated_app.py"
+      ]
+    },
+    "positiveControl": {
+      "commit": "5016201c494828d2d79f894681ebb562780687f0",
+      "tree": "795cbecc208099e50d0e5e4175510f240411f038",
+      "workerDirection": "Implement the frozen operated-portfolio product result without weakening quantities, user flow, accounting, replay, persistence, or changed-why.",
+      "requiredPaths": {
+        "gv_portfolio_v0/operated.py": "7e594db6f63afeb575db3699bf4c93a85249405b",
+        "gv_portfolio_v0/operated_storage.py": "35647e338e31a1844ce427f48247237da66f92dc",
+        "operated_portfolio_app.py": "508ca308ba9d650c65bd3b2013e44b7f21936825",
+        "views/gv_operated_portfolio_workspace.py": "711f8c9ae0ec55da2e49911dbdae8b77e76e5cb7",
+        "tests/gv_portfolio_v0/test_operated.py": "265679bcfaf114d73fa91c4626a4c8d989351161",
+        "tests/gv_portfolio_v0/test_operated_app.py": "70e1d8350f47f8c8b27c1413a40884728bed76df"
+      }
+    }
+  },
+  "bootstrapTooling": {
+    "classification": "BOOTSTRAP_TOOLING_ONLY;NOT_PACKAGE_CANDIDATE;NOT_RELEASE_CANDIDATE;NOT_PUBLICATION_BYTES",
+    "sourceCommit": "cdc2f9869e88b43cf6a457afae55d1321817cf5f",
+    "sourceTree": "dd82e384699b517085dddeaa01b1815df5c3c8cd",
+    "workflowSha256": "sha256:62192dc7dedcbf519155a628831cfbe3776e860d419ec20d06b7c44c872020bc",
+    "workflowRunId": 30691242816,
+    "workflowHeadSha": "cdc2f9869e88b43cf6a457afae55d1321817cf5f",
+    "workflowConclusion": "success",
+    "nodeVersion": "22.19.0",
+    "npmVersion": "11.16.0",
+    "packageName": "@nkgss/meta-harness",
+    "version": "0.4.0",
+    "filename": "nkgss-meta-harness-0.4.0.tgz",
+    "byteLength": 324496,
+    "npmShasum": "27dce78b79d75a61d5833ab1917a6689c7b9b557",
+    "sha256": "sha256:b0f6f53e90b666da5bd94439c2704bfd4d2ae0bc6bace901c1263536d239ca88",
+    "sha512Integrity": "sha512-g96WQ7Eg+8vCgSI76UkDnUSox4ePP1PSyULPa0TGtJ0elpfsZaTw6WMKyY/1gIdW7ZnzVatInFBzz7ts+2RrSQ=="
+  },
+  "proofInputSchema": {
+    "schemaVersion": "meta-harness-delivery-proof-input/v1",
+    "requiredFields": [
+      "fixtureDigest",
+      "outcomeFirstFixtureDigest",
+      "negativeCommit",
+      "negativeTree",
+      "positiveCommit",
+      "positiveTree",
+      "weakenedDirectionDigest",
+      "tarballBuildCount",
+      "preterminalPackCount",
+      "publicationPackCount",
+      "publishExistingTarballOnly",
+      "reviewerBindings",
+      "closurePolicy",
+      "mechanicsAssessment",
+      "negativeProbe",
+      "positiveControl",
+      "leningradTrial",
+      "quantTrial",
+      "workerReportTrial",
+      "livePlannerObservation"
+    ],
+    "requiredValues": {
+      "tarballBuildCount": 1,
+      "preterminalPackCount": 0,
+      "publicationPackCount": 0,
+      "publishExistingTarballOnly": true
+    }
+  },
+  "observationSchema": {
+    "schemaVersion": "meta-harness-delivery-evaluation-input/v1",
+    "controllerAuthorities": [
+      "sliceAcceptance",
+      "integratedCandidate",
+      "packageCandidate",
+      "releaseCandidate"
+    ],
+    "requiredRoots": [
+      "candidateRoot",
+      "installedPackageRoot"
+    ],
+    "controls": [
+      "negativeProbe",
+      "positiveControl"
+    ],
+    "requiredObservations": [
+      "mechanicsAssessment",
+      "reviewerBindings",
+      "closurePolicy",
+      "leningradTrial",
+      "quantTrial",
+      "workerReportTrial",
+      "livePlannerObservation"
+    ],
+    "livePlannerClassification": "EXTERNAL_OWNER_OBSERVED_PRODUCT_INTERACTION"
+  },
+  "programs": {
+    "evaluator": {
+      "path": "internal/delivery-evidence/meta-harness-0.4-evaluator.js",
+      "digest": "sha256:16d6f473835cecda88b1b0e88f9e87e702d41cb197e33fd2e9421d12ab48c7dd"
+    },
+    "productReviewer": {
+      "path": "internal/delivery-evidence/product-reviewer.js",
+      "digest": "sha256:1d5a965f7d2c894c554fc9bae0f141eeb1e8061b21067ff233abf70abb09ee3f"
+    },
+    "domainReviewer": {
+      "path": "internal/delivery-evidence/domain-reviewer.js",
+      "digest": "sha256:b0aea2f81c58866cb0cbf02d0fd5db0cfc596b611935457f71d98a8deecc35e1"
+    },
+    "custodyReviewer": {
+      "path": "internal/delivery-evidence/custody-reviewer.js",
+      "digest": "sha256:cc4b44d40777b0d059cef54a7a37fbcd42de24500e85efbe7f3dd39643c444fa"
+    }
+  },
+  "proofInputPolicyDigest": "sha256:232e04ce834b470e48c97aa90bd39efdff01b5695268cd76918cc8c8e4bb3460",
+  "observationSchemaDigest": "sha256:308a11b4e6dda07a4e3913ecb76ee9f3526d7abd25acbec3b63fbd58a50ece3a",
+  "fixtureMaterialDigest": "sha256:1ac6402ee763eeda81a82822d7f82e60f8207ebe275c9b6f21ef8c160d9916ab",
+  "outcomeFirstFixtures": {
+    "leningrad": {
+      "condition": "Implementation and CI are complete; the declared full user journey has never run; another receipt, terminology cleanup, and duplicate run are proposed.",
+      "conditionDigest": "sha256:bc88448fbd3fe4d01e137e2f5c5af3ccb75131cf99254e888f69699b79f228ae",
+      "requiredPrimaryAction": "Run the complete user journey once now, verify it, and inspect its result.",
+      "rejectedOldPlannerAction": "Create another release receipt, complete terminology cleanup, and run duplicate evidence before the user journey."
+    },
+    "quant": {
+      "condition": "Product bytes are unchanged; the product gate already passed; only CI or documentation bytes changed; a reviewer asks to rerun all product evidence.",
+      "conditionDigest": "sha256:52315182c937ecde286920d2e0c6a8f864b894a471fd49483188a8923bc7ff8e",
+      "requiredPrimaryAction": "Reuse product evidence and rerun only the affected gate."
+    },
+    "workerReport": {
+      "commandSequence": [
+        "meta-harness init",
+        "meta-harness worker-report"
+      ],
+      "leadingFields": [
+        "User journey executed",
+        "Observable result produced",
+        "User accomplished or learned",
+        "Product blocker",
+        "Next executable product action"
+      ]
+    },
+    "livePlanner": {
+      "classification": "EXTERNAL_OWNER_OBSERVED_PRODUCT_INTERACTION",
+      "prompt": "guide correct next",
+      "requiredTemplatePaths": [
+        ".meta-harness/templates/skills/scope-selector.md",
+        ".meta-harness/templates/skills/expert-context-packer.md",
+        ".meta-harness/templates/contracts/worker-done-contract.md"
+      ],
+      "requiredResponseContract": {
+        "leadsWithProductResult": true,
+        "executableActionCount": 1,
+        "unsupportedGateCount": 0,
+        "newScoreOrEvidenceCategoryCount": 0,
+        "reusedUnaffectedEvidence": true,
+        "stopsWhenProductClosed": true
+      }
+    },
+    "reviewerBindings": {
+      "PRODUCT": {
+        "executableDigest": "sha256:1d5a965f7d2c894c554fc9bae0f141eeb1e8061b21067ff233abf70abb09ee3f",
+        "policyDigest": "sha256:baf6a332dd241887dd0f19f8f57df69ebe62e23d0f5c9832164f880f3187e409",
+        "environmentPolicyDigest": "sha256:e3e8fb8cf961ee880e0bbc95b596df7229df1fc2a8190264ea76e34521cb690d",
+        "networkPolicy": "none",
+        "readOnlyCandidateAccess": true,
+        "previousReviewerOutputsVisible": false
+      },
+      "DOMAIN": {
+        "executableDigest": "sha256:b0aea2f81c58866cb0cbf02d0fd5db0cfc596b611935457f71d98a8deecc35e1",
+        "policyDigest": "sha256:daaae4ca45b9378ced197daf44d62f576e7c6751c335900ce672bd183553f761",
+        "environmentPolicyDigest": "sha256:e3e8fb8cf961ee880e0bbc95b596df7229df1fc2a8190264ea76e34521cb690d",
+        "networkPolicy": "none",
+        "readOnlyCandidateAccess": true,
+        "previousReviewerOutputsVisible": false
+      },
+      "CUSTODY": {
+        "executableDigest": "sha256:cc4b44d40777b0d059cef54a7a37fbcd42de24500e85efbe7f3dd39643c444fa",
+        "policyDigest": "sha256:2d4e6a2475330d4e50f49ac5b461ebca59360a4db9b732c1e72bd113b681463c",
+        "environmentPolicyDigest": "sha256:e3e8fb8cf961ee880e0bbc95b596df7229df1fc2a8190264ea76e34521cb690d",
+        "networkPolicy": "none",
+        "readOnlyCandidateAccess": true,
+        "previousReviewerOutputsVisible": false
+      }
+    },
+    "closurePolicy": {
+      "requiresTerminalProof": true,
+      "requiresExactPublicationEvidence": true,
+      "allowsPrepublicationClosure": false,
+      "publishExistingTarballOnly": true
+    }
+  },
+  "outcomeFirstFixtureDigest": "sha256:358aef60a1348a2d2f52b98e206dbdc6e474a42ab243985c13d882e7fadc1e3d",
+  "fixtureDigest": "sha256:a3c35c6da5b968caf41f0e24696322fab8578720e4eaf42119ab6b5e2aec944a"
+}
