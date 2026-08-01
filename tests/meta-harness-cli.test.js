@@ -169,29 +169,30 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(fs.readFileSync(subagentWorkcellContract, "utf8"), /PM brief \+ artifact paths \+ decision inbox entries only/);
   assert.match(fs.readFileSync(trustPolicyContract, "utf8"), /local capsule names/);
   assert.match(fs.readFileSync(pmBriefScanContract, "utf8"), /Existing `brief pm` generator output may fail/);
-  assert.match(fs.readFileSync(scopeSelector, "utf8"), /Chosen Scope:/);
+  const scopeSelectorText = fs.readFileSync(scopeSelector, "utf8");
+  assert.match(scopeSelectorText, /Product result:/);
+  assert.match(scopeSelectorText, /Primary action:/);
+  assert.match(scopeSelectorText, /`NO_BUILD`, `USE_PRODUCT`/);
+  assert.match(scopeSelectorText, /Never claim successor activation/);
   const postWorkerText = fs.readFileSync(postWorkerGithubActions, "utf8");
-  assert.match(postWorkerText, /Post-Worker GitHub Actions/);
-  assert.match(postWorkerText, /worker-report v2/);
-  assert.match(postWorkerText, /skip `worker-report-template\.md`/);
-  assert.match(postWorkerText, /Do not pass secrets/);
-  assert.match(postWorkerText, /Summarize SAW evidence as evidence only/);
+  assert.match(postWorkerText, /Outcome-First Post-Worker GitHub Actions/);
+  assert.match(postWorkerText, /Reuse passed jobs whose inputs are byte-identical/);
+  assert.match(postWorkerText, /Do not pass issue, PR, comment, or review text into agent prompts/);
+  assert.match(postWorkerText, /Primary action:/);
   const workerDoneText = fs.readFileSync(workerDone, "utf8");
-  assert.match(workerDoneText, /Worker Done \/ PM Brief Contract/);
-  assert.match(workerDoneText, /```text\nOutcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
+  assert.match(workerDoneText, /Outcome-First Worker Report Contract/);
+  assert.match(workerDoneText, /```text\nUser journey executed:/);
+  assert.match(workerDoneText, /Observable result produced:/);
+  assert.match(workerDoneText, /User accomplished or learned:/);
+  assert.match(workerDoneText, /Product blocker:/);
+  assert.match(workerDoneText, /Next executable product action:/);
+  assert.match(workerDoneText, /Only after those five lines may the report include:/);
+  assert.match(workerDoneText, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
+  assert.match(workerDoneText, /Reuse passed evidence when its declared dependency surface is unchanged/);
+  assert.match(workerDoneText, /return `USE_PRODUCT`/);
   assert.doesNotMatch(workerDoneText, /^# Worker PM Brief$/m);
-  assert.match(workerDoneText, /What decision is needed/);
-  assert.match(workerDoneText, /Ship-Fast Decision Gate concept is visible/);
-  assert.match(workerDoneText, /## User-Facing Closure/);
-  assert.match(workerDoneText, /Do not paste the full worker report into chat/);
-  assert.match(workerDoneText, /Approval text requests return only pasteable approval text/);
-  assert.match(workerDoneText, /## Worker Accountability/);
-  assert.match(workerDoneText, /## Blockers And Next Action/);
-  assert.match(workerDoneText, /## Accountability/);
-  assert.doesNotMatch(workerDoneText, /WorkerVerdict/);
-  assert.doesNotMatch(workerDoneText, /text \+/);
   assert.equal(fencedBlockCount(workerDoneText) % 2, 0);
-  assert.match(workerDoneText, /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/);
+  assert.match(workerDoneText, /Silent documentation-only fallback/);
 });
 
 test("templates overwrite migrates the worker template without rewriting status", () => {
@@ -208,7 +209,7 @@ test("templates overwrite migrates the worker template without rewriting status"
 
   const workerTemplate = fs.readFileSync(workerTemplatePath, "utf8");
   const firstLine = workerTemplate.split(/\r?\n/).find((line) => line.trim().length > 0);
-  assert.equal(firstLine, "Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>");
+  assert.equal(firstLine, "User journey executed: <complete journey actually run>");
   assert.doesNotMatch(workerTemplate, /^# Worker PM Brief/m);
   assert.equal(fs.readFileSync(statusPath, "utf8"), preservedStatus);
 });

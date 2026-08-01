@@ -32,7 +32,12 @@ test("init creates per-repo markdown harness state", () => {
   const firstTemplateLine = workerReportTemplate
     .split(/\r?\n/)
     .find((line) => line.trim().length > 0);
-  assert.equal(firstTemplateLine, "Outcome: <DONE|PARTIAL_WITH_EXPLICIT_SCOPE|REJECTED>");
+  assert.equal(firstTemplateLine, "User journey executed: <complete journey actually run>");
+  assert.match(workerReportTemplate, /^User journey executed:/m);
+  assert.match(workerReportTemplate, /^Observable result produced:/m);
+  assert.match(workerReportTemplate, /^User accomplished or learned:/m);
+  assert.match(workerReportTemplate, /^Product blocker:/m);
+  assert.match(workerReportTemplate, /^Next executable product action:/m);
   assert.match(workerReportTemplate, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
   assert.match(workerReportTemplate, /## Validation \/ evidence/);
   assert.match(workerReportTemplate, /This template is a WORKER_REPORT evidence surface/);
@@ -51,7 +56,7 @@ test("init creates per-repo markdown harness state", () => {
   );
 });
 
-test("worker-report first-line contract is consistent across docs and templates", () => {
+test("worker-report outcome-first leading-field contract is consistent across docs and templates", () => {
   const read = (relativePath) => fs
     .readFileSync(path.join(ROOT, ...relativePath.split("/")), "utf8")
     .replace(/\r\n/g, "\n");
@@ -60,15 +65,23 @@ test("worker-report first-line contract is consistent across docs and templates"
   const workerDone = read("templates/contracts/worker-done-contract.md");
   const harnessState = read("lib/harness-state.js");
 
-  assert.match(readme, /first non-empty line is `Outcome:`/);
-  assert.match(readme, /no title appears before those fields/);
-  assert.match(productSpec, /first non-empty line is `Outcome:`/);
+  for (const field of [
+    "User journey executed",
+    "Observable result produced",
+    "User accomplished or learned",
+    "Product blocker",
+    "Next executable product action",
+  ]) {
+    assert.match(readme, new RegExp(field));
+    assert.match(productSpec, new RegExp(field));
+    assert.match(workerDone, new RegExp(field));
+    assert.match(harnessState, new RegExp(field));
+  }
+  assert.match(readme, /no title or internal metadata before them/);
   assert.match(productSpec, /Reports must not begin with `# Worker PM Brief`/);
-  assert.match(workerDone, /first non-empty line of generated worker-report artifacts must be `Outcome:/);
-  assert.match(workerDone, /```text\nOutcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
-  assert.doesNotMatch(workerDone, /must be `# Worker PM Brief`/);
-  assert.match(harnessState, /The first non-empty line must be Outcome:/);
-  assert.doesNotMatch(harnessState, /The first non-empty line must be # Worker PM Brief/);
+  assert.match(workerDone, /first five non-empty lines/i);
+  assert.match(workerDone, /Only after those five lines may the report include:/);
+  assert.match(harnessState, /first five non-empty lines/i);
 });
 
 test("event and worker-report update evidence and lookback without changing canonical status", () => {
@@ -119,8 +132,8 @@ test("event and worker-report update evidence and lookback without changing cano
   const firstReportLine = report
     .split(/\r?\n/)
     .find((line) => line.trim().length > 0);
-  assert.equal(firstReportLine, "Outcome: DONE");
-  assert.match(report, /^Outcome: DONE\nRound: ROUND-001\nProgress: 10\/100 -> 20\/100\nConfidence: 9\/10/m);
+  assert.equal(firstReportLine, "User journey executed: extract product patterns");
+  assert.match(report, /^User journey executed: extract product patterns\nObservable result produced: worker report normalized\nUser accomplished or learned: Research worker output is normalized and ready for PM synthesis\.\nProduct blocker: none\nNext executable product action: synthesize status\nOutcome: DONE\nRound: ROUND-001\nProgress: 10\/100 -> 20\/100\nConfidence: 9\/10/m);
   assert.doesNotMatch(report, /^# Worker Report/m);
   assert.doesNotMatch(report, /^# Worker PM Brief/m);
   assert.doesNotMatch(report, /## Result/);

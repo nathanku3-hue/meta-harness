@@ -83,14 +83,16 @@ function installMatchingTemplates(sourceRoot, targetRoot) {
 test("sync check passes when source and installed templates match", () => {
   const sourceRoot = tempDir();
   const targetRoot = tempDir();
-  writeFile(sourceRoot, "templates/skills/scope-selector.md", "scope\n");
-  writeFile(sourceRoot, "templates/contracts/worker-done-contract.md", "worker\n");
+  writeFile(sourceRoot, "templates/skills/scope-selector.md", "Product result: outcome\nPrimary action: USE_PRODUCT\n");
+  writeFile(sourceRoot, "templates/contracts/worker-done-contract.md", "User journey executed: journey\nObservable result produced: result\nUser accomplished or learned: outcome\nProduct blocker: none\nNext executable product action: USE_PRODUCT\nOutcome: DONE\n");
   installMatchingTemplates(sourceRoot, targetRoot);
 
   const result = checkTemplateSync({ sourceRoot, targetRoot });
   assert.equal(result.status, "PASS");
   assert.equal(result.checked, 3);
   assert.deepEqual(result.items.map((item) => item.status), ["PASS", "PASS", "PASS"]);
+  assert.equal(result.items.some((item) => item.path === "skills/scope-selector.md"), true);
+  assert.equal(result.items.some((item) => item.path === "contracts/worker-done-contract.md"), true);
 });
 
 test("sync check reports missing installed templates", () => {

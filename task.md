@@ -1,10 +1,21 @@
-# Active Task: S-006M External Product Loop
+# Meta-Harness 0.4 H3 Task
 
-- [x] Accept candidate `588bbe9` (four hosted CI jobs green after CI contract fix).
-- [x] G-001 falsified epoch-1 private capability continuity.
-- [x] Human authorized `G-AUTHORITY-001` one-way epoch-2 migration.
-- [x] Execute `S001-SHIP-E2`: external epoch-2 key, pin public only, one receipt v2, epoch-2 canonical state, package `0.3.0`, freeze epoch-1 evidence.
-- [ ] Execute `S-006M` in a **real non-Meta-Harness product repository** to merged and packaged state using installed `0.3.0`.
-- [ ] Measure elapsed time, human interventions, and rework for S-006M.
+Deliver the single owner-authorized outcome-first planner contribution from B1R2.
 
-Stop rule: no dual-epoch runtime, no vault/signer daemon/recovery framework, no new harness feature unless S-006M demonstrates a concrete blocker. Do not claim product proof until an external-repo change is merged and packaged.
+## Required behavior
+
+1. Read locked product intent and explicit owner authority before status.
+2. Execute the nearest action that completes the user journey.
+3. Permit at most one pre-execution audit/repair round.
+4. Block only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability.
+5. Reuse passed evidence whose declared inputs did not change.
+6. Generate worker reports with the five product fields first.
+7. Remove alternate execution authority from the installed runtime; Meta-Harness 0.4 ships DELIVERY only.
+8. At shipped, value-confirmed, maintenance, or no-active-slice state, return `NO_BUILD` and `USE_PRODUCT` unless explicit owner scope change or a complete observed supported-use defect warrant exists.
+9. Never claim successor activation or queue follow-up work after `NO_BUILD`.
+
+## Execution order
+
+Focused functional trials → one exact contribution commit → sealed complete-suite mechanics assessment → one authoritative tarball → clean canary installation → fresh-session D14 proof → exact-package rollout into clean default-branch worktrees only.
+
+Do not install old tarballs or modify current dirty repository checkouts.

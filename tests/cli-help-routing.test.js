@@ -6,8 +6,8 @@ const { ROOT, assertCliError, run, runRaw, tempDir } = require("./helpers/cli");
 
 test("help output is registry generated and stable enough for operators", () => {
   const output = run(ROOT, ["--help"]);
-  assert.match(output, /^meta-harness\n\nMarkdown-first Codex-native workflow visibility harness\./);
-  assert.match(output, /meta-harness worker-report \[worker-id\]/);
+  assert.match(output, /^meta-harness\n\nOutcome-first Meta-Harness 0\.4 DELIVERY authority and execution-custody kernel\./);
+  assert.match(output, /meta-harness worker-report \[worker-id\].*--task <user-journey>.*--result <observable-result>.*--human-summary <user-accomplished-or-learned>.*--blocker <product-blocker\|none>.*--next-action <next-executable-product-action>/);
   assert.match(output, /meta-harness merge check --base <base> --head <head> --scope <scope>/);
   assert.match(output, /meta-harness repos remove <name>/);
 });

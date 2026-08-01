@@ -1,19 +1,23 @@
-# Status
+# Meta-Harness 0.4 Status
 
-Goal:
-Ship authority-bound Meta-Harness 0.3.0 and immediately prove real external product shipment through S-006M.
+State: H3 outcome-first DELIVERY active
+Slice: `S-SEMANTIC-KERNEL-1`
+Base: `6cea71509caddc7378c7362b3555fa444ef9eaa0`
+Authority: owner-signed, externally pinned, generation 1
+RunSpec: one sealed 46-path implementation contribution
 
-Phase:
-verify
+## Product result
 
-Current truth:
-Authority epoch 1 private capability declared unavailable. Epoch-2 public verifier pinned. Candidate 588bbe9 accepted. Meta-Harness integrated as package 0.3.0. Next: S-006M real non-Meta-Harness product loop.
+An installed Meta-Harness planner reconciles locked product intent and repository authority before status, executes the nearest complete user journey, blocks only demonstrated threats to that outcome, reuses unaffected evidence, and stops after shipped or value-confirmed completion unless explicit owner scope change or a complete observed supported-use defect warrant justifies continuation.
 
-Next action:
-Execute S-006M in a real non-Meta-Harness product repository to merged and packaged state using installed 0.3.0.
+## Current action
 
-Stop criteria:
-Stop on private material leakage, dual-epoch runtime support, reopening S-001 architecture, or claiming product proof without external-repo S-006M.
+Implement H3 in the isolated Linux authority checkout. Run focused Leningrad, Quant, Eureka, truth-conflict, continuation, and worker-report trials first. Then create one non-merge contribution commit and execute the sealed complete-suite mechanics assessment once.
 
-Updated:
-2026-07-19T12:58:35.350Z
+## Boundaries
+
+- DELIVERY only; no alternate repository-application authority.
+- No downstream installation before exact H3 package and canary proof.
+- No installation into dirty checkouts.
+- Build the authoritative tarball exactly once after mechanics and functional trials pass.
+- Terminal state without a valid continuation warrant returns `NO_BUILD` and `USE_PRODUCT`.

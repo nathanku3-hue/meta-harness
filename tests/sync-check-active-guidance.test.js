@@ -77,3 +77,20 @@ test("contract scan allows active guidance that separates artifacts from chat cl
   assert.equal(result.checked, 1);
   assert.deepEqual(result.items, []);
 });
+
+test("contract scan accepts outcome-first terminal guidance", () => {
+  const targetRoot = tempDir();
+  writeFile(targetRoot, "AGENTS.md", [
+    "# Meta-Harness 0.4 Agent Contract",
+    "",
+    "Read locked product intent and owner authority before status.",
+    "Execute the nearest complete user journey after at most one audit/repair round.",
+    "After shipped completion return NO_BUILD and USE_PRODUCT unless owner scope change or a complete observed supported-use defect warrant exists.",
+    "Worker reports begin with product fields; normal final chat remains concise.",
+  ].join("\n"));
+
+  const result = scanContracts({ targetRoot });
+  assert.equal(result.status, "PASS");
+  assert.equal(result.checked, 1);
+  assert.deepEqual(result.items, []);
+});
