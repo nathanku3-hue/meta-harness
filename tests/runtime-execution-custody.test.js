@@ -18,6 +18,11 @@ const {
 const { exportPortableCustody } = require("../lib/execution-custody/custody-export");
 const { digestHex } = require("../lib/execution-custody/support");
 const { runGit } = require("./helpers/execution-custody-git");
+const {
+  hasLocalWorktreesExclude,
+  isPathInside,
+  pathsEqual,
+} = require("../lib/worktree-custody");
 
 function runChild(scriptPath, inputPath, timeout = 180_000) {
   const result = spawnSync(process.execPath, [scriptPath, inputPath], {
@@ -63,10 +68,20 @@ test("host-neutral custody reaches VERIFIED, expired fresh-process REPLAY, and p
     controller = null;
 
     const authReqHex = digestHex(verified.authorizationRequestDigest);
+    const evidenceDir = path.join(layout.stateRoot, "attempts", authReqHex, "evidence");
     const authorizationReceipt = JSON.parse(fs.readFileSync(
-      path.join(layout.stateRoot, "attempts", authReqHex, "evidence", "authorization-receipt.json"),
+      path.join(evidenceDir, "authorization-receipt.json"),
       "utf8",
     ));
+    const workspaceAttestation = JSON.parse(fs.readFileSync(
+      path.join(evidenceDir, "workspace-attestation.json"),
+      "utf8",
+    ));
+    assert.equal(hasLocalWorktreesExclude(layout.repositoryPath), true);
+    assert.equal(pathsEqual(layout.workspaceRoot, path.join(layout.repositoryPath, ".worktrees")), true);
+    assert.equal(isPathInside(workspaceAttestation.repositoryRoot, layout.workspaceRoot), true);
+    assert.equal(pathsEqual(path.dirname(workspaceAttestation.repositoryRoot), layout.workspaceRoot), true);
+    assert.match(path.basename(workspaceAttestation.repositoryRoot), /^[a-f0-9]{64}-[a-f0-9]{16}$/);
     const replayClock = new Date(
       new Date(authorizationReceipt.expiresAt).getTime() + 60_000,
     ).toISOString();

@@ -12,6 +12,7 @@ const {
   sha256File,
 } = require("../../lib/execution-custody/controller");
 const { absNorm } = require("../../lib/execution-custody/support");
+const { ensureLocalWorktreesExclude } = require("../../lib/worktree-custody");
 const { AGENT_ENV_ALLOWLIST } = require("../../lib/execution-custody/constants");
 const { computeRunSpecDigest } = require("../../lib/contracts/run-spec");
 const { sealRunSpecApproval } = require("../../lib/contracts/run-spec-approval");
@@ -80,17 +81,19 @@ function createFixtureLayout(options = {}) {
   const root = absNorm(fs.mkdtempSync(path.join(os.tmpdir(), `${label}-`)));
   const repositoryPath = absNorm(path.join(root, "repository"));
   const stateRoot = absNorm(path.join(root, "state"));
-  const workspaceRoot = absNorm(path.join(root, "workspaces"));
+  const workspaceRoot = absNorm(path.join(repositoryPath, ".worktrees"));
   const codexHome = absNorm(path.join(root, "codex-home"));
   const exportsRoot = absNorm(path.join(root, "exports"));
   const gitExecutablePath = options.gitExecutablePath || resolveGit();
 
-  for (const directory of [repositoryPath, stateRoot, workspaceRoot, codexHome, exportsRoot]) {
+  for (const directory of [repositoryPath, stateRoot, codexHome, exportsRoot]) {
     fs.mkdirSync(directory, { recursive: true });
   }
 
   runGit(gitExecutablePath, repositoryPath, ["init"]);
   runGit(gitExecutablePath, repositoryPath, ["config", "core.autocrlf", "false"]);
+  ensureLocalWorktreesExclude(repositoryPath);
+  fs.mkdirSync(workspaceRoot, { recursive: true });
 
   fs.mkdirSync(path.join(repositoryPath, "src"), { recursive: true });
   fs.mkdirSync(path.join(repositoryPath, "test"), { recursive: true });
