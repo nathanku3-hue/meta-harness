@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "id": "worktree-custody",
+  "check_id": "MH_WORKTREE_001",
+  "destination_template": "<canonical-owner-root>/.worktrees/<bounded-name>",
+  "approved_roots": [
+    "<owner>/.worktrees/*",
+    "<owner>/.worktree-owners/*/.worktrees/*"
+  ],
+  "forbidden": [
+    "C:\\...",
+    "/mnt/...",
+    "E:\\mnt\\...",
+    "<owner-sibling>-task",
+    "%USERPROFILE%\\.devspace\\worktrees",
+    "%USERPROFILE%\\.cursor\\worktrees",
+    "caller-supplied global worktree root"
+  ],
+  "local_exclude": "/.worktrees/",
+  "lifecycle_marker": ".worktree-lifecycle/active.json",
+  "owner_resolution": [
+    "git rev-parse --show-toplevel",
+    "git rev-parse --git-common-dir"
+  ]
+}

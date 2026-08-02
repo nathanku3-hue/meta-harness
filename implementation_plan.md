@@ -1,4 +1,65 @@
-# Phase 13A: Context Quality Gate
+# Active Implementation Plan: CANDIDATE-S001R5F Fail-Preserving Finalization
+
+Status: **authorized after D083; exact clean candidate `a0e4835` is preserved but not accepted, integrated, canonicalized, pushed, merged, or shipped**.
+
+D084 freezes the weak epistemic twin and best-only learning roadmap but does not expand this implementation scope. `L1` waits for one verified `S-006M` episode; the scheduled top-five repository/paper/mental-model scout remains closed until `L9`.
+
+## Endgame intent
+
+Ship a local authority-bound execution harness that moves from frozen human intent to merged and packaged outcomes while the controller owns canonical mutation and a failed write never displaces valid truth. The shortest remaining path is:
+
+```text
+CANDIDATE-S001R5F one bounded finalization commit on a0e4835
+→ independent exact-commit final audit
+→ G-001 external authority continuity proof
+→ INTEGRATE-S001 merge and package
+→ S-006M first real non-fixture coding loop, merged and packaged
+```
+
+## First-principle constraints
+
+1. **Verifier-only runtime:** production and package verify receipts only; no private key, key generation, signer, or compatibility fallback.
+2. **Fail-preserving replacement:** one direct rename installs the flushed complete ledger. Any rename failure leaves the prior ledger byte-identical at `events.jsonl`; no backup/move-aside fallback exists.
+3. **No multiply linked canonical files:** authority, ledger, status, and lock files fail closed when `nlink != 1`.
+4. **Controller custody:** canonical mutation runs only in a controller-owned checkout outside worker write scope. Path checks are defense in depth, not an OS principal boundary.
+5. **Direction-complete checkout:** the clean candidate carries the D082 audit authority and current active R5 plan; a fresh operator does not depend on chat or dirty-main state.
+6. **Preserve accepted behavior:** one-shot bootstrap, static symlink/junction/reparse rejection, stale-lock recovery, Ed25519, receipt v2, 300-second lifetime, D078 read compatibility, replay, exact projection, reconciliation, and verifier-only packaging remain green.
+7. **Minimal machinery:** no vault, signer daemon, keychain adapter, database, generic filesystem layer, learning kernel, scheduled discovery feed, or unrelated governance program.
+
+## Functional slice
+
+```text
+clean exact candidate a0e4835
+→ delete move-aside fallback
+→ direct flushed-temp-to-ledger rename only
+→ forced rename failure preserves old ledger and leaves no backup residue
+→ actual rename-boundary alias regression on Linux and Windows
+→ synchronize minimal D082 authority chain into the clean checkout
+→ one named clean finalization commit
+→ independent exact-commit audit
+```
+
+## Authorized work
+
+1. Work only on the clean `codex/candidate-s001r5` lineage; do not return implementation work to the dirty main checkout.
+2. Delete the EEXIST/EPERM/EACCES move-aside fallback from `lib/events.js`.
+3. On direct rename failure, remove only the temporary file and preserve the existing canonical ledger exactly.
+4. Add deterministic fault injection proving `events.jsonl` remains byte-identical and no `.bak.events.*` residue exists.
+5. Replace the committed pre-operation alias test with the real rename-boundary swap probe independently proven on Linux and Windows Node 25.
+6. Bring the minimal D082 authority chain and active product surfaces into the candidate: S001R4 audit, D082 decision, roadmap, implementation plan, task, README, PRD, product specification, and SOP.
+7. Preserve replay and same-receipt concurrency: exactly one valid logical append remains accepted.
+8. Pass the complete Windows Node 25 suite, focused Linux/Windows custody probes, quality ratchet, package boundary, readiness, JSON validation, and diff checks.
+9. Create one named finalization commit and stop for independent audit.
+
+## Stop rule
+
+Do not use the external private capability, append a G-001 canonical event, integrate, push, merge, publish, or begin S-006M before the exact S001R5F commit passes independent audit.
+
+---
+
+# Historical Plan: Phase 13A Context Quality Gate
+
+> Retained as implementation evidence only. It does not define current product direction after D080/S-001R3.
 
 ## Phase 13B Status Note
 

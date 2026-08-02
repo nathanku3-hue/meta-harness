@@ -1,0 +1,75 @@
+{
+  "schema_version": "meta-harness-s001r2-implementation-evidence/v1",
+  "recorded_at": "2026-07-18",
+  "slice": "S-001R2",
+  "title": "Verifier-only canonical authority repair candidate",
+  "status": "candidate_ready_for_independent_audit",
+  "acceptance_claim": false,
+  "integration_claim": false,
+  "canonical_state_changed": false,
+  "intent_binding": {
+    "intent_version": "intent-v1",
+    "priority": "close only the authority blocker, then return to the first real functional coding loop",
+    "governance_limit": "no key vault, signer daemon, keychain adapter, credential framework, queue, or custom append-only database"
+  },
+  "implemented": [
+    "Removed runtime and package private-key generation, persistence, path, loading, and receipt-signing surfaces without compatibility aliases.",
+    "Deleted the former ensureTruthAuthority, loadPrivateKey, privateKeyPath, PRIVATE_KEY_RELATIVE_PATH, and createTruthAuthorityReceipt production surfaces.",
+    "Changed init to require a structured public verifier contract plus an externally signed initial receipt, with input validation before any target write.",
+    "Introduced repository-bound v2 authority receipts so a receipt cannot be submitted to another repository that shares the same public key.",
+    "Moved receipt replay checking, prior-snapshot binding, contradiction simulation, and append under one cross-process event lock.",
+    "Kept signing only in tests/helpers/truth-authority.js; private material is held outside target repositories and is excluded from the package.",
+    "Preserved read-only validation of historical v1 signed truth while rejecting v1 receipts for new canonical mutation."
+  ],
+  "verification": {
+    "focused_adversarial": {
+      "command": "node --test tests/cli-truth.test.js tests/truth-reconciler.test.js tests/cli-ready-truth.test.js tests/context-truth-pregate.test.js",
+      "tests": 18,
+      "passed": 18,
+      "failed": 0
+    },
+    "full_supported_runtime": {
+      "runtime": "Windows Node 25.2.1",
+      "command": "D:\\nodejs\\node.exe --test --test-reporter=spec tests/*.test.js",
+      "tests": 824,
+      "passed": 821,
+      "failed": 0,
+      "skipped": 3
+    },
+    "package_dry_run": {
+      "command": "npm pack --dry-run --json",
+      "entry_count": 240,
+      "packaged_authority_files": [
+        "lib/truth-authority.js",
+        "lib/truth-mutation.js",
+        "lib/truth-reconciler.js"
+      ],
+      "test_signer_packaged": false
+    },
+    "adversarial_proofs": [
+      "A same-user worker with target and package read access has no private target file, key generator, private-key loader, or signing API.",
+      "Two concurrent submissions of one valid receipt result in exactly one accepted append.",
+      "A receipt signed by a shared key but bound to repository A is rejected by repository B.",
+      "Tampered, expired, wrong-prior, replayed, self-asserted, missing-key, and replaced-key mutations fail before append."
+    ]
+  },
+  "remaining_gates": [
+    {
+      "id": "INDEPENDENT-AUDIT-S001R2",
+      "proof": "Independently rerun worker-forgery, concurrent replay, cross-repository replay, package inspection, exact projection, recovery, and fail-closed probes."
+    },
+    {
+      "id": "G-001",
+      "proof": "In a clean checkout that has never held private material, produce one unique bounded receipt from the externally held matching capability, validate it against the tracked public authority contract, submit it through event --canonical, and observe exactly one accepted append."
+    },
+    {
+      "id": "INTEGRATE-S001",
+      "proof": "Reconcile upstream, isolate one reviewable candidate, track .meta-harness/contracts/truth-authority-public.json plus the exact signed event tail and status, extract canonical phases and role permissions into the contract kernel, and prove a fresh checkout without private material."
+    }
+  ],
+  "known_residual_risk": [
+    "A writer with filesystem or Git authority can remove a signed ledger tail; integration must rely on controller write isolation and clean Git custody rather than a new database.",
+    "The current checkout still carries legacy D078 truth and an untracked raw public JWK; it was deliberately not rewritten or forged during this repair.",
+    "External custody continuity is unproven until G-001 completes."
+  ]
+}

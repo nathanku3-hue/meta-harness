@@ -1,0 +1,195 @@
+{
+  "schema_version": "independent-audit/v1",
+  "audit_id": "D078-S001-INDEPENDENT",
+  "audited_at": "2026-07-17",
+  "auditor_role": "independent auditor-planner",
+  "intent_version": "intent-v1",
+  "intent_sha256": "0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1",
+  "authority": "human-requested audit and aggressive roadmap revision",
+  "candidate": {
+    "slice": "S-001",
+    "reported_state": "implementation complete",
+    "repository_head": "8ec3191",
+    "upstream_head": "0791efa",
+    "repository_state": "dirty, nothing staged, main one commit behind origin/main",
+    "implementation_focus": [
+      "lib/truth-reconciler.js",
+      "lib/harness-state.js",
+      "lib/commands/status.js",
+      "lib/commands/event.js",
+      "lib/commands/init.js",
+      "lib/commands/context.js",
+      "lib/context-gate.js",
+      "lib/context-gate-fingerprint.js",
+      "lib/ready-check.js",
+      "lib/check-id-registry.js",
+      "lib/command-registry.js"
+    ],
+    "self_hosting_focus": [
+      ".meta-harness/events.jsonl D077 truth snapshots",
+      ".meta-harness/status.md generated projection"
+    ]
+  },
+  "verdict": "REPAIR_CURRENT_SLICE",
+  "acceptance": false,
+  "summary": "The happy path is well implemented and well tested, but the claimed canonical authority and contradiction blocking are not trustworthy under adversarial use. A caller can impersonate an authority actor, duplicate contradictory status sections pass reconciliation, stale decision-relevant projection fields pass, and one malformed canonical event permanently bricks an append-only ledger. S-001 is not complete.",
+  "verification_notes": [
+    "The supplied native Windows Node v25.2.1 full-suite result remains the only complete-suite evidence: 120 files, zero failures.",
+    "Independent focused execution passed 37 truth, status, readiness, context, replay, and custody tests after the D078 roadmap/status update.",
+    "Independent direct execution of the ten serial files produced 48 passes, 3 intentional skips, and 1 environment-only failure: the connector runtime is Node 18.19.1 while execution custody correctly requires Node >=20. All package, ready, judge, release, and process-tree cases in that set passed.",
+    "Two complete-runner attempts through the local connector were not counted: one returned a connector 502; one exited without a final summary after many passing parallel files."
+  ],
+  "positive_evidence": [
+    "The supplied full native Windows suite evidence is internally consistent: 120 files, zero failures.",
+    "Independent focused execution passed 37 existing truth, status, readiness, context, replay, and custody tests.",
+    "Core direction fields are generated from the latest valid canonical snapshot on the normal happy path.",
+    "status without --refresh fails without mutation for a simple changed material field.",
+    "status --refresh regenerates from events, readiness includes MH_TRUTH_001, and the public context path checks truth before scoring, hints, writes, or override.",
+    "Worker events do not replace Goal, Phase, Current truth, Next action, or Stop criteria when the worker honestly identifies itself as a worker actor."
+  ],
+  "findings": [
+    {
+      "id": "S001-AUTH-001",
+      "severity": "critical",
+      "title": "Canonical authority is self-asserted and impersonable",
+      "evidence": [
+        "lib/commands/event.js:30-46 accepts actor and authority directly from CLI arguments.",
+        "lib/truth-reconciler.js:34-40 and 92-99 validate only membership in a string allowlist and non-empty authority text.",
+        "Independent probe successfully appended canonical truth with --actor controller --authority FAKE-AUTHORITY and exited 0."
+      ],
+      "impact": "Any worker or process with CLI access can publish roadmap direction by claiming to be controller, human, or product-owner. The worker-authority separation is not enforced.",
+      "required_repair": "Replace actor-name trust with a capability-bound canonical mutation path. Require a controller/human authority receipt whose digest binds the prior canonical snapshot, exact proposed snapshot, allowed mutation, expiry, and one-time use. The general event command must not accept a free-form authority actor as proof."
+    },
+    {
+      "id": "S001-PROJ-001",
+      "severity": "critical",
+      "title": "Duplicate material status sections bypass contradiction blocking",
+      "evidence": [
+        "lib/truth-reconciler.js:231-245 overwrites duplicate labels in an object.",
+        "lib/truth-reconciler.js:249-252 compares only the last parsed value for selected labels.",
+        "Independent probe inserted wrong Goal, Current truth, Next action, and Stop criteria before correct duplicate sections; reconcileTruth returned ok=true."
+      ],
+      "impact": "status and readiness can display contradictory material truth while MH_TRUTH_001 passes.",
+      "required_repair": "Delete section-level permissive comparison. Compare the complete normalized projection byte-for-byte or compare a canonical projection hash, and reject duplicate, missing, reordered, or extra sections. No backward-compatible permissive parser is required."
+    },
+    {
+      "id": "S001-PROJ-002",
+      "severity": "high",
+      "title": "Decision-relevant projection fields can be stale or fabricated while truth passes",
+      "evidence": [
+        "lib/truth-reconciler.js:60-67 excludes Active streams, Pending human decisions, Blockers, and Last verified from contradiction comparison.",
+        "Independent probe changed Active streams and Last verified; reconcileTruth returned ok=true.",
+        "lib/truth-reconciler.js:175-187 treats every historical decision or blocker event as current and accepts the latest evidence string from any actor as Last verified.",
+        "The live status consequently lists many closed D017-D076 records under Pending human decisions."
+      ],
+      "impact": "A worker can overwrite Last verified with unverified evidence, historical decisions appear pending, and planning can proceed from misleading current-state fields even though core direction fields match.",
+      "required_repair": "Make every rendered field typed and authority-scoped. Independent verification must be explicit; pending gates and blockers require lifecycle state, not presence in history. Prefer removing unsupported inferred sections from status rather than building more governance machinery. Then validate the entire projection exactly."
+    },
+    {
+      "id": "S001-RECOVERY-001",
+      "severity": "high",
+      "title": "Malformed canonical history is unrecoverable under append-only rules",
+      "evidence": [
+        "lib/truth-reconciler.js:115-136 blocks when any canonical-marked event in history is invalid.",
+        "lib/truth-reconciler.js:325-327 advises recording a valid snapshot, but a later valid snapshot does not clear the invalid historical record.",
+        "Independent probe with one invalid canonical event followed by a valid human snapshot remained blocked with TRUTH_CANONICAL_INVALID."
+      ],
+      "impact": "One malformed or unauthorized truth_snapshot event permanently bricks status, readiness, and planning unless history is edited, violating the append-only recovery model.",
+      "required_repair": "Add an authority-bound append-only reconciliation event that names the rejected event hash and prior canonical hash, or otherwise define a deterministic recoverable supersession rule. Recovery must never require mutation of historical events."
+    },
+    {
+      "id": "S001-GATE-001",
+      "severity": "medium",
+      "title": "The public context command reports a truth block with process exit code 0",
+      "evidence": [
+        "lib/context-gate.js:143-185 returns a blocked object.",
+        "lib/commands/context.js:117-123 prints the result without raising a CLI failure.",
+        "The existing test explicitly expects status 0 for a truth-blocked context request."
+      ],
+      "impact": "Shell or CI callers that rely on process success can continue despite a canonical truth block.",
+      "required_repair": "Return a non-zero process exit for truth-blocked public context checks while preserving structured JSON on stdout. No compatibility alias or success-mode fallback."
+    }
+  ],
+  "scorecard": {
+    "scale": "0-10",
+    "product_progress": 3.0,
+    "shipping_readiness": 4.0,
+    "intent_alignment": 5.0,
+    "functional_completeness": 4.0,
+    "evidence_confidence": 9.0,
+    "process_quality": 7.0,
+    "global_integrity": 3.0,
+    "knowledge_application": 2.0,
+    "human_friction": 4.0,
+    "cost_efficiency": 4.0,
+    "rework_burden": 5.0,
+    "continuity_confidence": 4.0,
+    "overall": 4.7,
+    "note": "ROUND-018 score 9 measured context-gate sufficiency, not implementation correctness, authority integrity, product progress, or shipping readiness. It must not be reused as the product score."
+  },
+  "intent_deviation": {
+    "status": "material explicit deviation detected",
+    "aligned": [
+      "The work addresses a real blocker: contradictory canonical truth.",
+      "The implementation remains a bounded local CLI/library change rather than a daemon, queue, adapter expansion, or swarm.",
+      "The audit-before-next-slice gate was respected."
+    ],
+    "deviations": [
+      "Governance gravity: the current roadmap schedules multiple horizontal truth, projection, corpus, handoff, runtime, and identity slices before the first real coding loop.",
+      "Activity substitution risk: 40 modified tracked files and roughly 1.4k changed lines support an unaccepted internal slice, while no new end-to-end shipped product outcome exists.",
+      "Authority drift: role names are treated as authority despite the locked separation between human, controller, auditor-planner, and worker.",
+      "Score drift: a context quality score was presented as if it supported implementation closure."
+    ]
+  },
+  "roadmap_revision": {
+    "principle": "Repair only the proven S-001 blockers, integrate the slice, then immediately prove one real end-to-end coding loop. Defer horizontal infrastructure until an observed product slice cannot ship without it.",
+    "ordered_gates": [
+      {
+        "order": 1,
+        "slice": "S-001R",
+        "name": "Canonical truth hardening",
+        "disposition": "repair current slice",
+        "exit": "Capability-bound canonical mutation; exact whole-projection validation; typed or removed decision-relevant fields; append-only recovery; non-zero truth-block exits; adversarial tests and independent audit pass."
+      },
+      {
+        "order": 2,
+        "gate": "INTEGRATE-S001",
+        "name": "Upstream-aware integration",
+        "exit": "Reconcile origin/main 0791efa without losing unrelated dirty work; full supported-runtime suite and package proof pass; S-001 is committed as one reviewable candidate and independently accepted."
+      },
+      {
+        "order": 3,
+        "slice": "S-006M",
+        "name": "First real single-worker coding loop",
+        "disposition": "promoted ahead of horizontal prerequisites",
+        "exit": "One non-fixture product change runs frozen audit -> intent reread -> three alternatives -> bounded RunSpec -> existing execute custody -> independent audit -> canonical disposition, and reaches an explicit merged and packaged terminal state."
+      },
+      {
+        "order": 4,
+        "gate": "OBSERVED-BLOCKER-ONLY",
+        "name": "Evidence-led enabling work",
+        "exit": "Implement only the smallest projection, intent, corpus, handoff, resume, runtime, or identity change that the real loop proves is blocking the next shipped outcome."
+      }
+    ],
+    "deferred": [
+      "S-001A as a standalone projection program; fold only required provenance into S-001R.",
+      "S-001B as a standalone intent-anchor program; the existing locked intent document remains the authority until the real loop proves injection failure.",
+      "S-005/S-005A as a standalone corpus program; add adversarial cases to each active slice instead.",
+      "S-006A/B/C broad continuity implementation before the first real loop; derive the minimum handoff/resume contract from observed failure.",
+      "S-002 and S-004 unless they become direct release or user-adoption blockers."
+    ]
+  },
+  "next_gate": {
+    "action": "Implement S-001R only, preserving unrelated work and the D077 evidence set. Do not start S-001A, S-001B, a corpus program, handoff infrastructure, or multi-agent work.",
+    "required_adversarial_tests": [
+      "free-form actor/controller impersonation is rejected",
+      "authority receipt tampering, replay, expiry, wrong prior snapshot, and wrong proposed snapshot are rejected",
+      "duplicate, missing, reordered, extra, and stale status content blocks",
+      "worker evidence cannot become Last verified",
+      "closed decisions do not appear pending and cleared blockers do not remain active",
+      "invalid canonical history is repaired by an append-only authorized reconciliation event",
+      "truth-blocked context exits non-zero without writes, scoring, hints, or override"
+    ],
+    "stop_criteria": "No S-001 completion claim, integration, roadmap advance, or ok:true reliance until all critical and high findings are closed and independently re-audited."
+  }
+}

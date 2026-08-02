@@ -1,7 +1,253 @@
 # Meta Harness SOP
 
 Status: canonical
-Date: 2026-06-19
+Current direction locked: 2026-07-31
+Intent authority: [Product Intent Anchor](../product/product-intent.md)
+Roadmap authority: [Roadmap](../product/roadmap.md)
+
+## Current Core Principle
+
+Work must remain aligned with human intent and recoverable from validated artifacts rather than conversation memory.
+
+The minimal operating loop is:
+
+```text
+AUDITOR–PLANNER
+→ WORKER
+→ AUDITOR–PLANNER
+```
+
+Internal separations are mandatory:
+
+- audit before plan;
+- intent before local defect;
+- product movement before harness improvement;
+- evidence before narrative;
+- receiver validation before resume;
+- one writer before multi-agent fan-out;
+- shipping outcome before internal completion;
+- immutable episode before learning candidate;
+- transfer and boundary evidence before active lesson;
+- domain truth, decision lesson, personal mastery, and action authority kept separate;
+- one high-value frontier intervention before broad context injection;
+- timeless classics and frontier/SOTA primary work before low-value feed volume.
+
+## Canonical Read Order
+
+Every round begins with local files in this order:
+
+1. active human intent version;
+2. explicit human decisions and overrides;
+3. repository commit, tree, tag, dirty state, and active lease;
+4. current objective, slice, RunSpec, and authorization;
+5. immutable execution, audit, and outcome evidence;
+6. canonical event/fact ledger;
+7. active roadmap and product contracts;
+8. active, challenged, and retired lesson/evaluation records when the learning phases exist;
+9. personal mastery evidence and human corrections;
+10. generated status, handoff, learning brief, behavior map, discovery brief, and summaries.
+
+A generated projection never overrides its canonical sources. A material contradiction blocks planning and execution.
+
+## Auditor–Planner Contract
+
+The auditor-planner operates in two immutable passes.
+
+### Pass A — Audit
+
+Audit observes the completed round, extracts all **decision-relevant** insight, scores the result, and freezes the audit artifact.
+
+Decision-relevant insight must alter at least one of:
+
+- product interpretation;
+- slice ordering;
+- system or behavior map;
+- implementation strategy;
+- risk;
+- verification;
+- required expertise;
+- routing policy;
+- human decision.
+
+The audit records:
+
+- newly true product behavior;
+- required invariants that remain true;
+- failed or missing behavior;
+- evidence quality and independence;
+- process quality, retries, waste, and plan-to-diff drift;
+- salvageable partial results;
+- intent alignment;
+- scope and roadmap deviation;
+- shipping effect;
+- prediction versus observation;
+- new insight and unresolved unknowns;
+- candidate learning value: previous belief, new evidence, revised mechanism, boundary, counterexample, and affected decision;
+- whether the episode reveals a personal mastery gap without asserting that the human has learned it.
+
+The audit does not select the next roadmap item and cannot be edited during planning to support a later recommendation.
+
+### Pass B — Plan
+
+Planning reads the frozen audit and then re-reads the human intent verbatim.
+
+It considers at least:
+
+1. the best forward functional slice;
+2. the best information-gathering or risk-reduction action;
+3. ship, stop, defer, repair, or no-build.
+
+Planning priority is:
+
+1. ship the active objective;
+2. unlock its critical path;
+3. reduce uncertainty blocking that path;
+4. fix defects threatening that path;
+5. improve the harness only when a product slice cannot ship without it.
+
+The plan emits one numbered slice and a bounded RunSpec containing product delta, shipping target, affected behaviors/modules, required expertise, authority envelope, verification contract, budget, expiry, stop rules, and predicted outcome.
+
+When a learning intervention is relevant, planning may select at most one question, explanation, prerequisite patch, transfer test, or direction review. It must state how the answer could change the active option set, ranking, confidence, or applicability judgment. Otherwise it remains silent.
+
+## Worker Contract
+
+The worker:
+
+1. verifies intent version, RunSpec, repository identity, lease, and authorization;
+2. reads relevant local source before generated summaries;
+3. states the newly true product behavior it will create;
+4. emits a compact execution plan;
+5. passes automated plan preflight;
+6. executes all reversible work already authorized without routine waiting;
+7. uses scouts or parallel work only when expected completion time decreases;
+8. checkpoints each independently valid increment;
+9. records deviations, invalidated assumptions, options considered, discriminators, predictions, and partial results immediately;
+10. returns structured evidence and a typed handoff;
+11. never declares the roadmap or final shipping result;
+12. stops at the RunSpec boundary.
+
+The compact plan contains only:
+
+- intended product behavior;
+- expected files and modules;
+- invariants that must remain true;
+- implementation sequence;
+- verification sequence;
+- stop and escalation conditions.
+
+More detail is required only when uncertainty or integration risk is high.
+
+## Human Gate Contract
+
+The worker waits only for:
+
+- `G-AUTHORITY` — permission, credential, publication, or protected boundary;
+- `G-TASTE` — product or UX judgment;
+- `G-RISK` — material irreversible or high-impact risk acceptance;
+- `G-SCOPE` — meaningful expansion beyond the authorized outcome.
+
+Every gate states one decision, recommended choice, alternatives, consequence, required input, and skip condition. A valid pre-authorization envelope eliminates repeated gates for reversible actions inside its scope.
+
+## Verification Contract
+
+The verifier initially receives the intent, RunSpec, clean base, candidate diff, acceptance contract, observable output, and independent test surface. It does not initially receive the worker's private reasoning or preferred next action.
+
+Verification separately scores:
+
+- terminal correctness;
+- evidence strength;
+- global invariants;
+- process quality;
+- plan-to-diff drift;
+- rework and maintenance burden;
+- shipping state.
+
+Passing tests alone cannot close a slice.
+
+## Epistemic Loop Contract
+
+The epistemic loop is sequenced product capability, not permission to build a generic memory platform.
+
+The governed lifecycle is:
+
+```text
+Immutable Episode
+→ Knowledge Delta
+→ Candidate Decision Lesson
+→ Mastery Evidence
+→ One Frontier Intervention
+→ Outcome
+→ Confirm, Narrow, Challenge, Reopen, or Retire
+```
+
+Role and authority rules:
+
+- the episode recorder appends immutable evidence only;
+- the learning compiler creates provisional deltas and candidate lessons only;
+- the learning evaluator owns held-out transfer, critical boundary abstention, contradiction handling, and lesson state transitions;
+- the mastery model records uncertain, reversible, human-correctable evidence;
+- the frontier selector proposes at most one endgame-relevant intervention and remains silent when no result could change the decision;
+- the endgame planner reads active or challenged lessons but cannot promote them;
+- any executable action still requires a separate valid RunSpec and authorization envelope.
+
+Learning source selection follows the best-only doctrine:
+
+- `timeless-classic` for durable foundations;
+- `frontier-sota` for current primary work that changes the active boundary;
+- `prerequisite-bridge` only when middle-layer material patches a blocking prerequisite, maps terminology into primary evidence, resolves a disputed mechanism, or directly unlocks the endgame.
+
+A later cron or equivalent scheduled scout may return at most five duplicate-suppressed repositories, papers, or high-signal mental-model essays. Every item states provenance, source class, freshness, endgame relation, expected unlock, and why it beats the next alternative. The scout cannot auto-ingest, promote, update mastery, or mutate policy.
+
+Learning phase claims require their roadmap acceptance evidence. Root-vault wiki canonicality, a successful source episode, or a generated brief does not prove held-out decision transfer or human mastery.
+
+## Handoff and Resume Contract
+
+A handoff is a hash-bound state transition, not a summary. It records identity, versions, intent, authority, repository state, completed/current/incomplete operations, continuation cursor, decisions, assumptions, rejected approaches, evidence, next operation, recovery, and expiry.
+
+Before resume, the receiver independently returns:
+
+- objective understood;
+- current state understood;
+- completed work;
+- unfinished work;
+- exact next operation;
+- forbidden action;
+- done condition.
+
+The controller compares this with the handoff. Any mismatch, stale repository state, expired authority, newer handoff, active competing lease, superseding override, or completed equivalent run blocks continuation.
+
+Planned compaction or shutdown follows:
+
+1. publish an atomic checkpoint;
+2. generate the typed handoff;
+3. validate it from a fresh process;
+4. compact or stop;
+5. resume from the artifact rather than the conversation;
+6. confirm intent, cursor, authority, and repository identity.
+
+## Loop Disposition
+
+The auditor-planner returns exactly one:
+
+- `ACCEPT_AND_CONTINUE`;
+- `ACCEPT_AND_SHIP`;
+- `REPAIR_CURRENT_SLICE`;
+- `SALVAGE_AND_REPLAN`;
+- `REJECT_AND_REPLAN`;
+- `HUMAN_GATE`;
+- `STOP`.
+
+The controller then updates canonical state atomically.
+
+## Multi-Agent Rule
+
+Do not automate more agents until one fresh worker can reliably continue another worker's work from artifacts alone while preserving original intent.
+
+Later fan-out requires disjoint writes or read-only roles, leases, duplicate suppression, independent acceptance checks, deterministic integration order, cancellation propagation, salvage classification, and measured latency benefit greater than coordination cost.
+
+## Current Build Boundary
+
+Only `CANDIDATE-S001R5F — Fail-preserving exact-candidate finalization` is authorized now. The runtime remains verifier-only. Preserve exact clean commit `a0e4835`; delete the move-aside backup fallback so direct temp-to-ledger rename failure leaves the prior canonical ledger byte-identical at `events.jsonl` with no backup residue. Replace the weak pre-operation alias test with the actual rename-boundary swap regression on Linux and Windows, and synchronize the minimal D082 authority chain into the clean candidate. Keep multiply linked file rejection, static symlink/junction/reparse checks, one-shot bootstrap, stale-lock recovery, Ed25519, receipt v2, and the 300-second ceiling. Canonical mutation runs in a controller-owned checkout outside worker write scope; path checks remain defense in depth. After exact-commit independent acceptance, run `G-001`, complete integration, then execute `S-006M`—one real non-fixture coding loop to merged and packaged. The weak epistemic twin contract is frozen but does not create implementation authority: `L1` waits for a verified real episode, and the scheduled discovery scout remains closed until `L9`. Internal vaults, signer services, databases, broad filesystem frameworks, horizontal governance, learning implementation, scheduled feeds, and fan-out remain deferred. Where later historical sections conflict, D083 and the 2026-07-31 learning freeze govern.
 
 ## Purpose
 
@@ -333,7 +579,7 @@ It should answer:
 The first running version should support:
 
 ```text
-meta-harness init "<goal>"
+meta-harness init --authority-public-key-file <path> --authority-receipt-file <path>
 meta-harness event --phase <phase> --action <action> --result <result>
 meta-harness status
 meta-harness lookback

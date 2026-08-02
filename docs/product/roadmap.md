@@ -1,18 +1,247 @@
-# Meta-Harness Roadmap — Local-Audit-Driven Revision
+# Meta-Harness Roadmap
 
-Status: active baseline
+Status: **locked current direction**
+Version: `endgame-v11 + weak-epistemic-twin freeze + fail-preserving exact-candidate finalization`
+Effective date: 2026-07-31
+Intent authority: [Product Intent Anchor](product-intent.md)
+Question authority: [Problem-Solving Questions](problem-questions.md)
+
+## Locked Endgame
+
+Meta-Harness is an AI-native operating harness for one solo developer/researcher shipping ultra-complex, multi-module systems that require both software engineering and specialist knowledge.
+
+The human owns intent, taste, authority, risk tolerance, scope expansion, and irreversible commitments. The auditor-planner owns truthful direction. The worker owns authorized execution. The controller owns canonical state, custody, leases, cancellation, and loop integrity.
+
+The end-state loop is:
+
+```text
+reconcile canonical truth
+→ audit completed work and freeze the audit
+→ re-read frozen human intent
+→ compare three forward alternatives
+→ authorize one numbered functional slice
+→ execute all reversible authorized work
+→ independently verify and integrate
+→ measure product and process outcome
+→ observe traceable learning evidence
+→ update domain knowledge, personal mastery, and the active learning frontier without silent promotion
+→ atomically update canonical state
+→ continue, teach, ship, re-plan, gate, or stop
+```
+
+The primary product view is always:
+
+- what outcome is being shipped;
+- what is currently true;
+- what blocks that outcome;
+- what the critical path is;
+- which smallest end-to-end slice should be built next;
+- why it beats the alternatives;
+- what requires human judgment;
+- what proves the slice worked;
+- what shipping state closes the objective.
+
+## Locked Operating Model
+
+```text
+AUDITOR–PLANNER
+  PASS A: audit, diagnose, score, freeze
+  PASS B: re-read intent, compare alternatives, emit RunSpec
+
+WORKER
+  verify authority and local truth
+  emit compact plan
+  pass automated plan preflight
+  execute all authorized reversible work
+  checkpoint and return structured evidence
+
+AUDITOR–PLANNER
+  independently verify result and process
+  choose one loop disposition
+```
+
+Loop dispositions are:
+
+- `ACCEPT_AND_CONTINUE`;
+- `ACCEPT_AND_SHIP`;
+- `REPAIR_CURRENT_SLICE`;
+- `SALVAGE_AND_REPLAN`;
+- `REJECT_AND_REPLAN`;
+- `HUMAN_GATE`;
+- `STOP`.
+
+The auditor-planner must initially evaluate the clean base, RunSpec, candidate diff, observable output, tests, and artifacts without receiving the worker's private reasoning or preferred next step.
+
+## Planning Priority
+
+Every planning round follows this order:
+
+1. Ship the active objective.
+2. Unlock its critical path.
+3. Reduce uncertainty blocking that path.
+4. Fix defects that threaten that path.
+5. Improve the harness only when a current product slice cannot ship without the improvement.
+
+Audit findings do not automatically become roadmap items.
+
+## Design Laws
+
+1. **One canonical fact layer.** Immutable events and run evidence are authority; status is a generated projection.
+2. **Frozen human intent.** The active intent version is injected verbatim into audits, plans, handoffs, resumes, outcomes, and roadmap changes.
+3. **Vertical functional slices.** Each slice creates an observable end-to-end product capability or removes a proven blocker to one.
+4. **Explicit contract kernel.** Feature modules may share only a small stable kernel for schemas, validation, atomic I/O, IDs, results, and errors.
+5. **Single-context changeability.** Judge modules by the complete context footprint needed for safe change, not file length alone.
+6. **Bounded loops.** Every run declares action, time, cost, scope, authority, stop, and escalation limits.
+7. **Minimal named human gates.** Only authority, taste, material risk, scope expansion, and irreversible commitment require human intervention.
+8. **Borrow execution.** Own decisions, evidence, custody, and integration; borrow general agent execution through thin measured adapters.
+9. **Independent audit.** Builders do not solely verify their own work.
+10. **Knowledge becomes product evidence.** Research must become a requirement, constraint, test, benchmark, decision, risk, claim, or implementation rule.
+11. **Versioned outcome learning.** Policy changes make falsifiable predictions, run against development and holdout corpora, and remain reversible.
+12. **Optimize shipping economics.** Maximize verified product progress per unit calendar time and human attention.
+13. **Continuity is correctness.** Handoffs are validated state transitions, not summaries; resume requires receiver-comprehension proof.
+14. **One writer before fan-out.** Multi-agent execution requires leases, disjoint writes or read-only roles, duplicate suppression, deterministic integration, and favorable economics.
+15. **No silent drift.** Intent, authority, shipping definition, material risk, evidence standards, and current facts cannot change implicitly.
+16. **Aggressive explicit deviation.** Roadmap, architecture, modules, and execution substrate may change aggressively when evidence shows a faster path to the locked endgame.
+17. **Memory is evidence, not outcome.** Episodes remain immutable and traceable; note count, retrieval recall, and chat continuity do not prove learning.
+18. **Separate epistemic authority.** Domain truth, scoped decision lessons, personal mastery, and action authority are distinct state domains.
+19. **Learn while build.** Verified work may create provisional knowledge and mastery hypotheses during human-idle time, but one episode cannot directly alter active policy.
+20. **Spine plus frontier.** Authoritative top-down structure prevents fragmentation; bottom-up real questions preserve speed and relevance.
+21. **Mastery requires transfer.** Exposure and recognition do not prove understanding; explanation, prediction, novel transfer, and independent direction are stronger evidence.
+22. **Agency transfers to the human.** Tutor support fades from instruction to critique only from observed evidence; the human retains direction ownership.
+23. **Knowledge-to-action is bounded.** Active lessons may inform recommendations, but agent action still requires explicit reversible authority and outcome feedback.
+24. **Learn the best only.** Prefer timeless classics for durable foundations and latest frontier/SOTA primary work for changed boundaries; admit middle-layer material only when it patches a blocking prerequisite or active uncertainty. Scheduled discovery remains a ranked recommendation surface, not an ingestion or promotion authority.
+
+## Planning Vocabulary
+
+Normal planning exposes only:
+
+| ID | Meaning |
+|---|---|
+| `O-###` | Product outcome |
+| `S-###` | Functional slice |
+| `G-###` | Human gate |
+| `R-###` | Execution run |
+
+Historical decision and phase identifiers remain available for evidence but are not the normal PM interface.
+
+## Scorecard
+
+Do not hide trade-offs in one aggregate score. Each round reports:
+
+- product progress;
+- shipping readiness;
+- intent alignment;
+- functional completeness;
+- evidence confidence;
+- process quality;
+- global integrity;
+- knowledge application;
+- human friction;
+- cost efficiency;
+- rework burden;
+- continuity confidence.
+
+A short overall verdict may accompany the vector, but weights remain explicit and versioned.
+
+## Locked Functional-Slice Build Order
+
+D083 preserves verifier-only authority, the clean upstream-based lineage, controller-owned mutation, and candidate-before-G-001 ordering. CANDIDATE-S001R5 closes hard-link aliasing and post-check replacement on the direct rename path, but its move-aside fallback can remove the canonical ledger on replacement failure and the exact checkout omits the D082 authority that authorized R5. The next gate finalizes this same candidate through deletion and authority synchronization rather than opening another architecture or governance program. The original long-range capabilities remain valid endgame candidates, but they are not automatic prerequisites.
+
+| Step | Slice / gate | Product problem | Exit condition |
+|---:|---|---|---|
+| 1 | `CANDIDATE-S001R5F` Fail-preserving exact-candidate finalization | Exact commit `a0e4835` independently closes multiply linked ledger mutation and true rename-boundary alias replacement on Linux and Windows, but its move-aside fallback can remove `events.jsonl` after replacement/restoration failure. The exact checkout also lacks D082 and still advertises R4/D081. | Preserve `a0e4835` and add one bounded finalization commit. Delete the backup/move-aside fallback and use one direct flushed-temp-to-ledger rename. Force rename failure and prove the prior ledger remains byte-identical at `events.jsonl` with no backup residue. Replace the weak pre-operation alias test with a real rename-boundary swap regression on Linux and Windows. Synchronize the minimal D082 authority chain and active R5 product surfaces into the clean candidate. Preserve every accepted R4/R5 runtime, verifier, package, quality, replay, bootstrap, and legacy-read result. |
+| 2 | `INDEPENDENT-AUDIT-CANDIDATE-S001R5F` Exact-commit final acceptance | Fail-preserving replacement and direction-complete custody must be proven on one named clean commit. | A fresh auditor checks the exact finalization commit and fresh checkout, repeats direct-rename failure preservation, actual rename-boundary swapping, hard links, static symlink/junctions, event concurrency, bootstrap, stale-lock, receipt, replay, legacy, complete Windows Node 25, quality, package, and authority-chain continuity, and accepts the candidate without private material. |
+| 3 | `G-001` External authority continuity proof | The current signer key is pinned but matching external private-capability continuity is unproven. | In a controller-owned fresh checkout of the accepted `CANDIDATE-S001R5F`, produce one unique receipt v2 with a lifetime of at most 300 seconds using the matching external capability, validate it against the tracked structured public authority contract v1, submit it through `event --canonical`, and observe exactly one accepted logical ledger append without private material entering target, package, logs, or evidence. If the capability is unavailable, stop at a human authority-epoch migration decision. |
+| 4 | `INTEGRATE-S001` Final truth integration | The accepted external receipt, canonical event, and generated status must become check-outable custody evidence. | Commit the exact G-001 signed event and status on the reviewed candidate; pass the full supported-runtime suite, package proof, diff/security checks, fresh-checkout validation, and independent acceptance; merge and package S-001. |
+| 5 | `S-006M` First real single-worker coding loop | The product still has not proved that frozen intent, bounded execution custody, independent audit, and canonical disposition can ship real work end to end. | One non-fixture product change completes frozen audit → verbatim intent reread → three alternatives → bounded RunSpec → existing `execute` custody → independent audit → canonical disposition, and reaches an explicit merged and packaged terminal state. |
+| 6 | `OBSERVED-BLOCKER-ONLY` Evidence-led enabling work | Horizontal infrastructure can consume the roadmap without moving a product outcome. | Add only the smallest projection, intent, evaluation, handoff, resume, runtime, identity, research, custody, or PM-control change that a real active slice proves is blocking shipment. |
+| 7 | `S-009M` First research-to-product loop | Research remains useful only when it changes a requirement, constraint, test, benchmark, risk, decision, claim, or implementation rule. | One real research question changes shipped behavior or its acceptance evidence through the same bounded loop. |
+| 8 | `S-012M` Multi-module behavior slice | Cross-module behavior still risks local optimization and context collapse. | One real multi-module product behavior is localized, changed, independently verified, and shipped through progressive disclosure. |
+| 9 | `S-016M` Scored alternatives in shadow mode | Planning quality and economics are not measured against alternatives. | Three materially different next-slice candidates are scored beside the human/auditor decision and beat a baseline without controlling execution. |
+| 10 | `S-020M` Outcome learning | Historical evidence does not yet improve recommendations or the human's next learning decision. | A versioned, reversible policy change makes a falsifiable prediction and improves holdout next-question, next-slice, or research-direction quality without shipping regressions or harmful lesson overrides. |
+| 11 | `S-024M` Controlled fan-out | Parallel agents are not yet proven economically or operationally safe. | Leased isolated workcells reduce elapsed time versus one worker without increasing defects, rework, duplicate work, or integration failure. |
+| 12 | `S-029M` Shipping workcell | Release mechanics and human reconstruction still interrupt the end-to-end objective. | One PM surface and bounded shipping workcell complete release evidence, migration, rollback, and the final shipping decision. |
+
+## Locked Epistemic Twin Capability Roadmap
+
+This roadmap is product authority, not immediate implementation authorization. `L0` is closed by the 2026-07-31 documentation freeze. `L1` may open only after the current custody closure and one real `S-006M` coding loop provide a verified episode. Human-learning and action phases remain sequential.
+
+| Phase | Product problem | Acceptance standard |
+|---|---|---|
+| `L0` Product Freeze | Memory, learning, tutoring, and knowledge-to-action can drift into unrelated infrastructure. | Weak-twin goal, six-record contract, authority separation, frontend-light stack, non-goals, and all phase gates are consistent across active product docs. |
+| `L1` Learn While Build | Real coding and research outcomes disappear after shipping or remain unstructured chat. | One real build creates a traceable episode, knowledge delta, candidate lesson, personal-gap hypothesis, and compact return brief without interrupting the human or auto-promoting policy. |
+| `L2` Decision Transfer | A plausible lesson may overfit its source episode. | The lesson improves one held-out applicable decision, abstains on critical boundary cases, and reopens on contradiction with zero harmful override. |
+| `R-LRN-1` Twin Calibration | Human mastery and tutoring support cannot be inferred safely from task success alone. | Freeze a versioned evidence policy for mastery, spine/frontier routing, and scaffold fading against adversarial examples; no new storage or agent framework is authorized. |
+| `L3` Human Learning Transfer | Reading an AI explanation can be mistaken for learning. | The human predicts, explains the mechanism, and succeeds on a novel case with less assistance; recognition alone fails. |
+| `L4` Spine–Frontier | Fast bottom-up questions fragment knowledge; linear curricula are coherent but slow. | A natural AI question maps to an authoritative spine, patches only blocking prerequisites, and correctly chooses continue, patch, return, or abstain. |
+| `L5` Supervisor Agency Transfer | AI can permanently own learning direction instead of making the human stronger. | Support fades from guidance to critique based on mastery evidence, and the human independently chooses and justifies a direction with an explicit reopen condition. |
+| `L6` Knowledge to Decision | Structured knowledge may remain passive documentation. | Twin state changes one real roadmap or research decision and reduces error or rework against a no-learning baseline. |
+| `L7` Bounded Knowledge to Action | Useful knowledge may not reach execution, or may create unsafe autonomy. | An agent uses only active lessons inside an explicit reversible authorization; its outcome is traceable and confirms, narrows, challenges, or reopens the twin. |
+| `L8` Outcome Certification | Isolated successes do not prove a learning system. | Multiple real holdouts show better next questions, decisions, transfer, reduced assistance, and shorter time-to-endgame without increased harmful overrides. |
+| `L9` Best-Only Discovery Scout | High-volume feeds create attention debt and low-value knowledge intake. | One cron or equivalent scheduled run returns at most five duplicate-suppressed repositories, papers, or high-signal mental-model essays; each is classified as timeless classic, frontier/SOTA, or a justified prerequisite bridge, ranked by active endgame value, and cannot auto-ingest, promote, change mastery, or mutate policy. |
+
+### Deferred standalone programs
+
+The following are no longer automatic prerequisites:
+
+- `S-001A` standalone projection contract: fold only the provenance required to close `CANDIDATE-S001R5F`; expand later only from observed failure.
+- `S-001B` standalone frozen-intent machinery: `docs/product/product-intent.md` remains the locked authority; automate injection only when a real loop proves the manual anchor insufficient.
+- `S-005`/`S-005A` standalone corpus program: add adversarial cases to each active slice; extract a shared corpus only after repeated reuse.
+- `S-006A/B/C` broad handoff, resume, and checkpoint programs: derive the minimum typed contract from the first real interrupted or transferred loop.
+- `S-002` runtime-floor work and `S-004` identity migration: execute only when they directly block release, adoption, or an active product outcome.
+
+## Immediate Scope
+
+The only authorized implementation work is:
+
+```text
+CANDIDATE-S001R5F — finalize fail-preserving replacement and candidate authority custody
+```
+
+The product remains verifier-only. Exact commit `a0e4835` independently proves clean lineage, multiply linked file rejection, direct complete-ledger replacement, real rename-boundary alias safety on Linux and Windows, one-shot bootstrap, static symlink/junction rejection, stale-lock recovery, Ed25519-only verification, a 300-second receipt ceiling, verifier-only packaging, D078 legacy readability, focused cross-platform truth tests, and the quality ratchet. It is rejected only because the speculative move-aside fallback can remove the canonical path on failure and the exact checkout does not contain the D082 authority that authorized R5.
+
+Finalize the existing clean candidate rather than returning implementation work to the dirty main checkout. Delete the fallback; a failed direct rename must leave the old ledger untouched. Add a true failure-preservation regression and replace the overstated swap test with the independently proven rename-boundary probe. Bring the minimal D082 authority chain and active product direction into the clean checkout so a fresh operator does not depend on chat or dirty-main state. Preserve the controller-owned checkout as the mutation boundary.
+
+The tracked verifier schema is `meta-harness-truth-authority-public/v1`; the repository-bound receipt schema is `meta-harness-truth-authority-receipt/v2`. No new authority schema, database, daemon, or generic filesystem layer is authorized.
+
+After exact-commit independent acceptance, G-001, and final integration, the next slice is `S-006M`, not another horizontal governance program.
+
+Do not begin an internal key vault, signer daemon, OS-keychain adapter, generic credential framework, authority recovery system, custom database, broad path framework, canonical-phase/role-permission refactor, adapter expansion, generic loop controller, corpus infrastructure, broad handoff machinery, mass module splitting, outcome learning, scheduled discovery feed, or multi-agent orchestration in parallel. The finalization remains bounded by `docs/ops/audits/s001r5-independent-audit.json`.
+
+## v1.0 Proof Standard
+
+The system may claim proven product success only after:
+
+- at least three real multi-module product outcomes;
+- coding and research both materially affecting shipped behavior;
+- zero undetected authoritative contradictions;
+- fresh-worker continuation after interruption without conversation reconstruction;
+- lower problem-to-shipping calendar time than baseline;
+- fewer routine human interventions per verified slice;
+- no increase in escaped defects or rework;
+- holdout-tested improvement in recommendation quality;
+- measured benefit from any multi-agent fan-out;
+- complete release evidence and rollback for every shipping claim.
+
+Until then, the honest position is: **credible SOTA research direction, not yet a proven SOTA system**.
+
+## Historical Phase-Era Baseline
+
+The phase-era roadmap below is retained as historical implementation and custody evidence. It does not supersede the locked functional-slice build order above.
+
+Status: historical phase-era baseline retained for traceability
 Approval scope: Phase 1–12 aggregate completion under accepted roadmap scopes, closed by D031 at commit d031c
 Hold: Phase 1–12 aggregate completion is done-done under D031; all Phase 1–12 exit criteria are revalidated. Phase 10 release/package enforcement remains closed for artifacts only, Phase 11 for domain-governance validation/control-plane scope only, Phase 12 for local governed skill lifecycle only, and Phase 9 is explicitly closed. Phase 13 local context-governance capabilities now extend through governance snapshotting/replay and compatibility classification. Phase 6B / 13D adds docs/templates-only build-vs-borrow expert routing before any connector or automation work. Phase 14C governance migration/release framework is implemented locally. Phase 16 is closed under D042. Phase 17 read-only multi-repo rollup pilot, ready freshness/drilldown, and drift warnings are closed locally under D043-D045. Phase 18 read-only response handoff is closed locally under D046. D048 supersedes D047's too-broad action/proposal claim and closes Phase 19A as read-only next-action routing only. Phase 19B read-only next-action brief is closed locally under D049. Phase 20A read-only proposal draft packet is closed locally under D050. Phase 20B read-only proposal draft validation is closed locally under D051. Phase 20C read-only proposal review gate is closed locally under D052. Phase 20D read-only proposal review packet envelope is closed locally under D053. Phase 20E read-only proposal review options is closed locally under D054. Phase 20F read-only review decision receipt template is closed locally under D055. Phase 20G read-only proposal review receipt validation is closed locally under D056. Phase 20H read-only copy block rendering is closed locally under D057. Phase 20I read-only copy block validation is closed locally under D058. Phase 20J read-only export intent/safety gate is closed and pushed under D059. Phase 20K explicit export files are bypassed/future-only unless a real user need appears. Phase 21A controlled autonomy dry-run plan, approval receipt validation, and CLI receipt input are closed. Phase 21B approved manual-work packet is closed under D060. Phase 21C approved packet materialization is implemented locally under D061. Phase 21D approved packet artifact verification is implemented locally under D062. Phase 21E read-only operator execution plan is implemented locally under D063. Phase 23A installed-package execution is closed through D076 under exact repair candidate `ce02548`. Feature development is frozen pending exact-closure-commit release/security evidence and publication. Dashboards, daemons, auto-worker routing, readiness refresh, auto-repair, generic provider integration, CI dashboard publishing, self-approving autonomy, broad workflow automation, and pre-release DELETE remain future/non-goals.
 Date: 2026-07-15
 Decision: D031 aggregate closure; D032-D038 context/governance records; D041-D066 MCP/strategic-loop, read-only rollup, manual-work/operator-plan/readiness records; D068-D076 execution-authority/custody and installed-package closure; D021–D030 remain source decisions; D017–D020 remain source decisions
 
-## Endgame
+## Historical Custody-Era Endgame
 
 Meta-Harness is a repo-local control plane for self-governing software work. It uses skills and bounded subagents to maximize leverage. It blocks unsafe autonomy through state, security, facts, tests, and review.
 
 The currently published registry package remains the older Markdown-first release, but D076 closes the next installed artifact locally: one shipped `execute` command from an isolated packed installation with authenticated VERIFIED, durable custody, expired zero-spawn REPLAY, independent validation, leakage PASS, and a public receipt. Exact-closure-commit release/security evidence and publication are now the active gate. Dashboards, daemon mode, generic worker orchestration, and full autonomy remain future phases, not current claims.
 
-## Scoring Baseline (2026-06-06 audit)
+## Historical Scoring Baseline (2026-06-06 audit)
 
 | Dimension | Score |
 |---|---|

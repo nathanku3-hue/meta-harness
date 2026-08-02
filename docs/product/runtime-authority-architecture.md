@@ -1,5 +1,33 @@
 # Runtime Authority Architecture (concise)
 
+## Current Layer Boundary — 2026-07-31
+
+The execution-custody runtime is a frozen lower layer under the locked solo developer/researcher endgame. It solves bounded authority, isolated execution, controller-owned materialization, validation, durable result custody, replay, and portable evidence. It does **not** own original intent, product planning, action scoring, expertise routing, handoff comprehension, epistemic-twin state, source selection, personal mastery, learning evaluation, outcome learning, scheduled discovery, or multi-agent scheduling.
+
+New intelligence work must consume the custody boundary rather than absorb or duplicate it. The custody layer changes only when a real numbered product slice exposes a blocking defect. The weak epistemic twin sits above custody: verified outcomes may become immutable episodes, but lessons, mastery, frontier selection, and discovery remain separate product layers. Any knowledge-derived action must re-enter through a normal RunSpec and authorization envelope. No generic provider, workflow, compatibility, queue, daemon, learning store, discovery worker, or concurrency framework is authorized by the new roadmap.
+
+Authority flow above custody is:
+
+```text
+human intent and decision
+→ frozen audit
+→ bounded RunSpec and authorization envelope
+→ worker candidate
+→ independent verification
+→ controller-owned custody and integration
+→ immutable outcome
+→ optional provisional learning episode above custody
+```
+
+The optional learning branch cannot mutate custody or bypass action authority:
+
+```text
+verified outcome → provisional episode/lesson → independent evaluation → recommendation
+recommendation → new bounded RunSpec → normal authorization/custody flow
+```
+
+This document preserves the exact historical D068–D076 authority and custody truth below.
+
 **Status:** D068 / 23A-PR1R — **closed under `be82763`** (PR #23 squash; request-digest invariant, absolute paths, strict outer envelopes)
 
 **Rule:** Behavioral authority lives in schemas + tests. This doc stays short.

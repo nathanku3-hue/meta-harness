@@ -1,0 +1,268 @@
+{
+  "schema_version": "independent-audit/v1",
+  "audit_id": "D079-S001R-INDEPENDENT",
+  "audited_at": "2026-07-18T00:10:13+08:00",
+  "auditor_role": "independent auditor-planner",
+  "intent_version": "intent-v1",
+  "intent_sha256": "0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1",
+  "authority": "human-requested independent audit, aggressive roadmap revision, no silent drift, and functional-slice-first movement",
+  "candidate": {
+    "slice": "S-001R",
+    "reported_state": "implementation candidate ready for independent audit; not accepted, integrated, or complete",
+    "repository_head": "8ec3191",
+    "upstream_head": "0791efa",
+    "repository_state": "dirty, nothing staged, main one commit behind origin/main, broad unrelated modified and untracked work preserved",
+    "implementation_focus": [
+      "lib/truth-authority.js",
+      "lib/truth-reconciler.js",
+      "lib/commands/init.js",
+      "lib/commands/event.js",
+      "lib/commands/status.js",
+      "lib/commands/context.js",
+      "lib/context-gate.js",
+      "lib/harness-state.js",
+      "lib/ready-check.js",
+      "tests/cli-truth.test.js",
+      "tests/truth-reconciler.test.js",
+      "tests/cli-ready-truth.test.js",
+      "tests/context-truth-pregate.test.js"
+    ],
+    "self_hosting_focus": [
+      ".meta-harness/contracts/truth-authority-public.json",
+      ".meta-harness/events.jsonl signed D078 reconciliation",
+      ".meta-harness/status.md exact generated projection"
+    ]
+  },
+  "verdict": "REPAIR_CURRENT_SLICE",
+  "acceptance": false,
+  "summary": "S-001R closes the projection, inferred-field, append-only recovery, and non-zero context-exit findings from D078. It does not close the authority finding. The product automatically writes a raw Ed25519 private JWK into the target repository's local state and ships callable signing code that loads it. An ordinary same-user process in an initialized target independently minted a receipt and published arbitrary canonical direction with exit code 0. Cryptographic integrity is proven; authority separation is not.",
+  "d078_finding_disposition": [
+    {
+      "finding": "S001-AUTH-001",
+      "status": "open",
+      "result": "Actor-string impersonation is removed, but the replacement capability is worker-readable and therefore forgeable in the normal initialized target model."
+    },
+    {
+      "finding": "S001-PROJ-001",
+      "status": "closed",
+      "result": "The complete normalized projection is compared exactly; duplicate, missing, reordered, extra, and stale content blocks."
+    },
+    {
+      "finding": "S001-PROJ-002",
+      "status": "closed",
+      "result": "Unsupported inferred sections were removed; ordinary worker evidence does not enter canonical status."
+    },
+    {
+      "finding": "S001-RECOVERY-001",
+      "status": "closed",
+      "result": "Signed reconciliation can reject the exact unresolved malformed-event digest set append-only."
+    },
+    {
+      "finding": "S001-GATE-001",
+      "status": "closed",
+      "result": "Truth-blocked public context checks return a non-zero process exit."
+    }
+  ],
+  "verification_notes": [
+    "The supplied native Windows Node v25.2.1 complete-suite evidence is 120 of 120 test files passed. It was not independently rerun because the connector runtime is Node 18.19.1.",
+    "Independent focused execution passed 36 truth, readiness, context, custody, and roadmap tests with zero failures.",
+    "Independent package dry run reported 239 entries. lib/truth-authority.js and lib/truth-reconciler.js are packaged; repository key files are not packaged.",
+    "git diff --check produced only existing line-ending warnings and no whitespace failure.",
+    "The load-bearing authority exploit reproduced under connector Node 18.19.1 and does not depend on the supported-runtime difference."
+  ],
+  "positive_evidence": [
+    "Receipt bodies bind the exact proposal, prior canonical digest, capability, receipt ID, signer key ID, issue time, and expiry.",
+    "Receipt tampering, replay, expiry, wrong-prior binding, public-key removal, and public-key replacement fail closed in the tested paths.",
+    "Exact projection comparison removes the duplicate-section and partial-field parser bypasses.",
+    "Worker evidence no longer becomes current status truth.",
+    "Append-only signed reconciliation closes malformed historical canonical records without editing them.",
+    "Truth-blocked context execution now exits non-zero.",
+    "The candidate did not claim acceptance, integration, or completion."
+  ],
+  "findings": [
+    {
+      "id": "S001R-AUTH-002",
+      "severity": "critical",
+      "title": "The signing capability is stored inside the worker-visible target and callable from the shipped product",
+      "evidence": [
+        "lib/truth-authority.js:17-18 places the public key under .meta-harness/contracts and the raw private JWK under .meta-harness/local inside the target root.",
+        "lib/truth-authority.js:62-91 automatically generates and writes the private JWK during authority setup.",
+        "lib/truth-authority.js:104-111 reads the private JWK from the target root.",
+        "lib/truth-authority.js:201-245 exposes a signing function that loads the target-local private key and signs arbitrary proposals.",
+        "lib/truth-authority.js:378-397 exports private-key paths, private-key loading, authority setup, and receipt signing from the packaged module.",
+        "lib/commands/init.js:37-58 automatically provisions the keypair and self-signs initial canonical truth.",
+        "Independent probe initialized a target, read the generated private JWK, called the shipped signer, and event --canonical accepted Worker-authored canonical direction and Unauthorized worker goal with process exit 0."
+      ],
+      "impact": "Any same-user worker or process with ordinary target/package read access can become the canonical controller. The receipt proves possession of a key that the product gives to the worker trust domain; it does not prove human or controller authority.",
+      "required_repair": "Make the shipped/runtime product verifier-only. Delete target-local private-key generation, storage, loading, and signing APIs with no compatibility path. Canonical init and mutation must consume a public verification key plus externally produced signed receipt from a trust domain unavailable to workers. A test-only signer may exist only under tests and must not read private material from the target."
+    },
+    {
+      "id": "S001R-CUSTODY-001",
+      "severity": "high",
+      "title": "The self-hosted public verification key is not Git-tracked",
+      "evidence": [
+        "git ls-files --error-unmatch .meta-harness/contracts/truth-authority-public.json exits 1.",
+        "git status reports ?? .meta-harness/contracts/truth-authority-public.json.",
+        "The signed D078 event and current status require signer key ID sha256:bbc4330c83fd3b392a2b0628618d34b612818359dec1ea5ed47227f96f11be41."
+      ],
+      "impact": "Another checkout cannot validate the signed canonical history from the current named commit. The candidate is not check-outable or independently reproducible as self-hosted truth.",
+      "required_repair": "Close under INTEGRATE-S001: track the exact public key and signed event/status candidate together, reconcile upstream, and prove a fresh checkout validates MH_TRUTH_001 without private material."
+    },
+    {
+      "id": "S001R-CONTINUITY-001",
+      "severity": "high",
+      "title": "Legitimate future mutation depends on an unproven external copy of the current private capability",
+      "evidence": [
+        "The current checkout has no .meta-harness/local/truth-authority-private.json.",
+        "The current public key is pinned by the signed event history and hostile public-key replacement is correctly rejected.",
+        "No evidence in the candidate proves that the matching private capability is retained, recoverable, and inaccessible to workers."
+      ],
+      "impact": "The checkout is safely fail-closed, but if the matching private capability is not recoverable, canonical truth is permanently frozen. If it is provisioned back into the target, the critical worker-forgery defect returns.",
+      "required_repair": "Add a named G-001 authority gate: prove external custody of the current signing capability, produce one bounded receipt without placing private material in the repository or worker environment, and retain recovery evidence. Do not build a key vault, daemon, or provider adapter in this slice."
+    },
+    {
+      "id": "S001R-TEST-001",
+      "severity": "medium",
+      "title": "Current tests prove signature integrity but encode the broken authority model",
+      "evidence": [
+        "tests/cli-truth.test.js mints accepted receipts by calling lib/truth-authority createTruthAuthorityReceipt against the initialized target.",
+        "tests/truth-reconciler.test.js uses the same target-local signer pattern for normal snapshots and reconciliation.",
+        "The tests correctly reject tampering and replacement but do not assert that an ordinary worker cannot obtain a valid signature."
+      ],
+      "impact": "A green suite can certify cryptographic correctness while the worker/controller authority boundary is absent.",
+      "required_repair": "Move signing to a test-only external fixture and add an adversarial acceptance test proving an initialized target and installed package expose no private key, signing API, or worker-accessible signing oracle."
+    },
+    {
+      "id": "S001R-ROLLBACK-001",
+      "severity": "medium",
+      "title": "Signed receipts do not prevent canonical ledger-tail rollback without external custody",
+      "evidence": [
+        "Independent probe created two valid signed snapshots, removed the second ledger line, and status --refresh exited 0 while restoring the older goal.",
+        "Each receipt binds the prior snapshot but no external monotonic head anchor proves that the latest signed tail still exists."
+      ],
+      "impact": "A process able to rewrite both ledger and status can roll canonical truth backward without forging a signature.",
+      "required_repair": "Do not expand S-001R2 into a custom append-only database. Close this through controller write isolation plus INTEGRATE-S001 Git custody: workers must not write canonical paths, and a fresh clean checkout must bind the exact public key, event tail, and status. Re-evaluate only if S-006M exposes a rollback path under the bounded worker model."
+    }
+  ],
+  "scorecard": {
+    "scale": "0-10",
+    "weights_percent": {
+      "product_progress": 15,
+      "shipping_readiness": 15,
+      "intent_alignment": 10,
+      "functional_completeness": 10,
+      "evidence_confidence": 10,
+      "process_quality": 8,
+      "global_integrity": 12,
+      "knowledge_application": 3,
+      "human_friction": 5,
+      "cost_efficiency": 4,
+      "rework_burden": 4,
+      "continuity_confidence": 4
+    },
+    "product_progress": 3.5,
+    "shipping_readiness": 2.5,
+    "intent_alignment": 6.0,
+    "functional_completeness": 6.5,
+    "evidence_confidence": 9.5,
+    "process_quality": 7.5,
+    "global_integrity": 2.5,
+    "knowledge_application": 3.0,
+    "human_friction": 3.5,
+    "cost_efficiency": 5.0,
+    "rework_burden": 4.0,
+    "continuity_confidence": 4.0,
+    "overall": 4.8,
+    "note": "Four original behavior findings are closed, but the remaining critical finding is the core authority invariant. High test confidence cannot compensate for a worker-readable signing capability or an untracked verification anchor."
+  },
+  "intent_deviation": {
+    "status": "no intent change; material architecture and execution deviation required",
+    "aligned": [
+      "The work remains a bounded functional repair to a blocker that prevents trustworthy real-loop shipment.",
+      "The candidate removes unsupported status machinery rather than expanding governance surfaces.",
+      "Independent audit occurred before integration or roadmap advance.",
+      "The implementation did not overclaim completion."
+    ],
+    "deviations": [
+      "Authority-model drift: cryptographic possession was treated as role separation even though the product stores the private capability in the worker-visible target.",
+      "Trust-boundary drift: file mode and ignored local state were implicitly treated as a separate principal; they are not a reliable same-user worker boundary, especially on Windows.",
+      "Custody drift: the report described the repository public key as tracked, but Git reports it untracked.",
+      "Shipping delay remains: this is a second repair round with no newly merged or packaged end-to-end product outcome."
+    ],
+    "explicit_correction": "Adopt a verifier-only runtime and borrow an external authority boundary. Do not build an internal secret store, signer daemon, compatibility path, or generic credential framework."
+  },
+  "alternatives": [
+    {
+      "option": "Accept and integrate the current signed-receipt candidate",
+      "decision": "reject",
+      "reason": "The independent worker-forgery probe disproves the D078 unforgeable-authority exit condition."
+    },
+    {
+      "option": "Add an in-repo encrypted key store, signer daemon, or OS-keychain adapter",
+      "decision": "reject",
+      "reason": "This expands governance and secret infrastructure before a real loop, while same-user worker isolation would remain provider- and host-dependent."
+    },
+    {
+      "option": "Make Meta-Harness verifier-only and require externally signed bounded receipts",
+      "decision": "select",
+      "reason": "It is the smallest enforceable separation: the worker can inspect all product code and target files yet still cannot mint authority without an external principal."
+    }
+  ],
+  "roadmap_revision": {
+    "principle": "Close only the remaining authority boundary, prove external capability custody, integrate one check-outable candidate, then immediately run the first real coding loop.",
+    "ordered_gates": [
+      {
+        "order": 1,
+        "slice": "S-001R2",
+        "name": "Verifier-only canonical authority",
+        "disposition": "repair current slice",
+        "exit": "No runtime/package private-key path, generation, loading, or signing surface; init and canonical mutation consume externally signed receipts; exact projection, recovery, and non-zero blocking remain green; a same-user worker cannot mint canonical truth from the target or installed package."
+      },
+      {
+        "order": 2,
+        "gate": "G-001",
+        "name": "External authority custody proof",
+        "owner": "human/controller authority",
+        "exit": "The current signer key is recoverable outside the repository and worker environment; one bounded receipt is produced and independently verified without exposing private material."
+      },
+      {
+        "order": 3,
+        "gate": "INTEGRATE-S001",
+        "name": "Upstream-aware custody integration",
+        "exit": "Reconcile origin/main 0791efa; isolate one reviewable candidate; track the exact public key, signed event tail, and status; preserve unrelated work; fresh checkout, full supported-runtime suite, package proof, and independent audit pass."
+      },
+      {
+        "order": 4,
+        "slice": "S-006M",
+        "name": "First real single-worker coding loop",
+        "exit": "One non-fixture product change runs frozen audit -> intent reread -> three alternatives -> bounded RunSpec -> existing execute custody -> independent audit -> canonical disposition and reaches merged plus packaged."
+      },
+      {
+        "order": 5,
+        "gate": "OBSERVED-BLOCKER-ONLY",
+        "name": "Evidence-led enabling work",
+        "exit": "Add only the smallest continuity, projection, research, PM-control, or custody change that the real active slice proves is blocking shipment."
+      }
+    ],
+    "deleted_or_forbidden": [
+      "Target-local truth-authority private key support.",
+      "Runtime/package receipt signing APIs and automatic keypair generation.",
+      "Backward-compatible actor-string or local-private-key fallback.",
+      "A new signer daemon, queue, key vault, provider adapter, or broad credential framework in S-001R2."
+    ]
+  },
+  "next_gate": {
+    "action": "Implement S-001R2 only: remove private authority from the product and target, convert tests to external test-only signing, and prove same-user worker non-forgeability. Preserve the current signed self-hosted history and unrelated work.",
+    "required_adversarial_tests": [
+      "init never writes private key material anywhere under the target root",
+      "the packed installation contains verifier code but no private-key path, key generation, key loading, or receipt signing surface",
+      "a same-user worker with complete target and installed-package read access cannot mint a receipt accepted by event --canonical",
+      "externally signed initial and subsequent receipts validate and append exactly once",
+      "wrong signer, tamper, replay, expiry, wrong prior, key removal, and key replacement remain blocked",
+      "duplicate, missing, reordered, extra, and stale status content remains blocked",
+      "append-only reconciliation and non-zero context truth blocking remain green",
+      "fresh-checkout integration later validates the exact tracked public key and signed head without private material"
+    ],
+    "stop_criteria": "Do not accept S-001R, integrate, provision private material into the target, or start S-006M until S001R-AUTH-002 is closed, G-001 proves external custody, and the candidate is independently re-audited."
+  }
+}

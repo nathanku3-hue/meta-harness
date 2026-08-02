@@ -1,8 +1,43 @@
 # Meta Harness
 
-Authority-bound execution-custody harness for approved one-shot repository changes, with durable workflow visibility and independently verifiable evidence.
+AI-native operating harness for one solo developer/researcher shipping ultra-complex, multi-module systems. It combines a frozen intent anchor, an auditor-planner/worker loop, skills and research application, minimal human gates, an authority-bound execution-custody harness, and a sequenced weak epistemic twin for learn-while-build, structured knowledge, personal mastery, and later bounded knowledge-to-action.
 
-## Current Artifacts
+## Current Product Authority
+
+Read in this order:
+
+- [Product documentation authority](docs/product/README.md)
+- [Locked product intent](docs/product/product-intent.md)
+- [Problem-solving questions](docs/product/problem-questions.md)
+- [PRD](docs/product/prd.md)
+- [Locked functional-slice roadmap](docs/product/roadmap.md)
+- [Product spec](docs/product/product-spec.md)
+- [Architecture map](docs/architecture/map.md)
+- [Operating SOP](docs/sop/meta-harness-sop.md)
+- [Decision log](docs/product/decision-log.md)
+
+Historical MVP, phase-era, and custody evidence remains in the repository but does not override the authority order above.
+
+## Locked Direction
+
+The product intent is one solo developer/researcher applying coding and specialist knowledge to ship ultra-complex, multi-module products with maximum verified velocity and minimal routine human friction.
+
+The governing loops are:
+
+```text
+product:   reconcile truth → freeze audit → plan → authorize → execute → verify → ship
+epistemic: observe → structure → teach → transfer → decide → bounded action
+```
+
+The epistemic loop is a weak digital twin, not a chat archive or generic memory service. It keeps domain truth, decision lessons, personal mastery, and action authority separate. It learns from real build and research episodes without auto-promoting policy.
+
+The human owns intent, taste, authority, material risk, scope expansion, irreversible commitments, and learning direction. The auditor-planner owns truthful direction. The worker owns bounded authorized execution. The controller owns canonical state, leases, cancellation, integration, custody, and loop integrity.
+
+Learning follows a best-only doctrine: timeless classics for durable foundations and latest frontier/SOTA primary work for changed boundaries. Middle-layer material is admitted only when it patches a blocking prerequisite or active uncertainty. A later `L9` scheduled scout may recommend at most five duplicate-suppressed repositories, papers, or high-signal mental-model essays per run; it cannot auto-ingest, promote, update mastery, or mutate policy.
+
+The immediate implementation scope is `CANDIDATE-S001R5F — Fail-preserving exact-candidate finalization`. Exact clean commit `a0e4835` independently closes hard-link aliasing and true rename-boundary replacement on the direct atomic path, while preserving verifier-only authority, bootstrap, Ed25519, lifetime, concurrency, quality, package, and legacy reads. It remains unaccepted because a speculative move-aside fallback can remove the canonical ledger after replacement/restoration failure and the exact checkout omits D082 and still advertises R4/D081. Delete the fallback so rename failure leaves the old ledger untouched, add a real failure-preservation regression, synchronize the minimal D082 authority chain into the clean candidate, and audit one final exact commit. Then run `G-001`, integrate, and move immediately to `S-006M`. Internal vaults, signer services, databases, broad filesystem frameworks, horizontal governance, and multi-agent programs remain deferred.
+
+## Historical and Supporting Artifacts
 
 - [PRD](docs/product/prd.md)
 - [Product spec](docs/product/product-spec.md)
@@ -17,7 +52,7 @@ Authority-bound execution-custody harness for approved one-shot repository chang
 Run locally from this repo:
 
 ```powershell
-node bin/meta-harness.js init "Build coding and research visibility"
+node bin/meta-harness.js init --authority-public-key-file C:\\external\\truth-authority-public.json --authority-receipt-file C:\\external\\initial-truth-receipt.json
 node bin/meta-harness.js event --stream research --phase work --action "surveyed adjacent products" --result "copy visibility and persistence, reject full swarm"
 node bin/meta-harness.js worker-report codex-researcher --stream research --task "extract product patterns" --outcome DONE --round ROUND-001 --progress "10/100 -> 20/100" --confidence "9/10" --result "normalized product-pattern PM brief" --human-summary "Research output is ready for PM synthesis." --validations-passed "worker brief parsed" --validations-skipped "none" --evidence-artifacts ".meta-harness/workers/codex-researcher.md" --requested-work-type docs --actual-work-type docs --next-action "synthesize status"
 node bin/meta-harness.js templates install
@@ -29,11 +64,11 @@ node bin/meta-harness.js lookback --write
 After package installation, the command is:
 
 ```bash
-meta-harness init "Build coding and research visibility"
+meta-harness init --authority-public-key-file /external/truth-authority-public.json --authority-receipt-file /external/initial-truth-receipt.json
 meta-harness status
 ```
 
-## Direction
+## Historical MVP Direction
 
 The first version should stay product-first and small:
 
@@ -58,7 +93,7 @@ The product target is a global npm CLI. This repo now exposes the `meta-harness`
 
 ```bash
 npm install -g meta-harness
-meta-harness init
+meta-harness init --authority-public-key-file C:\\external\\truth-authority-public.json --authority-receipt-file C:\\external\\initial-truth-receipt.json
 meta-harness status
 meta-harness templates install
 meta-harness expert-packet ROUND-001

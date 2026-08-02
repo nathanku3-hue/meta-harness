@@ -1,0 +1,235 @@
+{
+  "schema_version": "independent-audit/v1",
+  "audit_id": "D081-S001R3-INDEPENDENT",
+  "audited_at": "2026-07-18",
+  "auditor_role": "independent auditor-planner",
+  "intent_version": "intent-v1",
+  "intent_sha256": "0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1",
+  "authority": "human-requested audit, aggressive roadmap revision, no backward compatibility, and functional-slice-first shipping",
+  "candidate": {
+    "slice": "S-001R3",
+    "reported_state": "implemented and internally verified, awaiting independent audit",
+    "repository_head": "8ec3191",
+    "upstream_head": "0791efa",
+    "repository_state": "dirty, nothing staged, main one commit behind origin/main",
+    "implementation_focus": [
+      "lib/commands/init.js",
+      "lib/truth-authority-contract.js",
+      "lib/truth-authority.js",
+      "lib/truth-mutation.js",
+      "lib/truth-reconciler.js",
+      "lib/events.js",
+      "lib/paths.js",
+      "tests/cli-truth-bootstrap.test.js",
+      "tests/cli-truth.test.js"
+    ]
+  },
+  "verdict": "REPAIR_CURRENT_SLICE",
+  "acceptance": false,
+  "summary": "S-001R3 independently closes D080 atomic preflight, Ed25519 pinning, receipt lifetime, quality, legacy-read, concurrency, package, and verifier-only findings. It is not accepted because canonical state and init writes are not confined to regular paths beneath the target repository. On POSIX, staged bootstrap preserves descendant symlinks and writes the authority contract and signed ledger outside the target while returning success. On both Linux and Windows, re-running init follows a linked workers directory and creates a template outside the target. Canonical event mutation also appends to an externally linked ledger and updates status as if the mutation were local.",
+  "verification": {
+    "focused_truth_and_bootstrap": {
+      "runtime": "connector Node 18.19.1",
+      "tests": 23,
+      "passed": 23,
+      "failed": 0
+    },
+    "supported_runtime_complete": {
+      "runtime": "Windows Node 25.2.1",
+      "command": "D:\\nodejs\\node.exe --test --test-reporter=spec tests\\*.test.js",
+      "tests": 829,
+      "passed": 826,
+      "failed": 0,
+      "skipped": 3,
+      "duration_ms": 103248
+    },
+    "read_only_readiness": {
+      "runtime": "Windows Node 25.2.1",
+      "ok": true,
+      "passed": 13,
+      "failed": 0,
+      "warned": 1,
+      "unknown": 1,
+      "skipped": 6,
+      "MH_TRUTH_001": "pass",
+      "MH_QUALITY_001": "pass"
+    },
+    "quality": {
+      "status": "pass",
+      "baseline_refreshed": false,
+      "remaining_warning": "public CLI command count 28 exceeds 25",
+      "line_counts": {
+        "lib/truth-authority.js": 317,
+        "lib/truth-authority-contract.js": 162,
+        "tests/cli-truth.test.js": 286,
+        "tests/cli-truth-bootstrap.test.js": 267,
+        "tests/meta-harness-decisions.test.js": 335,
+        "tests/sync-check.test.js": 310
+      }
+    },
+    "package": {
+      "entries": 241,
+      "tests_packaged": 0,
+      "private_or_signer_files": 0,
+      "production_signing_scan_matches": 0
+    },
+    "current_history": {
+      "ok": true,
+      "receipt_schema": "meta-harness-truth-authority-receipt/v1",
+      "receipt_id": "D078-S001R-SIGNED-CUTOVER",
+      "unresolved": 0
+    },
+    "diff_check": "pass with existing line-ending warnings"
+  },
+  "positive_evidence": [
+    "Verifier-only authority is independently credible: no target-local private key, production signer, private-key loader, key generator, or packaged test signer exists.",
+    "Invalid bootstrap signatures, expired and overlong receipts, wrong repositories, wrong priors, non-snapshot proposals, tampering, and RSA authority documents are rejected without target writes in the ordinary path matrix.",
+    "Ed25519 is explicitly required for structured and legacy authority documents, and the current D078 legacy Ed25519 history remains readable.",
+    "The 300-second maximum receipt lifetime is enforced.",
+    "Two concurrent normal bootstrap invocations produce one accepted initial state and one rejected invocation.",
+    "Repository-bound v2 receipt replay, same-receipt concurrency, exact projection, append-only reconciliation, and non-zero truth blocking remain green.",
+    "The full literal Windows Node 25 suite passes with zero failures.",
+    "MH_QUALITY_001 passes without baseline refresh, and package/source inspection finds no signing capability."
+  ],
+  "findings": [
+    {
+      "id": "S001R3-PATH-001",
+      "severity": "high",
+      "title": "Canonical truth and init writes are not confined to the target repository",
+      "evidence": [
+        "lib/commands/init.js:83-90 recursively copies any existing .meta-harness tree into staging, then installs authority and appends the initial event without rejecting linked descendants.",
+        "lib/truth-mutation.js:55-95 appends through the supplied events path without proving the ledger and its ancestor chain are regular non-link surfaces beneath the target.",
+        "lib/paths.js:52-55 uses exists-then-write for starter files without lstat or path-chain confinement.",
+        "Independent POSIX probe: a pre-existing .meta-harness/contracts symlink caused init to return 0 and create truth-authority-public.json outside the target while preserving the symlink.",
+        "Independent POSIX probe: a pre-existing events.jsonl symlink caused init to return 0 and append the signed initial ledger event outside the target while preserving the symlink.",
+        "Independent mutation probe: after valid initialization, replacing events.jsonl with a symlink to an external copy allowed event --canonical to return 0, append externally, and refresh local status.",
+        "Independent Linux and Windows Node 25 probes: replacing .meta-harness/workers with a directory symlink/junction caused a subsequent init to return 0 and create worker-report-template.md outside the target."
+      ],
+      "impact": "The canonical fact layer is not repository-local under adversarial or merely unusual filesystem state. A linked checkout can redirect authority installation, signed-ledger append, and starter writes into another repository or arbitrary writable directory. This breaks target isolation, makes cross-repository state coupling possible, and invalidates the claim that staged bootstrap is a self-contained atomic target mutation.",
+      "required_repair": "Make bootstrap one-shot and link-intolerant. Do not recursively copy or replace a pre-existing harness. Require .meta-harness to be absent for new bootstrap; otherwise fail with an explicit already-initialized or reviewed-migration result. Build a fresh staged harness and promote it with one rename. Before every canonical read or write, validate that .meta-harness, contracts, truth-authority-public.json, events.jsonl, status.md parent, and lock ancestors are regular non-link/reparse surfaces contained by the target. Reject symlinks, junctions, and equivalent reparse points before mutation."
+    },
+    {
+      "id": "S001R3-INIT-001",
+      "severity": "high",
+      "title": "init remains a mutating repair command after canonical initialization",
+      "evidence": [
+        "lib/commands/init.js:124-164 calls writeStarterFiles when bootstrap is not required.",
+        "writeStarterFiles creates missing worker and stream files, which enabled the independently reproduced Windows junction and POSIX symlink path escape."
+      ],
+      "impact": "A bootstrap command has a second implicit repair mode with a wider write surface than its authority receipt covers. This increases ambiguity, link risk, and the number of paths that must be made transactional before the first real product loop.",
+      "required_repair": "Delete mutating re-init behavior without compatibility. Once canonical state exists, init must perform no writes and return an explicit already-initialized result or failure. Existing template repair belongs to the explicit templates workflow, not authority bootstrap."
+    },
+    {
+      "id": "S001R3-LOCK-001",
+      "severity": "medium",
+      "title": "An interrupted bootstrap can leave an unrecoverable stale lock",
+      "evidence": [
+        "lib/commands/init.js:45-62 treats any existing .meta-harness-bootstrap.lock as a live bootstrap and stores no owner or lease metadata.",
+        "Independent probe with a stale lock returned MH_TRUTH_AUTHORITY, left the lock in place, and blocked initialization indefinitely until manual deletion."
+      ],
+      "impact": "A process termination after lock creation can permanently deny bootstrap despite no canonical state being installed, weakening interruption continuity.",
+      "required_repair": "Use a bounded recoverable lock with owner PID and creation time, or another cross-process primitive that distinguishes live ownership from stale residue. Recovery must be race-safe and must not remove a live lock."
+    },
+    {
+      "id": "S001R3-SCHEMA-001",
+      "severity": "medium",
+      "title": "Roadmap and evidence call the public authority contract v2, but the implemented schema is v1",
+      "evidence": [
+        "lib/truth-authority-contract.js:12 defines meta-harness-truth-authority-public/v1.",
+        "lib/truth-authority.js:21 defines the receipt, not the authority document, as meta-harness-truth-authority-receipt/v2.",
+        "docs/product/roadmap.md and s001r3-implementation-evidence.json repeatedly require a structured v2 public authority contract."
+      ],
+      "impact": "G-001 and candidate construction instructions refer to a schema that does not exist, creating avoidable authority and migration ambiguity at the next gate.",
+      "required_repair": "Use exact terminology: tracked structured public authority contract v1 plus repository-bound authority receipt v2. Do not create a new public-authority schema version merely to match the prose."
+    }
+  ],
+  "scorecard": {
+    "scale": "0-10",
+    "product_progress": 4.5,
+    "shipping_readiness": 4.0,
+    "intent_alignment": 7.5,
+    "functional_completeness": 7.2,
+    "evidence_confidence": 9.8,
+    "process_quality": 8.7,
+    "global_integrity": 4.2,
+    "knowledge_application": 3.0,
+    "human_friction": 3.2,
+    "cost_efficiency": 5.2,
+    "rework_burden": 4.0,
+    "continuity_confidence": 4.0,
+    "overall": 5.8,
+    "note": "The score rises from 5.4 because every D080 blocker and the complete supported-runtime suite now pass independently. It remains below acceptance because path confinement is a direct high-severity truth/custody defect, the candidate is not check-outable, external authority continuity is unproven, and no product outcome is merged or packaged."
+  },
+  "intent_deviation": {
+    "status": "material implementation and planning deviation detected; original intent unchanged",
+    "aligned": [
+      "Verifier-only authority correctly borrows the protected signing principal instead of building a vault or signer service.",
+      "Ed25519, lifetime, concurrency, exact projection, recovery, and quality repairs are bounded to the active truth slice.",
+      "No compatibility signer, daemon, database, keychain adapter, contract-kernel program, candidate commit, G-001 use, or S-006M work was started.",
+      "The worker stopped at independent audit rather than self-accepting."
+    ],
+    "deviations": [
+      "Target-isolation drift: staging was treated as safe while recursively copying attacker-controlled link topology into the staged harness.",
+      "Command-scope drift: init retained an implicit starter-file repair mode after canonical initialization even though templates already has an explicit workflow.",
+      "Cross-platform evidence gap: existing tests covered value tampering and concurrency but not POSIX symlinks or Windows junctions on mutative truth paths.",
+      "Schema-language drift: authority contract v1 and receipt v2 were collapsed into the phrase structured v2 authority contract.",
+      "Activity substitution remains a risk: multiple internal repair rounds have improved correctness but still produce no check-outable or shipped product outcome."
+    ]
+  },
+  "roadmap_revision": {
+    "principle": "Do not perform another repair round in the heavily dirty checkout and then separately isolate a candidate. Repair path confinement directly in one clean upstream-based candidate worktree, independently audit that exact commit, prove external authority continuity, integrate, and immediately move to the first real product loop.",
+    "ordered_gates": [
+      {
+        "order": 1,
+        "slice": "CANDIDATE-S001R4",
+        "name": "Link-confined clean truth candidate",
+        "exit": "Create an isolated worktree from origin/main 0791efa, transplant only the accepted S-001 implementation paths, remove recursive partial-harness bootstrap and mutating re-init, enforce regular non-link/reparse path chains for all canonical truth surfaces, add stale-lock recovery, correct authority-v1/receipt-v2 terminology, track the structured authority v1 contract and legacy-readable evidence, pass the complete Windows Node 25 suite, Linux and Windows link/junction adversarial tests, quality, package, and diff checks, and produce one named reviewable commit."
+      },
+      {
+        "order": 2,
+        "gate": "INDEPENDENT-AUDIT-CANDIDATE-S001R4",
+        "name": "Exact-commit acceptance",
+        "exit": "A fresh auditor checks the named commit and checkout, repeats link escape, bootstrap, receipt, replay, legacy, package, quality, and fresh-checkout probes, and accepts without relying on the dirty source checkout."
+      },
+      {
+        "order": 3,
+        "gate": "G-001",
+        "name": "External authority continuity proof",
+        "exit": "In a fresh checkout of the accepted candidate, use the matching external private capability once to produce one <=300-second repository-bound receipt v2, validate it against the tracked structured public authority contract v1, submit it exactly once, and prove no private material enters target, package, logs, or evidence. Stop at a human authority-epoch decision if the capability is unavailable."
+      },
+      {
+        "order": 4,
+        "gate": "INTEGRATE-S001",
+        "name": "Final truth integration",
+        "exit": "Commit the exact G-001 signed event and generated status, independently revalidate the resulting commit, merge, and package S-001."
+      },
+      {
+        "order": 5,
+        "slice": "S-006M",
+        "name": "First real single-worker coding loop",
+        "exit": "One non-fixture product change reaches the explicit merged and packaged terminal state through audit, intent, alternatives, bounded execution custody, independent verification, and canonical disposition."
+      }
+    ],
+    "removed_from_active_path": [
+      "A separate dirty-worktree S-001R4 implementation round before candidate isolation.",
+      "Recursive copying or backup replacement of a partial pre-canonical harness.",
+      "Mutating re-init compatibility.",
+      "A new public authority schema v2; the implemented contract remains public authority v1 and receipt v2.",
+      "Internal key vault, signer daemon, keychain adapter, database, authority recovery framework, contract-kernel extraction, and broad governance work."
+    ]
+  },
+  "next_gate": {
+    "action": "Create CANDIDATE-S001R4 in an isolated worktree based on origin/main 0791efa and implement only link confinement, one-shot bootstrap/re-init deletion, stale-lock recovery, exact schema terminology, and the minimum transplant required for one reviewable candidate.",
+    "required_adversarial_tests": [
+      "bootstrap rejects .meta-harness, contracts, events, status-parent, and lock ancestor symlinks or reparse points without external writes",
+      "canonical event and status paths reject a replaced external ledger symlink before append or refresh",
+      "Windows directory junctions and POSIX symlinks cannot redirect any init or canonical truth write",
+      "init on an initialized repository performs zero writes and returns an explicit already-initialized result",
+      "new bootstrap requires an absent .meta-harness and promotes one fresh staged directory with one rename",
+      "a stale bootstrap lock is safely recoverable while a live competing lock remains protected",
+      "structured public authority contract v1 and receipt v2 are named and validated exactly",
+      "current D078 legacy v1 history remains read-only valid"
+    ],
+    "stop_criteria": "No S-001 acceptance, G-001 authority use, integration, merge, package claim, or S-006M start until the exact clean candidate commit passes independent audit."
+  }
+}

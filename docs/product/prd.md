@@ -1,10 +1,121 @@
 # Meta-Harness PRD
 
 Status: active
-Date: 2026-06-29
+Date: 2026-07-31
 Owner: product / harness
+Intent authority: [Product Intent Anchor](product-intent.md)
+Roadmap authority: [Roadmap](roadmap.md)
+Question authority: [Problem-Solving Questions](problem-questions.md)
 
-## Product Statement
+## Governing Product Statement
+
+Meta-Harness is an AI-native operating harness for one solo developer/researcher shipping ultra-complex, multi-module systems that require both software engineering and specialist knowledge.
+
+It maximizes verified product progress per unit calendar time and human attention by combining:
+
+- a frozen human intent anchor;
+- one canonical fact layer;
+- an auditor-planner and worker loop;
+- numbered end-to-end functional slices;
+- validated handoff and resume;
+- expertise and research converted into product evidence;
+- borrowed coding-agent execution;
+- controller-owned authorization, integration, custody, and replay;
+- independent verification;
+- a weak epistemic twin that learns from real work, structures fragmented knowledge, estimates personal mastery, and later converts validated knowledge into bounded action;
+- measured outcome learning later, after baseline and holdout evaluation exist.
+
+The primary interface is the top-level PM problem, not workflow machinery. It answers what outcome is being shipped, what is true, what blocks it, which slice moves the critical path, what requires human judgment, and what proof closes the slice.
+
+## Locked User and Object
+
+Primary user: one solo developer/researcher.
+
+Primary object: an ultra-complex, multi-module product whose correct implementation requires coordinated coding, research, domain expertise, integration, and shipping.
+
+The system is not optimized for enterprise queue administration, generic swarms, or maximum agent count.
+
+## Locked Role Boundary
+
+- The human owns intent, priority, taste, authority, material risk, scope expansion, and irreversible commitment.
+- The auditor-planner owns truthful diagnosis, intent-aligned direction, candidate comparison, RunSpec creation, and outcome scoring.
+- The worker owns all reversible execution already covered by the RunSpec and authorization envelope.
+- The controller owns canonical state, mutation authority, custody, leases, cancellation, atomic transitions, and loop integrity.
+
+## Product Problems
+
+Meta-Harness must solve:
+
+1. **Intent drift:** audits and repeated plans can optimize local defects or governance instead of the original product outcome.
+2. **Context amnesia:** fresh or compacted agents cannot reconstruct decisions, authority, evidence, and the exact next operation.
+3. **Complexity collapse:** no single context contains the full cross-module behavior and global invariants.
+4. **Expertise loss:** research and specialist input can remain documents rather than becoming product constraints, tests, and behavior.
+5. **Execution ambiguity:** agents can mutate outside scope, lose evidence, or make unverifiable completion claims.
+6. **Workflow friction:** humans repeatedly reconstruct context or approve reversible work already inside an accepted boundary.
+7. **Local completion bias:** tests and internal artifacts can pass while the product remains unshipped.
+8. **Learning without proof:** the harness can overfit prior runs or optimize internal metrics rather than product outcomes.
+9. **Parallel-work failure:** multiple agents can duplicate, conflict, contaminate review, or increase integration cost.
+10. **Silent drift:** current truth, intent, scope, authority, roadmap, and shipping definition can disagree without blocking progression.
+11. **Epistemic fragmentation:** coding, research, reading, and AI answers can remain disconnected episodes that neither form a coherent knowledge spine nor improve the human's next question, prediction, transfer, or decision.
+12. **False mastery:** seeing or following an AI answer can be mistaken for independent understanding, while the system lacks evidence about explanation, prediction, transfer, and direction-setting ability.
+13. **Unsafe learning-to-action:** a single successful episode can be over-generalized into policy or autonomous action without boundary, contradiction, transfer, or authority checks.
+14. **Low-value knowledge intake:** broad feeds and secondary summaries can consume attention without strengthening durable foundations, exposing the frontier, or changing an active decision.
+
+Detailed questions and proof conditions are canonical in [Problem-Solving Questions](problem-questions.md).
+
+## Product Outcomes
+
+The target system should:
+
+- convert a top-level product problem into a numbered critical-path functional slice;
+- preserve original intent verbatim across audits, handoffs, compaction, and re-planning;
+- let a fresh worker continue from artifacts alone;
+- apply research and expertise directly to requirements, tests, constraints, decisions, and implementation;
+- execute and independently verify bounded work with minimal routine human gates;
+- preserve global invariants across modules;
+- produce release and rollback evidence through the selected shipping state;
+- measure prediction versus observation and improve future recommendations without silent policy mutation;
+- learn while build during human-idle periods by extracting traceable episodes, knowledge deltas, candidate decision lessons, and personal-gap hypotheses without interrupting the active product loop;
+- reconnect bottom-up AI questions to a minimum authoritative knowledge spine without forcing linear textbook study;
+- progressively transfer learning-direction ownership from AI scaffolding to the human through prediction, explanation, transfer, and decision evidence;
+- keep domain truth, decision lessons, personal mastery, and action authority separate;
+- later convert active, verified knowledge into bounded recommendations and reversible agent actions;
+- learn the best available material only: timeless classics for durable foundations and latest frontier/SOTA primary work for changed boundaries, admitting middle-layer material only when it closes a blocking prerequisite or active uncertainty;
+- later provide a scheduled, duplicate-suppressed top-five discovery brief across repositories, papers, and high-signal mental-model essays without automatic ingestion or promotion.
+
+## Success Measures
+
+Primary measures:
+
+- problem-to-shipping elapsed calendar time;
+- verified end-to-end slice throughput;
+- user-visible product capability shipped;
+- human gates and clarification count per slice;
+- fresh-worker continuation success;
+- escaped defects and rework;
+- research-to-product conversion rate;
+- intent-aligned recommendation acceptance;
+- evidence strength and independent verification rate;
+- multi-agent latency benefit net of coordination and integration cost;
+- next-question and decision quality relative to a no-learning baseline;
+- reduced assistance required on novel transfer cases;
+- prediction calibration and misconception correction;
+- harmful lesson override and boundary-abstention rate;
+- traceability from recommendation to lesson, episode, evidence, and observed outcome;
+- source yield: the share of recommended material that changes a question, model, experiment, decision, or capability;
+- discovery precision: no more than five ranked items per scheduled brief, each with explicit endgame relevance, source class, freshness, expected unlock, and duplicate status.
+
+Activity measures such as token count, patch count, test count, agent count, and artifact count are diagnostic only.
+
+## Current Build Boundary
+
+The immediate implementation scope is `CANDIDATE-S001R5F — Fail-preserving exact-candidate finalization`. Exact clean commit `a0e4835` independently closes hard-link aliasing and actual rename-boundary replacement on Linux and Windows while preserving verifier, bootstrap, concurrency, quality, package, and legacy-read behavior. It remains blocked because the move-aside replacement fallback can remove `events.jsonl` after install/restore failure and the exact checkout lacks D082 and the S001R4 independent audit. Delete the fallback; a failed direct rename must preserve the old canonical ledger byte-for-byte with no backup residue. Add the true rename-boundary regression, synchronize the minimal D082 authority chain into the clean candidate, audit the exact finalization commit, then execute `G-001`, integrate, and proceed directly to `S-006M`: one real non-fixture coding loop to merged and packaged. Internal secret infrastructure, broad filesystem frameworks, and standalone projection, corpus, handoff, or multi-agent programs remain deferred. The weak-epistemic-twin product contract is now frozen at roadmap level, but its implementation remains sequenced after the current custody closure and the first real single-worker loop. The first authorized learning slice is `L-001 — Learn While Build`; later human-learning, spine-frontier, agency-transfer, and knowledge-to-action phases remain closed until their predecessor evidence exists.
+
+No loop controller, adapter expansion, mass module decomposition, outcome learning, or multi-agent fan-out is authorized in parallel. The historical execution-custody runtime remains a frozen lower layer and is changed only when a real product slice exposes a blocking defect.
+
+## Historical Product Statement
+
+> All remaining equal-level sections below preserve the original MVP and custody-era PRD for traceability and shipped documentation compatibility. They do not override the governing sections above.
 
 Meta-Harness is a Markdown-first, Codex-native workflow visibility harness.
 

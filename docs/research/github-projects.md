@@ -1,8 +1,56 @@
-# GitHub Research: Meta Harness And Workflow Visibility
+# GitHub Research: Harness and Loop Engineering
 
-Date: 2026-05-01
+Original survey: 2026-05-01
+SOTA confirmation refresh: 2026-07-17
+Product authority: [Product Intent Anchor](../product/product-intent.md)
 
-## Research Question
+## Current Best References
+
+These references justify patterns to borrow. They do not define product intent or authorize roadmap expansion.
+
+| Reference | Strongest demonstrated pattern | Meta-Harness decision |
+|---|---|---|
+| [Agentic Harness Engineering](https://github.com/china-qijizhifeng/agentic-harness-engineering) | Auditable harness-component evolution, layered trace observability, predicted impact, and later outcome falsification | Borrow the evaluation and versioned policy-learning loop after a baseline and holdout corpus exist. Do not build benchmark-scale infrastructure first. |
+| [Stanford Meta-Harness](https://github.com/stanford-iris-lab/meta-harness) | Automated search over complete harness implementations using prior candidates, interactions, and scores | Borrow candidate comparison and policy search later. The identical name creates a real project-identity collision addressed by `S-004`. |
+| [OpenAI Symphony](https://github.com/openai/symphony) | One scheduling authority, explicit claim/running/retry/release states, isolated workspaces, bounded concurrency, and preserved continuation workspaces | Borrow leases, duplicate suppression, retry/cancellation state, and controller-owned scheduling. Do not adopt a daemon or issue-tracker architecture before real need. |
+| [OpenHarness](https://github.com/HKUDS/OpenHarness) | Auto-compaction, task-state preservation, persistent memory, session resume, worktree isolation, teams, and mailbox coordination | Treat context continuity and multi-agent ownership as first-class. Do not own another full agent runtime. |
+| [OpenHands Software Agent SDK](https://github.com/OpenHands/software-agent-sdk) | Persistent conversation base state and events, resume validation, stuck detection, forks, local/ephemeral workspaces, and major multi-agent tasks | Borrow state/event separation, resume compatibility validation, split-brain testing, and fork semantics. Prefer integration over competition. |
+| [GitHub Agentic Workflows](https://github.com/github/gh-aw) | Read-only agent jobs, separately permissioned structured safe outputs, bounded workflow dispatch, compile-time checks, replay, and outcome telemetry | Preserve controller-owned mutation and safe-output separation. Do not rebuild GitHub-hosted workflow infrastructure. |
+| [mini-SWE-agent](https://github.com/SWE-agent/mini-swe-agent) | A very small execution loop can remain competitive as models improve | Keep the owned execution substrate minimal; put product intelligence, evidence, and authority outside the adapter. |
+| [AgentLens / code-agent-state-trajectories](https://github.com/microsoft/code-agent-state-trajectories) | Process-level trajectory evaluation reveals test-passing runs with blind retries, regression cycles, missing verification, and poor ordering | Score process quality separately from terminal correctness. Passing tests cannot close a slice alone. |
+
+## Confirmed Direction
+
+The strongest combined pattern is:
+
+```text
+frozen human intent
+→ canonical state and events
+→ behavior-localized context
+→ bounded planner/builder/verifier workcell
+→ isolated controller-owned execution and integration
+→ typed handoff and validated resume
+→ process and product outcome evaluation
+→ versioned policy improvement
+```
+
+No single reference above proves the complete solo developer/researcher product. Meta-Harness remains a credible SOTA research direction, not a proven SOTA system, until the roadmap production exit criteria pass.
+
+## Small High-Value Problems Confirmed by the Survey
+
+- handoff receiver comprehension;
+- compaction without intent loss;
+- base state versus append-only trajectory separation;
+- split-brain resume prevention;
+- work-unit claims and duplicate suppression;
+- independent verifier context isolation;
+- process-quality scoring beyond test pass;
+- behavior-to-code localization;
+- partial-result salvage;
+- safe read-only reasoning followed by separately authorized mutation;
+- outcome telemetry based on repository state rather than agent self-assessment.
+
+## Historical Research Question
 
 What existing GitHub projects already show useful patterns for a meta harness that can:
 

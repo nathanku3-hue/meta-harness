@@ -1,9 +1,335 @@
 # Meta-Harness Product Spec
 
-Status: implemented MVP
-Date: 2026-05-02
+Status: implemented custody foundation + locked weak-epistemic-twin endgame
+Date: 2026-07-31
+Current direction locked: 2026-07-31
+Intent authority: [Product Intent Anchor](product-intent.md)
+Roadmap authority: [Roadmap](roadmap.md)
 
-## Product Shape
+## Governing Product Shape
+
+Meta-Harness is a local AI-loop control plane for one solo developer/researcher. It remains a minimal owned script-and-skills system around borrowed execution substrates, but it is no longer merely a visibility layer or one-shot custody command.
+
+The governing loop is:
+
+```text
+truth reconciliation
+→ frozen audit
+→ intent-aligned planning
+→ bounded RunSpec
+→ authorized worker execution
+→ independent verification
+→ controller integration and custody
+→ outcome evaluation
+→ atomic state update
+```
+
+The historical Markdown MVP and the authority-bound execution-custody runtime remain shipped evidence and lower-layer capability. New work follows the numbered functional-slice roadmap.
+
+## Canonical Authority
+
+Decision-critical truth uses this order:
+
+```text
+active human intent version
+→ explicit human decision or override
+→ immutable run/execution evidence
+→ canonical event and fact ledger
+→ active roadmap and product contracts
+→ generated status and summaries
+```
+
+A material contradiction blocks progression and makes `ok: true` impossible. Generated status is a projection, not an independent authority source.
+
+## Role Contracts
+
+### Human
+
+Owns intent, priority, taste, authority, material risk tolerance, scope expansion, and irreversible commitment.
+
+### Auditor-planner
+
+Operates in two passes:
+
+1. audit evidence, diagnose, score, and freeze the audit;
+2. re-read the frozen intent, compare at least three forward alternatives, and emit one bounded RunSpec.
+
+The planning pass cannot alter the frozen audit to justify its recommendation.
+
+### Worker
+
+Reads local source and canonical artifacts before summaries, verifies authority and repository identity, emits a compact plan, passes automated preflight, and executes all reversible authorized work without routine waiting.
+
+The worker does not own roadmap changes, final acceptance, integration authority, or shipping claims.
+
+### Controller
+
+Owns canonical state, leases, duplicate suppression, cancellation, mutation authority, atomic artifact publication, execution custody, integration order, and loop disposition.
+
+## Normal Planning IDs
+
+- `O-###`: product outcome;
+- `S-###`: end-to-end functional slice;
+- `G-###`: named human gate;
+- `R-###`: execution run.
+
+Historical phase and decision IDs remain evidence-only operator detail.
+
+## Human Gates
+
+Only four gate reasons exist in normal operation:
+
+- `G-AUTHORITY`;
+- `G-TASTE`;
+- `G-RISK`;
+- `G-SCOPE`.
+
+Every gate declares one decision, recommended choice, alternatives, consequence, required input, and skip condition. Reversible actions inside a valid authorization envelope do not trigger another gate.
+
+## RunSpec Minimum Contract
+
+A RunSpec must bind:
+
+- active intent version and hash;
+- objective and functional-slice IDs;
+- newly true product behavior;
+- shipping target;
+- repository and base identity;
+- owned and forbidden surfaces;
+- required invariants;
+- allowed commands and actions;
+- required expertise and workcell roles;
+- verification contract;
+- budget and expiry;
+- stop and escalation conditions;
+- predicted product and process outcome.
+
+## Outcome Record
+
+Every run records:
+
+- schema, loop, policy, skill, and adapter versions;
+- canonical input truth hash;
+- candidates considered and their scores;
+- selected action and prediction;
+- authorization envelope;
+- execution and audit evidence;
+- actual changed surface;
+- plan-to-diff deviation;
+- observed product and process outcome;
+- cost and elapsed time;
+- salvage class when incomplete;
+- loop disposition;
+- next recommendation;
+- intent and roadmap deviation.
+
+## Handoff and Resume
+
+A handoff is a validated state transition, not a summary.
+
+`handoff/v1` includes:
+
+- identity and role transfer;
+- loop, policy, schema, and skill versions;
+- intent version and hash;
+- authorization, remaining budget, and expiry;
+- repository commit, tree, worktree hash, and changed paths;
+- completed, current, and incomplete operations;
+- last verified checkpoint and continuation cursor;
+- accepted decisions, assumptions, unresolved questions, and rejected approaches;
+- evidence references and hashes;
+- exact next operation, expected result, stop rule, recovery operation, and expiry.
+
+`resume/v1` returns one of:
+
+- `accepted`;
+- `stale`;
+- `contradictory`;
+- `unauthorized`;
+- `incomplete`.
+
+Before `accepted`, the receiver independently states the objective, current state, completed work, unfinished work, exact next operation, forbidden action, and done condition. The controller compares these with the handoff and blocks on mismatch.
+
+Only one active lease may own a work unit. Resume also checks for a newer handoff, superseding human override, changed repository state, expired authority, and an already completed equivalent run.
+
+## Independent Verification
+
+The verifier initially receives:
+
+- active intent;
+- RunSpec and acceptance contract;
+- clean base;
+- candidate diff and artifacts;
+- observable output and independent test surface.
+
+It does not initially receive the worker's private reasoning or preferred conclusion. Reviewer context, model/tool identity, mutability, test authorship, and expected-answer disclosure are recorded.
+
+## Knowledge Application
+
+Research is complete only when accepted evidence becomes at least one of:
+
+- requirement;
+- constraint;
+- test;
+- benchmark;
+- risk;
+- decision;
+- product claim;
+- implementation rule.
+
+Every material claim binds provenance, freshness, confidence, contradiction state, and affected product surface.
+
+## Weak Epistemic Twin Contract
+
+The learning capability is not a generic memory service. It is a weak epistemic digital twin whose product result is better endgame-directed learning, decisions, and later bounded action.
+
+The atomic contract is:
+
+```text
+Immutable Episode
+→ Knowledge Delta
+→ Candidate Decision Lesson
+→ Mastery Evidence
+→ One Frontier Intervention
+→ Outcome
+→ Confirm, Narrow, Challenge, Reopen, or Retire
+```
+
+The six governed records are:
+
+1. `Episode`: immutable coding, research, reading, question, attempt, source, decision, and outcome evidence.
+2. `KnowledgeDelta`: versioned change to a claim, mechanism, prerequisite, boundary, counterexample, contradiction, or capability map.
+3. `DecisionLesson`: one scoped rule that may affect one endgame decision; it declares applicability, exclusion, discriminator, mechanism, expected effect, verifier, evidence, counterevidence, state, and version.
+4. `MasteryEvidence`: uncertain evidence that the human can follow, do, explain, predict, transfer, decide, or generate direction; exposure to an answer is not mastery.
+5. `FrontierIntervention`: at most one question, explanation, prerequisite patch, transfer test, decision review, or bounded action selected because its answer may change the active endgame.
+6. `OutcomeEvaluation`: comparison of prediction and result for both product effect and human learning effect.
+
+### Authority Separation
+
+- Episode recording may append immutable evidence only.
+- Knowledge compilation may create or revise provisional deltas and lessons only.
+- Promotion requires an independent evaluator and transfer plus boundary evidence.
+- Domain truth, decision policy, and personal mastery remain separate state domains.
+- Mastery estimates are probabilistic, reversible, evidence-linked, and directly correctable by the human.
+- The endgame planner may read active or challenged lessons but may not promote them.
+- Knowledge-to-action begins as recommendation; autonomous execution requires a separate valid RunSpec and authorization envelope.
+- Derived indexes and Markdown projections are rebuildable and never become sole authority.
+
+### Learning Unit and Promotion
+
+A single solve may produce only `captured` or `candidate` learning. A candidate lesson becomes `active` only when:
+
+1. all evidence references resolve;
+2. the source outcome passed its domain verifier;
+3. one held-out analogous case demonstrates correct transfer;
+4. one non-applicable or boundary case correctly abstains;
+5. unresolved contradictions are absent or explicitly bounded;
+6. the compiler and evaluator are not the same approval authority.
+
+Lesson states are:
+
+```text
+captured → candidate → active → challenged → retired
+```
+
+Contradiction appends evidence and changes validity; it never overwrites the episode or deletes prior lesson versions.
+
+### Spine–Frontier Learning
+
+The product combines:
+
+- an `Authoritative Spine`: the minimum concept, prerequisite, mechanism, boundary, example, and capability structure grounded in authoritative sources;
+- an `Observed Frontier`: high-value gaps exposed by real build, research, reading, and AI questions;
+- a `Personal Overlay`: mastery evidence, misconceptions, interests, assistance level, transfer history, and direction decisions.
+
+A bottom-up question is answered for immediate utility, then located on the spine. The planner chooses exactly one of:
+
+- continue the high-value frontier;
+- patch the minimum blocking prerequisite;
+- return to the spine;
+- abstain because evidence or scope is insufficient.
+
+The user is not required to follow a linear textbook route. The spine preserves coherence; real questions preserve speed and relevance.
+
+### Best-Only Source Doctrine
+
+The system optimizes learning yield, not reading volume. It prioritizes exactly two source classes:
+
+1. `timeless-classic`: durable primary works, canonical textbooks, foundational implementations, or field-defining explanations whose mechanisms remain load-bearing;
+2. `frontier-sota`: current primary papers, leading repositories, benchmarks, or first-party technical material that changes the state of the art or the active decision boundary.
+
+Middle-layer tutorials, reviews, summaries, commentary, and aggregations are admitted only when they:
+
+- patch a blocking prerequisite faster than the primary source;
+- reconcile a disputed mechanism or terminology gap;
+- provide a necessary map into a classic or frontier source;
+- directly unlock the active endgame.
+
+Every recommended source records `source_class`, authority/provenance, freshness, endgame relationship, expected unlock, replacement/supersession relation, and why it beats the next alternative. Popularity, novelty, citation count, stars, or semantic similarity alone never qualify a source.
+
+A later `L9` discovery adapter may run from cron or an equivalent local scheduler. Each run returns at most five combined items across repositories, papers, and high-signal mental-model essays. It must suppress previously seen or superseded items, preserve source diversity, and state why each item is worth human attention now. The feed may create discovery candidates only; it cannot auto-ingest, promote, change mastery, or modify active policy.
+
+### Tutor Agency Ladder
+
+Tutor support may move only from observed evidence:
+
+```text
+show and guide
+→ targeted hint
+→ Socratic question
+→ require prediction
+→ require option comparison
+→ critique only
+→ epistemic peer
+```
+
+The human ultimately owns learning direction and may choose incorrectly. The system records the rationale, predicted unlock, and reopen condition rather than silently replacing that choice.
+
+### Product Surfaces and Stack
+
+The primary interaction surfaces are ChatGPT Web, Claude, and Codex CLI. The owned kernel exposes the same application service through MCP and CLI.
+
+Frontend posture is `frontend-light`, not frontend-free:
+
+- conversation is the primary shell;
+- DevSpace MCP Apps cards provide `Now`, `Learning Brief`, `Frontier`, `Mastery Review`, `Trace`, and `Transfer Challenge` views;
+- Obsidian is an optional long-term knowledge browser and editor projection;
+- no independent heavy web application is required before inline cards or Obsidian demonstrably block a real learning outcome.
+
+The initial technical stack is:
+
+- TypeScript and Node.js;
+- Zod schemas;
+- append-only JSONL and content-addressed source artifacts for evidence;
+- SQLite with FTS5 as a rebuildable query and graph index;
+- Markdown with stable IDs as the human-readable projection;
+- MCP and CLI adapters sharing one kernel;
+- host-owned model reasoning rather than a mandatory internal model provider;
+- no graph database, vector database, background daemon, automatic ontology, scheduled discovery worker, or executable learned skill in the first slice;
+- later scheduled discovery uses an OS scheduler/cron adapter around the same read-only discovery contract rather than becoming an always-on agent runtime.
+
+### Phase Acceptance
+
+| Phase | Acceptance standard |
+|---|---|
+| `L0` Product Freeze | Twin goal, six-record contract, authority, non-goals, stack boundary, and phase gates are consistent across product authority docs. |
+| `L1` Learn While Build | One real build creates a traceable episode, knowledge delta, candidate lesson, personal-gap hypothesis, and compact return brief without interrupting the human or auto-promoting policy. |
+| `L2` Decision Transfer | The lesson improves a held-out applicable decision, abstains on critical boundary cases, and reopens on contradiction with zero harmful override. |
+| `L3` Human Learning Transfer | The human predicts, explains the mechanism, and succeeds on a novel case with less assistance; merely seeing the answer does not pass. |
+| `L4` Spine–Frontier | A natural AI question maps to an authoritative spine, patches only necessary prerequisites, and correctly chooses continue, patch, return, or abstain. |
+| `L5` Supervisor Agency Transfer | Tutor support fades from guidance to critique based on mastery evidence, and the human independently chooses and justifies a learning direction. |
+| `L6` Knowledge to Decision | Twin state changes one real roadmap or research decision and reduces error or rework against a no-learning baseline. |
+| `L7` Bounded Knowledge to Action | An agent uses only active lessons inside an explicit reversible authorization and the outcome updates or reopens the twin. |
+| `L8` Outcome Certification | Multiple real holdouts show better next questions, decisions, transfer, reduced assistance, and shorter time-to-endgame without increased harmful overrides. |
+| `L9` Best-Only Discovery Scout | A cron or equivalent scheduled run delivers at most five duplicate-suppressed repositories, papers, or high-signal mental-model essays, each classified as timeless classic or frontier/SOTA (or explicitly justified prerequisite bridge), ranked by active endgame value, with no automatic ingestion, mastery update, or policy mutation. |
+
+## Current Authorized Slice
+
+Only `CANDIDATE-S001R5F — Fail-preserving exact-candidate finalization` is authorized now. Exact clean commit `a0e4835` independently closes hard-link aliasing and actual rename-boundary replacement on the direct atomic path while preserving production verifier-only posture, bootstrap, static link/reparse rejection, Ed25519, lifetime, concurrency, quality, package, and historical reads. It remains unaccepted because the move-aside fallback can remove `events.jsonl` after replacement/restoration failure and the exact checkout omits the D082 authority chain. Delete the fallback so any direct rename failure preserves the old ledger at its canonical path, add a deterministic failure-preservation regression and the real rename-boundary test, synchronize the minimal D082 authority into the clean candidate, audit one exact finalization commit, then run `G-001`, integrate, and proceed directly to `S-006M`: one real non-fixture single-worker coding loop to merged and packaged. Broader secret infrastructure, filesystem frameworks, contract refactoring, projection, corpus, handoff/resume, learning, and multi-agent work requires an observed active-slice blocker.
+
+## Historical MVP Product Shape
+
+> All remaining equal-level sections below preserve the original MVP and custody-era specification for traceability and shipped documentation compatibility. They do not override the governing contracts above.
 
 Meta-Harness is a global CLI that creates and maintains per-repo Markdown state.
 
@@ -295,7 +621,7 @@ Parent status reads child statuses. It does not centralize child event memory.
 Target command surface:
 
 ```bash
-meta-harness init
+meta-harness init --authority-public-key-file <path> --authority-receipt-file <path>
 meta-harness status
 meta-harness event
 meta-harness worker-report
@@ -312,7 +638,7 @@ Command responsibilities:
 
 | Command | Responsibility |
 | --- | --- |
-| `init` | Create `.meta-harness/` starter docs. |
+| `init` | Create `.meta-harness/` starter docs and install initial canonical truth from a structured public verifier contract plus an externally signed repository-bound receipt. |
 | `status` | Print or refresh official status. |
 | `event` | Append one event. |
 | `worker-report` | Create a PM-facing worker brief and require explicit `Outcome`. |
@@ -327,7 +653,7 @@ Command responsibilities:
 Implemented command examples:
 
 ```bash
-meta-harness init "Build coding and research visibility"
+meta-harness init --authority-public-key-file /external/truth-authority-public.json --authority-receipt-file /external/initial-truth-receipt.json
 meta-harness event --stream research --phase work --action "surveyed adjacent products" --result "copy visibility and persistence"
 meta-harness worker-report codex-researcher --stream research --task "extract patterns" --outcome DONE --round ROUND-001 --progress "10/100 -> 20/100" --confidence "9/10" --result "normalized product-pattern PM brief" --human-summary "Research output is ready for PM synthesis." --validations-passed "worker brief parsed" --validations-skipped "none" --evidence-artifacts ".meta-harness/workers/codex-researcher.md" --requested-work-type docs --actual-work-type docs --next-action "synthesize status"
 meta-harness templates install
@@ -365,7 +691,9 @@ Phase 16 exception (D041): a dependency-free read-only stdio JSON-RPC server is 
 The one-shot MVP is acceptable when:
 
 - `npm install -g meta-harness` exposes `meta-harness`;
-- `meta-harness init` creates starter Markdown state;
+- `meta-harness init` creates starter Markdown state only from a structured public verifier contract and an externally signed repository-bound initial receipt;
+- the runtime and package contain no private-key path, key generation, private-key loading, or receipt-signing surface;
+- receipt replay detection, prior-snapshot binding, contradiction simulation, and append execute under one cross-process lock;
 - `meta-harness event` appends to `events.jsonl`;
 - `meta-harness status` prints official status;
 - `meta-harness worker-report` creates a worker-report artifact from a template;

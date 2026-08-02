@@ -1,3 +1,29 @@
+# Active Task: CANDIDATE-S001R5F Fail-Preserving Finalization
+
+> D084 freezes the weak epistemic twin, best-only learning doctrine, and later `L9` scheduled top-five discovery scout. It does not authorize learning implementation in this task. `L1` waits for a verified `S-006M` episode.
+
+- [x] Preserve clean exact candidate `a0e4835` and independently verify direct hard-link and true rename-boundary replacement safety on Linux and Windows Node 25.
+- [x] Verify focused truth/custody suites, `MH_TRUTH_001`, `MH_QUALITY_001`, package boundary, signer scan, readiness, and diff cleanliness.
+- [x] Reproduce move-aside fallback failure removing `events.jsonl` while the prior ledger survives only under an unrecognized backup name.
+- [x] Confirm native Windows Node 25 directly renames over an existing regular file.
+- [x] Confirm the exact candidate lacks D082/S001R4 audit authority and still advertises R4/D081.
+- [ ] Add one bounded finalization commit on the clean candidate lineage; do not implement in the dirty main checkout.
+- [ ] Delete the move-aside backup fallback from `lib/events.js`.
+- [ ] Prove forced direct rename failure leaves the prior ledger byte-identical at `events.jsonl` and creates no backup residue.
+- [ ] Replace the weak pre-operation alias test with an actual rename-boundary swap regression on Linux and Windows.
+- [ ] Synchronize the minimal D082 authority chain and active R5 product surfaces into the clean candidate.
+- [ ] Preserve exactly-one replay/concurrency behavior, multiply linked file rejection, and all S001R4 bootstrap/static-link protections.
+- [ ] Preserve D078 legacy receipt v1 as read-only evidence and receipt v2 as the only new mutation format.
+- [ ] Pass the complete Windows Node 25 suite, Linux focused suite, `MH_TRUTH_001`, `MH_QUALITY_001`, package and signer scans, readiness, JSON validation, and `git diff --check`.
+- [ ] Produce one named clean finalization commit and stop for independent exact-commit audit.
+- [ ] Only after acceptance: execute `G-001` → `INTEGRATE-S001` → `S-006M`.
+
+Stop rule: no external authority use, new G-001 canonical event, integration, push, merge, publication, S-006M work, learning-kernel implementation, or scheduled discovery work before exact-commit independent acceptance.
+
+---
+
+> **Historical task record:** retained as completed phase-era evidence. D082 rejects S001R4 ledger custody but preserves its clean candidate and authorizes one atomic shared-ledger repair.
+
 - [x] Prepare Git branches for Phase 11 and Phase 12
     - [x] Extract zip files and verify contents
     - [x] Save Phase 12 into a temporary branch `temp/phase12-import`

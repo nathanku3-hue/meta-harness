@@ -71,7 +71,7 @@ test("worker-report first-line contract is consistent across docs and templates"
   assert.doesNotMatch(harnessState, /The first non-empty line must be # Worker PM Brief/);
 });
 
-test("event and worker-report update status and lookback", () => {
+test("event and worker-report update evidence and lookback without changing canonical status", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Build coding and research visibility"]);
   run(cwd, [
@@ -104,8 +104,9 @@ test("event and worker-report update status and lookback", () => {
 
   const harness = path.join(cwd, ".meta-harness");
   const status = run(cwd, ["status", "--refresh"]);
-  assert.match(status, /worker report normalized/);
-  assert.match(status, /research: worker report normalized/);
+  assert.match(status, /Goal:\nBuild coding and research visibility/);
+  assert.match(status, /Current truth:\nper-repo harness state created/);
+  assert.doesNotMatch(status, /worker report normalized/);
 
   const events = readJsonl(path.join(harness, "events.jsonl"));
   assert.equal(events.length, 3);
