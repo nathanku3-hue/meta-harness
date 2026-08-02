@@ -150,6 +150,14 @@ process.stdin.on("end", () => {
   const installed = require(path.join(manifest.installedRoot, "node_modules", manifest.packageCandidate.packageName));
   process.stdout.write(JSON.stringify({
     schemaVersion: "proof-evaluator-output/v1",
+    semanticDiscriminators: {
+      terminalDecisionDerivedFromScenarioAndResponse: true,
+      noQueuedFollowUpAfterNoBuild: true,
+      staleStatusCannotCreateSlice: true,
+      invalidObservedDefectWarrantRejected: true,
+      optionalFindingsRemainNonBlocking: true,
+      successorActivationNotClaimed: true
+    },
     operatorActions: [{ sequence: 1, actionId: "action-1", action: "open", observationId: "observation-1" }],
     quantitativeEvaluations: [{
       predicateId: "Q-VALUE",
@@ -188,7 +196,7 @@ function deliveryFixture(t) {
   initRepository(root);
   const evaluator = deliveryEvaluatorSource();
   const productReviewer = deliveryReviewerSource("product", "(manifest) => manifest.blackBoxProof.quantitativeEvaluations[0].passed === true");
-  const domainReviewer = deliveryReviewerSource("domain", "(manifest) => manifest.packageCandidate.packageName === 'delivery-fixture'");
+  const domainReviewer = deliveryReviewerSource("domain", "(manifest) => manifest.packageCandidate.packageName === 'delivery-fixture' && manifest.blackBoxProof.semanticDiscriminators.terminalDecisionDerivedFromScenarioAndResponse === true");
   const custodyReviewer = deliveryReviewerSource("custody", "(manifest) => !Object.prototype.hasOwnProperty.call(manifest, 'previousReviewerOutputs')");
   write(root, "tools/delivery-evaluator.js", evaluator, 0o755);
   write(root, "tools/delivery-product-reviewer.js", productReviewer, 0o755);
@@ -611,6 +619,7 @@ test("controller installs exact delivery tarball and launches proof plus three r
   assert.equal(evidence.proof.executionSurface.type, "installed-package");
   assert.equal(evidence.proof.quantitativeEvaluations[0].actual, 42);
   assert.equal(evidence.proof.executionSurface.tarballDigest, fixture.packageCandidate.tarballDigest);
+  assert.equal(Object.prototype.hasOwnProperty.call(evidence.proof, "semanticDiscriminators"), false);
   assert.deepEqual(evidence.reviews.map((review) => review.role).sort(), ["CUSTODY", "DOMAIN", "PRODUCT"]);
   assert.equal(new Set(evidence.reviews.map((review) => review.processId)).size, 3);
 });
