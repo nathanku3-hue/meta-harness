@@ -20,6 +20,14 @@ const {
   publicationExceptionSigningBody,
   validatePublicationException,
 } = require("../../lib/semantic-kernel/publication-exception");
+const {
+  PUBLICATION_INTENT_SCHEMA,
+  PUBLICATION_INTENT_SIGNATURE_DOMAIN,
+  computePublicationIntentDigest,
+  publicationIntentSigningBody,
+  validatePublicationIntent,
+  validatePublicationIntentDraft,
+} = require("../../lib/semantic-kernel/publication-intent");
 
 function ownerIdentity(privateKey) {
   const publicKeyObject = crypto.createPublicKey(privateKey);
@@ -67,6 +75,34 @@ function signGScope(unsignedValue, privateKey) {
   });
 }
 
+function signPublicationIntent(unsignedValue, privateKey) {
+  const draft = validatePublicationIntentDraft(unsignedValue);
+  const identity = ownerIdentity(privateKey);
+  const signed = {
+    ...JSON.parse(JSON.stringify(draft)),
+    schemaVersion: PUBLICATION_INTENT_SCHEMA,
+    ownerKeyId: identity.ownerKeyId,
+    intentDigest: "pending",
+    ownerSignature: "pending",
+  };
+  signed.intentDigest = computePublicationIntentDigest(signed);
+  signed.ownerSignature = signEd25519ForTests({
+    domain: PUBLICATION_INTENT_SIGNATURE_DOMAIN,
+    body: publicationIntentSigningBody(signed),
+    privateKey,
+  });
+  validatePublicationIntent(signed, {
+    ownerPin: syntheticOwnerPin(signed.repositoryId, identity),
+    expectedOwnerKeyId: identity.ownerKeyId,
+  });
+  return Object.freeze({
+    signed,
+    canonicalSigningBody: canonicalize(publicationIntentSigningBody(signed)),
+    objectDigest: signed.intentDigest,
+    ownerKeyId: identity.ownerKeyId,
+  });
+}
+
 function signPublicationException(unsignedValue, privateKey) {
   const identity = ownerIdentity(privateKey);
   const signed = {
@@ -94,4 +130,5 @@ module.exports = {
   ownerIdentity,
   signGScope,
   signPublicationException,
+  signPublicationIntent,
 };

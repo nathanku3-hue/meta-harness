@@ -108,6 +108,7 @@ test("GitHub release transport is bound to repository, workflow, tag, and exact 
     GITHUB_ACTIONS: "true",
     GITHUB_REPOSITORY: "nathanku3-hue/meta-harness",
     GITHUB_WORKFLOW_REF: "nathanku3-hue/meta-harness/.github/workflows/publish-0.4.yml@refs/heads/main",
+    GITHUB_WORKFLOW_SHA: "9".repeat(40),
     GITHUB_RUN_ID: "98765",
     GITHUB_RUN_ATTEMPT: "1",
     GITHUB_EVENT_NAME: "release",
@@ -117,6 +118,7 @@ test("GitHub release transport is bound to repository, workflow, tag, and exact 
   const transport = githubTransportFromEnvironment(publicationIntent, env);
   assert.equal(transport.releaseId, 123456);
   assert.equal(transport.githubSha, publicationIntent.gitTagTargetRevision);
+  assert.equal(transport.workflowSha, publicationIntent.gitTagTargetRevision);
 
   assert.throws(
     () => githubTransportFromEnvironment(publicationIntent, {
@@ -131,5 +133,12 @@ test("GitHub release transport is bound to repository, workflow, tag, and exact 
       GITHUB_WORKFLOW_REF: "nathanku3-hue/meta-harness/.github/workflows/other.yml@refs/heads/main",
     }),
     (error) => error.code === "PUBLICATION_GITHUB_WORKFLOW",
+  );
+  assert.throws(
+    () => githubTransportFromEnvironment(publicationIntent, {
+      ...env,
+      GITHUB_WORKFLOW_SHA: "8".repeat(40),
+    }),
+    (error) => error.code === "PUBLICATION_GITHUB_BINDING",
   );
 });

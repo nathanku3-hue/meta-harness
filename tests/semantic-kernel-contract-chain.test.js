@@ -71,8 +71,12 @@ const {
   validatePublicationObservation,
 } = require("../lib/semantic-kernel/publication");
 const {
+  PUBLICATION_INTENT_SCHEMA,
+  PUBLICATION_INTENT_SIGNATURE_DOMAIN,
   computePublicationAssetManifestDigest,
-  createPublicationIntent,
+  computePublicationIntentDigest,
+  createPublicationIntentDraft,
+  publicationIntentSigningBody,
   validatePublicationIntent,
 } = require("../lib/semantic-kernel/publication-intent");
 const {
@@ -563,7 +567,7 @@ function makePublicationIntent(chain) {
     },
     { role: "terminal-assessment", filename: "terminal-assessment.json", sha256: digest("asset-terminal"), bytes: 100 },
   ];
-  return createPublicationIntent({
+  const draft = createPublicationIntentDraft({
     sliceAuthorization: chain.authorization,
     packageCandidate: chain.packageCandidate,
     releaseCandidate: chain.releaseCandidate,
@@ -577,6 +581,27 @@ function makePublicationIntent(chain) {
     },
     issuedAt: "2026-07-30T17:45:00.000Z",
   });
+  const signed = {
+    ...draft,
+    schemaVersion: PUBLICATION_INTENT_SCHEMA,
+    ownerKeyId: chain.owner.pin.ownerKeyId,
+    intentDigest: "pending",
+    ownerSignature: "pending",
+  };
+  signed.intentDigest = computePublicationIntentDigest(signed);
+  signed.ownerSignature = signEd25519ForTests({
+    domain: PUBLICATION_INTENT_SIGNATURE_DOMAIN,
+    body: publicationIntentSigningBody(signed),
+    privateKey: chain.owner.pair.privateKey,
+  });
+  return validatePublicationIntent(signed, {
+    sliceAuthorization: chain.authorization,
+    packageCandidate: chain.packageCandidate,
+    releaseCandidate: chain.releaseCandidate,
+    terminalAssessment: chain.terminal,
+    ownerPin: chain.owner.pin,
+    expectedOwnerKeyId: chain.owner.pin.ownerKeyId,
+  });
 }
 
 function githubTransport(chain) {
@@ -585,6 +610,7 @@ function githubTransport(chain) {
     repository: chain.authorization.publicationPolicy.trustedPublisher.repository,
     workflowFilename: chain.authorization.publicationPolicy.trustedPublisher.workflowFilename,
     workflowRef: "nathanku3-hue/meta-harness/.github/workflows/publish-0.4.yml@refs/heads/main",
+    workflowSha: chain.releaseCandidate.gitTagTargetRevision,
     runId: "12345",
     runAttempt: "1",
     eventName: "release",
@@ -1150,6 +1176,8 @@ test("publication command success is non-authoritative without exact registry re
     releaseCandidate: chain.releaseCandidate,
     terminalAssessment: chain.terminal,
     publicationIntent,
+    ownerPin: chain.owner.pin,
+    expectedOwnerKeyId: chain.owner.pin.ownerKeyId,
     publicationVerification: verification,
     transport,
     requestStartedAt: "2026-07-30T18:00:00.000Z",
@@ -1184,6 +1212,8 @@ test("publication command success is non-authoritative without exact registry re
     releaseCandidate: chain.releaseCandidate,
     terminalAssessment: chain.terminal,
     publicationIntent,
+    ownerPin: chain.owner.pin,
+    expectedOwnerKeyId: chain.owner.pin.ownerKeyId,
     publicationVerification: verification,
     transport,
     requestStartedAt: "2026-07-30T18:00:00.000Z",
@@ -1207,6 +1237,8 @@ test("publication intent is portable, exact, and tamper-sensitive", () => {
     packageCandidate: chain.packageCandidate,
     releaseCandidate: chain.releaseCandidate,
     terminalAssessment: chain.terminal,
+    ownerPin: chain.owner.pin,
+    expectedOwnerKeyId: chain.owner.pin.ownerKeyId,
   }).transport.workflowFilename, "publish-0.4.yml");
 
   const tampered = clone(publicationIntent);
@@ -1217,6 +1249,8 @@ test("publication intent is portable, exact, and tamper-sensitive", () => {
       packageCandidate: chain.packageCandidate,
       releaseCandidate: chain.releaseCandidate,
       terminalAssessment: chain.terminal,
+      ownerPin: chain.owner.pin,
+      expectedOwnerKeyId: chain.owner.pin.ownerKeyId,
     }),
     (error) => error.code === "PUBLICATION_ASSET_MANIFEST_DIGEST",
   );
@@ -1257,6 +1291,8 @@ test("publication closure requires intent-bound GitHub transport and exact regis
     chain.authorization,
     chain.packageCandidate,
     chain.terminal,
+    chain.owner.pin,
+    chain.owner.pin.ownerKeyId,
   );
   assert.equal(validated.disposition, "PUBLISHED_EXACT");
 
@@ -1299,6 +1335,8 @@ test("publication closure requires intent-bound GitHub transport and exact regis
       chain.authorization,
       chain.packageCandidate,
       chain.terminal,
+      chain.owner.pin,
+      chain.owner.pin.ownerKeyId,
     ),
     (error) => error.code === "PUBLICATION_EXACT_UNPROVEN",
   );
@@ -1314,6 +1352,8 @@ test("publication closure requires intent-bound GitHub transport and exact regis
       chain.authorization,
       chain.packageCandidate,
       chain.terminal,
+      chain.owner.pin,
+      chain.owner.pin.ownerKeyId,
     ),
     (error) => error.code === "PUBLICATION_TRANSPORT_BINDING",
   );

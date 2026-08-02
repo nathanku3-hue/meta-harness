@@ -239,6 +239,7 @@ test("0.4 publication workflow is one exact OIDC transport without rebuild", () 
   assert.match(workflow, /package-manager-cache: false/);
   assert.match(workflow, /npm install --global npm@11\.16\.0/);
   assert.match(workflow, /release intent verify --from-env --json/);
+  assert.match(workflow, /META_HARNESS_EXPECTED_OWNER_KEY_ID: sha256:79567bac8d94f3ce42a39c13b1c883fdf63e434c8fa7e850f2db561f131164f1/);
   assert.match(workflow, /release publish --from-env --json/);
   assert.match(workflow, /publication-observation\.json/);
   assert.match(workflow, /actions\/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5/);

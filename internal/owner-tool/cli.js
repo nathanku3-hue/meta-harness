@@ -8,19 +8,20 @@ const path = require("node:path");
 const {
   signGScope,
   signPublicationException,
+  signPublicationIntent,
 } = require("./owner-tool");
 
 function usage(message) {
   if (message) process.stderr.write(`${message}\n`);
   process.stderr.write(
-    "usage: owner-tool <sign-g-scope|sign-publication-exception> --input <json> --private-key <pem>\n",
+    "usage: owner-tool <sign-g-scope|sign-publication-exception|sign-publication-intent> --input <json> --private-key <pem>\n",
   );
   process.exitCode = 2;
 }
 
 function parse(argv) {
   const [command, ...rest] = argv;
-  if (!new Set(["sign-g-scope", "sign-publication-exception"]).has(command)) {
+  if (!new Set(["sign-g-scope", "sign-publication-exception", "sign-publication-intent"]).has(command)) {
     usage("unsupported owner-tool command");
     return null;
   }
@@ -71,7 +72,9 @@ function main() {
 
   const result = parsed.command === "sign-g-scope"
     ? signGScope(input, privateKey)
-    : signPublicationException(input, privateKey);
+    : parsed.command === "sign-publication-intent"
+      ? signPublicationIntent(input, privateKey)
+      : signPublicationException(input, privateKey);
 
   process.stderr.write(`Owner key: ${result.ownerKeyId}\n`);
   process.stderr.write(`Object digest: ${result.objectDigest}\n`);

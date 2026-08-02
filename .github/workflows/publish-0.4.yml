@@ -59,6 +59,7 @@ jobs:
         env:
           META_HARNESS_PUBLICATION_INTENT: ${{ runner.temp }}/release-assets/publication-intent.json
           META_HARNESS_PUBLICATION_ASSET_ROOT: ${{ runner.temp }}/release-assets
+          META_HARNESS_EXPECTED_OWNER_KEY_ID: sha256:79567bac8d94f3ce42a39c13b1c883fdf63e434c8fa7e850f2db561f131164f1
         run: |
           set -euo pipefail
           node bin/meta-harness.js release intent verify --from-env --json
@@ -68,6 +69,7 @@ jobs:
         env:
           META_HARNESS_PUBLICATION_INTENT: ${{ runner.temp }}/release-assets/publication-intent.json
           META_HARNESS_PUBLICATION_ASSET_ROOT: ${{ runner.temp }}/release-assets
+          META_HARNESS_EXPECTED_OWNER_KEY_ID: sha256:79567bac8d94f3ce42a39c13b1c883fdf63e434c8fa7e850f2db561f131164f1
           META_HARNESS_PUBLICATION_OBSERVATION_OUTPUT: ${{ runner.temp }}/publication-observation.json
         run: |
           set -euo pipefail

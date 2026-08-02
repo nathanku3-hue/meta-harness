@@ -77,7 +77,7 @@ test("help text is generated from registry usage lines", () => {
   assert.match(help, /meta-harness distill candidate <distillation-id> --target <repo>/);
   assert.doesNotMatch(help, /meta-harness release check/);
   assert.match(help, /meta-harness release candidate <create\|verify-preterminal\|verify-publication>/);
-  assert.match(help, /meta-harness release intent <create\|verify>/);
+  assert.match(help, /meta-harness release intent <prepare\|commit\|verify>/);
   assert.match(help, /meta-harness release publish --from-env --json/);
   assert.match(help, /meta-harness release reconcile/);
   assert.match(help, /meta-harness governance snapshot \[--target <repo>\] \[--out <path>\] \[--json\]/);
