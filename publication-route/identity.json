@@ -1,0 +1,27 @@
+{
+  "schema": "meta-harness/publication-route-identity/v1",
+  "routeId": "C0-PUBLICATION-ROUTE-1",
+  "packageName": "@nkgss/meta-harness",
+  "version": "0.4.0",
+  "sourceCommit": "99057c4e2334e3c243123683448ef5108e514786",
+  "sourceTree": "a44b374aa411e928af6a89dcbdb08df826f11e15",
+  "canonicalTarballRelativePath": "publication-route/custody/nkgss-meta-harness-0.4.0.tgz",
+  "tarballBytes": 311004,
+  "tarballSha256": "67374d0f0d94a1a55b2380432482aaaee4c70aa704ee9416a8a0316789dc4892",
+  "tarballSha1": "b9e2c5a73b9f3cbb561d1dd79d0be3ede7f3c252",
+  "tarballIntegrity": "sha512-GaaWbO1d61o9Qr5BbWWX96g4xPGAZW/AZbaQ+H/B3e8scNmkHTH7R4K5YSChFPtm3+lgCpkOoqLdtemn9MjAnQ==",
+  "packageCandidateDigest": "sha256:5e23cc47f340fcaf38f7591af0f6c225dfd7385b2bf89b4b4f7dbf2a6257b60a",
+  "releaseCandidateDigest": "sha256:693b2f67cffd7090425a83f3e5242fc694ce25f863fc090f5f1c17b526a66c83",
+  "npmPackInvocationCount": 1,
+  "publicationNpmPackInvocationCount": 0,
+  "gitTag": "v0.4.0",
+  "registry": "https://registry.npmjs.org/",
+  "access": "public",
+  "distTag": "latest",
+  "provenanceRequired": true,
+  "publishExactTerminalTarballOnly": true,
+  "notes": [
+    "This route commits publication infrastructure only; package bytes are the pre-built generation-3 tarball.",
+    "npm pack is forbidden on this route. Publish path requires separate C0 authorization token."
+  ]
+}

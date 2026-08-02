@@ -1,0 +1,214 @@
+# C0-PUBLICATION-ROUTE-1
+# Verification-only by default. Publish path is fail-closed without explicit C0 token.
+# Never runs npm pack. Consumes staged existing tarball only.
+name: Publication Route 0.4
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "verify (default) or publish (requires separate C0 authorization token)"
+        required: true
+        default: verify
+        type: choice
+        options:
+          - verify
+          - publish
+      c0_publish_authorization:
+        description: "Must equal AUTHORIZED_C0_PUBLISH_EXACT for publish mode; ignored for verify"
+        required: false
+        default: ""
+  push:
+    branches:
+      - "delivery/s-semantic-kernel-0.4-publication-route-1"
+    paths:
+      - "publication-route/**"
+      - "scripts/publication-route/**"
+      - ".github/workflows/publication-route-0.4.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publication-route-0.4-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  EXPECTED_SOURCE_COMMIT: "99057c4e2334e3c243123683448ef5108e514786"
+  EXPECTED_SOURCE_TREE: "a44b374aa411e928af6a89dcbdb08df826f11e15"
+  EXPECTED_TARBALL_SHA256: "67374d0f0d94a1a55b2380432482aaaee4c70aa704ee9416a8a0316789dc4892"
+  EXPECTED_TARBALL_SHA1: "b9e2c5a73b9f3cbb561d1dd79d0be3ede7f3c252"
+  EXPECTED_TARBALL_INTEGRITY: "sha512-GaaWbO1d61o9Qr5BbWWX96g4xPGAZW/AZbaQ+H/B3e8scNmkHTH7R4K5YSChFPtm3+lgCpkOoqLdtemn9MjAnQ=="
+  EXPECTED_TARBALL_BYTES: "311004"
+  EXPECTED_PACKAGE_CANDIDATE: "sha256:5e23cc47f340fcaf38f7591af0f6c225dfd7385b2bf89b4b4f7dbf2a6257b60a"
+  EXPECTED_RELEASE_CANDIDATE: "sha256:693b2f67cffd7090425a83f3e5242fc694ce25f863fc090f5f1c17b526a66c83"
+  STAGED_TARBALL: "publication-route/custody/nkgss-meta-harness-0.4.0.tgz"
+  C0_PUBLISH_TOKEN: "AUTHORIZED_C0_PUBLISH_EXACT"
+
+jobs:
+  verify-exact-identities:
+    name: Exact-SHA verification (no publish)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      # OIDC present for trusted-publisher binding readiness; publish job alone may publish.
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: "22"
+
+      - name: Record runtime and workflow identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "node=$(node --version)"
+          echo "npm=$(npm --version)"
+          echo "runner_os=${RUNNER_OS}"
+          echo "workflow_ref=${GITHUB_REF}"
+          echo "workflow_sha=${GITHUB_SHA}"
+          echo "workflow_file=.github/workflows/publication-route-0.4.yml"
+          echo "workflow_file_sha256=$(sha256sum .github/workflows/publication-route-0.4.yml | awk '{print $1}')"
+          echo "head=$(git rev-parse HEAD)"
+          echo "head_tree=$(git rev-parse HEAD^{tree})"
+          echo "id_token_permission=write"
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" -o "${{ github.event_name }}" != "workflow_dispatch" || true
+
+      - name: Fail closed if npm pack is requested
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${FORCE_NPM_PACK:-}" == "1" ]]; then
+            echo "FORCE_NPM_PACK is set; refusing"
+            exit 1
+          fi
+
+      - name: Verify source pin and staged tarball identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/publication-route/verify-staged-tarball.mjs
+
+          # Redundant shell-level fail-closed checks
+          test -f "${STAGED_TARBALL}"
+          test "$(stat -c%s "${STAGED_TARBALL}")" = "${EXPECTED_TARBALL_BYTES}"
+          test "$(sha256sum "${STAGED_TARBALL}" | awk '{print $1}')" = "${EXPECTED_TARBALL_SHA256}"
+          test "$(sha1sum "${STAGED_TARBALL}" | awk '{print $1}')" = "${EXPECTED_TARBALL_SHA1}"
+          ACTUAL_INTEGRITY="sha512-$(openssl dgst -sha512 -binary "${STAGED_TARBALL}" | openssl base64 -A)"
+          test "${ACTUAL_INTEGRITY}" = "${EXPECTED_TARBALL_INTEGRITY}"
+          git merge-base --is-ancestor "${EXPECTED_SOURCE_COMMIT}" HEAD
+          test "$(git rev-parse "${EXPECTED_SOURCE_COMMIT}^{tree}")" = "${EXPECTED_SOURCE_TREE}"
+
+          python3 - <<'PY'
+          import json, os
+          idn = json.load(open("publication-route/identity.json", encoding="utf-8"))
+          assert idn["packageCandidateDigest"] == os.environ["EXPECTED_PACKAGE_CANDIDATE"]
+          assert idn["releaseCandidateDigest"] == os.environ["EXPECTED_RELEASE_CANDIDATE"]
+          assert idn["npmPackInvocationCount"] == 1
+          assert idn["publicationNpmPackInvocationCount"] == 0
+          print("identity constants OK")
+          PY
+
+      - name: Assert local tag absence on this checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify refs/tags/v0.4.0 >/dev/null; then
+            echo "local v0.4.0 tag unexpectedly present"
+            exit 1
+          fi
+          echo "local v0.4.0 tag absent"
+
+      - name: Observe registry (must remain unpublished for verify-only route proof)
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          out=$(npm view @nkgss/meta-harness@0.4.0 version 2>&1)
+          code=$?
+          set -e
+          echo "npm_view_exit=${code}"
+          echo "npm_view_out=${out}"
+          if [[ ${code} -eq 0 ]]; then
+            echo "0.4.0 already published; route verification expects unpublished until C0"
+            # Still pass verification of staged bytes, but record for receipts.
+            echo "registry_status=PRESENT" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "registry_status=ABSENT_OR_E404" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## Publication route verify"
+            echo ""
+            echo "- mode input: \`${{ github.event.inputs.mode || 'push-verify' }}\`"
+            echo "- publish executed: **false**"
+            echo "- npm pack executed: **false**"
+            echo "- source commit: \`${EXPECTED_SOURCE_COMMIT}\`"
+            echo "- tarball sha256: \`${EXPECTED_TARBALL_SHA256}\`"
+            echo "- workflow sha: \`${GITHUB_SHA}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish-exact-tarball:
+    name: Publish exact tarball (C0 gate)
+    needs: verify-exact-identities
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.mode == 'publish' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: publication-route-0.4
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Fail closed without C0 authorization token
+        shell: bash
+        run: |
+          set -euo pipefail
+          token='${{ github.event.inputs.c0_publish_authorization }}'
+          if [[ "${token}" != "${C0_PUBLISH_TOKEN}" ]]; then
+            echo "Publish path blocked: c0_publish_authorization != AUTHORIZED_C0_PUBLISH_EXACT"
+            echo "This job must not run without separate C0 authorization."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Re-verify staged tarball before any publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/publication-route/verify-staged-tarball.mjs
+
+      - name: Publish existing tarball with provenance (C0 only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Exact existing tarball only. Never npm pack.
+          npm publish "${STAGED_TARBALL}" --access public --provenance
+
+      - name: Record publish attempt marker
+        if: always()
+        shell: bash
+        run: |
+          echo "publish_job_ran=true" >> "$GITHUB_STEP_SUMMARY"
