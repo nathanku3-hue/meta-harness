@@ -1,52 +1,54 @@
-# Meta-Harness 0.4
+# Meta-Harness
 
-Meta-Harness 0.4 is an outcome-first DELIVERY authority and execution-custody kernel for repository changes.
+Meta-Harness is a minimal, outcome-first operating layer for one solo developer/researcher shipping complex products with AI.
 
-It preserves four separate claims:
-
-1. an externally pinned owner key authorizes one exact product result and path boundary;
-2. a sealed RunSpec proves bounded mechanical work only;
-3. installed black-box proof and isolated Product, Domain, and Custody reviewers evaluate product acceptance;
-4. exact publication reconciliation and canonical projection close the slice.
-
-## Outcome-first planner
-
-The installed guidance reads truth in this order: locked product intent and owner authority; immutable product and closure evidence; Git facts; status and summaries last. It selects the nearest action that completes the user journey, allows at most one pre-execution audit/repair round, and blocks only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability.
-
-Passed evidence is reused while its declared inputs are unchanged. After shipped or value-confirmed completion, the default result is `NO_BUILD` with `USE_PRODUCT`. Continuation requires explicit owner scope change or a complete observed supported-use defect warrant.
-
-## Trust root
-
-Production authority is a create-only Ed25519 owner public-key pin stored in the host-global repository state root, outside Git, `.meta-harness`, the npm package, execution requests, and worker-authorized paths.
+The normal flow is:
 
 ```text
-meta-harness authority bootstrap --owner-public-key-file <public-jwk.json>
+PLAN -> WORK -> AUDIT -> CLOSE
 ```
 
-The offline signer is source-only under `internal/owner-tool/` and is excluded from the package. Private key material is never accepted through repository files or command arguments.
+Optional research and retrospective lanes are opened only when a named decision or a costly failure justifies them. Handover is generated state, not another reasoning round.
 
-## DELIVERY execution chain
+## Product result
+
+Meta-Harness should help a user:
+
+1. define one real Product Episode;
+2. preserve the current checkout;
+3. create a clean isolated worktree automatically;
+4. execute the smallest complete product slice;
+5. run the real Episode early;
+6. reuse unchanged evidence;
+7. make one smallest repair or re-plan the method;
+8. prove the system and release only after Product proof;
+9. stop after the result is useful.
+
+## Proof order
 
 ```text
-external owner pin
-→ owner-signed SliceAuthorization
-→ create-only SliceActivation
-→ one or more sealed RunSpec/v2 objects
-→ MechanicsAssessment
-→ fast-forward IntegratedCandidate
-→ exact PackageCandidate and ReleaseCandidate
-→ installed BlackBoxProof
-→ isolated Product/Domain/Custody reviews
-→ TerminalSliceAssessment
-→ exact tag and publication observation
-→ deterministic canonical closure
+Product proof
+-> System proof
+-> Release proof
 ```
 
-Meta-Harness 0.4 exposes DELIVERY authority only. Historical alternate execution objects are inert evidence bytes and are neither shipped nor executable.
+- Product proof: a real user completes a real task and receives a useful, interpretable result.
+- System proof: the result comes from the intended reusable architecture and preserves affected invariants.
+- Release proof: the exact artifact installs, publishes, deploys, and rolls back where required.
 
-## Worker reports
+Tests, packages, hashes, reviews, and custody cannot substitute for a missing real Product Episode.
 
-Generated worker reports begin with exactly these five non-empty fields, with no title or internal metadata before them:
+## Roles
+
+- **PLAN** frames the product problem and freezes one Slice Charter.
+- **WORK** executes the charter in a clean isolated worktree and does not redesign the roadmap.
+- **AUDIT** evaluates only the current slice and cannot select a successor.
+- **RESEARCH** resolves one named decision and transfers only a COPY/MODIFY/REJECT record.
+- **RETROSPECT** runs only after closure or costly failure and produces non-authoritative KEEP/DELETE/SIMPLIFY/TEST/INVESTIGATE findings.
+
+## H3R2 worker-report compatibility
+
+The existing 0.4 runtime keeps these first five non-empty lines, with no title or internal metadata before them:
 
 ```text
 User journey executed:
@@ -56,12 +58,65 @@ Product blocker:
 Next executable product action:
 ```
 
-`Outcome:`, round, progress, confidence, worker identity, and validation metadata follow those product fields.
+The 0.5 target renders the simpler Result Card for normal chat while retaining exhaustive evidence outside the primary user surface.
 
-## Platform policy
+## Notify-first actions
 
-Contract and signature validation, package installation, and CLI loading are cross-platform. Authoritative mechanics, proof, and reviewer process execution require Linux namespace isolation and fail closed on unsupported hosts before process spawn, counters, operation bundles, state transitions, or repository mutation.
+Reversible local work proceeds automatically and is reported:
 
-## Release law
+- isolated worktree and branch creation;
+- edits and tests;
+- focused commit creation;
+- configured branch push.
 
-Build the authoritative tarball exactly once after the integrated candidate is ready. Verification and publication reuse that same tarball; they never rebuild it. Install into a clean canary first, then roll the exact package into clean worktrees based on each repository’s actual default branch. Dirty checkouts and archives are not deployment targets.
+Existing user work is never auto-stashed, reset, cleaned, overwritten, force-pushed, or mixed into the slice.
+
+External or irreversible actions are announced before execution and remain subject to configured technical safety boundaries:
+
+- merge to a protected shared branch;
+- tag or package publication;
+- production deployment;
+- destructive migration;
+- shared-history rewrite;
+- secret use;
+- financial or legal commitment.
+
+Notification does not become an approval wait unless a configured hold exists.
+
+## Git autopilot
+
+Before work, Meta-Harness should detect the repository root, actual default branch, upstream, HEAD, dirty state, and existing worktrees. It preserves the current checkout and creates a clean isolated worktree from the intended base. It then creates a deterministic slice branch, executes, validates, commits, and pushes when configured.
+
+A dirty current checkout is not a blocker. It is a reason to isolate.
+
+## Engineering language
+
+Use problem, observation, inference, unknown, cause, constraint, option, trade-off, experiment, decision, result, smallest correction, and next Episode.
+
+Use gate, authority, custody, and closure language only for deterministic security, exact artifact identity, irreversible external action, secret access, financial or legal commitment, or material production blast radius.
+
+## Product-specific Episodes
+
+- **Leningrad:** complete the declared simulation, verify retained evidence, inspect the report, and learn what persisted, coexisted, or disappeared.
+- **Quant:** complete a prospective paper strategy Episode through thesis, decision, portfolio transition, fills, accounting, reopen, and explanation.
+- **DevSpace:** complete the real conversation-to-conversation action and return a useful structured result.
+- **Meta-Harness:** a fresh session resumes the correct product outcome, executes in isolation, and stops after a useful result without a long prompt or successor drift.
+
+## Current release frontier
+
+Meta-Harness 0.4 H3R2 remains the exact release candidate. Finish its supported-runtime fresh-session Product Episode, terminal assessment, exact publication, and closure before implementing the 0.5 simplification roadmap.
+
+Do not mix the redesign into the H3R2 artifact.
+
+## Canonical documents
+
+- [Product Anchor](docs/product/product-anchor.md)
+- [Product Intent](docs/product/product-intent.md)
+- [Product Requirements](docs/product/prd.md)
+- [Product Specification](docs/product/product-spec.md)
+- [Top-Level Roadmap](docs/product/roadmap.md)
+- [Minimal Outcome Operating Model](docs/product/minimal-outcome-operating-model.md)
+- [Detailed Update Checklist](docs/product/minimal-outcome-update-checklist.md)
+- [Operating SOP](docs/sop/meta-harness-sop.md)
+
+Historical decision logs, phase plans, audits, and evidence remain historical sources. They do not override the active documents above.
