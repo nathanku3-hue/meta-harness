@@ -11,7 +11,7 @@ const ROOT = path.resolve(__dirname, "..");
 const CLI = path.join(ROOT, "bin", "meta-harness.js");
 
 function tempDir(prefix) {
-  return fs.mkdtempSync(path.join("/tmp", prefix));
+  return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
 }
 
 function git(cwd, args) {

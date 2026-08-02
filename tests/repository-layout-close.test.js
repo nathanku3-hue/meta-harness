@@ -16,7 +16,7 @@ const {
 const { collectFileInventory, scanRepositoryLayout } = require("../lib/root-leak-check");
 
 function tempDir(prefix) {
-  return fs.mkdtempSync(path.join("/tmp", prefix));
+  return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
 }
 
 function git(cwd, args) {
