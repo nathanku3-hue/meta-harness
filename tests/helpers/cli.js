@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { prepareInitInvocation } = require("./truth-authority");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const CLI = path.join(ROOT, "bin", "meta-harness.js");
@@ -14,9 +15,10 @@ function tempDir(prefix = "meta-harness-") {
 }
 
 function run(cwd, args, options = {}) {
-  const result = runRaw(cwd, args, options);
+  const invocation = prepareInitInvocation(cwd, args);
+  const result = runRaw(cwd, invocation, options);
   if (result.status !== 0) {
-    throw new Error(`Command failed: ${args.join(" ")}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
+    throw new Error(`Command failed: ${invocation.join(" ")}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
   }
   return result.stdout;
 }

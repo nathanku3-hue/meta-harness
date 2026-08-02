@@ -1,5 +1,28 @@
 # Migration Note
 
+## Current Migration Policy — D077
+
+The locked roadmap rejects runtime backward compatibility by default. Active interfaces, adapters, aliases, and schemas are not preserved merely because historical internal callers exist.
+
+Historical evidence must remain readable. Use one of:
+
+- versioned readers;
+- explicit schema adapters at the evidence boundary;
+- one-way migration into a newer canonical form;
+- immutable archived artifacts plus a manifest describing their reader.
+
+A migration must declare:
+
+- source and target schema versions;
+- affected run, handoff, outcome, skill, and policy history;
+- lossiness;
+- verification and rollback;
+- whether the migration changes authority or only representation.
+
+The standalone product rename in `S-004` must occur before loop artifacts embed the current package identity. It must not be combined with behavioral changes.
+
+The entries below are retained as historical migration records.
+
 Phase 1 adds additive CLI commands for Dirty Work Autopilot:
 
 ```text

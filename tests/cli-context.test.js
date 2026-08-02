@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 const { run, runRaw } = require("./helpers/cli");
+const { installCanonicalFixtureTruth } = require("./helpers/canonical-truth-fixture");
 
 const FIXTURE_ROOT = path.join(__dirname, "fixtures", "context-gate");
 
@@ -16,6 +17,7 @@ function tempDir() {
 function copyFixture(name) {
   const targetRoot = tempDir();
   fs.cpSync(path.join(FIXTURE_ROOT, name), targetRoot, { recursive: true });
+  installCanonicalFixtureTruth(targetRoot);
   return targetRoot;
 }
 
@@ -228,7 +230,8 @@ test("context packet requires a round id", () => {
 });
 
 test("context commit-artifact refuses redaction failures before tracked writes", () => {
-  const cwd = copyFixture("unsafe-commit");
+  const cwd = copyFixture("complete");
+  writePackageName(cwd, "Authorization: Bearer abcdefghijklmnopqrstuvwxyz0123456789");
 
   const res = runRaw(cwd, [
     "context",

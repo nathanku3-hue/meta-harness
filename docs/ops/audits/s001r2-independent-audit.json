@@ -1,0 +1,325 @@
+{
+  "schema_version": "independent-audit/v1",
+  "audit_id": "D080-S001R2-INDEPENDENT",
+  "audited_at": "2026-07-18",
+  "auditor_role": "independent auditor-planner",
+  "intent_version": "intent-v1",
+  "intent_sha256": "0eef224126a4f2e9267bfd5701ce1e3cae15e3448a131182c91cf2719da843b1",
+  "candidate": {
+    "slice": "S-001R2",
+    "reported_state": "implemented locally and ready for independent audit",
+    "repository_head": "8ec3191",
+    "upstream_head": "0791efa",
+    "repository_state": "dirty, nothing staged, main one commit behind origin/main",
+    "canonical_state_changed_by_candidate": false,
+    "implementation_focus": [
+      "lib/truth-authority.js",
+      "lib/truth-mutation.js",
+      "lib/truth-reconciler.js",
+      "lib/events.js",
+      "lib/commands/init.js",
+      "lib/commands/event.js",
+      "tests/helpers/truth-authority.js",
+      "tests/cli-truth.test.js",
+      "tests/truth-reconciler.test.js"
+    ]
+  },
+  "verdict": "REPAIR_CURRENT_SLICE",
+  "acceptance": false,
+  "summary": "S-001R2 closes the load-bearing D079 authority-separation defect: the target and packaged runtime contain verifier material only, no production signing surface remains, repository-bound v2 receipts reject cross-repository use, and atomic ledger check-and-append closes same-receipt concurrency. Acceptance is blocked by a high bootstrap defect: init writes the harness and installs the authority contract before validating the initial receipt, so a rejected bootstrap leaves partial state and can pre-claim the repository authority. The candidate also fails the static quality ratchet on two new over-budget modules and two grown grandfathered tests. The proposed G-001-before-integration order is circular because a clean checkout with a tracked structured verifier contract cannot exist before candidate isolation.",
+  "independent_verification": {
+    "focused_tests": {
+      "runtime": "connector Node 18.19.1, below the package-supported floor and used only for focused logic verification",
+      "command": "node --test tests/cli-truth.test.js tests/truth-reconciler.test.js tests/cli-ready-truth.test.js tests/context-truth-pregate.test.js",
+      "tests": 18,
+      "passed": 18,
+      "failed": 0
+    },
+    "supplied_full_suite": {
+      "runtime": "Windows Node 25.2.1",
+      "tests": 824,
+      "passed": 821,
+      "failed": 0,
+      "skipped": 3,
+      "independently_rerun": false
+    },
+    "package": {
+      "command": "npm pack --dry-run --json",
+      "entries": 240,
+      "tests_packaged": false,
+      "test_signer_packaged": false,
+      "production_truth_files": [
+        "lib/truth-authority.js",
+        "lib/truth-mutation.js",
+        "lib/truth-reconciler.js"
+      ]
+    },
+    "direct_probes": [
+      {
+        "name": "worker-visible signing surface",
+        "result": "pass",
+        "evidence": "No target file contained private JWK material or truth-authority-private naming; production exports omit PRIVATE_KEY_RELATIVE_PATH, createTruthAuthorityReceipt, ensureTruthAuthority, loadPrivateKey, and privateKeyPath; production source contains no generateKeyPairSync, createPrivateKey, crypto.sign, or private-key path."
+      },
+      {
+        "name": "same-receipt concurrency",
+        "result": "pass",
+        "evidence": "Independent focused test produced exactly one accepted append and one rejection for concurrent submissions of the same receipt."
+      },
+      {
+        "name": "cross-repository receipt replay",
+        "result": "pass",
+        "evidence": "A receipt bound to repository A was rejected by repository B sharing the same public key but carrying a different repository_id."
+      },
+      {
+        "name": "failed bootstrap atomicity",
+        "result": "fail",
+        "evidence": "A deliberately invalid initial signature exited 1 but left .meta-harness, the installed public authority contract, an empty events.jsonl, phase map, repos file, stream files, worker template, and local lock directory."
+      },
+      {
+        "name": "failed bootstrap authority pre-claim",
+        "result": "fail",
+        "evidence": "After a failed bootstrap installed audit:hostile with an invalid receipt, a legitimate retry using audit:legit failed and the hostile repository_id remained stored while the event ledger stayed empty. The retry surfaced MH_INTERNAL instead of an actionable authority mismatch."
+      },
+      {
+        "name": "receipt maximum validity",
+        "result": "fail",
+        "evidence": "A repository-bound receipt with a 31,536,000-second validity window was accepted even though DEFAULT_TTL_SECONDS is 300 and no verifier maximum is enforced."
+      },
+      {
+        "name": "signature algorithm pinning",
+        "result": "fail",
+        "evidence": "The structured authority validator accepted an RSA public JWK. The v2 receipt schema has no algorithm field and the design lineage describes Ed25519 authority, so algorithm behavior has silently become key-type dependent."
+      },
+      {
+        "name": "quality ratchet",
+        "result": "fail",
+        "evidence": "Independent meta-harness quality check exited 1: lib/truth-authority.js is 407/400 lines; tests/cli-truth.test.js is 322/300 lines; tests/meta-harness-decisions.test.js grew 335->337; tests/sync-check.test.js grew 310->313. The 28/25 public command count remains warning-only."
+      }
+    ]
+  },
+  "closed_findings": [
+    {
+      "id": "S001-AUTH-001",
+      "status": "closed by S-001R2",
+      "evidence": "Production and package are verifier-only; a same-user worker with target/package read access has no product signing capability."
+    },
+    {
+      "id": "S001-PROJ-001",
+      "status": "closed",
+      "evidence": "Complete normalized status projection is compared exactly; duplicate, missing, reordered, extra, and stale content block."
+    },
+    {
+      "id": "S001-PROJ-002",
+      "status": "closed",
+      "evidence": "Unsupported inferred status sections remain removed and worker evidence does not enter canonical status."
+    },
+    {
+      "id": "S001-RECOVERY-001",
+      "status": "closed",
+      "evidence": "Authorized append-only reconciliation names the exact unresolved canonical event digest set."
+    },
+    {
+      "id": "S001-GATE-001",
+      "status": "closed",
+      "evidence": "Truth-blocked public context commands exit non-zero without scoring or override."
+    }
+  ],
+  "findings": [
+    {
+      "id": "S001R2-BOOT-001",
+      "severity": "high",
+      "title": "Rejected init is not atomic and can pre-claim repository authority",
+      "evidence": [
+        "lib/commands/init.js calls ensureHarness and writes starter files before validating the initial authority receipt.",
+        "lib/commands/init.js installs the public authority contract before appendCanonicalReceipt performs signature, repository, prior-state, expiry, and simulation validation.",
+        "Independent invalid-signature probe left a populated harness, installed authority contract, and empty ledger.",
+        "A later legitimate initialization with a different authority failed while the first rejected authority contract remained installed."
+      ],
+      "impact": "A failed or hostile bootstrap can leave a repository in an authority-preclaimed partial state. The reported guarantee that rejected init leaves no partial harness is false, and recovery is not a clean retry with the intended authority.",
+      "required_repair": "Validate the structured authority document, exact Ed25519 public-key contract, initial v2 snapshot receipt, repository binding, signature, receipt window, proposal, and empty-ledger precondition before any target write. Materialize the complete initial harness through a staged atomic promotion, or remove every created path on failure while proving a byte-identical pre-call tree. A rejected init must leave no .meta-harness and no authority claim."
+    },
+    {
+      "id": "S001R2-TTL-001",
+      "severity": "medium",
+      "title": "Verifier does not enforce a maximum receipt lifetime",
+      "evidence": [
+        "lib/truth-authority.js exports DEFAULT_TTL_SECONDS=300 but validation checks only issued_at < expires_at and current inclusion in the window.",
+        "Independent probe submitted and accepted a one-year receipt."
+      ],
+      "impact": "An exact but unused receipt can remain a bearer authority capability far longer than the stated default, increasing exposure and making the expiry bound policy-dependent but undocumented.",
+      "required_repair": "Enforce an explicit versioned maximum validity interval in receipt validation. Prefer the existing 300-second bound unless the external authority contract declares a smaller supported value."
+    },
+    {
+      "id": "S001R2-ALG-001",
+      "severity": "medium",
+      "title": "Authority schema does not pin Ed25519 or declare algorithm agility",
+      "evidence": [
+        "validatePublicJwk rejects private material but accepts any JWK that crypto.createPublicKey can load.",
+        "Independent probe installed an RSA authority contract successfully.",
+        "Receipt schema v2 carries no signature algorithm field while the governing authority design was introduced as Ed25519."
+      ],
+      "impact": "Signature semantics and security level silently depend on JWK type and runtime behavior, weakening deterministic cross-runtime verification and creating undocumented design drift.",
+      "required_repair": "For the current schema, require an exact public Ed25519 JWK contract: kty=OKP, crv=Ed25519, public x present, private d absent. Introduce a new schema only if algorithm agility later becomes a proven requirement."
+    },
+    {
+      "id": "S001R2-QUALITY-001",
+      "severity": "high",
+      "title": "The candidate fails its own static quality ratchet",
+      "evidence": [
+        "Independent ready --quick --read-only reports MH_QUALITY_001 fail, not the claimed pass.",
+        "lib/truth-authority.js is a new 407-line implementation module against a 400-line budget.",
+        "tests/cli-truth.test.js is a new 322-line test module against a 300-line budget.",
+        "Grandfathered tests/meta-harness-decisions.test.js grew from 335 to 337 lines and tests/sync-check.test.js grew from 310 to 313.",
+        "The public CLI command count 28>25 is warning-only and is not the cause of the failure."
+      ],
+      "impact": "The supplied readiness and quality evidence is inaccurate, the candidate cannot pass MH_QUALITY_001 in the current checkout, and integration would require either hidden baseline relaxation or a small cleanup.",
+      "required_repair": "Keep the repair local: reduce or extract at least seven lines from lib/truth-authority.js, split tests/cli-truth.test.js into focused bootstrap/mutation files, and remove the 2/3-line grandfathered growth. Do not refresh the quality baseline merely to admit the candidate and do not start a mass decomposition program."
+    },
+    {
+      "id": "S001R2-PLAN-001",
+      "severity": "high",
+      "title": "G-001 is ordered before the artifact it requires exists",
+      "evidence": [
+        "The current public authority file is an untracked legacy raw JWK with repository_id=null.",
+        "New canonical mutations reject legacy v1 receipts and require a structured repository-bound v2 authority contract.",
+        "G-001 requires a clean checkout with a tracked structured verifier contract, but INTEGRATE-S001 is currently the gate that creates the reviewable candidate and tracks that contract."
+      ],
+      "impact": "The stated forward plan cannot be executed in order without either mutating the dirty checkout ad hoc or claiming a clean/check-outable candidate that does not exist.",
+      "required_repair": "Split integration into candidate isolation before G-001 and final integration after G-001: first reconcile upstream and create a named reviewable candidate containing the structured public contract and legacy-readable evidence; then run G-001 in a fresh checkout; then commit the accepted signed event/status and merge/package."
+    }
+  ],
+  "non_blocking_observations": [
+    {
+      "id": "S001R2-TAIL-001",
+      "severity": "medium residual risk",
+      "observation": "A filesystem/Git writer can still delete a signed ledger tail and refresh to an older valid snapshot. Keep this in candidate/integration custody through clean Git state, exact-head checks, and controller write isolation; do not build a database now."
+    },
+    {
+      "id": "S001R2-SCOPE-001",
+      "severity": "roadmap drift",
+      "observation": "Moving CANONICAL_PHASES and a role-permission mapping into a contract kernel is not required to close authority, bootstrap, custody, or the first real coding loop. Remove it from INTEGRATE-S001 unless a concrete integration failure proves it necessary."
+    },
+    {
+      "id": "S001R2-G001-FAILURE",
+      "severity": "contingency",
+      "observation": "If the matching external private capability cannot be proven at G-001, do not build recovery infrastructure. Use a human-authorized one-way authority-epoch migration that preserves the D078 ledger as historical evidence and starts a new structured verifier epoch under a new external key. Implement this only if G-001 actually fails."
+    }
+  ],
+  "scorecard": {
+    "scale": "0-10",
+    "product_progress": 4.0,
+    "shipping_readiness": 3.5,
+    "intent_alignment": 7.5,
+    "functional_completeness": 7.0,
+    "evidence_confidence": 9.5,
+    "process_quality": 8.0,
+    "global_integrity": 6.0,
+    "knowledge_application": 3.0,
+    "human_friction": 3.0,
+    "cost_efficiency": 5.5,
+    "rework_burden": 4.5,
+    "continuity_confidence": 4.5,
+    "overall": 5.4,
+    "change_from_prior": "+0.6",
+    "note": "The score rises because the critical worker-accessible signing capability is independently closed. It remains below acceptance because bootstrap can pre-claim authority, the quality ratchet fails, G-001 continuity is unproven, the candidate is not check-outable, and no real product slice has reached merged/package state."
+  },
+  "intent_deviation": {
+    "status": "explicit bounded deviation; original intent unchanged",
+    "aligned": [
+      "Verifier-only authority borrows the external security principal instead of building an internal vault or signer daemon.",
+      "The implementation deletes compatibility signing paths rather than retaining a legacy fallback.",
+      "The repair is evidence-driven and remains ahead of multi-agent or learning work.",
+      "Independent audit was preserved before integration or canonical acceptance."
+    ],
+    "deviations": [
+      "Atomicity claim drift: implementation evidence says rejected init leaves no partial harness, but the public command writes substantial state before receipt validation.",
+      "Quality evidence drift: implementation evidence reports a passing ratchet and only the command-count warning, while independent MH_QUALITY_001 fails on four file-budget deltas.",
+      "Gate-order drift: G-001 was placed before the clean tracked candidate it requires.",
+      "Algorithm drift: the Ed25519 design silently became generic JWK-dependent verification.",
+      "Scope drift risk: contract-kernel extraction was added to integration without an observed blocker.",
+      "Completion remains internal: the repository is dirty, behind upstream, uncommitted, and no real non-fixture product outcome has shipped."
+    ]
+  },
+  "alternatives": [
+    {
+      "option": "Accept S-001R2 now and proceed directly to G-001",
+      "decision": "rejected",
+      "reason": "Bootstrap authority can be pre-claimed by a failed init, and G-001 lacks a clean tracked candidate."
+    },
+    {
+      "option": "Build a vault, signer service, keychain adapter, or recovery framework",
+      "decision": "rejected",
+      "reason": "This increases governance gravity, human friction, and attack surface before the first real coding loop."
+    },
+    {
+      "option": "Repair bootstrap in place, isolate a named upstream-based candidate, run G-001 in a fresh checkout, then integrate",
+      "decision": "selected",
+      "reason": "This is the smallest enforceable path that preserves verifier-only authority and reaches the real functional loop."
+    },
+    {
+      "option": "Skip G-001 and treat tests as authority continuity proof",
+      "decision": "rejected",
+      "reason": "Test keys do not prove continuity of the current repository authority capability."
+    }
+  ],
+  "roadmap_revision": {
+    "principle": "Close the one proven bootstrap defect, make the candidate check-outable before asking for external custody proof, then integrate and immediately execute the first real coding loop.",
+    "ordered_gates": [
+      {
+        "order": 1,
+        "slice": "S-001R2",
+        "name": "Atomic verifier-only bootstrap repair",
+        "exit": "All authority and receipt validation occurs before target writes; invalid init leaves a byte-identical pre-call tree; Ed25519 and maximum receipt lifetime are explicit; verifier-only, replay, repository binding, exact projection, recovery, and non-zero blocks remain green; MH_QUALITY_001 passes without a baseline refresh or broad refactor."
+      },
+      {
+        "order": 2,
+        "gate": "CANDIDATE-S001",
+        "name": "Upstream-aware candidate isolation",
+        "exit": "Reconcile origin/main 0791efa without losing unrelated work; create one named reviewable commit containing S-001R2, a structured tracked public authority contract using the existing public key, and the legacy-readable signed event/status evidence; fresh checkout contains no private material and validates read-only."
+      },
+      {
+        "order": 3,
+        "gate": "G-001",
+        "name": "External authority continuity proof",
+        "exit": "In a fresh checkout of CANDIDATE-S001, the matching external capability produces one repository-bound short-lived receipt; event --canonical accepts it exactly once; private material never enters target, package, logs, or evidence. If the matching capability is unavailable, stop and request a human authority-epoch migration decision."
+      },
+      {
+        "order": 4,
+        "gate": "INTEGRATE-S001",
+        "name": "Final truth integration",
+        "exit": "Commit the exact G-001 signed event and status on the reviewed candidate; pass the full supported-runtime suite, package proof, diff/security checks, fresh-checkout validation, and independent acceptance; merge and package the slice."
+      },
+      {
+        "order": 5,
+        "slice": "S-006M",
+        "name": "First real single-worker coding loop",
+        "exit": "One non-fixture product change completes frozen audit, verbatim intent reread, three alternatives, bounded RunSpec, existing execution custody, independent audit, canonical disposition, merge, and package."
+      },
+      {
+        "order": 6,
+        "gate": "OBSERVED-BLOCKER-ONLY",
+        "name": "Evidence-led enabling work",
+        "exit": "Add only the smallest continuity, research, projection, custody, or PM-control change that a real active slice proves is blocking shipment."
+      }
+    ],
+    "removed_from_active_path": [
+      "Contract-kernel extraction of CANONICAL_PHASES or role permissions without an observed blocker.",
+      "Internal key vault, signer daemon, keychain adapter, generic credential framework, or custom append-only database.",
+      "Standalone projection, corpus, broad handoff/resume, learning, or multi-agent programs before S-006M."
+    ]
+  },
+  "next_gate": {
+    "action": "Repair S-001R2 bootstrap atomicity and authority-contract bounds only. Do not start G-001, upstream candidate isolation, contract-kernel refactoring, or S-006M in parallel.",
+    "required_tests": [
+      "invalid public document leaves the entire target tree unchanged",
+      "invalid key algorithm leaves the entire target tree unchanged",
+      "invalid, expired, overlong, wrong-repository, wrong-prior, non-snapshot, or tampered initial receipt leaves the entire target tree unchanged",
+      "failed bootstrap cannot pre-claim authority and a legitimate retry succeeds",
+      "authority mismatch is a stable actionable MH_TRUTH_AUTHORITY error, not MH_INTERNAL",
+      "valid bootstrap produces the exact expected harness atomically",
+      "existing verifier-only, package, replay, cross-repository, exact projection, recovery, and fail-closed tests remain green",
+      "MH_QUALITY_001 passes by bounded file cleanup, without baseline refresh"
+    ],
+    "stop_criteria": "No S-001R2 acceptance, G-001 execution, candidate integration, score inflation beyond this audit, or roadmap advance until the high bootstrap finding is closed and independently re-audited."
+  }
+}

@@ -43,112 +43,46 @@ function findRow(rows, pattern) {
   return row;
 }
 
-test("status records D076 installed-package closure and the frozen release gate", () => {
+test("status records the signed D078 S-001R cutover while D077 and D076 remain historical evidence", () => {
   const status = read(".meta-harness/status.md");
   const goal = section(status, "Goal");
+  const phase = section(status, "Phase");
   const currentTruth = section(status, "Current truth");
-  const lastVerified = section(status, "Last verified");
   const nextAction = section(status, "Next action");
+  const stopCriteria = section(status, "Stop criteria");
+  const decisionLog = read("docs/product/decision-log.md");
+  const runtimeHistory = read("docs/product/runtime-authority-architecture.md");
+  const events = read(".meta-harness/events.jsonl").trim().split(/\r?\n/).map((line) => JSON.parse(line));
+  const d077Snapshot = events.findLast((event) => event.truth_snapshot === true && event.authority === "D077");
+  const d078Snapshot = events.findLast((event) => event.truth_snapshot === true && event.authority === "D078");
+  const signedCutover = events.findLast((event) => event.authority_receipt?.receipt_id === "D078-S001R-SIGNED-CUTOVER");
 
-  assert.match(goal, /D076 is closed under immutable repair candidate `ce02548/i);
-  assert.match(goal, /tree `9dbd5dd7/i);
-  assert.match(goal, /closure commit `68932804/i);
-  assert.match(goal, /Release preparation is now bounded to `0\.2\.0`/i);
-  assert.match(goal, /secret scanning and push protection are enabled/i);
-  assert.match(goal, /CodeQL default setup passed/i);
-  assert.match(goal, /sole high alert is fixed locally under `2fc3206`/i);
-  assert.match(goal, /Feature development remains frozen/i);
-  assert.match(goal, /branch protection/i);
-  assert.match(goal, /DELETE remains unauthorized/i);
+  assert.match(goal, /Close S-001R/i);
+  assert.match(goal, /ship one real non-fixture coding loop/i);
+  assert.match(phase, /verify/i);
+  assert.match(currentTruth, /S-001R is implemented in the authorized dirty worktree and remains under verification/i);
+  assert.match(currentTruth, /Signed reconciliation rejects the legacy unsigned canonical snapshots/i);
+  assert.match(currentTruth, /exact status projection/i);
+  assert.doesNotMatch(status, /Last verified:/i);
+  assert.ok(d077Snapshot);
+  assert.ok(d078Snapshot);
+  assert.match(d078Snapshot.evidence, /s001-independent-audit\.json/i);
+  assert.match(d078Snapshot.evidence, /intent-v1 sha256/i);
+  assert.ok(signedCutover);
+  assert.equal(signedCutover.truth_reconciliation, true);
+  assert.equal(signedCutover.authority_receipt.capability, "canonical_truth_mutation");
+  assert.equal(signedCutover.authority_receipt.proposal.decision, "D078");
+  assert.equal(signedCutover.rejected_event_digests.length, 4);
+  assert.match(nextAction, /complete supported-runtime suite and independent adversarial audit/i);
+  assert.match(nextAction, /do not integrate or start S-006M before acceptance/i);
+  assert.match(stopCriteria, /every critical and high D078 finding passes independent review/i);
+  assert.doesNotMatch(nextAction, /create a new exact `0\.2\.0` candidate/i);
 
-  assert.match(currentTruth, /D075 is closed under exact immutable candidate `cd63e5295b8bbde1afaf1ab5d991aadc13cc0442`/i);
-  assert.match(currentTruth, /tree `5b15623e7646da18e2417bd38767ff3f5be54547`/i);
-  assert.match(currentTruth, /internal\/execution-custody\/operator\.js/i);
-  assert.match(currentTruth, /exact request bytes/i);
-  assert.match(currentTruth, /create-only `operator-receipt\.json`/i);
-  assert.match(currentTruth, /intentionally unregistered/i);
-  assert.match(currentTruth, /113 files with zero failures/i);
-  assert.match(currentTruth, /d075-devspace-01/i);
-  assert.match(currentTruth, /child `47c0d016`/i);
-  assert.match(currentTruth, /d075-fluxara-01/i);
-  assert.match(currentTruth, /child `c0032669`/i);
-  assert.match(currentTruth, /Python 3\.14\.4/i);
-  assert.match(currentTruth, /d075-private-operator-closure-audit\.json/i);
-  assert.match(currentTruth, /D076 is closed under exact repair candidate `ce02548/i);
-  assert.match(currentTruth, /Candidate one `5a41b52`/i);
-  assert.match(currentTruth, /core\.longpaths=true/i);
-  assert.match(currentTruth, /115 native Windows files/i);
-  assert.match(currentTruth, /3f54e3ec4c5aabfd494d5c999de02087a26ce8c4fe2e49a6067416167d6c6b95/i);
-  assert.match(currentTruth, /VERIFIED child `350bf855`/i);
-  assert.match(currentTruth, /2687b4ef286827defe4899c67ab35e0b814d77e3ef4b2c22c1450ea0827c1c07/i);
-  assert.match(currentTruth, /d076-installed-package-execution-closure-audit\.json/i);
-  assert.match(currentTruth, /D076 release preparation is active without feature expansion/i);
-  assert.match(currentTruth, /7a28690d7227d669178f939eb87f1de0754f2d70e450a490873f6b528d4bd9d0/i);
-  assert.match(currentTruth, /release version `0\.2\.0` is selected/i);
-  assert.match(currentTruth, /Release mechanics commit `eaf7ed9`/i);
-  assert.match(currentTruth, /Failed immutable candidates `2a190dd`, `8676afd`, pushed `be6eb58`, pushed `a05fcc5`, and pushed `3482db0` remain preserved/i);
-  assert.match(currentTruth, /`3482db0` passed all 116 local native files in 224\.9 seconds/i);
-  assert.match(currentTruth, /remote Linux Node tests, Semgrep, CodeQL/i);
-  assert.match(currentTruth, /Hosted Windows reached production judge Git discovery/i);
-  assert.match(currentTruth, /long `runneradmin` Git root and equivalent 8\.3 `RUNNER~1` target/i);
-  assert.match(currentTruth, /existing-directory ancestors for repository containment/i);
-  assert.match(currentTruth, /complete 116-file native Windows worktree suite in 212\.5 seconds/i);
-
-  assert.match(lastVerified, /Exact D075 candidate `cd63e5295/i);
-  assert.match(lastVerified, /113 files, zero failures, exit 0/i);
-  assert.match(lastVerified, /d075-devspace-01-cd63e52/i);
-  assert.match(lastVerified, /47c0d01671d6d69a9a9cc3f097f99ce9300fb74e/i);
-  assert.match(lastVerified, /a4a3b98545aaf9a96d0c59e9625bb51f7e6135b1c90394583873a5ad39d75e81/i);
-  assert.match(lastVerified, /d075-fluxara-01-cd63e52/i);
-  assert.match(lastVerified, /c00326698c19e7cc096f45eca78ea0b54bb8e535/i);
-  assert.match(lastVerified, /5c659e24181121e0af2a647b19e129ab2e3b7725f0d9ad365055b4de7d28b68d/i);
-  assert.match(lastVerified, /D076 candidate one `5a41b52/i);
-  assert.match(lastVerified, /Repair candidate `ce02548/i);
-  assert.match(lastVerified, /115 native Windows Node/i);
-  assert.match(lastVerified, /234 entries/i);
-  assert.match(lastVerified, /request SHA-256 `aa98fdf/i);
-  assert.match(lastVerified, /VERIFIED child `350bf855/i);
-  assert.match(lastVerified, /source HEAD, tree, and 141-line dirty status digest remained unchanged/i);
-  assert.match(lastVerified, /Exact closure commit `68932804/i);
-  assert.match(lastVerified, /7a28690d7227d669178f939eb87f1de0754f2d70e450a490873f6b528d4bd9d0/i);
-  assert.match(lastVerified, /`eaf7ed9` selected `0\.2\.0`/i);
-  assert.match(lastVerified, /`4fedec9` refreshed the D076 quality baseline/i);
-  assert.match(lastVerified, /`2fc3206` fixed the sole CodeQL high alert locally/i);
-  assert.match(lastVerified, /Immutable release candidate `2a190dd60a3db87660dbaf5b54cbbece5a3121ed`/i);
-  assert.match(lastVerified, /failed range 1–25/i);
-  assert.match(lastVerified, /seven-file test-only repair/i);
-  assert.match(lastVerified, /passes 26 focused tests/i);
-  assert.match(lastVerified, /Pushed replacement candidate `8676afdbfdcab867957ef54cd0c4d5589566aa5a`/i);
-  assert.match(lastVerified, /98da57b61c0f19d7cd1911ef0c334923b0bbf556d5eca1bbaf2f023cfd410b65/i);
-  assert.match(lastVerified, /Windows job `87188764743` failed only/i);
-  assert.match(lastVerified, /first bounded repair serialized judge/i);
-  assert.match(lastVerified, /Pushed candidate `be6eb5801a802564b856b01dcd0d6d2b4ac10bce`/i);
-  assert.match(lastVerified, /53cca518b6268335ce37ff374af52afc467ddc79c87c321fb0119a0011caaa5d/i);
-  assert.match(lastVerified, /Windows job `87195842327` failed only `judge\.test\.js`/i);
-  assert.match(lastVerified, /JUDGE_INPUT_TARGET_NOT_GIT/i);
-  assert.match(lastVerified, /literal 116-file native Windows worktree suite with zero failures in 204\.5 seconds/i);
-  assert.match(lastVerified, /Pushed candidate `a05fcc5336dfcc16375f09d6d419de7c2ea3816b`/i);
-  assert.match(lastVerified, /0bffbdc980c373ae037729b46aece3202d2d861964b081b7bf0ee03f7ad6d946/i);
-  assert.match(lastVerified, /Windows job `87279783131` failed only `judge\.test\.js`/i);
-  assert.match(lastVerified, /before production judge execution/i);
-  assert.match(lastVerified, /8\.3 spelling `C:\\Users\\RUNNER~1/i);
-  assert.match(lastVerified, /test-only filesystem-identity repair passes 8 focused tests on native Windows and 8 on Linux/i);
-  assert.match(lastVerified, /Pushed candidate `3482db00186e85fa9508668d19a27888b53a3c4b`/i);
-  assert.match(lastVerified, /acdb0577c114045623845ab1ab6f7fb717c47041558c2474fbc19035bf7ac9f3/i);
-  assert.match(lastVerified, /Windows job `87282458170` failed only `judge\.test\.js`/i);
-  assert.match(lastVerified, /after Git discovery succeeded/i);
-  assert.match(lastVerified, /alias-safe existing-directory containment repair passes 9 focused tests/i);
-  assert.match(lastVerified, /zero failures in 212\.5 seconds/i);
-
-  assert.match(nextAction, /Keep feature development frozen/i);
-  assert.match(nextAction, /Bank the alias-safe repository-containment repair and `3482db0` failure truth/i);
-  assert.match(nextAction, /create a new exact `0\.2\.0` candidate/i);
-  assert.match(nextAction, /CI\/Semgrep\/CodeQL success/i);
-  assert.match(nextAction, /enable branch protection/i);
-  assert.match(nextAction, /create and verify `v0\.2\.0`/i);
-  assert.match(nextAction, /release check --publish/i);
-  assert.match(nextAction, /Do not start DELETE or another functional phase/i);
-  assert.doesNotMatch(nextAction, /force(?:-|\s)?push/i);
+  assert.match(decisionLog, /## D078: Reject S-001 Closure and Restore Functional-First Order/i);
+  assert.match(decisionLog, /## D077: Lock Solo Developer\/Researcher Endgame/i);
+  assert.match(decisionLog, /D068–D076 execution-authority and custody results remain frozen lower-layer evidence/i);
+  assert.match(runtimeHistory, /D076/i);
+  assert.match(runtimeHistory, /ce02548/i);
 });
 
 test("CI and active runtime identities are phase-neutral", () => {
@@ -830,7 +764,7 @@ test("D076 installed functional-slice audit binds the candidate-ready package an
   assert.equal(audit.remainingGate.featureExpansionAuthorized, false);
   assert.equal(audit.remainingGate.deleteAuthorized, false);
 
-  assert.equal(events.length, 68);
+  assert.equal(events.indexOf(event) < 68, true);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1056,7 +990,7 @@ test("D076 closure audit binds the repaired candidate, installed live chain, and
   assert.equal(audit.claims.deleteAuthorized, false);
   assert.equal(audit.claims.publishAuthorizedBeforeReleasePolicyPass, false);
 
-  assert.equal(events.length, 68);
+  assert.equal(events.indexOf(event) < 68, true);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1136,7 +1070,7 @@ test("D076 release-preparation audit binds 0.2.0, security hardening, and the re
   assert.equal(audit.remainingGate.featureExpansionAuthorized, false);
   assert.equal(audit.remainingGate.deleteAuthorized, false);
 
-  assert.equal(events.length, 68);
+  assert.equal(events.indexOf(event) < 68, true);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1206,7 +1140,7 @@ test("D076 failed release candidate preserves immutable evidence and authorizes 
   assert.equal(audit.remainingGate.branchProtectionRequired, true);
   assert.equal(audit.remainingGate.tagAndPublishRequired, true);
 
-  assert.equal(events.length, 68);
+  assert.equal(events.indexOf(event) < 68, true);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1291,7 +1225,7 @@ test("D076 pushed release candidate preserves Windows CI failure and authorizes 
   assert.match(installedTest, /sourceCheckoutSentinel/);
   assert.match(installedTest, /assertTextAbsent/);
 
-  assert.equal(events.length, 68);
+  assert.equal(events.indexOf(event) < 68, true);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1390,7 +1324,7 @@ test("D076 be6eb58 candidate preserves hosted-Windows Git discovery failure and 
   assert.match(judgeTest, /const discovered = run\(root, "git", \["rev-parse", "--show-toplevel"\]\)/);
   assert.match(judgeTest, /JSON\.stringify\(result, null, 2\)/);
 
-  assert.equal(events.length, 68);
+  assert.equal(events.indexOf(event) < 68, true);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1489,7 +1423,7 @@ test("D076 a05fcc5 candidate preserves hosted-Windows path-alias failure and aut
   assert.match(judgeTest, /assert\.equal\(discoveredStat\.ino, rootStat\.ino\)/);
   assert.doesNotMatch(judgeTest, /assert\.equal\(fs\.realpathSync\(discovered\), fs\.realpathSync\(root\)\)/);
 
-  assert.equal(events.length, 68);
+  assert.equal(events.indexOf(event) < 68, true);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");
@@ -1594,7 +1528,7 @@ test("D076 3482db0 candidate preserves hosted-Windows alias-containment failure 
   assert.match(judgeTest, /existing-directory containment uses filesystem identity across ancestors/);
   assert.match(judgeTest, /isInsideExistingDirectory\(root, outside\), false/);
 
-  assert.equal(events.length, 68);
+  assert.equal(events.indexOf(event) < 68, true);
   assert.equal(event.ts, audit.auditedAt);
   assert.equal(event.time, audit.auditedAt);
   assert.equal(event.decision, "D076");

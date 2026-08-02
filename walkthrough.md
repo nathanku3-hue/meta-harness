@@ -1,5 +1,7 @@
 # Walkthrough: Phase 11 and Phase 12 Integration
 
+> **Historical walkthrough:** retained as evidence of completed phase-era work. It does not define current direction after D077. See `docs/product/product-intent.md`, `docs/product/problem-questions.md`, and `docs/product/roadmap.md`.
+
 We have imported the done-done artifacts for Phase 11 (domain governance validation gate) and Phase 12 (local governed skill lifecycle) from the local ZIP files, rebased/merged them on top of `main` (which already included Phase 8), resolved the merge conflicts, ran all verification tests, and merged the PRs to main on GitHub.
 
 In addition, we have resolved the document consistency fixes to achieve final "done-done" status.

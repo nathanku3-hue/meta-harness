@@ -15,6 +15,7 @@ const READY_JSON_CHECK_IDS = Object.freeze([
   "MH_TRUST_001",
   "MH_CONTRACT_001",
   "MH_STATE_001",
+  "MH_TRUTH_001",
   "MH_BRIEF_001",
   "MH_CONTEXT_GATE_001",
   "MH_DECISION_001",
@@ -23,6 +24,7 @@ const READY_JSON_CHECK_IDS = Object.freeze([
   "MH_NPM_SCRIPTS_001",
   "MH_REPRO_001",
   "MH_STATE_ROOT_LEAK_001",
+  "MH_WORKTREE_001",
   "MH_GITCHECK_001",
   "MH_PACKAGE_001",
   "MH_GITHUB_SETTINGS_001",
@@ -73,7 +75,6 @@ test("ready command failing scenario (missing templates)", () => {
   assert.match(res.stdout, /FAIL  MH_SYNC_001/);
   assert.match(res.stdout, /Next action:/);
 });
-
 test("ready command JSON output validation", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Ready check JSON target"]);
@@ -118,7 +119,7 @@ test("ready command pregenerated ready.json override", () => {
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 20, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: READY_JSON_CHECK_IDS.length, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks({
       MH_TEST_001: { reason: "overridden test", next_action: "" },
@@ -169,7 +170,7 @@ test("stale ready.json is rejected due to git_commit mismatch (non-git target ex
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 20, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: READY_JSON_CHECK_IDS.length, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks()
   }), "utf8");
@@ -204,7 +205,7 @@ test("stale ready.json is rejected due to git_commit mismatch (git target compar
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 20, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: READY_JSON_CHECK_IDS.length, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks()
   }), "utf8");
