@@ -229,6 +229,27 @@ test("post-worker workflow keeps reusable checks read-only and parameterized", (
   assert.match(workflow, /SAW wrapper: PASS/);
 });
 
+test("0.4 publication workflow is one exact OIDC transport without rebuild", () => {
+  const workflow = fs.readFileSync(path.join(ROOT, ".github", "workflows", "publish-0.4.yml"), "utf8");
+  assert.match(workflow, /release:\n\s+types: \[published\]/);
+  assert.match(workflow, /contents: read/);
+  assert.match(workflow, /id-token: write/);
+  assert.match(workflow, /runs-on: ubuntu-24\.04/);
+  assert.match(workflow, /node-version: "24"/);
+  assert.match(workflow, /package-manager-cache: false/);
+  assert.match(workflow, /npm install --global npm@11\.16\.0/);
+  assert.match(workflow, /release intent verify --from-env --json/);
+  assert.match(workflow, /release publish --from-env --json/);
+  assert.match(workflow, /publication-observation\.json/);
+  assert.match(workflow, /actions\/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5/);
+  assert.match(workflow, /actions\/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e/);
+  assert.match(workflow, /actions\/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02/);
+  assert.doesNotMatch(workflow, /npm pack/);
+  assert.doesNotMatch(workflow, /npm ci/);
+  assert.doesNotMatch(workflow, /npm run build/);
+  assert.doesNotMatch(workflow, /secrets\./);
+});
+
 test("sync check CLI reports match and drift without writing", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Sync check target"]);

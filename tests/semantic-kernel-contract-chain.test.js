@@ -71,6 +71,11 @@ const {
   validatePublicationObservation,
 } = require("../lib/semantic-kernel/publication");
 const {
+  computePublicationAssetManifestDigest,
+  createPublicationIntent,
+  validatePublicationIntent,
+} = require("../lib/semantic-kernel/publication-intent");
+const {
   computePackageMetadataDigest,
   computePacklistDigest,
   verifyPreterminal,
@@ -194,6 +199,7 @@ function makeAuthorization(owner, changes = {}) {
         "MECHANICS_ASSESS",
         "PACKAGE_FREEZE",
         "PROOF_EXECUTE",
+        "PUBLICATION_AUTHORIZE",
         "REVIEW_ORCHESTRATE",
         "RUN_SPEC_SEAL",
         "SLICE_ACTIVATE",
@@ -243,6 +249,11 @@ function makeAuthorization(owner, changes = {}) {
       publishExactTerminalTarballOnly: true,
       maxPublicationAttempts: 1,
       publishBy: "2026-08-02T16:00:00.000Z",
+      trustedPublisher: {
+        provider: "github-actions",
+        repository: "nathanku3-hue/meta-harness",
+        workflowFilename: "publish-0.4.yml",
+      },
       canonicalUpdatePolicyDigest: digest("canonical-update-policy"),
     },
   };
@@ -529,6 +540,58 @@ function makeTerminal(authorization, integrated, packageCandidate, releaseCandid
   };
   draft.terminalAssessmentDigest = computeTerminalSliceAssessmentDigest(draft);
   return draft;
+}
+
+function makePublicationIntent(chain) {
+  const assets = [
+    { role: "black-box-proof", filename: "black-box-proof.json", sha256: digest("asset-proof"), bytes: 100 },
+    { role: "integrated-candidate", filename: "integrated-candidate.json", sha256: digest("asset-integrated"), bytes: 100 },
+    { role: "mechanics-assessment", filename: "mechanics-assessment.json", sha256: digest("asset-mechanics"), bytes: 100 },
+    { role: "owner-pin", filename: "owner-pin.json", sha256: digest("asset-owner-pin"), bytes: 100 },
+    { role: "package-candidate", filename: "package-candidate.json", sha256: digest("asset-package"), bytes: 100 },
+    { role: "release-candidate", filename: "release-candidate.json", sha256: digest("asset-release"), bytes: 100 },
+    { role: "reviewer-assessment", filename: "review-custody.json", sha256: digest("asset-review-custody"), bytes: 100 },
+    { role: "reviewer-assessment", filename: "review-domain.json", sha256: digest("asset-review-domain"), bytes: 100 },
+    { role: "reviewer-assessment", filename: "review-product.json", sha256: digest("asset-review-product"), bytes: 100 },
+    { role: "run-spec", filename: "run-spec.json", sha256: digest("asset-run-spec"), bytes: 100 },
+    { role: "slice-authorization", filename: "slice-authorization.json", sha256: digest("asset-authorization"), bytes: 100 },
+    {
+      role: "tarball",
+      filename: "nkgss-meta-harness-0.4.0.tgz",
+      sha256: chain.releaseCandidate.tarballDigest,
+      bytes: chain.packageCandidate.tarballByteLength,
+    },
+    { role: "terminal-assessment", filename: "terminal-assessment.json", sha256: digest("asset-terminal"), bytes: 100 },
+  ];
+  return createPublicationIntent({
+    sliceAuthorization: chain.authorization,
+    packageCandidate: chain.packageCandidate,
+    releaseCandidate: chain.releaseCandidate,
+    terminalAssessment: chain.terminal,
+    terminalStateDigest: digest("terminal-state"),
+    terminalOperationEventHead: digest("terminal-operation-head"),
+    publicationAttemptOrdinal: 1,
+    assetManifest: {
+      assets,
+      assetManifestDigest: computePublicationAssetManifestDigest(assets),
+    },
+    issuedAt: "2026-07-30T17:45:00.000Z",
+  });
+}
+
+function githubTransport(chain) {
+  return {
+    provider: "github-actions",
+    repository: chain.authorization.publicationPolicy.trustedPublisher.repository,
+    workflowFilename: chain.authorization.publicationPolicy.trustedPublisher.workflowFilename,
+    workflowRef: "nathanku3-hue/meta-harness/.github/workflows/publish-0.4.yml@refs/heads/main",
+    runId: "12345",
+    runAttempt: "1",
+    eventName: "release",
+    releaseId: 98765,
+    releaseTag: chain.releaseCandidate.gitTag,
+    githubSha: chain.releaseCandidate.gitTagTargetRevision,
+  };
 }
 
 function buildValidChain() {
@@ -864,6 +927,7 @@ test("candidate mutation advances generation and invalidates earlier terminal ev
     releaseCandidateDigest: chain.releaseCandidate.releaseCandidateDigest,
     certificationCandidateDigest: null,
     terminalAssessmentDigest: chain.terminal.terminalAssessmentDigest,
+    publicationIntentDigest: null,
     publicationObservationDigest: null,
     priorStateDigest: digest("prior-state"),
     supersedesGenerationDigest: null,
@@ -883,6 +947,7 @@ test("candidate mutation advances generation and invalidates earlier terminal ev
     releaseCandidateDigest: null,
     certificationCandidateDigest: null,
     terminalAssessmentDigest: null,
+    publicationIntentDigest: null,
     publicationObservationDigest: null,
     priorStateDigest: prior.stateDigest,
     supersedesGenerationDigest: prior.stateDigest,
@@ -1066,8 +1131,11 @@ test("pre-terminal and publication verification perform zero npm pack operations
 
 test("publication command success is non-authoritative without exact registry reconciliation", () => {
   const chain = buildValidChain();
+  const publicationIntent = makePublicationIntent(chain);
+  const transport = githubTransport(chain);
   const verification = {
-    schemaVersion: "release-publication-verification/v1",
+    schemaVersion: "release-publication-intent-verification/v1",
+    publicationIntentDigest: publicationIntent.intentDigest,
     releaseCandidateDigest: chain.releaseCandidate.releaseCandidateDigest,
     tarballDigest: chain.releaseCandidate.tarballDigest,
     tarballIntegrity: chain.releaseCandidate.tarballIntegrity,
@@ -1078,8 +1146,12 @@ test("publication command success is non-authoritative without exact registry re
     targetRoot: process.cwd(),
     tarballPath: "candidate.tgz",
     sliceAuthorization: chain.authorization,
+    packageCandidate: chain.packageCandidate,
     releaseCandidate: chain.releaseCandidate,
+    terminalAssessment: chain.terminal,
+    publicationIntent,
     publicationVerification: verification,
+    transport,
     requestStartedAt: "2026-07-30T18:00:00.000Z",
     observedAt: "2026-07-30T18:01:00.000Z",
     runner(command, args) {
@@ -1100,6 +1172,7 @@ test("publication command success is non-authoritative without exact registry re
     },
   });
   assert.equal(exact.observation.disposition, "PUBLISHED_EXACT");
+  assert.equal(exact.observation.publicationIntentDigest, publicationIntent.intentDigest);
   assert.equal(exact.localPublishTimedOut, true);
   assert.equal(invocation, 2);
 
@@ -1107,8 +1180,12 @@ test("publication command success is non-authoritative without exact registry re
     targetRoot: process.cwd(),
     tarballPath: "candidate.tgz",
     sliceAuthorization: chain.authorization,
+    packageCandidate: chain.packageCandidate,
     releaseCandidate: chain.releaseCandidate,
+    terminalAssessment: chain.terminal,
+    publicationIntent,
     publicationVerification: verification,
+    transport,
     requestStartedAt: "2026-07-30T18:00:00.000Z",
     observedAt: "2026-07-30T18:01:00.000Z",
     runner(command, args) {
@@ -1122,18 +1199,44 @@ test("publication command success is non-authoritative without exact registry re
   assert.equal(unknown.localPublishExitCode, 0);
 });
 
-test("publication closure requires independently observed exact registry integrity", () => {
+test("publication intent is portable, exact, and tamper-sensitive", () => {
   const chain = buildValidChain();
+  const publicationIntent = makePublicationIntent(chain);
+  assert.equal(validatePublicationIntent(publicationIntent, {
+    sliceAuthorization: chain.authorization,
+    packageCandidate: chain.packageCandidate,
+    releaseCandidate: chain.releaseCandidate,
+    terminalAssessment: chain.terminal,
+  }).transport.workflowFilename, "publish-0.4.yml");
+
+  const tampered = clone(publicationIntent);
+  tampered.assets[0].bytes += 1;
+  assert.throws(
+    () => validatePublicationIntent(tampered, {
+      sliceAuthorization: chain.authorization,
+      packageCandidate: chain.packageCandidate,
+      releaseCandidate: chain.releaseCandidate,
+      terminalAssessment: chain.terminal,
+    }),
+    (error) => error.code === "PUBLICATION_ASSET_MANIFEST_DIGEST",
+  );
+});
+
+test("publication closure requires intent-bound GitHub transport and exact registry integrity", () => {
+  const chain = buildValidChain();
+  const publicationIntent = makePublicationIntent(chain);
   const observation = {
-    schemaVersion: "publication-observation/v1",
+    schemaVersion: "publication-observation/v2",
     sliceId: chain.authorization.sliceId,
     generation: 1,
+    publicationIntentDigest: publicationIntent.intentDigest,
     releaseCandidateDigest: chain.releaseCandidate.releaseCandidateDigest,
     registry: chain.releaseCandidate.registry,
     packageName: chain.releaseCandidate.packageName,
     version: chain.releaseCandidate.version,
     requestedTarballDigest: chain.releaseCandidate.tarballDigest,
     requestedTarballIntegrity: chain.releaseCandidate.tarballIntegrity,
+    transport: githubTransport(chain),
     commandIdentityDigest: digest("publish-command"),
     requestStartedAt: "2026-07-30T18:00:00.000Z",
     processExitCode: 0,
@@ -1147,16 +1250,24 @@ test("publication closure requires independently observed exact registry integri
     observationDigest: "pending",
   };
   observation.observationDigest = computePublicationObservationDigest(observation);
-  const validated = validatePublicationObservation(observation, chain.releaseCandidate, chain.authorization);
+  const validated = validatePublicationObservation(
+    observation,
+    publicationIntent,
+    chain.releaseCandidate,
+    chain.authorization,
+    chain.packageCandidate,
+    chain.terminal,
+  );
   assert.equal(validated.disposition, "PUBLISHED_EXACT");
 
   const closure = {
-    schemaVersion: "canonical-closure-projection/v1",
+    schemaVersion: "canonical-closure-projection/v2",
     repositoryId: chain.authorization.repositoryId,
     sliceId: chain.authorization.sliceId,
     generation: 1,
     sliceAcceptanceDigest: chain.terminal.sliceAcceptanceDigest,
     terminalAssessmentDigest: chain.terminal.terminalAssessmentDigest,
+    publicationIntentDigest: publicationIntent.intentDigest,
     releaseCandidateDigest: chain.releaseCandidate.releaseCandidateDigest,
     finalCommit: chain.integrated.finalHeadRevision,
     finalTree: chain.integrated.finalTreeDigest,
@@ -1173,6 +1284,7 @@ test("publication closure requires independently observed exact registry integri
     integratedCandidate: chain.integrated,
     releaseCandidate: chain.releaseCandidate,
     terminalAssessment: chain.terminal,
+    publicationIntent,
     publicationObservation: observation,
   }).closedAt, observation.observedAt);
 
@@ -1180,7 +1292,29 @@ test("publication closure requires independently observed exact registry integri
   localOnly.registryIntegrityObserved = null;
   localOnly.observationDigest = computePublicationObservationDigest(localOnly);
   assert.throws(
-    () => validatePublicationObservation(localOnly, chain.releaseCandidate, chain.authorization),
+    () => validatePublicationObservation(
+      localOnly,
+      publicationIntent,
+      chain.releaseCandidate,
+      chain.authorization,
+      chain.packageCandidate,
+      chain.terminal,
+    ),
     (error) => error.code === "PUBLICATION_EXACT_UNPROVEN",
+  );
+
+  const wrongWorkflow = clone(observation);
+  wrongWorkflow.transport.workflowFilename = "other.yml";
+  wrongWorkflow.observationDigest = computePublicationObservationDigest(wrongWorkflow);
+  assert.throws(
+    () => validatePublicationObservation(
+      wrongWorkflow,
+      publicationIntent,
+      chain.releaseCandidate,
+      chain.authorization,
+      chain.packageCandidate,
+      chain.terminal,
+    ),
+    (error) => error.code === "PUBLICATION_TRANSPORT_BINDING",
   );
 });

@@ -1,0 +1,85 @@
+name: Publish 0.4 exact
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Verify and publish exact terminal tarball
+    if: ${{ github.event.release.tag_name == 'v0.4.0' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact release tag without write credentials
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: refs/tags/${{ github.event.release.tag_name }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js without package-manager cache
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: Pin npm trusted-publishing client
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --global npm@11.16.0
+          test "$(node --version | cut -d. -f1)" = "v24"
+          test "$(npm --version)" = "11.16.0"
+
+      - name: Download exact release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/release-assets"
+          gh release download "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir "$RUNNER_TEMP/release-assets"
+          test -f "$RUNNER_TEMP/release-assets/publication-intent.json"
+
+      - name: Verify portable publication intent
+        shell: bash
+        env:
+          META_HARNESS_PUBLICATION_INTENT: ${{ runner.temp }}/release-assets/publication-intent.json
+          META_HARNESS_PUBLICATION_ASSET_ROOT: ${{ runner.temp }}/release-assets
+        run: |
+          set -euo pipefail
+          node bin/meta-harness.js release intent verify --from-env --json
+
+      - name: Publish once and reconcile registry once
+        shell: bash
+        env:
+          META_HARNESS_PUBLICATION_INTENT: ${{ runner.temp }}/release-assets/publication-intent.json
+          META_HARNESS_PUBLICATION_ASSET_ROOT: ${{ runner.temp }}/release-assets
+          META_HARNESS_PUBLICATION_OBSERVATION_OUTPUT: ${{ runner.temp }}/publication-observation.json
+        run: |
+          set -euo pipefail
+          node bin/meta-harness.js release publish --from-env --json | tee "$RUNNER_TEMP/release-publish-result.json"
+          test -f "$RUNNER_TEMP/publication-observation.json"
+
+      - name: Retain publication observation for canonical closure
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: publication-observation-${{ github.event.release.tag_name }}
+          path: |
+            ${{ runner.temp }}/publication-observation.json
+            ${{ runner.temp }}/release-publish-result.json
+          if-no-files-found: error
+          retention-days: 90

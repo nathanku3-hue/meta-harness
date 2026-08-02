@@ -49,7 +49,7 @@
   ],
   "scripts": {
     "test": "node scripts/run-tests.js",
-    "prepublishOnly": "node bin/meta-harness.js release candidate verify-publication --from-env --json"
+    "prepublishOnly": "node bin/meta-harness.js release intent verify --from-env --json"
   },
   "packageManager": "npm@11.16.0",
   "engines": {
