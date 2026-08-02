@@ -135,3 +135,64 @@ A recommendation must explain how it advances the active intent. A harness-inter
 > Which active product slice cannot ship without this harness change?
 
 If it cannot answer, defer the harness change.
+
+## Owner Amendment — intent-v2-minimal-outcome
+
+Effective date: 2026-08-02
+Status: owner-directed append-only amendment
+
+This amendment does not replace the verbatim original intent. It narrows the operating interpretation to reduce friction, audit gravity, and model-generation-specific scaffolding.
+
+Where this amendment conflicts with earlier operational interpretation, non-negotiables, human-ownership procedure, injection requirements, or approval language, this later owner amendment governs. The verbatim original intent remains unchanged and highest authority.
+
+### Product-first operating model
+
+The normal loop is:
+
+```text
+PLAN -> WORK -> AUDIT -> CLOSE
+```
+
+`RESEARCH` is conditional on one named decision. `RETROSPECT` is event-triggered after closure, route abandonment, repair-budget exhaustion, repeated cross-repository failure, a major model change, or explicit request. `HANDOVER` is generated state, not a reasoning round.
+
+The primary unit of progress is a real Product Episode: a real user in a supported environment completes the declared task, receives an observable result, and can make the next product or domain decision from it.
+
+Acceptance proceeds in this order:
+
+1. Product proof — the real Episode produces a useful and interpretable result.
+2. System proof — the result comes from the intended reusable architecture and preserves critical invariants.
+3. Release proof — the exact artifact installs, publishes, deploys, and rolls back correctly where required.
+
+System and Release proof cannot substitute for missing Product proof.
+
+### Notification-first action policy
+
+Reversible work proceeds automatically and is reported. Routine owner records, hierarchy stamps, reviewer availability, status updates, branch creation, tests, commits, and branch push do not create approval waits.
+
+External or irreversible operations are announced before execution and remain subject to configured technical safety boundaries. Existing user work is never stashed, reset, cleaned, overwritten, force-pushed, or mixed into the active slice.
+
+### Clean isolated execution
+
+The system inspects the repository, preserves the current checkout, creates a clean isolated worktree from the intended base, creates a deterministic slice branch, executes, validates, commits, and pushes automatically when configured. Dirty user checkouts are preserved rather than treated as blockers or installation targets.
+
+### Role separation
+
+- PLAN freezes one product claim, real Episode, and smallest complete slice.
+- WORK executes the frozen slice and does not re-plan the roadmap.
+- AUDIT evaluates only the current slice and does not select a successor.
+- RESEARCH resolves one decision and transfers only the selected COPY/MODIFY/REJECT record.
+- RETROSPECT produces non-authoritative KEEP/DELETE/SIMPLIFY/TEST/INVESTIGATE candidates.
+
+No role automatically opens a successor slice after closure.
+
+### Engineering language
+
+Default reasoning language is problem, observation, inference, unknown, cause, constraint, option, trade-off, experiment, decision, result, and next Episode. MECE, 5W1H, first-principles analysis, and style fingerprints are adaptive tools, not mandatory forms.
+
+Gate, authority, custody, and closure language is reserved for actual deterministic security, exact artifact identity, irreversible external actions, secret access, financial or legal commitments, or material production blast radius.
+
+### Future-proof constraint law
+
+Models own reversible judgment. Tests own correctness. Skills own reusable procedures. Hooks own deterministic invariants. Sandboxes and external controls own blast radius.
+
+Every retained non-security constraint requires an originating failure, regression fixture, last demonstrated value, and deletion condition. Challenge constraints after major model upgrades, at least quarterly, or when they have not affected several real slices. Delete rules whose removal causes no material regression.

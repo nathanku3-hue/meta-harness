@@ -1,23 +1,44 @@
-# Meta-Harness 0.4 Status
+# Meta-Harness Current Status
 
-State: H3 outcome-first DELIVERY active
-Slice: `S-SEMANTIC-KERNEL-1`
-Base: `6cea71509caddc7378c7362b3555fa444ef9eaa0`
-Authority: owner-signed, externally pinned, generation 1
-RunSpec: one sealed 46-path implementation contribution
+State: documentation realignment in isolated worktree
+Base: H3R2 `96752ecc2ebd05a897efce7cc6ce5aa56b21ffd7`
+Product release state: H3R2 remains a terminal release candidate, not a closed release
+Execution checkout: clean isolated worktree; the dirty source checkout remains untouched
 
-## Product result
+## Current product result
 
-An installed Meta-Harness planner reconciles locked product intent and repository authority before status, executes the nearest complete user journey, blocks only demonstrated threats to that outcome, reuses unaffected evidence, and stops after shipped or value-confirmed completion unless explicit owner scope change or a complete observed supported-use defect warrant justifies continuation.
+Meta-Harness is being reduced to a minimal outcome operating model:
 
-## Current action
+```text
+PLAN -> WORK -> AUDIT -> CLOSE
+```
 
-Implement H3 in the isolated Linux authority checkout. Run focused Leningrad, Quant, Eureka, truth-conflict, continuation, and worker-report trials first. Then create one non-merge contribution commit and execute the sealed complete-suite mechanics assessment once.
+The primary progress unit is a real Product Episode. Product proof precedes affected System proof, which precedes Release proof. Reversible repository work is notify-first and automated in a clean isolated worktree. External or irreversible effects are announced and remain subject to configured deterministic controls. Closure does not automatically create a successor slice.
+
+## Current documentation slice
+
+The concise `docs/product/product-anchor.md` plus active product, SOP, architecture, role, task, migration, README, implementation-plan, operating-model, and checklist documents are being synchronized from exact H3R2 without changing H3R2 runtime bytes or historical decision records.
+
+This documentation slice makes no claim that the 0.5 behavior is implemented.
+
+## Immediate product action
+
+After this documentation-only change is checked and preserved:
+
+1. verify the H3R2 branch is durably available;
+2. reuse the existing exact H3R2 tarball without rebuilding;
+3. install it in one clean Node 20+ canary;
+4. run the fresh-session terminal Product Episode;
+5. perform one terminal Product/System/Release assessment;
+6. tag, publish, reconcile, and close using the same artifact if the Episode passes.
+
+No 0.5 implementation should precede that result.
 
 ## Boundaries
 
-- DELIVERY only; no alternate repository-application authority.
-- No downstream installation before exact H3 package and canary proof.
-- No installation into dirty checkouts.
-- Build the authoritative tarball exactly once after mechanics and functional trials pass.
-- Terminal state without a valid continuation warrant returns `NO_BUILD` and `USE_PRODUCT`.
+- Do not modify the dirty source checkout.
+- Do not rewrite historical decision logs, audits, or phase plans.
+- Do not mix the 0.5 redesign into H3R2 source or package identity.
+- Do not auto-stash, reset, clean, overwrite, force-push, or rewrite shared history.
+- Do not treat documentation, tests, package identity, reviews, or scores as a substitute for the fresh-session Product Episode.
+- Do not automatically plan a successor after closure.
