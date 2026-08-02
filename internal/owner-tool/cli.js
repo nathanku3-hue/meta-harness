@@ -8,20 +8,19 @@ const path = require("node:path");
 const {
   signGScope,
   signPublicationException,
-  signSlice,
 } = require("./owner-tool");
 
 function usage(message) {
   if (message) process.stderr.write(`${message}\n`);
   process.stderr.write(
-    "usage: owner-tool <sign-slice|sign-g-scope|sign-publication-exception> --input <json> --private-key <pem>\n",
+    "usage: owner-tool <sign-g-scope|sign-publication-exception> --input <json> --private-key <pem>\n",
   );
   process.exitCode = 2;
 }
 
 function parse(argv) {
   const [command, ...rest] = argv;
-  if (!new Set(["sign-slice", "sign-g-scope", "sign-publication-exception"]).has(command)) {
+  if (!new Set(["sign-g-scope", "sign-publication-exception"]).has(command)) {
     usage("unsupported owner-tool command");
     return null;
   }
@@ -70,11 +69,9 @@ function main() {
     throw new Error("owner private key must be Ed25519");
   }
 
-  const result = parsed.command === "sign-slice"
-    ? signSlice(input, privateKey)
-    : parsed.command === "sign-g-scope"
-      ? signGScope(input, privateKey)
-      : signPublicationException(input, privateKey);
+  const result = parsed.command === "sign-g-scope"
+    ? signGScope(input, privateKey)
+    : signPublicationException(input, privateKey);
 
   process.stderr.write(`Owner key: ${result.ownerKeyId}\n`);
   process.stderr.write(`Object digest: ${result.objectDigest}\n`);

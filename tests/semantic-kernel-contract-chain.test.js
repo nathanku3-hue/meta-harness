@@ -13,8 +13,7 @@ const {
 } = require("../lib/semantic-kernel/contract-utils");
 const {
   CONTROLLER_CAPABILITIES,
-  SLICE_AUTHORIZATION_SIGNATURE_DOMAIN,
-  authorizationSigningBody,
+  EXPLICIT_OWNER_AUTHORIZATION,
   computeSliceAcceptanceDigest,
   computeSliceAuthorizationDigest,
   validateSliceAuthorization,
@@ -121,19 +120,14 @@ function createOwner() {
   };
 }
 
-function signAuthorization(body, owner) {
+function authorizeExplicitly(body, owner) {
   const draft = {
     ...clone(body),
     ownerKeyId: owner.pin.ownerKeyId,
     authorizationDigest: "pending",
-    ownerSignature: "pending",
+    ownerSignature: EXPLICIT_OWNER_AUTHORIZATION,
   };
   draft.authorizationDigest = computeSliceAuthorizationDigest(draft);
-  draft.ownerSignature = signEd25519ForTests({
-    domain: SLICE_AUTHORIZATION_SIGNATURE_DOMAIN,
-    body: authorizationSigningBody(draft),
-    privateKey: owner.pair.privateKey,
-  });
   return draft;
 }
 
@@ -252,7 +246,7 @@ function makeAuthorization(owner, changes = {}) {
       canonicalUpdatePolicyDigest: digest("canonical-update-policy"),
     },
   };
-  return signAuthorization(body, owner);
+  return authorizeExplicitly(body, owner);
 }
 
 function makeRunSpec(authorization, workerGuidance = "Implement 12 repeated slots instead.") {
@@ -552,7 +546,7 @@ function buildValidChain() {
   return { owner, authorization, runSpec, mechanics, integrated, packageCandidate, releaseCandidate, proof, reviews, terminal };
 }
 
-test("one owner authorization binds the complete mechanics-to-terminal chain", () => {
+test("one explicit owner authorization binds the complete mechanics-to-terminal chain", () => {
   const chain = buildValidChain();
   const authorization = validateSliceAuthorization(chain.authorization, chain.owner.pin);
   const activation = createSliceActivation({
@@ -614,6 +608,27 @@ test("one owner authorization binds the complete mechanics-to-terminal chain", (
   assert.equal(terminal.verdict, "TERMINAL_SLICE_VERIFIED");
 });
 
+test("SliceAuthorization accepts only the explicit-owner marker and pinned identity", () => {
+  const owner = createOwner();
+  const authorization = makeAuthorization(owner);
+  assert.equal(validateSliceAuthorization(authorization, owner.pin).ownerSignature, EXPLICIT_OWNER_AUTHORIZATION);
+
+  const arbitrary = clone(authorization);
+  arbitrary.ownerSignature = "arbitrary-placeholder";
+  assert.throws(
+    () => validateSliceAuthorization(arbitrary, owner.pin),
+    (error) => error.code === "SLICE_AUTHORIZATION_SIGNING_RETIRED",
+  );
+
+  const wrongOwner = clone(authorization);
+  wrongOwner.ownerKeyId = digest("wrong-owner");
+  wrongOwner.authorizationDigest = computeSliceAuthorizationDigest(wrongOwner);
+  assert.throws(
+    () => validateSliceAuthorization(wrongOwner, owner.pin),
+    (error) => error.code === "SLICE_AUTHORIZATION_OWNER_MISMATCH",
+  );
+});
+
 test("installed controller binding is exactly authorizable and unknown capabilities remain rejected", () => {
   assert.deepEqual(
     [...CONTROLLER_CAPABILITIES].sort(),
@@ -628,14 +643,14 @@ test("installed controller binding is exactly authorizable and unknown capabilit
   delete deliveryBody.ownerSignature;
   deliveryBody.controllerBinding = resolveInstalledControllerBinding();
 
-  const installedBindingAuthorization = signAuthorization(deliveryBody, owner);
+  const installedBindingAuthorization = authorizeExplicitly(deliveryBody, owner);
   const validated = validateSliceAuthorization(installedBindingAuthorization, owner.pin);
   assert.deepEqual(validated.controllerBinding, resolveInstalledControllerBinding());
 
   const unauthorizedBody = clone(deliveryBody);
   unauthorizedBody.controllerBinding.allowedCapabilities.push("UNAUTHORIZED_CAPABILITY");
   unauthorizedBody.controllerBinding.allowedCapabilities.sort();
-  const unauthorized = signAuthorization(unauthorizedBody, owner);
+  const unauthorized = authorizeExplicitly(unauthorizedBody, owner);
   assert.throws(
     () => validateSliceAuthorization(unauthorized, owner.pin),
     (error) => error.code === "SLICE_CONTROLLER_CAPABILITY_INVALID",
@@ -657,7 +672,7 @@ test("Meta-Harness 0.4 authorizes DELIVERY only", () => {
   retiredModeBody.sliceMode = "CERTIFICATION";
   retiredModeBody.sliceAcceptance.shippingTarget = "repository-application";
   retiredModeBody.publicationPolicy = null;
-  const retiredMode = signAuthorization(retiredModeBody, owner);
+  const retiredMode = authorizeExplicitly(retiredModeBody, owner);
   assert.throws(
     () => validateSliceAuthorization(retiredMode, owner.pin),
     (error) => error.code === "SLICE_MODE_INVALID",
@@ -668,7 +683,7 @@ test("Meta-Harness 0.4 authorizes DELIVERY only", () => {
   delete windowsAuthorityBody.authorizationDigest;
   delete windowsAuthorityBody.ownerSignature;
   windowsAuthorityBody.authorityExecutionPlatform = "win32";
-  const windowsAuthority = signAuthorization(windowsAuthorityBody, owner);
+  const windowsAuthority = authorizeExplicitly(windowsAuthorityBody, owner);
   assert.throws(
     () => validateSliceAuthorization(windowsAuthority, owner.pin),
     (error) => error.code === "SLICE_AUTHORITY_EXECUTION_PLATFORM_INVALID",
@@ -679,7 +694,7 @@ test("Meta-Harness 0.4 authorizes DELIVERY only", () => {
   delete missingDeliveryPublicationBody.authorizationDigest;
   delete missingDeliveryPublicationBody.ownerSignature;
   missingDeliveryPublicationBody.publicationPolicy = null;
-  const missingDeliveryPublication = signAuthorization(missingDeliveryPublicationBody, owner);
+  const missingDeliveryPublication = authorizeExplicitly(missingDeliveryPublicationBody, owner);
   assert.throws(
     () => validateSliceAuthorization(missingDeliveryPublication, owner.pin),
     (error) => error.code === "CONTRACT_OBJECT_REQUIRED",

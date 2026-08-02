@@ -22,7 +22,7 @@ The first five non-empty lines are, in order: `User journey executed:`, `Observa
 
 ## Authority and custody
 
-One external create-only Ed25519 owner pin signs the exact SliceAuthorization. The installed runtime supports DELIVERY only. Mechanics cannot claim product acceptance. Candidate integration is fast-forward only. The authoritative package is built once, installed for proof, reviewed by isolated Product/Domain/Custody processes, published without rebuild, reconciled independently, and closed through deterministic projection.
+One external create-only owner identity pin binds the exact explicit-owner SliceAuthorization. Slice authorization is digest-sealed and uses the exact `EXPLICIT_OWNER_AUTHORIZATION` marker; the DELIVERY path has no private-key signing dependency. The installed runtime supports DELIVERY only. Mechanics cannot claim product acceptance. Candidate integration is fast-forward only. The authoritative package is built once, installed for proof, reviewed by isolated Product/Domain/Custody processes, published without rebuild, reconciled independently, and closed through deterministic projection.
 
 ## Deployment
 

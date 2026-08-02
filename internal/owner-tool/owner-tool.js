@@ -9,12 +9,6 @@ const {
   signEd25519ForTests,
 } = require("../../lib/semantic-kernel/contract-utils");
 const {
-  SLICE_AUTHORIZATION_SIGNATURE_DOMAIN,
-  authorizationSigningBody,
-  computeSliceAuthorizationDigest,
-  validateSliceAuthorization,
-} = require("../../lib/semantic-kernel/slice-authorization");
-const {
   G_SCOPE_SIGNATURE_DOMAIN,
   computeGScopeDigest,
   decisionSigningBody,
@@ -48,29 +42,6 @@ function syntheticOwnerPin(repositoryId, identity) {
       ownerKeyId: identity.ownerKeyId,
     }),
   };
-}
-
-function signSlice(unsignedValue, privateKey) {
-  const identity = ownerIdentity(privateKey);
-  const signed = {
-    ...JSON.parse(JSON.stringify(unsignedValue)),
-    ownerKeyId: identity.ownerKeyId,
-    authorizationDigest: "pending",
-    ownerSignature: "pending",
-  };
-  signed.authorizationDigest = computeSliceAuthorizationDigest(signed);
-  signed.ownerSignature = signEd25519ForTests({
-    domain: SLICE_AUTHORIZATION_SIGNATURE_DOMAIN,
-    body: authorizationSigningBody(signed),
-    privateKey,
-  });
-  validateSliceAuthorization(signed, syntheticOwnerPin(signed.repositoryId, identity));
-  return Object.freeze({
-    signed,
-    canonicalSigningBody: canonicalize(authorizationSigningBody(signed)),
-    objectDigest: signed.authorizationDigest,
-    ownerKeyId: identity.ownerKeyId,
-  });
 }
 
 function signGScope(unsignedValue, privateKey) {
@@ -123,5 +94,4 @@ module.exports = {
   ownerIdentity,
   signGScope,
   signPublicationException,
-  signSlice,
 };

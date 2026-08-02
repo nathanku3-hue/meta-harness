@@ -4,7 +4,7 @@ Meta-Harness 0.4 is an outcome-first DELIVERY authority and execution-custody ke
 
 It preserves four separate claims:
 
-1. an externally pinned owner key authorizes one exact product result and path boundary;
+1. an explicit owner authorization binds one exact product result and path boundary;
 2. a sealed RunSpec proves bounded mechanical work only;
 3. installed black-box proof and isolated Product, Domain, and Custody reviewers evaluate product acceptance;
 4. exact publication reconciliation and canonical projection close the slice.
@@ -17,19 +17,19 @@ Passed evidence is reused while its declared inputs are unchanged. After shipped
 
 ## Trust root
 
-Production authority is a create-only Ed25519 owner public-key pin stored in the host-global repository state root, outside Git, `.meta-harness`, the npm package, execution requests, and worker-authorized paths.
+Production authority uses a create-only owner identity pin stored in the host-global repository state root, outside Git, `.meta-harness`, the npm package, execution requests, and worker-authorized paths. SliceAuthorization uses the exact `EXPLICIT_OWNER_AUTHORIZATION` marker and a sealed digest; no private signing key is required for the DELIVERY path.
 
 ```text
 meta-harness authority bootstrap --owner-public-key-file <public-jwk.json>
 ```
 
-The offline signer is source-only under `internal/owner-tool/` and is excluded from the package. Private key material is never accepted through repository files or command arguments.
+The owner tool remains source-only for separately signed G-scope and publication-exception records. It is excluded from the package.
 
 ## DELIVERY execution chain
 
 ```text
-external owner pin
-→ owner-signed SliceAuthorization
+external owner identity pin
+→ explicit-owner SliceAuthorization
 → create-only SliceActivation
 → one or more sealed RunSpec/v2 objects
 → MechanicsAssessment
@@ -60,7 +60,7 @@ Next executable product action:
 
 ## Platform policy
 
-Contract and signature validation, package installation, and CLI loading are cross-platform. Authoritative mechanics, proof, and reviewer process execution require Linux namespace isolation and fail closed on unsupported hosts before process spawn, counters, operation bundles, state transitions, or repository mutation.
+Contract validation, package installation, and CLI loading are cross-platform. Authoritative mechanics, proof, and reviewer process execution require Linux namespace isolation and fail closed on unsupported hosts before process spawn, counters, operation bundles, state transitions, or repository mutation.
 
 ## Release law
 
