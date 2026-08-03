@@ -32,6 +32,51 @@ function checkById(result, id) {
   return result.checks.find(check => check.id === id);
 }
 
+test("missing security policy is local non-applicability and does not apply owner policy", async () => {
+  const cwd = tempDir();
+  const result = await checkSecurityBaseline({ targetRoot: cwd, noExec: true });
+
+  const policy = checkById(result, "SEC_POLICY_001");
+  assert.equal(policy.status, "skip");
+  assert.equal(policy.applicable, false);
+  assert.equal(checkById(result, "SEC_OWNER_FILE_001"), undefined);
+  assert.equal(checkById(result, "SEC_DEP_001"), undefined);
+});
+
+test("strict security mode may require explicit policy adoption without applying owner paths", async () => {
+  const cwd = tempDir();
+  const result = await checkSecurityBaseline({ targetRoot: cwd, noExec: true, mode: "strict" });
+
+  const policy = checkById(result, "SEC_POLICY_001");
+  assert.equal(policy.status, "fail");
+  assert.match(policy.reason, /required in strict\/release mode/);
+  assert.equal(checkById(result, "SEC_OWNER_FILE_001"), undefined);
+  assert.equal(checkById(result, "SEC_DEP_001"), undefined);
+});
+
+test("generic workflow danger remains enforced without an adopted security policy", async () => {
+  const cwd = tempDir();
+  writeFile(cwd, ".github/workflows/untrusted.yml", [
+    "on:",
+    "  pull_request_target:",
+    "permissions:",
+    "  contents: write",
+    "jobs:",
+    "  check:",
+    "    runs-on: ubuntu-latest",
+    "    steps:",
+    "      - run: echo unsafe",
+    ""
+  ].join("\n"));
+
+  const result = await checkSecurityBaseline({ targetRoot: cwd, noExec: true });
+
+  assert.equal(checkById(result, "SEC_WF_PERM_001").status, "fail");
+  assert.equal(checkById(result, "SEC_WF_TRIGGER_001").status, "fail");
+  assert.equal(checkById(result, "SEC_OWNER_FILE_001"), undefined);
+  assert.equal(checkById(result, "SEC_DEP_001"), undefined);
+});
+
 test("security baseline passes local file posture and warns only on API-only settings", async () => {
   const cwd = tempDir();
   writePackageLock(cwd);

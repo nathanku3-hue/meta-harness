@@ -74,6 +74,46 @@ test("ready command failing scenario (missing templates)", () => {
   assert.match(res.stdout, /FAIL  MH_SYNC_001/);
   assert.match(res.stdout, /Next action:/);
 });
+
+test("quality policy is not applicable until both artifacts are adopted", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Quality not adopted target"]);
+  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
+  const data = JSON.parse(res.stdout);
+  const quality = data.checks.find((check) => check.id === "MH_QUALITY_001");
+
+  assert.equal(quality.status, "skip");
+  assert.equal(quality.applicable, false);
+  assert.equal(quality.reason, "quality policy not adopted");
+});
+
+test("quality policy adoption is incomplete when only one artifact exists", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Quality partial target"]);
+  run(cwd, ["quality", "init"]);
+  fs.rmSync(path.join(cwd, ".meta-harness", "baseline", "quality-baseline.json"));
+
+  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
+  const data = JSON.parse(res.stdout);
+  const quality = data.checks.find((check) => check.id === "MH_QUALITY_001");
+
+  assert.equal(quality.status, "fail");
+  assert.match(quality.reason, /quality policy adoption incomplete: baseline missing/);
+});
+
+test("quality policy is enforced after both artifacts are adopted", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Quality adopted target"]);
+  run(cwd, ["quality", "init"]);
+
+  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
+  const data = JSON.parse(res.stdout);
+  const quality = data.checks.find((check) => check.id === "MH_QUALITY_001");
+
+  assert.equal(quality.status, "pass");
+  assert.equal(quality.applicable, true);
+});
+
 test("ready command JSON output validation", () => {
   const cwd = tempDir();
   run(cwd, ["init", "Ready check JSON target"]);

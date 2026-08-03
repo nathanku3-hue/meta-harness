@@ -111,3 +111,49 @@ test("MH_NPM_SCRIPTS_001 warns on local-only prepublishOnly release check", () =
   assert.equal(scriptsCheck.status, "warn");
   assert.match(scriptsCheck.reason, /prepublishOnly/);
 });
+
+test("ready discovers a single nested package and runs package checks from that root", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Nested package target"]);
+  const packageRoot = path.join(cwd, "learn-diff");
+  fs.mkdirSync(packageRoot, { recursive: true });
+  fs.writeFileSync(path.join(packageRoot, "package.json"), JSON.stringify({
+    name: "learn-diff",
+    version: "1.0.0",
+    engines: { node: ">=22.19 <27" },
+    packageManager: "npm@10.0.0",
+    scripts: { preinstall: "must-not-run" }
+  }), "utf8");
+  fs.writeFileSync(path.join(packageRoot, "package-lock.json"), JSON.stringify({
+    name: "learn-diff",
+    version: "1.0.0",
+    lockfileVersion: 3,
+    packages: {}
+  }), "utf8");
+  fs.mkdirSync(path.join(cwd, ".github", "workflows"), { recursive: true });
+  fs.writeFileSync(path.join(cwd, ".github", "workflows", "ci.yml"), "steps:\n  - run: npm ci\n", "utf8");
+
+  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
+  const data = JSON.parse(res.stdout);
+
+  assert.equal(data.package_root, "learn-diff");
+  assert.equal(data.package_discovery, "single_nested_candidate");
+  assert.equal(data.package_root_candidates[0], "learn-diff");
+  assert.equal(data.checks.find((check) => check.id === "MH_REPRO_001").status, "pass");
+  assert.equal(data.checks.find((check) => check.id === "MH_NPM_SCRIPTS_001").status, "fail");
+  assert.equal(data.checks.find((check) => check.id === "MH_PACKAGE_001").status, "skip");
+  assert.equal(data.checks.find((check) => check.id === "MH_TEST_001").status, "skip");
+});
+
+test("package-scoped ready checks are not applicable when no package is discoverable", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "No package target"]);
+  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
+  const data = JSON.parse(res.stdout);
+
+  for (const id of ["MH_NPM_SCRIPTS_001", "MH_REPRO_001", "MH_PACKAGE_001", "MH_TEST_001"]) {
+    const check = data.checks.find((candidate) => candidate.id === id);
+    assert.equal(check.status, "skip", id);
+    assert.equal(check.applicable, false, id);
+  }
+});
