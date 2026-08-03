@@ -1,21 +1,34 @@
-# Meta-Harness 0.4 H3 Task
+# Current Task — Terminalize the Prevention Pilot
 
-Deliver the single owner-authorized outcome-first planner contribution from B1R2.
+## Product result
 
-## Required behavior
+Finish the prevention pilot with enforceable repository/worktree policy, clean committed primaries, preserved unique history, one healthy approved live-runtime exception, a committed-code portfolio audit, and byte-identical terminal receipts.
 
-1. Read locked product intent and explicit owner authority before status.
-2. Execute the nearest action that completes the user journey.
-3. Permit at most one pre-execution audit/repair round.
-4. Block only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability.
-5. Reuse passed evidence whose declared inputs did not change.
-6. Generate worker reports with the five product fields first.
-7. Remove alternate execution authority from the installed runtime; Meta-Harness 0.4 ships DELIVERY only.
-8. At shipped, value-confirmed, maintenance, or no-active-slice state, return `NO_BUILD` and `USE_PRODUCT` unless explicit owner scope change or a complete observed supported-use defect warrant exists.
-9. Never claim successor activation or queue follow-up work after `NO_BUILD`.
+## Current state
 
-## Execution order
+- Eureka restoration and rollout-residue handling are already complete and must not be repeated.
+- Meta-Harness contains coherent report-only portfolio-audit and working-round continuity changes.
+- DevSpace contains coherent worktree-policy enforcement changes.
+- `product/web-chat-3` is a completed product slice and must have remote custody before local closure.
+- The live connector worktree remains an approved condition-bound exception while PID-bound runtime health is true.
 
-Focused functional trials → one exact contribution commit → sealed complete-suite mechanics assessment → one authoritative tarball → clean canary installation → fresh-session D14 proof → exact-package rollout into clean default-branch worktrees only.
+## Do now
 
-Do not install old tarballs or modify current dirty repository checkouts.
+Test and freeze the Meta-Harness and DevSpace enforcement changes, preserve and close only the completed inactive WEB-CHAT-3 worktree, refresh the live exception receipt, rerun the portfolio audit from committed Meta-Harness code, and write the four mirrored terminal receipts.
+
+## Done when
+
+- Meta-Harness and DevSpace primaries are clean and pushed;
+- WEB-CHAT-3 history is preserved remotely or in a verified bundle;
+- only policy-approved DevSpace worktrees remain;
+- the live connector is healthy and accurately receipted;
+- the final audit matches physical and registered topology;
+- restoration, residue closure, enforcement freeze, and terminal stream receipts are byte-identical across both custody roots.
+
+## Stop only if
+
+Protected credentials are required, remote publication fails, the live connector becomes unhealthy, or a demonstrated defect invalidates enforcement or custody conclusions.
+
+## Prohibitions
+
+Do not repeat Eureka custody, reopen rollout residues, modify Quant, or start another product slice during this repair.

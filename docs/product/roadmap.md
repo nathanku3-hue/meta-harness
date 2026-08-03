@@ -1,37 +1,59 @@
-# Meta-Harness 0.4 Outcome-First DELIVERY Roadmap
+# Meta-Harness Personal-Use Product Roadmap
 
-## Governing product result
+## Endgame
 
-An installed planner reconciles locked product intent and repository authority before status, executes the nearest complete action that produces the user outcome, blocks only demonstrated threats to that outcome, reuses unaffected evidence, and stops after shipped or value-confirmed completion unless explicit owner scope change or a complete observed supported-use defect warrant justifies continuation.
+One solo developer states the intended outcome once. Meta-Harness preserves that outcome through planning and working, starts reversible action immediately, asks only for real owner decisions, and returns a delivered result with lower friction than unmanaged use.
 
-## H3 — active
+## Current truth
 
-Base: B1R2 `6cea71509caddc7378c7362b3555fa444ef9eaa0`
-Mode: DELIVERY
-Scope: one owner-authorized 46-path contribution
+The authority, custody, review, replay, and release substrate is strong. The prevention pilot has also proved that external portfolio policy can be audited without mutation and enforced at DevSpace worktree creation and closure.
 
-Exit:
+The current work is not a new product milestone. It is one bounded terminalization repair:
 
-- Leningrad selects the complete journey after no more than one audit/repair round and keeps optional findings non-blocking.
-- Quant retains passed product evidence when product bytes are unchanged and reruns only the affected dependency surface.
-- Worker reports begin with the five product fields.
-- A fresh Eureka terminal session derives `NO_BUILD` and `USE_PRODUCT` from authority and observed state, not caller booleans.
-- Truth conflicts obey locked intent/evidence/Git/status precedence.
-- Continuation requires explicit owner scope change or a complete observed supported-use defect warrant and never claims successor activation.
-- The installed executable runtime contains DELIVERY authority only.
-- One exact tarball is built, installed into a clean canary, proven, and reused through publication.
+```text
+preserve unique history
+→ reconcile approved topology
+→ freeze enforcement
+→ audit committed state
+→ write terminal receipts
+→ stop
+```
 
-## Rollout
+## Active bounded repair
 
-After H3 behavior, mechanics, complete suite, exact package, and canary pass:
+`PREVENTION_PILOT_TERMINALIZE_1` closes the pilot with:
 
-1. create clean worktrees from each repository’s actual default branch;
-2. install the same tarball;
-3. inspect each diff and run repository-specific checks;
-4. integrate separately.
+- report-only portfolio audit in Meta-Harness;
+- owner-controlled worktree policy enforcement in DevSpace;
+- remote custody for the completed WEB-CHAT-3 branch;
+- one condition-bound live-runtime exception;
+- clean pushed primaries;
+- byte-identical terminal receipts.
 
-Current dirty checkouts, archives, evidence directories, bootstrap materializations, and managed worktrees are never blanket installation targets.
+This repair must not touch Quant, repeat Eureka custody, reopen rollout residues, or add another governance layer.
 
-## Terminal rule
+## After terminalization
 
-Once shipped or value-confirmed, the default next action is `USE_PRODUCT`. New build work requires owner-authorized scope change or retained evidence of a supported-use defect with observed behavior, environment, impact, evidence, and smallest repair.
+Return to actual product use. The next product work must come from observed real-use friction in the core journey:
+
+```text
+accepted product intent
+→ immediate working action
+→ delivered result
+→ minimal owner intervention
+```
+
+Do not make repository custody, release mechanics, or audit completeness the forward product milestone unless they demonstrably prevent that journey.
+
+## Product-development rules
+
+- Continue coherent relevant work; preserve unrelated dirtiness.
+- Begin the first reversible action in the working round.
+- Use product language on the normal human surface.
+- Keep policy, custody, and evidence machinery technical and bounded.
+- Add no compatibility adapter for retired planner packets or obsolete execution paths.
+- Build only from explicit owner scope change or retained evidence of supported-use friction.
+
+## Stop rule
+
+After the terminal receipts are written and the audit matches reality, no continuation is authorized by this stream. Use the product and wait for observed real-use friction.

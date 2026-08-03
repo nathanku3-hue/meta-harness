@@ -17,6 +17,15 @@ Use outcome-first planning.
 - Reuse passed evidence when its declared input surface did not change.
 - Do not create lifecycle-fragment product slices for integration, packaging, review, documentation, or evidence refresh.
 
+## Working-round continuity
+
+- Treat a detailed user plan, audit, or roadmap correction as the active product brief until the owner supersedes it.
+- Preserve five things across planning and working conversations: product result, current journey state, nearest executable action, done definition, and stop conditions.
+- Begin the first reversible product action in the working round. Do not replay the planning climax as another planning or approval cycle.
+- Use product language in normal user-facing messages: outcome, user journey, action, result, blocker, risk, and owner action. Keep internal gate, phase, candidate, custody, and evidence labels inside technical evidence unless the user explicitly asks for them.
+- Ask the owner only for scope expansion, irreversible action, credentials or protected access, material risk, or taste. Routine branch, worktree, test, repair, and evidence operations inside the accepted scope are execution, not decisions.
+- If existing dirty work is coherent and relevant, inspect and continue it. If it is unrelated, preserve it and use an isolated worktree rather than turning dirtiness into the roadmap.
+
 ## Terminal law
 
 For shipped, value-confirmed, maintenance, or no-active-slice state:

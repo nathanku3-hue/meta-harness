@@ -1,23 +1,33 @@
-# Meta-Harness 0.4 Status
+# Meta-Harness Current Product State
 
-State: H3 outcome-first DELIVERY active
-Slice: `S-SEMANTIC-KERNEL-1`
-Base: `6cea71509caddc7378c7362b3555fa444ef9eaa0`
-Authority: owner-signed, externally pinned, generation 1
-RunSpec: one sealed 46-path implementation contribution
+State: PREVENTION_PILOT_TERMINALIZE_1
+Current checkout: `integration/post-0.4`
 
 ## Product result
 
-An installed Meta-Harness planner reconciles locked product intent and repository authority before status, executes the nearest complete user journey, blocks only demonstrated threats to that outcome, reuses unaffected evidence, and stops after shipped or value-confirmed completion unless explicit owner scope change or a complete observed supported-use defect warrant justifies continuation.
+A solo developer can inspect portfolio state without mutation, while DevSpace prevents unmanaged worktree creation and unsafe closure using one external owner-controlled policy.
 
-## Current action
+## Current journey state
 
-Implement H3 in the isolated Linux authority checkout. Run focused Leningrad, Quant, Eureka, truth-conflict, continuation, and worker-report trials first. Then create one non-merge contribution commit and execute the sealed complete-suite mechanics assessment once.
+- Eureka restoration is complete.
+- Rollout residues are already archived and closed.
+- Report-only portfolio audit is implemented with byte-identical copy support.
+- Working-round continuity is present in live and packaged instructions.
+- DevSpace enforcement is implemented in its own repository.
+- Terminalization still requires committed tests, remote custody, topology reconciliation, final committed-code audit, and mirrored receipts.
 
-## Boundaries
+## Do now
 
-- DELIVERY only; no alternate repository-application authority.
-- No downstream installation before exact H3 package and canary proof.
-- No installation into dirty checkouts.
-- Build the authoritative tarball exactly once after mechanics and functional trials pass.
-- Terminal state without a valid continuation warrant returns `NO_BUILD` and `USE_PRODUCT`.
+Complete only `PREVENTION_PILOT_TERMINALIZE_1`: preserve and close the completed WEB-CHAT-3 worktree, refresh the live exception, test and push both enforcement repositories, rerun the audit from committed code, and mirror the terminal receipts.
+
+## Done when
+
+Both primaries are clean and pushed; unique history is preserved; only approved DevSpace worktrees remain; the connector is healthy; audit topology matches reality; and all required receipts are byte-identical.
+
+## Stop only if
+
+Protected access is required, publication fails, runtime health changes, or a demonstrated defect invalidates the terminal conclusion.
+
+## Prohibitions
+
+Do not touch Quant, repeat Eureka custody, reopen rollout residues, or begin another product slice.

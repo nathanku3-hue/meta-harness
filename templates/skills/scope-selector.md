@@ -30,7 +30,21 @@ When the journey has not run, allow at most one audit/repair round and then exec
 
 A blocker requires evidence of journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability. Everything else is non-blocking residue.
 
-Reuse passed evidence when its declared input surface is unchanged. Rerun only the affected gate unless new concrete evidence demonstrates a product-relevant defect.
+Reuse passed evidence when its declared input surface is unchanged. Rerun only the affected check unless new concrete evidence demonstrates a product-relevant defect.
+
+## Working-round carryover
+
+Treat the accepted plan or audit correction as the active product brief. Carry these five fields unchanged into the working round:
+
+```text
+Product result: <observable user outcome>
+Journey state: <not run|partial|complete>
+Do now: <nearest reversible action>
+Done when: <observable completion>
+Stop only if: <material blocker or authority expansion>
+```
+
+Begin `Do now` before opening another planning cycle. Routine branch, worktree, test, repair, and evidence actions inside the accepted scope are execution, not owner decisions. Normal user-facing updates use product and risk language; internal gate, phase, candidate, custody, and evidence labels stay in technical evidence unless explicitly requested.
 
 ## Terminal stop
 
