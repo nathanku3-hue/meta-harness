@@ -4,12 +4,18 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const { ROOT, assertCliError, run, runRaw, tempDir } = require("./helpers/cli");
 
-test("help output is registry generated and stable enough for operators", () => {
+test("default help is product-facing while advanced help retains internal routes", () => {
   const output = run(ROOT, ["--help"]);
-  assert.match(output, /^meta-harness\n\nOutcome-first Meta-Harness 0\.4 DELIVERY authority and execution-custody kernel\./);
-  assert.match(output, /meta-harness worker-report \[worker-id\].*--task <user-journey>.*--result <observable-result>.*--human-summary <user-accomplished-or-learned>.*--blocker <product-blocker\|none>.*--next-action <next-executable-product-action>/);
-  assert.match(output, /meta-harness merge check --base <base> --head <head> --scope <scope>/);
-  assert.match(output, /meta-harness repos remove <name>/);
+  assert.match(output, /^meta-harness\n\nA coding system that carries one accepted product result/);
+  assert.match(output, /meta-harness work <repository> --goal <result>/);
+  assert.doesNotMatch(output, /meta-harness worker-report/);
+  assert.doesNotMatch(output, /meta-harness merge check/);
+
+  const advanced = run(ROOT, ["help", "--advanced"]);
+  assert.match(advanced, /^meta-harness advanced commands/);
+  assert.match(advanced, /meta-harness worker-report \[worker-id\].*--task <user-journey>/);
+  assert.match(advanced, /meta-harness merge check --base <base> --head <head> --scope <scope>/);
+  assert.match(advanced, /meta-harness repos remove <name>/);
 });
 
 test("unknown command and missing subcommand keep typed human errors", () => {

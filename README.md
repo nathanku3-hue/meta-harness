@@ -1,67 +1,184 @@
-# Meta-Harness 0.4
+# Meta-Harness
 
-Meta-Harness 0.4 is an outcome-first DELIVERY authority and execution-custody kernel for repository changes.
+Meta-Harness is a local coding system for one owner.
 
-It preserves four separate claims:
-
-1. an explicit owner authorization binds one exact product result and path boundary;
-2. a sealed RunSpec proves bounded mechanical work only;
-3. installed black-box proof and isolated Product, Domain, and Custody reviewers evaluate product acceptance;
-4. exact publication reconciliation and canonical projection close the slice.
-
-## Outcome-first planner
-
-The installed guidance reads truth in this order: locked product intent and owner authority; immutable product and closure evidence; Git facts; status and summaries last. It selects the nearest action that completes the user journey, allows at most one pre-execution audit/repair round, and blocks only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability.
-
-Passed evidence is reused while its declared inputs are unchanged. After shipped or value-confirmed completion, the default result is `NO_BUILD` with `USE_PRODUCT`. Continuation requires explicit owner scope change or a complete observed supported-use defect warrant.
-
-## Trust root
-
-Production authority uses a create-only owner identity pin stored in the host-global repository state root, outside Git, `.meta-harness`, the npm package, execution requests, and worker-authorized paths. SliceAuthorization uses the exact `EXPLICIT_OWNER_AUTHORIZATION` marker and a sealed digest; no private signing key is required for the DELIVERY path.
+State the product result once. Meta-Harness carries it into a read-only coding worker, validates and materializes bounded file contents, protects existing work, runs exact validation, repairs bounded failures, and returns the observable result.
 
 ```text
-meta-harness authority bootstrap --owner-public-key-file <public-jwk.json>
+accepted result
+→ code
+→ validation
+→ repair
+→ delivered result
 ```
 
-The owner tool remains source-only for separately signed G-scope and publication-exception records. It is excluded from the package.
+## Primary command
 
-## DELIVERY execution chain
+```powershell
+meta-harness work E:\Code\my-project `
+  --goal "Add CSV export to the report page" `
+  --allow src `
+  --allow tests
+```
+
+The default output is product-facing:
 
 ```text
-external owner identity pin
-→ explicit-owner SliceAuthorization
-→ create-only SliceActivation
-→ one or more sealed RunSpec/v2 objects
-→ MechanicsAssessment
-→ fast-forward IntegratedCandidate
-→ exact PackageCandidate and ReleaseCandidate
-→ installed BlackBoxProof
-→ isolated Product/Domain/Custody reviews
-→ TerminalSliceAssessment
-→ exact tag and publication observation
-→ deterministic canonical closure
+Outcome: DONE
+Product result: Add CSV export to the report page
+Current state: The owner has authorized this coding result...
+Observable result: The report page now exports the visible rows as CSV.
+Workspace: isolated — E:\Code\.meta-harness-worktrees\my-project-...
+Validation: 2/2 passed
+Blocker: none
+Next: Review and bank the delivered change.
 ```
 
-Meta-Harness 0.4 exposes DELIVERY authority only. Historical alternate execution objects are inert evidence bytes and are neither shipped nor executable.
+Meta-Harness does not stage, commit, push, tag, publish, clean, reset, stash, or revert automatically.
 
-## Worker reports
+## Work sessions
 
-Generated worker reports begin with exactly these five non-empty fields, with no title or internal metadata before them:
+For precise scope and validation, use a sealed `work-session/v1` JSON file:
+
+```powershell
+meta-harness work E:\Code\my-project --session .\work-session.json
+```
+
+The session binds:
+
+- product result and current journey state;
+- immediate action and newly true behavior;
+- done and stop conditions;
+- reversible worker authority and owner-only decisions;
+- allowed paths;
+- dirty-worktree policy;
+- exact validation commands;
+- bounded repair attempts.
+
+See `templates/contracts/work-session-v1.md` for the complete contract.
+
+A low-friction `--goal` invocation creates a safe default session. Use explicit session JSON when exact commands or path boundaries matter.
+
+## Resume
+
+Meta-Harness stores the sealed work session under the repository Git common directory, outside tracked working-tree bytes.
+
+```powershell
+meta-harness work E:\Code\my-project --resume
+```
+
+The resumed worker receives the same product result, boundaries, and stop conditions. It does not reconstruct intent from status files or reopen planning.
+
+## Dirty repositories
+
+Meta-Harness treats dirtiness as a workspace-selection fact, not a generic gate.
 
 ```text
-User journey executed:
-Observable result produced:
-User accomplished or learned:
-Product blocker:
-Next executable product action:
+clean checkout
+→ work in place
+
+all existing changes inside allowed paths
+→ continue coherent work with --continue-dirty
+
+unrelated or cross-boundary changes
+→ preserve them and create an isolated sibling worktree
 ```
 
-`Outcome:`, round, progress, confidence, worker identity, and validation metadata follow those product fields.
+Inspect the choice without creating a worktree or launching a worker:
 
-## Platform policy
+```powershell
+meta-harness work E:\Code\my-project `
+  --goal "Repair the parser" `
+  --allow src/parser `
+  --dry-run `
+  --json
+```
 
-Contract validation, package installation, and CLI loading are cross-platform. Authoritative mechanics, proof, and reviewer process execution require Linux namespace isolation and fail closed on unsupported hosts before process spawn, counters, operation bundles, state transitions, or repository mutation.
+## Validation and repair
 
-## Release law
+Explicit sessions declare validation as exact argument arrays:
 
-Build the authoritative tarball exactly once after the integrated candidate is ready. Verification and publication reuse that same tarball; they never rebuild it. Install into a clean canary first, then roll the exact package into clean worktrees based on each repository’s actual default branch. Dirty checkouts and archives are not deployment targets.
+```json
+{
+  "argv": ["npm", "test", "--", "parser"],
+  "cwd": ".",
+  "timeoutSeconds": 300
+}
+```
+
+The Codex worker remains read-only and returns complete `{ path, content }` changes. Meta-Harness rejects traversal, symlinks, duplicate paths, oversized content, and files outside the session boundary before controller-owned materialization.
+
+Meta-Harness runs validation commands outside the model. If validation fails and the retry budget remains, the failure is returned to the same work session for bounded repair.
+
+After every worker attempt and materialization, Meta-Harness rejects:
+
+- changes outside allowed paths;
+- staging or index mutation;
+- commits or HEAD movement;
+- branch changes.
+
+## Product surface and advanced tools
+
+Default help exposes one coding journey:
+
+```powershell
+meta-harness --help
+```
+
+Authority, custody, review, release, portfolio, and maintenance tools remain available as advanced internals:
+
+```powershell
+meta-harness help --advanced
+```
+
+They are not the normal product mental model and no compatibility aliases are maintained.
+
+## Advanced worker-report evidence
+
+The legacy worker-report command remains an advanced evidence surface. Its first five non-empty lines are:
+
+```text
+User journey executed
+Observable result produced
+User accomplished or learned
+Product blocker
+Next executable product action
+```
+
+Worker reports place no title or internal metadata before them. This evidence contract does not replace the shorter `work` product result shown to the owner.
+
+## Post-phase learning
+
+Template installation adds a managed reflection block to root `AGENTS.md`. Sync verifies that active guidance matches the packaged contract.
+
+`E:\Code\post_phase_reflection.md` is reserved for durable cross-repository lessons. Detailed branch state, test transcripts, custody receipts, and temporary blockers belong in the affected repository.
+
+## Installation
+
+```powershell
+npm install -g @nkgss/meta-harness
+meta-harness --help
+```
+
+Requirements:
+
+- Node.js 20 or newer;
+- Git;
+- local Codex CLI with an authenticated `CODEX_HOME`;
+- validation tools required by the target repository.
+
+## Development
+
+```powershell
+npm test
+node bin\meta-harness.js --help
+node bin\meta-harness.js help --advanced
+node bin\meta-harness.js quality check
+node bin\meta-harness.js sync check --target .
+```
+
+## Deliberate boundaries
+
+This coding product does not include a queue, daemon, scheduler, swarm, generic provider layer, dashboard, RunSpec migration, automatic publication, or destructive worktree management.
+
+The owner remains responsible for scope expansion, credentials, protected access, publication, destructive action, and material risk decisions.

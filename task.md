@@ -1,34 +1,37 @@
-# Current Task — Terminalize the Prevention Pilot
+# Current Task — Coding System Shipped
 
 ## Product result
 
-Finish the prevention pilot with enforceable repository/worktree policy, clean committed primaries, preserved unique history, one healthy approved live-runtime exception, a committed-code portfolio audit, and byte-identical terminal receipts.
+One command carries an accepted software result into coding, validation, bounded repair, and a concise observable result without another planning round or routine owner approval.
 
 ## Current state
 
-- Eureka restoration and rollout-residue handling are already complete and must not be repeated.
-- Meta-Harness contains coherent report-only portfolio-audit and working-round continuity changes.
-- DevSpace contains coherent worktree-policy enforcement changes.
-- `product/web-chat-3` is a completed product slice and must have remote custody before local closure.
-- The live connector worktree remains an approved condition-bound exception while PID-bound runtime health is true.
+- Prevention-pilot terminalization is complete and closed.
+- Quant is not the next Meta-Harness milestone.
+- The coding loop, sealed work session, workspace selector, Codex worker, external validation, retry, and boundary enforcement are implemented in the current tree.
+- The active post-phase-reflection contract is also implemented and must remain bounded to durable cross-repository learning.
+- Deterministic focused tests prove clean work, coherent dirty continuation, unrelated dirty isolation, resume, repair retry, and fail-closed path/index behavior.
 
 ## Do now
 
-Test and freeze the Meta-Harness and DevSpace enforcement changes, preserve and close only the completed inactive WEB-CHAT-3 worktree, refresh the live exception receipt, rerun the portfolio audit from committed Meta-Harness code, and write the four mirrored terminal receipts.
+No active slice. Use `meta-harness work`. Wait for observed real-use friction.
 
 ## Done when
 
-- Meta-Harness and DevSpace primaries are clean and pushed;
-- WEB-CHAT-3 history is preserved remotely or in a verified bundle;
-- only policy-approved DevSpace worktrees remain;
-- the live connector is healthy and accurately receipted;
-- the final audit matches physical and registered topology;
-- restoration, residue closure, enforcement freeze, and terminal stream receipts are byte-identical across both custody roots.
+- `meta-harness work` is the only public/default command;
+- the worker consumes the exact product brief rather than reconstructing it from status;
+- existing owner dirtiness is continued or isolated without destructive handling;
+- a real allowed file change and exact validation succeed;
+- failed validation is repaired in the same bounded session;
+- staging, commit, push, branch, HEAD, and path escape remain prohibited;
+- full verification and package checks pass;
+- the durable reflection is current;
+- the accepted coding-system score is `85/100`.
 
 ## Stop only if
 
-Protected credentials are required, remote publication fails, the live connector becomes unhealthy, or a demonstrated defect invalidates enforcement or custody conclusions.
+The local coding worker is unavailable, the target cannot be isolated safely, the accepted path boundary is insufficient, protected access is required, or evidence proves the requested result materially unsafe or impossible.
 
 ## Prohibitions
 
-Do not repeat Eureka custody, reopen rollout residues, modify Quant, or start another product slice during this repair.
+No compatibility aliases, RunSpec/v3, queue, daemon, swarm, provider framework, auto-commit, auto-push, auto-publication, cleanup campaign, or external product journey.

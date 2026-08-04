@@ -1,7 +1,7 @@
 {
   "name": "@nkgss/meta-harness",
   "version": "0.4.0",
-  "description": "Fail-closed semantic authority, mechanics custody, and terminal slice verification.",
+  "description": "A local coding system that carries one accepted product result into code, validation, repair, and an observable result.",
   "license": "MIT",
   "type": "commonjs",
   "repository": {

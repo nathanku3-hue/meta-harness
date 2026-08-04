@@ -221,7 +221,7 @@ test("portfolio audit CLI is registered and remains report-only when findings ex
   assert.equal(fs.existsSync(output), true);
   assert.equal(fs.readFileSync(output).equals(fs.readFileSync(copy)), true);
 
-  const help = spawnSync(process.execPath, [CLI, "--help"], { encoding: "utf8", windowsHide: true });
+  const help = spawnSync(process.execPath, [CLI, "help", "--advanced"], { encoding: "utf8", windowsHide: true });
   assert.equal(help.status, 0);
   assert.match(help.stdout, /meta-harness portfolio audit --policy <path> --output <path>/);
 });

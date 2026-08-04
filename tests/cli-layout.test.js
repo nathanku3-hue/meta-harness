@@ -89,8 +89,8 @@ test("layout manifest and close CLI expose the real transaction", () => {
   assert.equal(JSON.parse(fs.readFileSync(receipt, "utf8")).state, "closed");
 });
 
-test("layout command is registered and help shows both bounded actions", () => {
-  const result = runCli(tempDir("layout-cli-help-"), ["--help"]);
+test("layout command is registered in advanced help with both bounded actions", () => {
+  const result = runCli(tempDir("layout-cli-help-"), ["help", "--advanced"]);
   assert.equal(result.status, 0);
   assert.match(result.stdout, /meta-harness layout manifest --target <repo> --output <path>/);
   assert.match(result.stdout, /meta-harness layout close --target <path> --manifest <path> --receipt <path>/);

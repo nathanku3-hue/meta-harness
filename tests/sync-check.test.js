@@ -49,10 +49,12 @@ function snapshotTree(root) {
 
 function installMatchingTemplates(sourceRoot, targetRoot) {
   const manifestTemplates = [];
-  for (const relativePath of [
+  const relativePaths = [
     "templates/skills/scope-selector.md",
     "templates/contracts/worker-done-contract.md",
-  ]) {
+    "templates/contracts/post-phase-reflection-contract.md",
+  ].filter((relativePath) => fs.existsSync(path.join(sourceRoot, ...relativePath.split("/"))));
+  for (const relativePath of relativePaths) {
     const content = fs.readFileSync(path.join(sourceRoot, ...relativePath.split("/")), "utf8");
     writeFile(targetRoot, `.meta-harness/${relativePath}`, content);
     const normalized = content.replace(/\r\n/g, "\n");
@@ -93,6 +95,39 @@ test("sync check passes when source and installed templates match", () => {
   assert.deepEqual(result.items.map((item) => item.status), ["PASS", "PASS", "PASS"]);
   assert.equal(result.items.some((item) => item.path === "skills/scope-selector.md"), true);
   assert.equal(result.items.some((item) => item.path === "contracts/worker-done-contract.md"), true);
+});
+
+test("sync check enforces the managed post-phase reflection block in active AGENTS guidance", () => {
+  const sourceRoot = tempDir();
+  const targetRoot = tempDir();
+  const guidance = [
+    "<!-- META-HARNESS:POST-PHASE-REFLECTION:BEGIN -->",
+    "## Meta-Harness post-phase reflection",
+    "Record only durable cross-repository lessons.",
+    "<!-- META-HARNESS:POST-PHASE-REFLECTION:END -->",
+    "",
+  ].join("\n");
+  writeFile(sourceRoot, "templates/contracts/post-phase-reflection-contract.md", guidance);
+  installMatchingTemplates(sourceRoot, targetRoot);
+
+  const missing = checkTemplateSync({ sourceRoot, targetRoot });
+  assert.equal(missing.status, "FAIL");
+  assert.deepEqual(missing.items.find((item) => item.path.includes("meta-harness-post-phase-reflection")), {
+    status: "MISSING",
+    path: "AGENTS.md#meta-harness-post-phase-reflection",
+    detail: "managed post-phase reflection guidance is missing",
+  });
+
+  writeFile(targetRoot, "AGENTS.md", guidance);
+  const pass = checkTemplateSync({ sourceRoot, targetRoot });
+  assert.equal(pass.status, "PASS");
+  assert.equal(pass.items.at(-1).status, "PASS");
+  assert.equal(pass.items.at(-1).path, "AGENTS.md#meta-harness-post-phase-reflection");
+
+  writeFile(targetRoot, "AGENTS.md", guidance.replace("durable", "temporary"));
+  const drift = checkTemplateSync({ sourceRoot, targetRoot });
+  assert.equal(drift.status, "FAIL");
+  assert.equal(drift.items.at(-1).status, "DRIFT");
 });
 
 test("sync check reports missing installed templates", () => {

@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0.0",
-  "generated_at": "2026-08-01T16:30:29.471Z",
-  "template_count": 29,
+  "generated_at": "2026-08-03T19:31:23.910Z",
+  "template_count": 31,
   "hash_algorithm": "sha256",
   "line_ending_normalization": "LF",
   "templates": [
@@ -51,6 +51,11 @@
       "content_hash": "2878dd895bffee1f9d2afcaecc82d23114ad851c920ad6546ab57b53f34acd00"
     },
     {
+      "source_path": "templates/contracts/post-phase-reflection-contract.md",
+      "installed_path": ".meta-harness/templates/contracts/post-phase-reflection-contract.md",
+      "content_hash": "75025b59961451e8e2542ed29331aa7dbd535bd06b9641b2b5338ed922f931d7"
+    },
+    {
       "source_path": "templates/contracts/ship-fast-decision-gate.md",
       "installed_path": ".meta-harness/templates/contracts/ship-fast-decision-gate.md",
       "content_hash": "adcc09f5e8eb2dcc5254eeadaf23ac7b31644754e6ace19d20ff6d43d63851cd"
@@ -79,6 +84,11 @@
       "source_path": "templates/contracts/trust-policy-contract.md",
       "installed_path": ".meta-harness/templates/contracts/trust-policy-contract.md",
       "content_hash": "a6178cbf90c85ad236faa2f4b78391988da9cf0419d7bc9482072ed1ff316de6"
+    },
+    {
+      "source_path": "templates/contracts/work-session-v1.md",
+      "installed_path": ".meta-harness/templates/contracts/work-session-v1.md",
+      "content_hash": "f93306aa3e07b3633307b3f73362d521f13163ead0abdac36b4200cbf3992ba7"
     },
     {
       "source_path": "templates/contracts/worker-done-contract.md",
@@ -138,7 +148,7 @@
     {
       "source_path": "templates/skills/scope-selector.md",
       "installed_path": ".meta-harness/templates/skills/scope-selector.md",
-      "content_hash": "9841ccb833811896ea37401581797dfce423f580b270df288bbb6da5e18e1f63"
+      "content_hash": "50bb1e0d90c4a25d0fe05807b68ce75735f1a8886c030b922062f0f567cf1539"
     },
     {
       "source_path": "templates/skills/ship-fast-decision-router.md",
@@ -151,5 +161,5 @@
       "content_hash": "44debb09279b9da8ef7ed2c1697a9d966ce4d5d703b54008a0c0744b2978e4df"
     }
   ],
-  "manifest_hash": "30ab6a2de59856ed5ee4ba1ee12cd3e433b45932fe1b3be27af6d0d381a59ece"
+  "manifest_hash": "0531122debb1d2ee6184e831a5c36a350a60685fa34947a9de4e0c7362550e71"
 }

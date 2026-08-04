@@ -38,7 +38,7 @@ function writeJsonError(error, context) {
 
 async function run(argv, context = createCommandContext()) {
   if (wantsHelp(argv)) {
-    writeOut(context, renderHelp());
+    writeOut(context, renderHelp({ advanced: argv.includes("--advanced") }));
     return 0;
   }
 

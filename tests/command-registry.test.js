@@ -13,6 +13,7 @@ const {
 test("command registry tracks canonical commands separately from aliases", () => {
   const names = commandNames();
   assert.deepEqual(new Set(names).size, names.length);
+  assert.equal(names.includes("work"), true);
   assert.equal(names.includes("execute"), true);
   assert.equal(names.filter((name) => name === "execute").length, 1);
   assert.equal(names.includes("ready"), true);
@@ -39,6 +40,8 @@ test("public command and check registries are deterministic metadata surfaces", 
   assert.deepEqual(commands.map((item) => item.name), commands.map((item) => item.name).slice().sort());
   assert.equal(commands.every((item) => typeof item.owner === "string" && item.owner.length > 0), true);
   assert.equal(commands.every((item) => Object.hasOwn(item, "public")), true);
+  assert.deepEqual(commands.filter((item) => item.public).map((item) => item.name), ["work"]);
+  assert.equal(commands.filter((item) => item.internal).length, commands.length - 1);
 
   const checks = checkIdRegistry();
   assert.deepEqual(checks.map((item) => item.id), checks.map((item) => item.id).slice().sort());
@@ -61,36 +64,24 @@ test("public command and check registries are deterministic metadata surfaces", 
   assert.equal(checks.every((item) => typeof item.strictRequired === "boolean"), true);
 });
 
-test("help text is generated from registry usage lines", () => {
+test("default help is one product-facing coding journey and advanced help retains evidence tools", () => {
   const help = renderHelp();
   assert.match(help, /^meta-harness\n/);
+  assert.match(help, /meta-harness work <repository> --goal <result>/);
+  assert.doesNotMatch(help, /meta-harness execute --request/);
+  assert.doesNotMatch(help, /meta-harness governance snapshot/);
+
+  const advanced = renderHelp({ advanced: true });
+  assert.match(advanced, /^meta-harness advanced commands/);
   assert.equal(
-    help.split("meta-harness execute --request <absolute-path> [--json]").length - 1,
+    advanced.split("meta-harness execute --request <absolute-path> [--json]").length - 1,
     1,
   );
-  assert.match(help, /meta-harness ready --target <repo>/);
-  assert.match(help, /meta-harness merge check --pr <n> --scope <scope>/);
-  assert.match(help, /meta-harness skill check --target <repo>/);
-  assert.match(help, /meta-harness skill preflight <skill-name> --target <repo> \[--json\]/);
-  assert.match(help, /meta-harness skill promote <skill-name> --target <repo> --decision-id <id>/);
-  assert.match(help, /meta-harness skill rollback <skill-name> --target <repo> --decision-id <id>/);
-  assert.match(help, /meta-harness distill candidate <distillation-id> --target <repo>/);
-  assert.doesNotMatch(help, /meta-harness release check/);
-  assert.match(help, /meta-harness release candidate <create\|verify-preterminal\|verify-publication>/);
-  assert.match(help, /meta-harness release publish --from-env --json/);
-  assert.match(help, /meta-harness governance snapshot \[--target <repo>\] \[--out <path>\] \[--json\]/);
-  assert.match(help, /meta-harness governance diff \[--snapshot <path>\] \[--target <repo>\] \[--json\]/);
-  assert.match(help, /meta-harness governance replay --snapshot <path> --artifact <path> --target <repo> \[--json\]/);
-  assert.match(help, /meta-harness governance migration plan --spec <path> --snapshot <path> \[--json\]/);
-  assert.match(help, /meta-harness governance migration apply --spec <path> --snapshot <path> --out <path> \[--json\]/);
-  assert.match(help, /meta-harness governance migration verify --spec <path> --before <path> --after <path> \[--json\]/);
-  assert.match(help, /meta-harness governance migration impact --spec <path> --snapshot <path> --artifacts-dir <path> \[--json\]/);
-  assert.match(help, /meta-harness governance release check --release <path> --before <path> --snapshot <path> --migration <path> \[--artifacts-dir <path>\] \[--json\]/);
-  assert.match(help, /meta-harness governance release report --release <path> \[--diff <path>\] \[--impact <path>\] \[--migration-verification <path>\] \[--out <path>\]/);
-  assert.match(help, /meta-harness decisions scan --target <repo>/);
-  assert.match(help, /meta-harness poll --rollup \[--json\]/);
-  assert.match(help, /meta-harness context check --from <phase> --to <phase>/);
-  assert.match(help, /meta-harness context packet <round-id> --for <worker\|review\|planning>/);
-  assert.match(help, /meta-harness context ask <round-id>/);
-  assert.match(help, /Streams: coding, research, writing, review/);
+  assert.match(advanced, /meta-harness ready --target <repo>/);
+  assert.match(advanced, /meta-harness merge check --pr <n> --scope <scope>/);
+  assert.match(advanced, /meta-harness skill check --target <repo>/);
+  assert.match(advanced, /meta-harness release candidate <create\|verify-preterminal\|verify-publication>/);
+  assert.match(advanced, /meta-harness governance snapshot \[--target <repo>\]/);
+  assert.match(advanced, /meta-harness context packet <round-id> --for <worker\|review\|planning>/);
+  assert.match(advanced, /Streams: coding, research, writing, review/);
 });
