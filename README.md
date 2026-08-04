@@ -36,7 +36,7 @@ Blocker: none
 Next: Review and bank the delivered change.
 ```
 
-The low-friction `--goal` path defaults to no commit or push. An explicit sealed work session may authorize the controller to commit exact validated paths and optionally push the current branch to `origin`. Tags, publication, clean, reset, stash, and revert remain outside this flow.
+The low-friction `--goal` path defaults to no commit or push. It resolves a regular root `package.json` `scripts.test` into exact controller-owned `npm test` validation. If that validation cannot be resolved—or is only the default placeholder failure—the command returns `BLOCKED` before workspace creation, worker launch, or repository mutation. Use an explicit sealed work session when validation requires another command. An explicit sealed work session may authorize the controller to commit exact validated paths and optionally push the current branch to `origin`. Tags, publication, clean, reset, stash, and revert remain outside this flow.
 
 ## Work sessions
 

@@ -88,7 +88,7 @@
     {
       "source_path": "templates/contracts/work-session-v1.md",
       "installed_path": ".meta-harness/templates/contracts/work-session-v1.md",
-      "content_hash": "f93306aa3e07b3633307b3f73362d521f13163ead0abdac36b4200cbf3992ba7"
+      "content_hash": "16a0982742033a655a39c28915ee3cdadee4c6b2ce9bb689d01498ae45ea3d87"
     },
     {
       "source_path": "templates/contracts/worker-done-contract.md",

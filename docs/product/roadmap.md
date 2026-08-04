@@ -118,14 +118,14 @@ The historical accepted score was `62/100`: strong authority and custody, weak c
 
 | Evidence | Defensible score |
 |---|---:|
-| One public product command, sealed work session, deterministic workspace/worker/validation tests | 76 |
-| Live Codex proposal plus controller materialization, exact validation, dirty isolation, resume, and fail-closed boundaries | 82 |
-| Meta-Harness self-hosts bounded coding work with no planning restart or routine owner intervention, and the complete package remains green | 85 |
+| One public product command, sealed work session, real worker materialization, dirty isolation, resume, and bounded delivery | 78 |
+| Standalone `--goal` seals external validation, retries failure, and blocks before mutation when validation is unavailable; complete closure verification remains green | 82 |
+| One real web-originated `--goal` journey reaches `DONE` and delivers an observable product result without routine owner repair | 85 |
 | Demonstrated multi-repository speed/reliability advantage over direct unmanaged coding | 88+ |
 
-`85/100` is now accepted. The complete coding slice, fresh real-worker proof, self-hosted continuation, complete suite, sync, whitespace, and packaging verification pass. Test counts, documentation, or custody evidence alone did not earn the score.
+`82/100` is accepted after `VALIDATED-GOAL-1`. The observed web-originated operation ended terminally as `BLOCKED`; this proves fail-closed validation behavior but does not prove successful end-to-end delivery. No successor slice is open.
 
-The repository-wide quality ratchet still reports inherited baseline debt from older control-plane files. That debt is not evidence against the coding journey: every new coding module and test is within its line budget, and quality analysis reports exactly one public CLI command. Reopening unrelated module cleanup would be governance drift, so the debt remains visible and non-blocking until a real coding session demonstrates product impact.
+The repository-wide quality ratchet still reports inherited baseline debt from older control-plane files. That debt is not evidence against the validated-goal journey: the new coding modules and tests remain within their line budgets, and the public product surface remains one command. Reopening unrelated module cleanup would be roadmap drift, so the debt remains visible and non-blocking until real product use demonstrates impact.
 
 ## Explicit non-roadmap
 
@@ -140,8 +140,8 @@ Do not build:
 - another repository-governance campaign;
 - a dashboard for the harness.
 
-## After 85
+## After 82
 
-Use the coding system. No successor slice is active.
+Use the coding system. No successor slice is active, including `TRUST-BOUNDARY-1`.
 
-The next build is selected only from a retained defect in a real coding session. Possible improvements such as validation discovery, interruption recovery, or a second supported worker are not roadmap commitments and are not pre-authorized.
+The next build is selected only from a retained defect in a real coding session. A successful web-originated validated goal may justify the next score increase, but validation discovery beyond root `npm test`, interruption recovery, or a second supported worker are not roadmap commitments and are not pre-authorized.

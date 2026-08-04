@@ -45,12 +45,16 @@ function session({
   allowedPaths = ["src"],
   maxAttempts = 2,
   delivery = { commit: false, push: false },
+  validation,
 } = {}) {
   const check = [
     process.execPath,
     "-e",
     "const fs=require('fs'); if(fs.readFileSync('src/result.txt','utf8')!=='delivered\\n') process.exit(7)",
   ];
+  const resolvedValidation = validation === undefined
+    ? [{ argv: check, cwd: ".", timeoutSeconds: 30 }]
+    : validation;
   return sealWorkSession({
     schemaVersion: "work-session/v1",
     intent: { version: "test-intent/v1", digest: "sha256:" + "2".repeat(64) },
@@ -64,7 +68,7 @@ function session({
     ownerOnlyActions: ["Publish the repository."],
     allowedPaths,
     dirtyPolicy,
-    validation: [{ argv: check, cwd: ".", timeoutSeconds: 30 }],
+    validation: resolvedValidation,
     maxAttempts,
     delivery,
   });
@@ -77,6 +81,36 @@ function workerEnv(extra = {}) {
     ...extra,
   };
 }
+
+test("zero validation blocks before workspace creation or worker launch", async (t) => {
+  const root = repository(t);
+  let workerCalls = 0;
+  const runner = async () => {
+    workerCalls += 1;
+    throw new Error("worker must not launch");
+  };
+  const result = await runWork({
+    repositoryPath: root,
+    session: session({ validation: [] }),
+    runner,
+  });
+  assert.equal(result.outcome, "BLOCKED");
+  assert.equal(result.workspace.mode, "not_created");
+  assert.equal(result.attempts, 0);
+  assert.equal(result.delivery.validation, "unavailable");
+  assert.deepEqual(result.delivery.commit, { status: "not_attempted" });
+  assert.equal(workerCalls, 0);
+  assert.equal(git(root, ["status", "--short"]), "");
+
+  const dry = await runWork({
+    repositoryPath: root,
+    session: session({ validation: [] }),
+    dryRun: true,
+    runner,
+  });
+  assert.equal(dry.outcome, "BLOCKED");
+  assert.equal(workerCalls, 0);
+});
 
 test("work loop carries a product brief into code and exact validation", async (t) => {
   const root = repository(t);

@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 
+const { buildCodingPrompt } = require("../lib/coding-worker");
 const {
   WORK_SESSION_SCHEMA,
   computeWorkSessionDigest,
@@ -50,18 +51,34 @@ test("work-session/v1 seals product continuity and exact path/validation scope",
 });
 
 test("goal shorthand creates a complete low-friction product brief", () => {
+  const validation = [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 300 }];
   const session = createGoalWorkSession({
     goal: "Add a visible result.",
     allowedPaths: ["src"],
     dirtyPolicy: "isolate",
+    validation,
   });
   assert.equal(session.productResult, "Add a visible result.");
   assert.equal(session.doNow, "Add a visible result.");
   assert.equal(session.newlyTrueBehavior, "Add a visible result.");
   assert.equal(session.allowedPaths[0], "src");
   assert.equal(session.maxAttempts, 2);
+  assert.deepEqual(session.validation, validation);
   assert.deepEqual(session.delivery, { commit: false, push: false });
   assert.match(session.intent.digest, /^sha256:[a-f0-9]{64}$/);
+  const changedValidation = createGoalWorkSession({
+    goal: "Add a visible result.",
+    allowedPaths: ["src"],
+    validation: [{ argv: ["node", "--test"], cwd: ".", timeoutSeconds: 300 }],
+  });
+  assert.notEqual(changedValidation.sessionDigest, session.sessionDigest);
+});
+
+test("coding prompt carries exact controller validation as context", () => {
+  const session = explicitSession();
+  const prompt = buildCodingPrompt(session, { attempt: 1, priorFailure: "", workspaceMode: "current" });
+  assert.match(prompt, /Controller-owned validation:/);
+  assert.match(prompt, /\{"argv":\["node","--test"\],"cwd":"\.","timeoutSeconds":60\}/);
 });
 
 test("work session rejects digest drift, traversal, extra fields, and invalid attempts", () => {

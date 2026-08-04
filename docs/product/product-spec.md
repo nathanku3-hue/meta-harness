@@ -78,7 +78,7 @@ The digest is domain-separated SHA-256 over canonical session content excluding 
 - `delivery.commit`: explicit controller authority to commit the exact validated accepted paths.
 - `delivery.push`: explicit controller authority to push the resulting commit; valid only when commit authority is also true.
 
-`--goal` creates a complete low-friction session with safe defaults. Explicit session JSON is used when exact done criteria, paths, or validation commands matter.
+`--goal` creates a complete low-friction session with safe defaults and resolves a regular root `package.json` `scripts.test` into exact controller-owned `npm test` validation. If no usable root test script exists, the result is `BLOCKED` before workspace creation, worker launch, or repository mutation. Explicit session JSON is required when validation uses another command or when exact done criteria and path boundaries matter.
 
 ## Workspace resolution
 
@@ -260,11 +260,12 @@ No RunSpec/v3, provider abstraction, queue, daemon, scheduler, swarm, dashboard,
 
 ## Acceptance
 
-The coding system has reached `85/100` because:
+`VALIDATED-GOAL-1` is accepted at `82/100` because:
 
-1. deterministic tests prove clean, coherent-dirty, isolated-dirty, resume, retry, and boundary behavior;
-2. a real Codex process returns bounded code, the controller materializes it, and exact validation passes;
-3. Meta-Harness self-hosts bounded work without a planning restart or routine owner intervention;
-4. default help exposes one product journey and advanced internals remain separate;
-5. complete tests, sync, whitespace, and package verification pass; quality analysis confirms one public command and no new coding-module budget violation, while unrelated inherited ratchet debt remains visible and non-blocking;
-6. the durable reflection records the corrected product model.
+1. standalone `--goal` now seals a usable root `npm test` command as controller-owned validation instead of relying on worker narrative;
+2. a repository without usable validation returns terminal `BLOCKED` before workspace creation, worker launch, or repository mutation;
+3. the exact validation command is carried into the coding prompt, executed outside the model, and returned to the same session for bounded repair when it fails;
+4. clean, coherent-dirty, isolated-dirty, resume, delivery, WSL Git selection, and path/index/HEAD boundaries remain covered;
+5. closure verification passes 112 test files and 768 tests with zero failures, plus sync, whitespace, and package dry-run checks; quality observation retains inherited repository-wide ratchet debt without adding a new coding-module budget violation.
+
+The web-originated operation ended terminally as `BLOCKED`; it proves correct fail-closed behavior, not a successful delivered goal. `85/100` is not earned until a real web-originated `--goal` journey reaches `DONE` with an observable product result.

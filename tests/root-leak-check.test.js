@@ -47,10 +47,23 @@ test("path identity treats Windows and WSL spellings as one path", () => {
   assert.equal(pathIdentity("E:\\Code\\meta-harness"), pathIdentity("/mnt/e/Code/meta-harness"));
 });
 
-test("Git inspection uses Windows Git for WSL-mounted repositories", () => {
-  const calls = [];
+test("Git inspection uses native Git for WSL-mounted repositories", () => {
   const executable = gitExecutableForWorkspace({
     cwd: "/mnt/e/Code/meta-harness",
+    fs,
+    platform: "linux",
+    spawn() {
+      throw new Error("Windows Git must not be probed for a native WSL path");
+    },
+  });
+
+  assert.equal(executable, "git");
+});
+
+test("Git inspection probes Windows Git for Windows-spelled repositories", () => {
+  const calls = [];
+  const executable = gitExecutableForWorkspace({
+    cwd: "E:/Code/meta-harness",
     fs,
     platform: "linux",
     spawn(command, args) {
