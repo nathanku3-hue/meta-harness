@@ -19,6 +19,11 @@ if (!workspace || !outputPath) {
 }
 
 const attempt = Number(prompt.match(/Attempt: (\d+) of/)?.[1] || "1");
+const absentKey = process.env.FAKE_WORKER_ASSERT_ABSENT;
+if (absentKey && process.env[absentKey] !== undefined) {
+  process.stderr.write(`forbidden environment variable reached worker: ${absentKey}\n`);
+  process.exit(9);
+}
 const relativePath = process.env.FAKE_WORKER_PATH || "src/result.txt";
 const content = process.env.FAKE_WORKER_RETRY === "1" && attempt === 1 ? "wrong\n" : "delivered\n";
 

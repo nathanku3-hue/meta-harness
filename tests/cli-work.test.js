@@ -37,7 +37,7 @@ function env(extra = {}) {
   };
 }
 
-test("primary work command executes code and reports product fields before evidence", (t) => {
+test("goal shorthand delivers code but reports UNVERIFIED without external validation", (t) => {
   const root = repo(t);
   const result = runRaw(ROOT, [
     "work", root,
@@ -48,10 +48,27 @@ test("primary work command executes code and reports product fields before evide
   ], { env: env() });
   assert.equal(result.status, 0, result.stderr);
   const parsed = JSON.parse(result.stdout);
-  assert.equal(parsed.outcome, "DONE");
+  assert.equal(parsed.outcome, "UNVERIFIED");
   assert.equal(parsed.productResult, "Create the delivered result file.");
   assert.equal(parsed.workspace.mode, "current");
   assert.deepEqual(parsed.changedPaths, ["src/result.txt"]);
+  assert.deepEqual(parsed.validation, []);
+  assert.match(parsed.nextAction, /explicit external validation/);
+  assert.equal(parsed.security.mode, "trusted-local");
+});
+
+test("human output says NOT EXTERNALLY VERIFIED for goal shorthand", (t) => {
+  const root = repo(t);
+  const result = runRaw(ROOT, [
+    "work", root,
+    "--goal", "Create the delivered result file.",
+    "--allow", "src",
+    "--continue-dirty",
+  ], { env: env() });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Outcome: UNVERIFIED/);
+  assert.match(result.stdout, /Validation: NOT EXTERNALLY VERIFIED/);
+  assert.doesNotMatch(result.stdout, /worker-reported/);
 });
 
 test("dry run selects isolation without creating a worktree and resume preserves the brief", (t) => {

@@ -19,6 +19,8 @@ If a secret is committed to this repository at any time:
 
 ## Agent Security Boundaries
 
+The current `work` product supports trusted local repositories. It filters the worker and validation environments through explicit allowlists, records trusted `AGENTS.md` identities, and treats other repository content as evidence rather than task authority. Enforceable protected-file reads and worker network denial are not yet part of this supported boundary; do not use the current product for hostile or untrusted repositories.
+
 Meta-Harness agents, skills, and subagents must not:
 - Read .env, secrets, credentials, or provider output files.
 - Write secrets into PM briefs, worker reports, expert packets, or events.
