@@ -37,8 +37,10 @@ function brief(overrides = {}) {
 }
 
 test("native task brief preserves the accepted result and exact authority", () => {
-  const sealed = sealNativeTaskBrief(brief());
-  assert.equal(sealed.brief.productResult, brief().productResult);
+  const callerBrief = brief();
+  const sealed = sealNativeTaskBrief(callerBrief);
+  callerBrief.productResult = "Changed after sealing.";
+  assert.equal(sealed.brief.productResult, "Deliver one verified native ChatGPT to DevSpace result.");
   assert.equal(sealed.brief.repository, path.resolve("E:\\Code\\example"));
   assert.deepEqual(sealed.brief.allowedPaths, ["src", "tests"]);
   assert.deepEqual(sealed.brief.git.paths, ["src/native.js", "tests/native.test.js"]);
@@ -46,6 +48,16 @@ test("native task brief preserves the accepted result and exact authority", () =
   assert.equal(sealed.briefDigest, computeNativeTaskBriefDigest(sealed.brief));
   assert.equal(Object.isFrozen(sealed), true);
   assert.equal(Object.isFrozen(sealed.brief), true, "sealed brief remains immutable");
+  assert.equal(Object.isFrozen(sealed.brief.allowedPaths), true);
+  assert.equal(Object.isFrozen(sealed.brief.validation), true);
+  assert.equal(Object.isFrozen(sealed.brief.validation[0]), true);
+  assert.equal(Object.isFrozen(sealed.brief.validation[0].argv), true);
+  assert.equal(Object.isFrozen(sealed.brief.git), true);
+  assert.equal(Object.isFrozen(sealed.brief.git.paths), true);
+  assert.throws(() => sealed.brief.git.paths.push("outside.js"), TypeError);
+  assert.throws(() => {
+    sealed.brief.validation[0].timeoutSeconds = 1;
+  }, TypeError);
   assert.equal(Object.isFrozen(validateNativeTaskBrief(sealed.brief)), true);
 });
 
