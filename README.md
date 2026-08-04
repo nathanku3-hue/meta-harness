@@ -30,11 +30,13 @@ Current state: The owner has authorized this coding result...
 Observable result: The report page now exports the visible rows as CSV.
 Workspace: isolated — E:\Code\.meta-harness-worktrees\my-project-...
 Validation: 2/2 passed
+Commit: not_authorized
+Push: not_authorized
 Blocker: none
 Next: Review and bank the delivered change.
 ```
 
-Meta-Harness does not stage, commit, push, tag, publish, clean, reset, stash, or revert automatically.
+The low-friction `--goal` path defaults to no commit or push. An explicit sealed work session may authorize the controller to commit exact validated paths and optionally push the current branch to `origin`. Tags, publication, clean, reset, stash, and revert remain outside this flow.
 
 ## Work sessions
 
@@ -53,7 +55,8 @@ The session binds:
 - allowed paths;
 - dirty-worktree policy;
 - exact validation commands;
-- bounded repair attempts.
+- bounded repair attempts;
+- explicit controller authority to commit and optionally push.
 
 See `templates/contracts/work-session-v1.md` for the complete contract.
 
@@ -109,6 +112,8 @@ Explicit sessions declare validation as exact argument arrays:
 The Codex worker remains read-only and returns complete `{ path, content }` changes. Meta-Harness rejects traversal, symlinks, duplicate paths, oversized content, and files outside the session boundary before controller-owned materialization.
 
 Meta-Harness runs validation commands outside the model. If validation fails and the retry budget remains, the failure is returned to the same work session for bounded repair.
+
+After a `DONE` result and passed validation, Meta-Harness hashes the exact accepted paths. It commits only when `delivery.commit` is true, blocks if those bytes changed after validation, preserves unrelated dirty and staged paths, and pushes the current branch to `origin` only when `delivery.push` is true. A successful push is reported only after remote HEAD equals the local commit.
 
 After every worker attempt and materialization, Meta-Harness rejects:
 

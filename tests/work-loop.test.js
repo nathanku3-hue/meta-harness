@@ -32,7 +32,20 @@ function repository(t) {
   return root;
 }
 
-function session({ dirtyPolicy = "continue-in-scope", allowedPaths = ["src"], maxAttempts = 2 } = {}) {
+function addOrigin(root) {
+  const origin = path.join(path.dirname(root), "origin.git");
+  git(path.dirname(root), ["init", "--bare", origin]);
+  git(root, ["remote", "add", "origin", origin]);
+  git(root, ["push", "-u", "origin", "HEAD"]);
+  return git(root, ["branch", "--show-current"]);
+}
+
+function session({
+  dirtyPolicy = "continue-in-scope",
+  allowedPaths = ["src"],
+  maxAttempts = 2,
+  delivery = { commit: false, push: false },
+} = {}) {
   const check = [
     process.execPath,
     "-e",
@@ -53,6 +66,7 @@ function session({ dirtyPolicy = "continue-in-scope", allowedPaths = ["src"], ma
     dirtyPolicy,
     validation: [{ argv: check, cwd: ".", timeoutSeconds: 30 }],
     maxAttempts,
+    delivery,
   });
 }
 
@@ -72,9 +86,50 @@ test("work loop carries a product brief into code and exact validation", async (
   assert.equal(result.validation.length, 1);
   assert.equal(result.validation[0].passed, true);
   assert.deepEqual(result.changedPaths, ["src/result.txt"]);
+  assert.deepEqual(result.delivery.commit, { status: "not_authorized" });
+  assert.deepEqual(result.delivery.push, { status: "not_authorized" });
   assert.equal(fs.readFileSync(path.join(root, "src", "result.txt"), "utf8"), "delivered\n");
   assert.equal(git(root, ["rev-list", "--count", "HEAD"]), "1");
   assert.equal(git(root, ["diff", "--cached", "--name-only"]), "");
+});
+
+test("validated work commits and pushes only with sealed delivery authority", async (t) => {
+  const root = repository(t);
+  const branch = addOrigin(root);
+  const result = await runWork({
+    repositoryPath: root,
+    session: session({ delivery: { commit: true, push: true } }),
+    env: workerEnv(),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.delivery.validation, "passed");
+  assert.equal(result.delivery.commit.status, "committed");
+  assert.deepEqual(result.delivery.commit.paths, ["src/result.txt"]);
+  assert.equal(result.delivery.push.status, "remote_equal");
+  assert.equal(result.delivery.push.branch, branch);
+  assert.equal(git(root, ["rev-parse", "HEAD"]), result.delivery.commit.sha);
+  assert.equal(
+    git(root, ["ls-remote", "--heads", "origin", `refs/heads/${branch}`]).split(/\s+/)[0],
+    result.delivery.commit.sha,
+  );
+  assert.equal(git(root, ["diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"]), "src/result.txt");
+  assert.equal(git(root, ["status", "--short"]), "");
+});
+
+test("worker-marked partial work is never delivered", async (t) => {
+  const root = repository(t);
+  const result = await runWork({
+    repositoryPath: root,
+    session: session({ delivery: { commit: true, push: false } }),
+    env: workerEnv({ FAKE_WORKER_STATUS: "partial" }),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "PARTIAL");
+  assert.deepEqual(result.delivery.commit, { status: "not_attempted" });
+  assert.deepEqual(result.delivery.push, { status: "not_attempted" });
+  assert.equal(git(root, ["rev-list", "--count", "HEAD"]), "1");
+  assert.equal(fs.readFileSync(path.join(root, "src", "result.txt"), "utf8"), "delivered\n");
 });
 
 test("unrelated dirtiness is preserved while work moves to an isolated branch", async (t) => {

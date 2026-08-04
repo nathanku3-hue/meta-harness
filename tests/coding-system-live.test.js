@@ -24,9 +24,11 @@ test("live coding system carries one result through Codex and exact validation",
 }, (t) => {
   const parent = fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-live-work-"));
   const root = path.join(parent, "repository");
+  const origin = path.join(parent, "origin.git");
   fs.mkdirSync(root);
   t.after(() => fs.rmSync(parent, { recursive: true, force: true }));
 
+  git(parent, ["init", "--bare", origin]);
   git(root, ["init"]);
   git(root, ["config", "user.name", "Meta Harness Live Work"]);
   git(root, ["config", "user.email", "live-work@example.invalid"]);
@@ -43,7 +45,10 @@ test("live coding system carries one result through Codex and exact validation",
   fs.writeFileSync(path.join(root, "README.md"), "Implement the smallest code required by the existing test.\n", "utf8");
   git(root, ["add", "."]);
   git(root, ["commit", "-m", "failing product fixture"]);
+  git(root, ["remote", "add", "origin", origin]);
+  git(root, ["push", "-u", "origin", "HEAD"]);
   const head = git(root, ["rev-parse", "HEAD"]);
+  const branch = git(root, ["branch", "--show-current"]);
 
   const session = sealWorkSession({
     schemaVersion: "work-session/v1",
@@ -55,7 +60,7 @@ test("live coding system carries one result through Codex and exact validation",
     doneWhen: "node --test tests/sum.test.js exits zero.",
     stopOnlyIf: ["The result cannot be implemented inside src."],
     authorizedReversibleActions: ["Read the repository.", "Create or edit files inside src.", "Run the existing focused test."],
-    ownerOnlyActions: ["Change the requested behavior.", "Commit or publish the result."],
+    ownerOnlyActions: ["Change the requested behavior.", "Expand delivery beyond the current branch and origin."],
     allowedPaths: ["src"],
     dirtyPolicy: "continue-in-scope",
     validation: [{
@@ -64,6 +69,7 @@ test("live coding system carries one result through Codex and exact validation",
       timeoutSeconds: 60,
     }],
     maxAttempts: 2,
+    delivery: { commit: true, push: true },
   });
   const sessionPath = path.join(parent, "work-session.json");
   fs.writeFileSync(sessionPath, `${JSON.stringify(session, null, 2)}\n`, "utf8");
@@ -89,7 +95,14 @@ test("live coding system carries one result through Codex and exact validation",
   assert.equal(parsed.productResult, "Make the existing sum test pass.");
   assert.equal(parsed.validation.length, 1);
   assert.equal(parsed.validation[0].passed, true);
-  assert.equal(git(root, ["rev-parse", "HEAD"]), head);
+  assert.equal(parsed.delivery.commit.status, "committed");
+  assert.equal(parsed.delivery.push.status, "remote_equal");
+  assert.notEqual(parsed.delivery.commit.sha, head);
+  assert.equal(git(root, ["rev-parse", "HEAD"]), parsed.delivery.commit.sha);
+  assert.equal(
+    git(root, ["ls-remote", "--heads", "origin", `refs/heads/${branch}`]).split(/\s+/)[0],
+    parsed.delivery.commit.sha,
+  );
   assert.equal(git(root, ["diff", "--cached", "--name-only"]), "");
   assert.deepEqual(parsed.changedPaths, ["src/sum.js"]);
   assert.match(fs.readFileSync(path.join(root, "src", "sum.js"), "utf8"), /function|=>|exports/);

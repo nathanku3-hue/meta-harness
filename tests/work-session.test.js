@@ -34,6 +34,7 @@ function explicitSession() {
     dirtyPolicy: "continue-in-scope",
     validation: [{ argv: ["node", "--test"], cwd: ".", timeoutSeconds: 60 }],
     maxAttempts: 2,
+    delivery: { commit: true, push: false },
   });
 }
 
@@ -42,6 +43,8 @@ test("work-session/v1 seals product continuity and exact path/validation scope",
   assert.equal(session.schemaVersion, "work-session/v1");
   assert.equal(session.sessionDigest, computeWorkSessionDigest(session));
   assert.equal(Object.isFrozen(validateWorkSession(session)), true);
+  assert.equal(Object.isFrozen(session.delivery), true);
+  assert.deepEqual(session.delivery, { commit: true, push: false });
   assert.deepEqual(session.allowedPaths, ["lib", "tests"]);
   assert.equal(session.productResult, "Ship one product-facing coding command.");
 });
@@ -57,6 +60,7 @@ test("goal shorthand creates a complete low-friction product brief", () => {
   assert.equal(session.newlyTrueBehavior, "Add a visible result.");
   assert.equal(session.allowedPaths[0], "src");
   assert.equal(session.maxAttempts, 2);
+  assert.deepEqual(session.delivery, { commit: false, push: false });
   assert.match(session.intent.digest, /^sha256:[a-f0-9]{64}$/);
 });
 
@@ -77,6 +81,10 @@ test("work session rejects digest drift, traversal, extra fields, and invalid at
   assert.throws(
     () => sealWorkSession({ ...session, maxAttempts: 4 }),
     (error) => error.code === "MH_WORK_SESSION_ATTEMPTS",
+  );
+  assert.throws(
+    () => sealWorkSession({ ...session, delivery: { commit: false, push: true } }),
+    (error) => error.code === "MH_WORK_SESSION_DELIVERY",
   );
 });
 

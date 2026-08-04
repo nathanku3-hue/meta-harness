@@ -14,6 +14,9 @@ accepted product result
 → controller materialization
 → focused validation
 → bounded repair
+→ accepted-path hash capture
+→ authorized exact-path commit
+→ optional authorized push and remote verification
 → observable result
 ```
 
@@ -53,6 +56,10 @@ accepted product result
     }
   ],
   "maxAttempts": 2,
+  "delivery": {
+    "commit": true,
+    "push": false
+  },
   "sessionDigest": "sha256:<computed by Meta-Harness>"
 }
 ```
@@ -65,7 +72,9 @@ accepted product result
 - Never reset, clean, stash, or revert owner work automatically.
 - The coding worker remains read-only and returns complete `{ path, content }` file changes.
 - Meta-Harness rejects traversal, symlinks, duplicate paths, oversized content, and out-of-bound files before controller-owned materialization.
-- Staging, commits, pushes, tags, publication, deletion, and worktree cleanup are outside the coding worker’s authority.
+- Staging, commits, and pushes remain outside the coding worker’s authority.
+- After a `DONE` result and passed validation, the controller may commit exact accepted paths and optionally push the current branch to `origin` only when the sealed `delivery` authority permits it.
+- Tags, publication, deletion, and worktree cleanup remain outside this product slice.
 
 ## Human output
 
@@ -78,6 +87,8 @@ Current state
 Observable result
 Workspace
 Validation
+Commit
+Push
 Blocker
 Next
 ```

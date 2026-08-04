@@ -52,6 +52,8 @@ test("primary work command executes code and reports product fields before evide
   assert.equal(parsed.productResult, "Create the delivered result file.");
   assert.equal(parsed.workspace.mode, "current");
   assert.deepEqual(parsed.changedPaths, ["src/result.txt"]);
+  assert.deepEqual(parsed.delivery.commit, { status: "not_authorized" });
+  assert.deepEqual(parsed.delivery.push, { status: "not_authorized" });
 });
 
 test("dry run selects isolation without creating a worktree and resume preserves the brief", (t) => {

@@ -48,6 +48,8 @@ Current state
 Observable result
 Workspace
 Validation
+Commit
+Push
 Blocker
 Next
 ```
@@ -72,7 +74,8 @@ Exactly one command is public: `work`. Existing commands are internal advanced t
 - exact path boundary;
 - dirty-worktree policy;
 - validation commands;
-- bounded retry count.
+- bounded retry count;
+- explicit commit and optional push authority.
 
 The coding worker consumes this object directly. It does not reconstruct the product result from status files or reopen planning.
 

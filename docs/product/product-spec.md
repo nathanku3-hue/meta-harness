@@ -54,6 +54,8 @@ allowedPaths[]
 dirtyPolicy
 validation[]
 maxAttempts
+delivery.commit
+delivery.push
 sessionDigest
 ```
 
@@ -73,6 +75,8 @@ The digest is domain-separated SHA-256 over canonical session content excluding 
 - `dirtyPolicy`: `continue-in-scope` or `isolate`.
 - `validation`: exact argv, cwd, and timeout commands run by Meta-Harness, not trusted from worker narrative.
 - `maxAttempts`: one to three coding/repair attempts.
+- `delivery.commit`: explicit controller authority to commit the exact validated accepted paths.
+- `delivery.push`: explicit controller authority to push the resulting commit; valid only when commit authority is also true.
 
 `--goal` creates a complete low-friction session with safe defaults. Explicit session JSON is used when exact done criteria, paths, or validation commands matter.
 
@@ -100,12 +104,11 @@ Meta-Harness never automatically:
 - cleans;
 - stashes;
 - reverts;
-- stages;
-- commits;
-- pushes;
 - tags;
 - publishes;
 - prunes or closes worktrees.
+
+Staging, commit, and push are controller-owned delivery actions. They occur only after a `DONE` result and passed validation, and only when the sealed `delivery` authority permits them.
 
 Work-session and result artifacts are stored under the repository Git common directory, outside tracked working-tree bytes.
 
@@ -152,6 +155,20 @@ Any violation fails closed.
 
 Meta-Harness then runs each exact validation command. If validation fails and attempts remain, the failure output is sent back to the same work session for repair. The product result and boundaries do not change between attempts.
 
+## Delivery close
+
+After a `DONE` result and passed validation, Meta-Harness:
+
+1. captures SHA-256 hashes for the exact worker-returned accepted paths;
+2. checks sealed commit authority;
+3. verifies those path hashes are unchanged;
+4. stages only the accepted paths and verifies no additional path entered staging;
+5. commits only those paths while preserving unrelated dirty and staged paths;
+6. optionally pushes the current branch to `origin` when push authority is sealed;
+7. reports `remote_equal` only after remote HEAD equals the local commit.
+
+A `PARTIAL` or `BLOCKED` result is never delivered.
+
 ## Work result
 
 `work-result/v1` reports:
@@ -164,6 +181,7 @@ observableResult
 workspace
 changedPaths
 validation
+delivery
 blocker
 nextAction
 attempts
@@ -184,6 +202,8 @@ Current state
 Observable result
 Workspace
 Validation
+Commit
+Push
 Blocker
 Next
 ```
