@@ -102,6 +102,32 @@ test("duplicate normalized allow paths fail before workspace or worker activity"
   assert.equal(JSON.parse(distinct.stdout).outcome, "READY");
 });
 
+test("missing allow values fail before validation, workspace, worker, or repository mutation", (t) => {
+  const root = repo(t);
+  const cases = [
+    ["--allow"],
+    ["--allow", "src", "--allow"],
+  ];
+
+  for (const allowArgs of cases) {
+    const result = runRaw(ROOT, [
+      "work", root,
+      "--goal", "Create the delivered result file.",
+      ...allowArgs,
+      "--dry-run",
+      "--json",
+    ], { env: env() });
+    assert.equal(result.status, 2, result.stderr);
+    const error = JSON.parse(result.stdout);
+    assert.equal(error.ok, false);
+    assert.equal(error.error.code, "MH_USAGE");
+    assert.match(error.error.message, /--allow requires a path/i);
+    assert.equal(fs.existsSync(path.join(root, "src")), false);
+    assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness")), false);
+    assert.equal(git(root, ["status", "--short"]), "");
+  }
+});
+
 test("unsupported goal blocks before worker, workspace, or repository mutation", (t) => {
   const root = repo(t, { withValidation: false });
   const result = runRaw(ROOT, [
