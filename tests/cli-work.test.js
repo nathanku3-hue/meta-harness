@@ -72,6 +72,36 @@ test("primary work command executes code and reports product fields before evide
   assert.deepEqual(parsed.delivery.push, { status: "not_authorized" });
 });
 
+test("duplicate normalized allow paths fail before workspace or worker activity", (t) => {
+  const root = repo(t);
+  const duplicate = runRaw(ROOT, [
+    "work", root,
+    "--goal", "Create the delivered result file.",
+    "--allow", "src",
+    "--allow", "./src/",
+    "--json",
+  ], { env: env() });
+  assert.equal(duplicate.status, 2, duplicate.stderr);
+  const error = JSON.parse(duplicate.stdout);
+  assert.equal(error.ok, false);
+  assert.equal(error.error.code, "MH_USAGE");
+  assert.match(error.error.message, /duplicate --allow path after normalization/i);
+  assert.equal(fs.existsSync(path.join(root, "src")), false);
+  assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness")), false);
+  assert.equal(git(root, ["status", "--short"]), "");
+
+  const distinct = runRaw(ROOT, [
+    "work", root,
+    "--goal", "Create the delivered result file.",
+    "--allow", "src",
+    "--allow", "tests",
+    "--dry-run",
+    "--json",
+  ], { env: env() });
+  assert.equal(distinct.status, 0, distinct.stderr);
+  assert.equal(JSON.parse(distinct.stdout).outcome, "READY");
+});
+
 test("unsupported goal blocks before worker, workspace, or repository mutation", (t) => {
   const root = repo(t, { withValidation: false });
   const result = runRaw(ROOT, [
