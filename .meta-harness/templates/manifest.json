@@ -1,7 +1,7 @@
 {
   "schema_version": "2.0.0",
   "generated_at": "2026-08-03T19:31:23.910Z",
-  "template_count": 31,
+  "template_count": 32,
   "hash_algorithm": "sha256",
   "line_ending_normalization": "LF",
   "templates": [
@@ -43,7 +43,7 @@
     {
       "source_path": "templates/contracts/expert-reconciliation-matrix.md",
       "installed_path": ".meta-harness/templates/contracts/expert-reconciliation-matrix.md",
-      "content_hash": "d7f3b3b976c4f6d090495f98e2eb666b7b1f739659f8039dc0047e6096fb4426"
+      "content_hash": "b7dbbc9ec4a339eb073cf2b8a6c728ed35604b38e0b2cc06910251a007dfe58f"
     },
     {
       "source_path": "templates/contracts/pm-brief-scan-contract.md",
@@ -58,7 +58,7 @@
     {
       "source_path": "templates/contracts/ship-fast-decision-gate.md",
       "installed_path": ".meta-harness/templates/contracts/ship-fast-decision-gate.md",
-      "content_hash": "adcc09f5e8eb2dcc5254eeadaf23ac7b31644754e6ace19d20ff6d43d63851cd"
+      "content_hash": "b83203378dffdd47f165e3c59560360e01c9713c5e29b91a4acac7a126a8b0b5"
     },
     {
       "source_path": "templates/contracts/skill-distillation-contract.md",
@@ -88,7 +88,12 @@
     {
       "source_path": "templates/contracts/work-session-v1.md",
       "installed_path": ".meta-harness/templates/contracts/work-session-v1.md",
-      "content_hash": "16a0982742033a655a39c28915ee3cdadee4c6b2ce9bb689d01498ae45ea3d87"
+      "content_hash": "ab6b395b1346b4ff936dc77c94bc18827028788e19deded536beeb1636c2681f"
+    },
+    {
+      "source_path": "templates/contracts/work-session-v2.md",
+      "installed_path": ".meta-harness/templates/contracts/work-session-v2.md",
+      "content_hash": "91d4c2b20e10680cdbfb721bdf2ee029139686fd0b9e611d72faf2b97bbfe8ae"
     },
     {
       "source_path": "templates/contracts/worker-done-contract.md",
@@ -118,7 +123,7 @@
     {
       "source_path": "templates/skills/dirty-work-autopilot.md",
       "installed_path": ".meta-harness/templates/skills/dirty-work-autopilot.md",
-      "content_hash": "0747a7c3ffbe803919eb211e2934e37ef086477f10362c46decb6a64f4316896"
+      "content_hash": "696315e4e6a8ce87a25697abd7b6668949450483f07d25419dad9b8e1e3d5c9d"
     },
     {
       "source_path": "templates/skills/distilled-taste-capsule.md",
@@ -148,12 +153,12 @@
     {
       "source_path": "templates/skills/scope-selector.md",
       "installed_path": ".meta-harness/templates/skills/scope-selector.md",
-      "content_hash": "50bb1e0d90c4a25d0fe05807b68ce75735f1a8886c030b922062f0f567cf1539"
+      "content_hash": "4b6896f650e9d63288d8c969491c35e9f703c8b8b3e1c6f6972c00cc4e2a3b1a"
     },
     {
       "source_path": "templates/skills/ship-fast-decision-router.md",
       "installed_path": ".meta-harness/templates/skills/ship-fast-decision-router.md",
-      "content_hash": "578969e0ae8f63ca8811db24d5d9839e9b4d2d2f7dc28c147ae71cf867a92a61"
+      "content_hash": "de2e2f62e300006713065d61474b88808cefa7107217488605fbbd5348c87965"
     },
     {
       "source_path": "templates/skills/subagent-workcell.md",
@@ -161,5 +166,5 @@
       "content_hash": "44debb09279b9da8ef7ed2c1697a9d966ce4d5d703b54008a0c0744b2978e4df"
     }
   ],
-  "manifest_hash": "0531122debb1d2ee6184e831a5c36a350a60685fa34947a9de4e0c7362550e71"
+  "manifest_hash": "725392721150653d674bf2f98e59e870f43a1822e52a4f9274fc795ef6c61fe6"
 }

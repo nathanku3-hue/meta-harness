@@ -19,24 +19,26 @@ Move dirt out of the PM loop unless it is current-scope, boundary-touching, or d
 4. Escalate only current-scope dirt, boundary-touching dirt, changed inherited dirt, staged/outside-scope dirt, automation failures, or decision-relevant drift.
 5. Return route, terminal outcome, visible dirt, evidence, next action, and queued/suppressed counts only.
 
-## Risk Routes
+## Product Routes
 
-- `FAST`: no visible dirt remains; only suppressed or queued residue exists.
-- `REVIEW`: current-scope dirt or shared-surface residue needs reviewer judgment.
-- `SLOW`: evidence, scope, residue, or sequencing needs deliberate sorting before closure.
-- `BLOCK`: missing authority, access, dependency, evidence, or boundary clearance prevents safe progress.
+- `EXECUTE_NOW`: current-scope dirt is reversible and bounded, or only suppressed/queued residue exists; continue the accepted action now.
+- `OWNER_ACTION_REQUIRED`: product direction, scope, taste, credentials, protected access, irreversible action, publication, or material-risk acceptance requires the owner.
+- `BLOCKED`: retained evidence demonstrates that missing access, dependency, evidence, or boundary clearance prevents the supported journey.
+- `NO_BUILD`: no active product action exists; keep residue outside the product loop and use the product.
 
-## Terminal Outcomes
+A request to review dirt does not imply a pre-execution pause. Perform bounded diagnosis inline and continue with `EXECUTE_NOW` unless an owner-only boundary or demonstrated blocker is present. Post-execution review may inspect changed bytes and validation without approving a proposed plan.
 
-- `SHIP`: work is complete and visible dirt does not block closure.
-- `REVIEW`: work is ready for review and is not self-approved as shipped.
-- `DECISION_NEEDED`: a PM, owner, or authority holder must decide before progress or approval.
-- `BLOCKED`: work cannot proceed without external action, access, dependency, or scope change.
-- `FOLLOW_UP_QUEUED`: residue is counted, scoped, and queued outside the current PM loop.
+## Outcomes
+
+- `PASS_AND_CONTINUE`: the current action remains authorized.
+- `REPAIR_IN_PLACE`: make the smallest correction inside the same task.
+- `OWNER_ACTION_REQUIRED`: state the exact owner-only decision.
+- `BLOCKED`: state the demonstrated blocker and smallest clearing action.
+- `NO_BUILD`: no valid continuation warrant exists.
 
 ## Escalation Rules
 
-1. Never self-approve authority-changing work; escalate to `REVIEW`, `DECISION_NEEDED`, or `BLOCKED`.
+1. Never self-approve authority-changing work; route it to `OWNER_ACTION_REQUIRED` or `BLOCKED`.
 2. Escalate credential, provider, runtime, governed data, broker, scoring, dashboard, release, package, permission, and data-output dirt by path/status metadata.
 3. Escalate inherited dirt that the current task removed, cleaned, staged, or changed unless explicitly allowlisted.
 4. Do not escalate unchanged inherited outside-scope dirt, generated/cache artifacts, or repeated queued chores with unchanged state hash.
@@ -54,8 +56,8 @@ meta-harness gate scope --dirty .meta-harness/dirty-work.json --scope .meta-harn
 ## PM Output
 
 ```text
-Route: <FAST|REVIEW|SLOW|BLOCK>
-Outcome: <SHIP|REVIEW|DECISION_NEEDED|BLOCKED|FOLLOW_UP_QUEUED>
+Route: <EXECUTE_NOW|OWNER_ACTION_REQUIRED|BLOCKED|NO_BUILD>
+Outcome: <PASS_AND_CONTINUE|REPAIR_IN_PLACE|OWNER_ACTION_REQUIRED|BLOCKED|NO_BUILD>
 Visible dirt: <current blockers/escalations/decisions or none>
 Evidence: <snapshot/classification artifact or none>
 Next: <one action and owner>

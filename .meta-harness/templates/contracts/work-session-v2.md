@@ -1,26 +1,23 @@
-# Work Session v1 (retired)
+# Work Session v2
 
-**Retired.** Active coding sessions use `work-session/v2` with exact product-direction snapshots. See `templates/contracts/work-session-v2.md`. There is no supported v1 compatibility parser.
+`work-session/v2` is the canonical bridge from owner product direction plus an accepted product result into coding execution.
 
----
+It replaces conversational planning memory, recursive planner packets, and routine approval prompts for reversible in-scope work. It does not replace owner authority for scope expansion, credentials, publication, destructive action, product-direction changes, or material risk.
 
-Historical description retained below for archive readability only.
-
-`work-session/v1` was the prior bridge from an accepted product decision into coding execution.
-
-It replaces conversational planning memory, recursive planner packets, and routine approval prompts for reversible in-scope work. It does not replace owner authority for scope expansion, credentials, publication, destructive action, or material risk.
+There is no supported `work-session/v1` compatibility path. Active sessions must carry an exact product-direction snapshot.
 
 ## Product flow
 
 ```text
-accepted product result
+owner-authored PRODUCT.md
+→ exact bytes + digest pin
+→ accepted product result
 → sealed work session
 → dirty-worktree continuation or isolation
-→ read-only coding worker
+→ read-only coding worker (direction first)
 → controller materialization
 → focused validation
 → bounded repair
-→ accepted-path hash capture
 → authorized exact-path commit
 → optional authorized push and remote verification
 → observable result
@@ -30,10 +27,13 @@ accepted product result
 
 ```json
 {
-  "schemaVersion": "work-session/v1",
-  "intent": {
-    "version": "intent-v1",
-    "digest": "sha256:<64 lowercase hex>"
+  "schemaVersion": "work-session/v2",
+  "productDirection": {
+    "schemaVersion": "product-direction/v1",
+    "sourcePath": "PRODUCT.md",
+    "version": "product-direction-v1",
+    "digest": "sha256:<64 lowercase hex of raw PRODUCT.md bytes>",
+    "content": "<exact owner-authored PRODUCT.md text>"
   },
   "productResult": "The useful result the owner expects.",
   "journeyState": "What is already true before coding starts.",
@@ -49,6 +49,7 @@ accepted product result
     "Run focused validation and repair failures."
   ],
   "ownerOnlyActions": [
+    "Change PRODUCT.md.",
     "Expand scope.",
     "Provide credentials or approve publication/destructive action."
   ],
@@ -70,6 +71,21 @@ accepted product result
 }
 ```
 
+## Product direction rules
+
+- `PRODUCT.md` is repository-root, owner-authored, regular-file only.
+- Required headings: Version, Endgame, Target user, Core user journey, Taste — prefer, Taste — reject, Non-negotiables, Shipping definition, Change rule.
+- Digest hashes raw file bytes. Session content must recompute to the same digest.
+- `--goal`, `--session`, and `--resume` all require a live `PRODUCT.md` that matches the sealed snapshot.
+- Any mid-session change, deletion, symlink, unreadable file, malformed headings, or digest mismatch returns:
+
+```text
+Product direction changed since this work session was created.
+Start a new work session from the new direction.
+```
+
+- Controller materialization rejects any write targeting `PRODUCT.md` even if a session lists it in `allowedPaths`.
+
 ## Dirty-worktree behavior
 
 - Clean checkout: work in the checkout.
@@ -77,10 +93,7 @@ accepted product result
 - Unrelated or cross-boundary dirtiness: preserve it and create an isolated sibling worktree.
 - Never reset, clean, stash, or revert owner work automatically.
 - The coding worker remains read-only and returns complete `{ path, content }` file changes.
-- Meta-Harness rejects traversal, symlinks, duplicate paths, oversized content, and out-of-bound files before controller-owned materialization.
-- Staging, commits, and pushes remain outside the coding worker’s authority.
-- After a `DONE` result and passed validation, the controller may commit exact accepted paths and optionally push the current branch to `origin` only when the sealed `delivery` authority permits it.
-- Tags, publication, deletion, and worktree cleanup remain outside this product slice.
+- Meta-Harness rejects traversal, symlinks, duplicate paths, oversized content, out-of-bound files, and `PRODUCT.md` mutations before controller-owned materialization.
 
 ## Human output
 
@@ -104,9 +117,7 @@ Hashes, gate identifiers, custody records, and release evidence remain available
 ## Commands
 
 ```text
-meta-harness work <repository> --goal <result> --allow <path>
+meta-harness work <repository> --goal <result> [--allow <path>]
 meta-harness work <repository> --session <work-session.json>
 meta-harness work <repository> --resume
 ```
-
-Use `--dry-run` to inspect workspace selection without creating a worktree or launching a worker.

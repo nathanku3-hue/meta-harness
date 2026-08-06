@@ -12,7 +12,12 @@ Use outcome-first planning.
 ## Action law
 
 - Select the nearest action that completes the user journey.
-- Permit at most one audit/repair round before running that journey.
+- Default pre-execution audit count: zero.
+- Begin the nearest reversible in-scope action in the same round.
+- A request to audit, review, or plan does not imply a pause. Unless the owner explicitly requests report-only work or says not to execute, perform any warranted diagnostic inline and continue toward execution in the same round.
+- Permit one pre-execution audit only when a complete audit warrant identifies one concrete unresolved fact, the exact retained evidence already checked, one permitted blocking impact, the smallest bounded check, and how either result changes the selected action.
+- One audit is the absolute ceiling. It is not a route, phase, approval requirement, gate, or reason to defer reversible execution.
+- Do not request GO, plan approval, routine permission, or blanket ambiguity confirmation for reversible in-scope work.
 - Treat a finding as blocking only when evidence demonstrates journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability.
 - Reuse passed evidence when its declared input surface did not change.
 - Do not create lifecycle-fragment product slices for integration, packaging, review, documentation, or evidence refresh.

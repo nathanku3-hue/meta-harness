@@ -2,28 +2,22 @@
 
 Canonical rules: [Meta Harness SOP](../sop/meta-harness-sop.md#pm-output-contract). This is an agent contract, not runtime enforcement.
 
-Classify first: `IDEA`, `PLAN`, `AUDIT`, `IMPLEMENT`, `DIRTY_WORKTREE`, `STALE_MAIN`, `WORKER_PATCH`, `PR_REVIEW`, `MERGE`, or `INSTALL_SMOKE`.
+Classify the current outcome as `READY`, `EXECUTING`, `REPAIRING`, `POST_EXECUTION_REVIEW`, `OWNER_ACTION_REQUIRED`, `BLOCKED`, or `NO_BUILD`.
 
-Routes are only `FAST`, `REVIEW`, and `BLOCK`; a would-be `SLOW` case is compressed.
-
-Forward scenarios:
+Routes are only `EXECUTE_NOW`, `OWNER_ACTION_REQUIRED`, `BLOCKED`, and `NO_BUILD`.
 
 ```text
-IDEA -> PLAN -> AUDIT -> IMPLEMENT -> PR_REVIEW -> MERGE -> INSTALL_SMOKE
-```
-Guard scenarios:
-
-```text
-DIRTY_WORKTREE -> BLOCK
-STALE_MAIN -> BLOCK
-WORKER_PATCH -> REVIEW
+READY -> EXECUTING -> REPAIRING -> observable result
+EXECUTING -> POST_EXECUTION_REVIEW -> observable result
+shipped or no valid continuation warrant -> NO_BUILD
+owner-only boundary -> OWNER_ACTION_REQUIRED
+demonstrated product blocker -> BLOCKED
 ```
 
-- `AUDIT -> IMPLEMENT` requires approval, clean git state, and a fresh approved base.
-- `IMPLEMENT -> PR_REVIEW` requires the minimal patch plus evidence.
-- `PR_REVIEW -> MERGE` requires passing checks, review, and explicit merge authority.
-- `MERGE -> INSTALL_SMOKE` uses the exact merged-main commit.
-- `DIRTY_WORKTREE` or `STALE_MAIN` emits `BLOCK` with one actionable next gate.
-- `WORKER_PATCH` emits `REVIEW` unless the owner authorizes branch or PR action.
-- Any failed hard gate emits `BLOCK` and one actionable next gate; no state is skipped.
+- Default pre-execution audit count is zero; begin the nearest reversible action in the same round.
+- A request to audit, review, or plan does not imply a pause unless the owner explicitly requests report-only work or says not to execute.
+- A bounded pre-execution check remains inside `EXECUTE_NOW` and requires a complete audit warrant.
+- One audit is the absolute ceiling, not a route, phase, approval requirement, gate, or pause.
+- Post-execution review may inspect changed bytes, validation, and observable results; it never approves a proposed worker plan.
+- Any failed hard gate emits `BLOCKED` and one actionable next step.
 - User-visible closure follows the adaptive SOP policy; internal route labels are not chat output.

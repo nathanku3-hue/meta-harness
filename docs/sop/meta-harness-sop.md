@@ -9,11 +9,14 @@ Read locked product intent and explicit owner authority first. Read immutable pr
 1. State the observable product result.
 2. Determine whether the complete user journey has run.
 3. Select one nearest executable action.
-4. Permit at most one audit/repair round before execution.
-5. Accept a blocker only with evidence of journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability.
-6. Keep optional findings as non-blocking residue.
-7. Reuse passed evidence whose declared inputs did not change.
-8. Continue the same functional slice through mechanics, integration, package, installed proof, isolated reviews, terminal assessment, publication observation, and closure.
+4. Default the pre-execution audit count to zero and begin the nearest reversible in-scope action in the same round.
+5. A request to audit, review, or plan does not imply a pause. Treat it as an inline diagnostic unless the owner explicitly requests report-only work or says not to execute.
+6. Permit one pre-execution audit only with a complete warrant naming the unresolved fact, retained evidence checked, permitted blocking impact, smallest check, and how either result changes the action.
+7. Treat one audit as the absolute ceiling, never a route, phase, approval requirement, gate, or reason to defer reversible execution.
+8. Accept a blocker only with evidence of journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability.
+9. Keep optional findings as non-blocking residue.
+10. Reuse passed evidence whose declared inputs did not change.
+11. Continue the same functional slice through mechanics, integration, package, installed proof, isolated reviews, terminal assessment, publication observation, and closure.
 
 ## Terminal continuation
 

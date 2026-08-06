@@ -13,13 +13,16 @@ The installed planner shall:
 1. reconcile locked intent and owner authority before status;
 2. identify whether the complete user journey has run;
 3. select the nearest executable action that produces the observable result;
-4. permit at most one pre-execution audit/repair round;
-5. block only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability;
-6. reuse passed evidence when its dependency surface is unchanged;
-7. keep implementation through closure inside one functional slice;
-8. expose the user journey and result as the first five worker-report fields;
-9. ship DELIVERY authority only;
-10. stop with `NO_BUILD` and `USE_PRODUCT` after shipped or value-confirmed completion unless explicit owner scope change or a complete observed supported-use defect warrant exists.
+4. default the pre-execution audit count to zero and begin the nearest reversible in-scope action in the same round;
+5. treat requests to audit, review, or plan as inline diagnostics unless the owner explicitly requests report-only work or says not to execute;
+6. permit one pre-execution audit only with a complete warrant naming the unresolved fact, retained evidence checked, permitted blocking impact, smallest check, and how either result changes the action;
+7. treat one audit as the absolute ceiling, never a route, phase, approval requirement, gate, or reason to defer reversible execution;
+8. block only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability;
+9. reuse passed evidence when its dependency surface is unchanged;
+10. keep implementation through closure inside one functional slice;
+11. expose the user journey and result as the first five worker-report fields;
+12. ship DELIVERY authority only;
+13. stop with `NO_BUILD` and `USE_PRODUCT` after shipped or value-confirmed completion unless explicit owner scope change or a complete observed supported-use defect warrant exists.
 
 ## Acceptance fixtures
 

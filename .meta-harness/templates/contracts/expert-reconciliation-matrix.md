@@ -6,11 +6,12 @@ Purpose: reconcile expert recommendations into one orchestrator decision.
 ## Mode And Stale Rules
 
 ```text
-Mode: <ADVISORY_REVIEW|APPROVAL_GATE|EXECUTION_PACKET|CLOSURE_REPORT>
+Mode: <ADVISORY_REVIEW|POST_EXECUTION_REVIEW|EXECUTION_PACKET|CLOSURE_REPORT>
 No artifact may use more than one mode.
+This matrix is never a routine pre-execution gate and never approves a proposed worker plan.
 StaleReportRule: if an expert report predates current truth, prepend "Superseded on authorization status by <RoundID>; still valid only for guardrails."
 OneDecisionRule: reconcile to one next action; downstream architecture belongs in deferred recommendations.
-If no single next action can be selected, verdict must be BLOCK with max 3 blockers.
+If no single next action can be selected because of a demonstrated blocker or owner-only boundary, return `BLOCKED` or `OWNER_ACTION_REQUIRED` with at most three findings.
 ```
 
 ## Header
@@ -21,9 +22,9 @@ ScopeID: <scope-id>
 Date: <YYYY-MM-DD>
 Orchestrator: <name or role>
 PreRoute: <NO_BUILD|USE_EXISTING_REPO_PATTERN|USE_PLATFORM_NATIVE|MINIMAL_PATCH|HUMAN_TASTE|EXPERT_PACKET|AUTHORITY_BLOCK>
-Route: <FAST|REVIEW|SLOW|BLOCK>
-Outcome: <SHIP|REVIEW|DECISION_NEEDED|BLOCKED|FOLLOW_UP_QUEUED>
-DecisionState: <PENDING|APPROVED|BLOCKED|DEFERRED>
+Route: <EXECUTE_NOW|OWNER_ACTION_REQUIRED|BLOCKED|NO_BUILD>
+Outcome: <PASS_AND_CONTINUE|REPAIR_IN_PLACE|OWNER_ACTION_REQUIRED|BLOCKED|NO_BUILD>
+DecisionState: <EXECUTING|OWNER_ACTION_REQUIRED|BLOCKED|COMPLETE>
 ```
 
 ## Matrix
@@ -53,13 +54,13 @@ DecisionState: <PENDING|APPROVED|BLOCKED|DEFERRED>
 ## Reconciliation Rules
 
 ```text
-VetoRule: any in-scope veto requires BLOCK or explicit orchestrator override.
-LowConfidenceRule: low_confidence requires next verification step before closure.
+VetoRule: an in-scope veto blocks only with retained evidence of journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability; owner-only boundaries map to `OWNER_ACTION_REQUIRED`.
+LowConfidenceRule: low confidence permits one bounded inline check only with a complete audit warrant; otherwise record non-blocking residue and continue.
 BoundaryRule: out_of_boundary items move to open risks or future scope.
-StreamOrderRule: stream_order defines execution sequence; hold means no execution.
-FindingRule: every material finding needs an owner, fix, status, and disposition before reconciliation can close.
+StreamOrderRule: stream_order defines execution sequence; hold is valid only for an owner-only boundary or demonstrated blocker.
+FindingRule: every material post-execution finding needs evidence, affected user behavior, smallest repair, and disposition.
 BuildVsBorrowRule: if the pre-route is not `EXPERT_PACKET` or `HUMAN_TASTE`, reconcile why expert judgment was still necessary or defer the packet.
-AuthorityRule: product, architecture, security, release, provider, and domain-authority changes cannot close with terminal outcome `SHIP`.
+AuthorityRule: product, architecture, security, release, provider, and domain-authority changes require `OWNER_ACTION_REQUIRED`; routine reversible implementation continues with `EXECUTE_NOW`.
 ```
 
 ## Decision

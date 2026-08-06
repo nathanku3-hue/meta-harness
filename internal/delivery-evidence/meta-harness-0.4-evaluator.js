@@ -243,13 +243,45 @@ function validBlockingFinding(finding, expected) {
     && !expected.nonBlockingFindings.includes(finding.finding);
 }
 
+function validAuditWarrant(warrant, expected) {
+  return warrant
+    && typeof warrant === "object"
+    && !Array.isArray(warrant)
+    && typeof warrant.unresolvedFact === "string"
+    && warrant.unresolvedFact.trim().length > 0
+    && Array.isArray(warrant.evidenceChecked)
+    && warrant.evidenceChecked.length > 0
+    && warrant.evidenceChecked.every((entry) => typeof entry === "string" && entry.trim().length > 0)
+    && expected.validBlockingImpacts.includes(warrant.potentialImpact)
+    && typeof warrant.smallestCheck === "string"
+    && warrant.smallestCheck.trim().length > 0
+    && typeof warrant.decisionChangedByResult === "string"
+    && warrant.decisionChangedByResult.trim().length > 0;
+}
+
 function leningradTrialPasses(input, fixture) {
   const trial = input.leningradTrial;
   const expected = fixture.outcomeFirstFixtures.leningrad;
+  const rounds = trial?.preExecutionAuditRepairRounds;
+  const auditCountPasses = Number.isInteger(rounds)
+    && rounds >= expected.defaultPreExecutionAuditRepairRounds
+    && rounds <= expected.maxPreExecutionAuditRepairRounds
+    && (rounds === expected.defaultPreExecutionAuditRepairRounds
+      ? trial.auditWarrant === null
+      : validAuditWarrant(trial.auditWarrant, expected));
   return trial?.conditionDigest === expected.conditionDigest
-    && Number.isInteger(trial.preExecutionAuditRepairRounds)
-    && trial.preExecutionAuditRepairRounds >= 0
-    && trial.preExecutionAuditRepairRounds <= expected.maxPreExecutionAuditRepairRounds
+    && auditCountPasses
+    && trial.route === expected.requiredRoute
+    && trial.questionCount === expected.requiredQuestionCount
+    && trial.orchestratorRoundCount === expected.requiredOrchestratorRoundCount
+    && trial.userAuthoredMessagesBeforeFirstImplementationAction
+      <= expected.maxUserAuthoredMessagesBeforeFirstImplementationAction
+    && trial.manualOrchestratorToWorkerHandoffs === expected.requiredManualOrchestratorToWorkerHandoffs
+    && trial.mandatoryPreExecutionAuditChats === expected.requiredMandatoryPreExecutionAuditChats
+    && trial.mandatoryAmbiguityConfirmations === expected.requiredMandatoryAmbiguityConfirmations
+    && trial.workerFirstRoundReversibleChange === expected.requiredWorkerFirstRoundReversibleChange
+    && exactStringArray(trial.freshContinuationInputs, expected.requiredFreshContinuationInputs)
+    && trial.auditorChatRequiresCompleteWarrant === expected.requiredAuditorChatRequiresCompleteWarrant
     && trial.primaryAction === expected.requiredPrimaryAction
     && Array.isArray(trial.blockingFindings)
     && trial.blockingFindings.length === 0
@@ -604,30 +636,61 @@ function runSelfTest() {
   const fixture = readJson(fixturePath(), "fixture manifest");
   verifyFixture(fixture, { verifyRepositoryPrograms: true });
   const leningrad = fixture.outcomeFirstFixtures.leningrad;
-  const negativeLeningrad = {
+  const baseLeningrad = {
     conditionDigest: leningrad.conditionDigest,
-    preExecutionAuditRepairRounds: 1,
-    primaryAction: leningrad.rejectedOldPlannerAction,
+    route: leningrad.requiredRoute,
+    questionCount: leningrad.requiredQuestionCount,
+    orchestratorRoundCount: leningrad.requiredOrchestratorRoundCount,
+    userAuthoredMessagesBeforeFirstImplementationAction: leningrad.maxUserAuthoredMessagesBeforeFirstImplementationAction,
+    manualOrchestratorToWorkerHandoffs: leningrad.requiredManualOrchestratorToWorkerHandoffs,
+    mandatoryPreExecutionAuditChats: leningrad.requiredMandatoryPreExecutionAuditChats,
+    mandatoryAmbiguityConfirmations: leningrad.requiredMandatoryAmbiguityConfirmations,
+    workerFirstRoundReversibleChange: leningrad.requiredWorkerFirstRoundReversibleChange,
+    freshContinuationInputs: leningrad.requiredFreshContinuationInputs,
+    auditorChatRequiresCompleteWarrant: leningrad.requiredAuditorChatRequiresCompleteWarrant,
     blockingFindings: [],
     nonBlockingFindings: leningrad.nonBlockingFindings,
   };
-  const optionalBlockerLeningrad = {
-    conditionDigest: leningrad.conditionDigest,
+  const negativeLeningrad = {
+    ...baseLeningrad,
+    preExecutionAuditRepairRounds: 0,
+    auditWarrant: null,
+    primaryAction: leningrad.rejectedOldPlannerAction,
+  };
+  const unwarrantedAuditLeningrad = {
+    ...baseLeningrad,
     preExecutionAuditRepairRounds: 1,
+    auditWarrant: null,
+    primaryAction: leningrad.requiredPrimaryAction,
+  };
+  const optionalBlockerLeningrad = {
+    ...baseLeningrad,
+    preExecutionAuditRepairRounds: 0,
+    auditWarrant: null,
     primaryAction: leningrad.requiredPrimaryAction,
     blockingFindings: [{
       finding: "reviewer preference",
       impact: "JOURNEY_PREVENTION",
       evidenceSource: "review comment",
     }],
-    nonBlockingFindings: leningrad.nonBlockingFindings,
   };
   const positiveLeningrad = {
-    conditionDigest: leningrad.conditionDigest,
-    preExecutionAuditRepairRounds: 1,
+    ...baseLeningrad,
+    preExecutionAuditRepairRounds: 0,
+    auditWarrant: null,
     primaryAction: leningrad.requiredPrimaryAction,
-    blockingFindings: [],
-    nonBlockingFindings: leningrad.nonBlockingFindings,
+  };
+  const warrantedAuditLeningrad = {
+    ...baseLeningrad,
+    preExecutionAuditRepairRounds: 1,
+    auditWarrant: {
+      unresolvedFact: "Whether one retained product artifact is readable.",
+      evidenceChecked: ["The exact retained artifact path and digest."],
+      potentialImpact: "JOURNEY_PREVENTION",
+      smallestCheck: "Read that one artifact once.",
+      decisionChangedByResult: "Readable continues the action; unreadable selects the smallest repair.",
+    },
+    primaryAction: leningrad.requiredPrimaryAction,
   };
   const positiveQuant = {
     conditionDigest: fixture.outcomeFirstFixtures.quant.conditionDigest,
@@ -659,8 +722,10 @@ function runSelfTest() {
   queuedContinuationTrial.caseResults.find((entry) => entry.caseId === "terminal-no-warrant").result.primaryAction = "FOLLOW_UP_QUEUED";
 
   assert(!leningradTrialPasses({ leningradTrial: negativeLeningrad }, fixture), "old planner fixture was not rejected");
+  assert(!leningradTrialPasses({ leningradTrial: unwarrantedAuditLeningrad }, fixture), "unwarranted pre-execution audit was accepted");
   assert(!leningradTrialPasses({ leningradTrial: optionalBlockerLeningrad }, fixture), "optional finding was accepted as a blocker");
-  assert(leningradTrialPasses({ leningradTrial: positiveLeningrad }, fixture), "outcome-first Leningrad fixture failed");
+  assert(leningradTrialPasses({ leningradTrial: positiveLeningrad }, fixture), "zero-audit outcome-first Leningrad fixture failed");
+  assert(leningradTrialPasses({ leningradTrial: warrantedAuditLeningrad }, fixture), "complete audit warrant was rejected");
   for (const impact of leningrad.validBlockingImpacts) {
     assert(validBlockingFinding({
       finding: `demonstrated ${impact}`,
@@ -691,6 +756,9 @@ function runSelfTest() {
     fixtureDigest: fixture.fixtureDigest,
     predicates: PROOF_PREDICATE_ORDER,
     oldPlannerRejected: true,
+    unwarrantedAuditRejected: true,
+    warrantedAuditAccepted: true,
+    adversarialOperatorPromptRoutesExecuteNow: true,
     optionalBlockerRejected: true,
     booleanOnlyTerminalRejected: true,
     continuationTableAccepted: true,

@@ -26,7 +26,11 @@ Affected evidence: <only gates whose inputs changed>
 Demonstrated blockers: <list or none>
 ```
 
-When the journey has not run, allow at most one audit/repair round and then execute it. Select one functional slice that owns implementation through terminal closure; do not create acceptance-only, integration-only, packaging-only, review-only, documentation-only, or evidence-refresh product slices.
+Default pre-execution audit count: zero. When the journey has not run, begin the nearest reversible in-scope action in the same round.
+
+A request to audit, review, or plan does not imply a pause. Unless the owner explicitly requests report-only work or says not to execute, perform any warranted diagnostic inline and continue toward execution. Permit one pre-execution audit only when a complete warrant names the unresolved fact, retained evidence checked, permitted blocking impact, smallest check, and how either result changes the selected action. One audit is the absolute ceiling, not a route, phase, approval requirement, gate, or pause.
+
+Do not request GO, plan approval, routine permission, or blanket ambiguity confirmation. Select one functional slice that owns implementation through terminal closure; do not create acceptance-only, integration-only, packaging-only, review-only, documentation-only, or evidence-refresh product slices.
 
 A blocker requires evidence of journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability. Everything else is non-blocking residue.
 
@@ -44,7 +48,7 @@ Done when: <observable completion>
 Stop only if: <material blocker or authority expansion>
 ```
 
-Begin `Do now` before opening another planning cycle. Routine branch, worktree, test, repair, and evidence actions inside the accepted scope are execution, not owner decisions. Normal user-facing updates use product and risk language; internal gate, phase, candidate, custody, and evidence labels stay in technical evidence unless explicitly requested.
+Begin `Do now` before opening another planning cycle. Routine branch, worktree, test, repair, and evidence actions inside the accepted scope are execution, not owner decisions. When a fresh worker conversation can be launched directly, pass the exact sealed brief without asking the owner to copy it, require the worker to change one reversible in-scope byte in its first round, and retain `taskId` as the only required continuation input. Normal user-facing updates use product and risk language; internal gate, phase, candidate, custody, and evidence labels stay in technical evidence unless explicitly requested.
 
 ## Terminal stop
 

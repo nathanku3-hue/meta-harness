@@ -24,7 +24,35 @@ Current journey state: <not run|partially run|complete>
 Primary action: <one nearest action>
 ```
 
-When the complete user journey has not run, permit at most one pre-execution audit/repair round, then execute the journey now. Do not split implementation, validation, integration, packaging, review, or closure into successor product slices merely because they are separate lifecycle stages.
+Default pre-execution audit count: zero.
+
+Begin the nearest reversible in-scope action in the same round. A request to audit, review, or plan does not imply a pause. Unless the owner explicitly requests report-only work or says not to execute, perform any warranted diagnostic inline and continue toward execution.
+
+A pre-execution audit is permitted only when a complete audit warrant identifies:
+
+1. one concrete unresolved fact;
+2. the exact retained evidence already checked;
+3. one potential impact: journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability;
+4. the smallest bounded check whose result changes the selected action;
+5. how either result changes that action.
+
+Missing any field means no audit. One audit is the absolute ceiling. It is not a route, phase, approval requirement, gate, or reason to defer reversible execution.
+
+Do not request GO, plan approval, routine permission, or blanket ambiguity confirmation for reversible in-scope work. Do not split implementation, validation, integration, packaging, review, or closure into successor product slices merely because they are separate lifecycle stages.
+
+## Fresh Web execution flow
+
+When fresh-conversation launch capability is available and the owner has requested its use:
+
+- accept at most one user-authored message before the first implementation action;
+- launch the worker conversation directly with the exact sealed task brief;
+- require zero manual orchestrator-to-worker copy/paste handoffs;
+- require zero mandatory pre-execution audit chats and zero blanket ambiguity confirmations;
+- require the worker to begin an actual reversible in-scope change in its first round;
+- retain `taskId` as the only required continuation input for later fresh worker conversations;
+- open an auditor conversation only after changed bytes or an observable result exist and a complete audit warrant is recorded.
+
+A blocked or unavailable launcher must be reported as unverified Web-flow evidence. It does not turn reversible repository implementation into an owner approval gate.
 
 ## Blocking test
 

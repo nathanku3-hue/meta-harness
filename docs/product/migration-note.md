@@ -5,7 +5,7 @@ Meta-Harness 0.4 is a breaking outcome-first DELIVERY release.
 ## Changed behavior
 
 - Locked product intent and owner authority outrank status and roadmap prose.
-- The planner executes the nearest complete user journey after at most one audit/repair round.
+- The planner defaults to zero pre-execution audits, begins the nearest reversible action in the same round, and permits one bounded audit only with a complete warrant; that audit is an absolute ceiling, not a route, phase, approval gate, or pause.
 - Only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability blocks.
 - Passed evidence is reused while its declared inputs are unchanged.
 - Worker reports begin with the five product fields before `Outcome:` or internal metadata.

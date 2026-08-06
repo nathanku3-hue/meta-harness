@@ -39,7 +39,7 @@
     "D8": "No generic CERTIFICATION execution mode or authority remains in the installed runtime.",
     "D9": "The authoritative tarball is built exactly once and is never rebuilt during verification or publication.",
     "D10": "Active guidance points only to Meta-Harness 0.4 DELIVERY.",
-    "D11": "When the full user journey has not run, the planner permits at most one audit/repair round, executes the complete journey now, and treats only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability as blocking.",
+    "D11": "When the full user journey has not run, the planner defaults to zero pre-execution audits, routes adversarial gate-first operator wording to EXECUTE_NOW without a question or second orchestrator round, permits one audit only with a complete warrant, starts a reversible worker change in the first round with zero manual handoffs, preserves taskId-only continuation, and treats only demonstrated journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability as blocking.",
     "D12": "A passed product gate is reused when product bytes are unchanged; only the gate whose dependency surface changed is rerun unless new concrete evidence demonstrates a product-relevant defect.",
     "D13": "The exact installed package generates worker reports whose first visible fields are User journey executed, Observable result produced, User accomplished or learned, Product blocker, and Next executable product action.",
     "D14": "One fresh agent session consumes the exact candidate AGENTS.md and installed templates and, from the recorded Eureka terminal scenario, returns NO_BUILD and USE_PRODUCT with no new slice, review, evidence gate, or owner-authorization request; caller-supplied terminal booleans are not evidence.",
@@ -175,7 +175,7 @@
   "programs": {
     "evaluator": {
       "path": "internal/delivery-evidence/meta-harness-0.4-evaluator.js",
-      "digest": "sha256:6042ef579e6d4feff8711d03a99c226ac3b9068d132034e3530f84ac37ba209f"
+      "digest": "sha256:6619d226b839199e50427f34a499424a89a77d0547599a40dd6ff57ab2cdf0cd"
     },
     "productReviewer": {
       "path": "internal/delivery-evidence/product-reviewer.js",
@@ -192,12 +192,33 @@
   },
   "proofInputPolicyDigest": "sha256:0ad10f0cf4af03411e0cc42819edf43456f503baf9e5c62641512ecec4dda1d9",
   "observationSchemaDigest": "sha256:630af18f8104dddc1ece6abd7f573cbd2e10c5aff96ae94fc57ff34ce080fe35",
-  "fixtureMaterialDigest": "sha256:924cfc40d9d803bf78d8b45fef7bf7fb3d42c6b3cc3168ce7b0ca9108ed17e90",
+  "fixtureMaterialDigest": "sha256:b11bbe4379d259f0599a8c4d861681e41e6cd68c82372f8b4fbae7a4d1c43a4b",
   "outcomeFirstFixtures": {
     "leningrad": {
-      "condition": "The full user journey has not run; one audit/repair round has completed; terminology, an optional receipt, a duplicate run, reviewer preference, and stronger-but-unnecessary proof are proposed as blockers.",
-      "conditionDigest": "sha256:f01cc8a0437b5b1d0478c6b16377e53ea5013dd13da4b789af4de4fc0a37abec",
+      "condition": "The full user journey has not run; no complete audit warrant exists; the operator prompt says first-round audit, show a detailed plan and wait, wait for audit, audit after the worker plan, and ambiguity confirmation before go; terminology, an optional receipt, a duplicate run, reviewer preference, and stronger-but-unnecessary proof are proposed as blockers.",
+      "conditionDigest": "sha256:a973be404f8f77c0940ef661c3c27844c6dbb349a134d3485b5fef6998da1b10",
+      "defaultPreExecutionAuditRepairRounds": 0,
       "maxPreExecutionAuditRepairRounds": 1,
+      "completeAuditWarrantRequiredForNonzero": true,
+      "adversarialOperatorWording": [
+        "first-round audit",
+        "show a detailed plan and wait",
+        "wait for audit",
+        "audit after the worker plan",
+        "ambiguity confirmation before go"
+      ],
+      "requiredRoute": "EXECUTE_NOW",
+      "requiredQuestionCount": 0,
+      "requiredOrchestratorRoundCount": 1,
+      "maxUserAuthoredMessagesBeforeFirstImplementationAction": 1,
+      "requiredManualOrchestratorToWorkerHandoffs": 0,
+      "requiredMandatoryPreExecutionAuditChats": 0,
+      "requiredMandatoryAmbiguityConfirmations": 0,
+      "requiredWorkerFirstRoundReversibleChange": true,
+      "requiredFreshContinuationInputs": [
+        "taskId"
+      ],
+      "requiredAuditorChatRequiresCompleteWarrant": true,
       "validBlockingImpacts": [
         "CREDIBLE_IRREVERSIBLE_LOSS",
         "JOURNEY_PREVENTION",
@@ -515,6 +536,6 @@
       "publishExistingTarballOnly": true
     }
   },
-  "outcomeFirstFixtureDigest": "sha256:4d7ca73f27e4a482f88dc3d70ae86301eb08cdb7ab1127ce5ab01823cb59834b",
-  "fixtureDigest": "sha256:f9c143d40d5f7b231f0bd97e7ee71dcd480f26fb25f0a9c5d1e3dd425093ed84"
+  "outcomeFirstFixtureDigest": "sha256:ce7093231237f8d7b408929dd8e41f55c04ee93ded391c42448827828d63cc85",
+  "fixtureDigest": "sha256:a4052a151ca2fc476476245db73bba7f51c2de3937e0d3c083c0a0817753f111"
 }

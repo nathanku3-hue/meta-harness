@@ -15,7 +15,11 @@ function assertOutcomeFirstPlanner(text) {
   assert.match(text, /locked product intent|locked intent/i);
   assert.match(text, /owner authority|owner-signed acceptance/i);
   assert.match(text, /status[\s\S]*(?:last|cannot create|lower-precedence)/i);
-  assert.match(text, /at most one .*audit\/repair round/i);
+  assert.match(text, /default (?:the )?pre-execution audit count(?::| to)? zero/i);
+  assert.match(text, /begin.*reversible.*same round/i);
+  assert.match(text, /absolute ceiling/i);
+  assert.match(text, /(?:not|never) a route/i);
+  assert.match(text, /audit, review, or plan.*does not imply a pause/i);
   assert.match(text, /journey prevention/i);
   assert.match(text, /material conclusion invalidation/i);
   assert.match(text, /credible irreversible loss/i);
@@ -47,6 +51,14 @@ test("router, decision gate, and scope selector preserve one complete functional
   const selector = read("templates/skills/scope-selector.md");
   assert.match(selector, /one functional slice/i);
   assert.match(selector, /acceptance-only, integration-only, packaging-only, review-only, documentation-only, or evidence-refresh/i);
+  const router = read("templates/skills/ship-fast-decision-router.md");
+  assert.match(router, /`EXECUTE_NOW`/);
+  assert.match(router, /`OWNER_ACTION_REQUIRED`/);
+  assert.match(router, /`BLOCKED`/);
+  assert.match(router, /`NO_BUILD`/);
+  assert.doesNotMatch(router, /- `REVIEW`:/);
+  assert.match(router, /Do not ask the owner to copy or paste the brief/i);
+  assert.match(router, /`taskId` as the only required continuation input/i);
 });
 
 test("candidate AGENTS maps terminal classification to exact user-facing guidance", () => {
@@ -97,6 +109,8 @@ test("ops contracts are short, SOP-linked, and fail closed", () => {
     assert.match(text, /\.\.\/sop\/meta-harness-sop\.md#pm-output-contract/);
   }
   assert.match(read(ops[0]), /Any failed hard gate emits .*BLOCK/);
+  assert.match(read(ops[0]), /Routes are only `EXECUTE_NOW`, `OWNER_ACTION_REQUIRED`, `BLOCKED`, and `NO_BUILD`/);
+  assert.doesNotMatch(read(ops[0]), /AUDIT -> IMPLEMENT|Routes are only `FAST`, `REVIEW`/);
   assert.doesNotMatch(read(ops[0]), /PREFLIGHT|VERIFY/);
   assert.match(read(ops[1]), /any pre-existing dirt fails the fresh implementation preflight/);
   assert.match(read(ops[1]), /Never use reset, clean, stash, checkout, or force operations/);
