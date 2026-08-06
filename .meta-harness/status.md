@@ -1,40 +1,44 @@
 # Meta-Harness Current Product State
 
-State: SOTA_ASSIMILATION_EPISODE_1_COMPLETE
-Current checkout: `integration/post-0.4`
-Accepted product score: `84/100`
+State: PRODUCT_DIRECTION_CONTINUITY_1_IMPLEMENTED
+Current checkout: `product/product-direction-continuity-1`
+Accepted product score: `84/100` (banked Episode 1; implementation-only does not raise score)
+Revised score target: `85/100` after real external direction-carrying `--goal` DONE
 
 ## Product result
 
-A solo developer can state one coding result through `meta-harness work`. For npm repositories, low-friction `--goal` validation now follows each allowed path to its nearest regular `package.json`, requires one unambiguous package root, and runs exact controller-owned `npm test` from that package directory. Unrelated owner work is preserved in an ignored repository-local worktree.
+Owner states product direction once in repository-root `PRODUCT.md`. Every coding session, repair, resume, and fresh-worker continuation carries the exact same taste, philosophy, endgame, and shipping definition. Engineering cannot silently rewrite it. Controller rejects any worker mutation of `PRODUCT.md`.
 
 ## Current state
 
-- Episode 1 used exact Eureka revision `41723ff80d7b919cb536c4fa296670de9b7ce5aa` and the goal “Make Eureka reject unknown CLI options instead of silently accepting them.”
-- The baseline `--goal` journey returned `BLOCKED` before workspace creation because validation existed under `learn-diff/package.json`, not at the repository root.
-- Two bounded frontier-search rounds selected scope-nearest package resolution. Repository-wide enumeration and extra configuration were rejected as broader and more ambiguous.
-- The same journey then reached `READY`; an explicit sealed session completed the Eureka change in `.worktrees/meta-harness-744f19ec7b`.
-- Eureka now rejects unknown options, preserves documented capture/verify parsing, and passes its controller-owned `learn-diff` oracle: 30/30 tests.
-- WSL uses the installed Windows Codex through Windows Node without a command shell. Prompt, schema, output, and workspace arguments retain exact boundaries.
-- Passed controller validation can return a contradictory worker-marked partial result for bounded completion instead of treating worker narrative as proof.
-- The unconsumed research ingest, summarize, and handoff runtime paths, routes, fixtures, and self-referential tests were deleted without aliases or a grace period. Historical decisions and Git history remain.
-- Terminal Meta-Harness verification passes 109 test files and 762 tests with zero failures. Sync checks 33 artifacts; whitespace and package dry-run checks pass.
-- The quality gate still reports inherited and pre-existing working-tree ratchet debt, including the already-open `work-git.js` isolation slice. Episode 1's new modules and tests remain within their line budgets.
-- Commit and push were not authorized. Meta-Harness and Eureka changes remain in their respective working trees.
+- Episode 1 banked at `58a8b2a`; this branch builds from that tip.
+- Active contract is `work-session/v2` with `product-direction/v1` exact content snapshot (no v1 compat).
+- Low-friction `--goal` pins live `PRODUCT.md` before workspace creation.
+- `--session` and `--resume` require live `PRODUCT.md` matching the sealed snapshot (I1).
+- Worker prompt injects product direction before product result and engineering context.
+- Materializer hard-rejects `PRODUCT.md` writes regardless of `allowedPaths`.
+- New `init` no longer generates `phase-map.md`; retained readers tolerate absence.
+- Meta-Harness repository has owner-authored root `PRODUCT.md`.
+- `npm test`: 110 files, 771 tests, zero failures.
+- Score remains `84/100` until a real external repository proves the revised 85 journey.
+- Feature-branch commit/push not authorized yet.
 
 ## Do now
 
-No additional build slice is active. Review and bank the exact validated working-tree changes when commit authority is supplied. Do not open another assimilation framework, audit cycle, crawler, registry, or compatibility path from this closure.
+Owner review and bank this branch when ready. Claim 85 only after a real external low-friction `--goal` journey carries exact direction to DONE without explicit session or status finalizer repair.
 
 ## Done when
 
-- scope-nearest npm validation remains deterministic and cross-package ambiguity fails closed;
-- repository-local worktree identity and resume binding remain enforced;
-- the Eureka target retains the validated unknown-option behavior;
-- focused and complete tests, sync, whitespace, and package checks remain green;
-- any authorized commit contains only the exact closure paths;
-- `85/100` is claimed only after a real low-friction `--goal` journey reaches `DONE` without explicit-session or deterministic-finalizer repair.
+- missing/malformed/oversized/non-regular PRODUCT.md fails before worker/workspace activity;
+- v2 sessions store exact bytes and matching raw-byte digest;
+- fake-worker prompt receives those exact bytes first;
+- repair and resume keep unchanged snapshot bytes while live file is unchanged;
+- live-file change or deletion blocks resume with the stated product message;
+- PRODUCT.md mutations are controller-rejected even if listed as allowed;
+- new init does not write phase-map;
+- focused and complete tests remain green;
+- 85 is claimed only after real external direction-carrying DONE.
 
 ## Stop only if
 
-A required validation command cannot run, the accepted path boundary is insufficient, unique owner work would be endangered, protected access is required, or repository evidence proves the requested result materially unsafe or impossible.
+Product-direction format debate expands into a schema platform, phase-map cleanup becomes a multi-system rewrite, unique owner work would be endangered, or protected access is required.

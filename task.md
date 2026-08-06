@@ -1,37 +1,28 @@
-# Current Task — SOTA Assimilation Episode 1 Complete
+# Current Task — PRODUCT_DIRECTION_CONTINUITY_1
 
 ## Product result
 
-One real external-repository friction was closed end to end: `meta-harness work --goal` now discovers one unambiguous scope-nearest npm validation root, and Eureka rejects unknown CLI options with exact controller validation.
+Owner states product direction once; every engineering round demonstrably carries it unchanged until the owner explicitly changes it.
 
 ## Current state
 
-- Exact target: `E:\Code\eureka` at `41723ff80d7b919cb536c4fa296670de9b7ce5aa`.
-- Baseline: the target's nested `learn-diff/package.json` oracle passed 29/29, while Meta-Harness returned `BLOCKED` because it only inspected the repository root.
-- Promoted mechanism: nearest `package.json` from each allowed path; all paths must resolve to the same package or fail closed.
-- Target result: isolated worktree `work/make-eureka-reject-unknown-cli-optio-744f19ec7b`, two changed paths, controller validation 30/30, outcome `DONE`.
-- Repository-local managed worktrees, persisted resume identity, WSL-to-Windows Codex argument transport, and validated-partial bounded completion are implemented in the current Meta-Harness tree.
-- Unconsumed research ingest/summarize/handoff runtime paths and their active self-tests were deleted without compatibility aliases.
-- Meta-Harness terminal verification: 109 test files, 762 tests, zero failures; sync, whitespace, and package dry-run pass.
-- Quality retains inherited and pre-existing working-tree debt; no Episode 1 module crossed its budget.
-- No commit or push was authorized in either repository.
+- Episode 1 banked (`58a8b2a`).
+- Branch `product/product-direction-continuity-1` implements work-session/v2 + product-direction pin.
+- Ambiguity set locked: A1, B3, C2, D1, E1, F1, G1, I1, J no-push.
+- Hard controller ban on PRODUCT.md writes is in place.
 
 ## Do now
 
-No active build slice. Review and bank the validated Meta-Harness and Eureka working-tree changes only when exact commit authority is supplied.
+Verify acceptance tests and repository-wide green; keep score at 84 until real external proof for revised 85.
 
 ## Done when
 
-- the exact closure paths are committed without unrelated bytes, if authorized;
-- the Eureka behavior remains validated;
-- no removed research compatibility path returns;
-- no generic assimilation framework is opened without repeated real episodes;
-- the accepted product score remains `84/100` until a zero-repair low-friction `--goal` journey earns `85/100`.
+The eight minimal acceptance bars pass and docs/status reflect v2 + score truth without claiming 85 prematurely.
 
 ## Stop only if
 
-Commit scope is ambiguous, unique owner work would be endangered, protected access is required, or exact validation no longer reproduces.
+Direction continuity is blocked by missing owner PRODUCT.md authority, irreversible action is required, or evidence shows the slice cannot ship without expanding into non-goals.
 
 ## Prohibitions
 
-No compatibility aliases, generic assimilation schema, candidate registry, crawler, database, queue, daemon, swarm, provider framework, auto-commit, auto-push, auto-publication, cleanup campaign, or mandatory next audit.
+No ProductState database, product graph, automated taste mining, LLM-generated philosophy, candidate registry, approval workflow UI, multi-agent taste voting, dashboard, daily alignment cron, or simultaneous full rewrite of auditor/planner/orchestrator.

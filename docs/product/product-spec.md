@@ -34,14 +34,37 @@ meta-harness help --advanced
 
 No deprecated aliases or compatibility command names are maintained.
 
+## Product direction
+
+Repository-root `PRODUCT.md` is the owner-authored product direction. Meta-Harness may read, hash, snapshot, and fail closed on drift. It must not generate, fill, summarize, relocate, or overwrite it. Required headings:
+
+```text
+Version
+Endgame
+Target user
+Core user journey
+Taste — prefer
+Taste — reject
+Non-negotiables
+Shipping definition
+Change rule
+```
+
+Digest is SHA-256 over the raw file bytes. Maximum size is 128 KiB. Symlinks, non-regular files, invalid UTF-8, missing headings, empty sections, and oversized files fail closed before workspace creation or worker launch.
+
+Controller materialization rejects any proposed write targeting `PRODUCT.md` regardless of `allowedPaths`.
+
 ## Work-session contract
 
-`work-session/v1` is exact, digest-bound JSON. Required fields:
+`work-session/v2` is exact, digest-bound JSON. There is no supported v1 compatibility path. Required fields:
 
 ```text
 schemaVersion
-intent.version
-intent.digest
+productDirection.schemaVersion
+productDirection.sourcePath
+productDirection.version
+productDirection.digest
+productDirection.content
 productResult
 journeyState
 doNow
@@ -59,10 +82,11 @@ delivery.push
 sessionDigest
 ```
 
-The digest is domain-separated SHA-256 over canonical session content excluding `sessionDigest`.
+The session digest is domain-separated SHA-256 over canonical session content excluding `sessionDigest`. Product-direction digest is SHA-256 over raw `PRODUCT.md` bytes and must match `productDirection.content`.
 
 ### Meaning
 
+- `productDirection`: exact owner-authored direction snapshot used for the whole session.
 - `productResult`: owner-visible result to deliver.
 - `journeyState`: relevant truth already established.
 - `doNow`: first executable coding action.
@@ -70,15 +94,15 @@ The digest is domain-separated SHA-256 over canonical session content excluding 
 - `doneWhen`: observable completion and validation.
 - `stopOnlyIf`: material conditions that invalidate continued execution.
 - `authorizedReversibleActions`: work the coding worker may perform without another owner decision.
-- `ownerOnlyActions`: scope, access, publication, destructive action, or material risk reserved for the owner.
-- `allowedPaths`: exact repository-relative edit boundary; traversal and `.git` are rejected.
+- `ownerOnlyActions`: scope, product-direction change, access, publication, destructive action, or material risk reserved for the owner.
+- `allowedPaths`: exact repository-relative edit boundary; traversal and `.git` are rejected; `PRODUCT.md` remains protected even if listed.
 - `dirtyPolicy`: `continue-in-scope` or `isolate`.
 - `validation`: exact argv, cwd, and timeout commands run by Meta-Harness, not trusted from worker narrative.
 - `maxAttempts`: one to three coding/repair attempts.
 - `delivery.commit`: explicit controller authority to commit the exact validated accepted paths.
 - `delivery.push`: explicit controller authority to push the resulting commit; valid only when commit authority is also true.
 
-`--goal` creates a complete low-friction session with safe defaults. For each allowed path, Meta-Harness selects the nearest regular `package.json` between that path and the repository root; every allowed path must resolve to the same package. It seals exact controller-owned `npm test` validation with the selected package directory as `cwd`. Missing, malformed, symlinked, placeholder, or cross-package validation returns `BLOCKED` before workspace creation, worker launch, or repository mutation. Explicit session JSON is required when validation uses another command or when exact done criteria and path boundaries matter.
+`--goal` pins live `PRODUCT.md` and creates a complete low-friction session with safe defaults. For each allowed path, Meta-Harness selects the nearest regular `package.json` between that path and the repository root; every allowed path must resolve to the same package. It seals exact controller-owned `npm test` validation with the selected package directory as `cwd`. Missing product direction, missing validation, malformed packages, symlinks, placeholders, or cross-package validation returns `BLOCKED` before workspace creation, worker launch, or repository mutation. Explicit session JSON is required when validation uses another command or when exact done criteria and path boundaries matter. Explicit sessions still require a live matching `PRODUCT.md`.
 
 ## Workspace resolution
 
@@ -116,14 +140,14 @@ Work-session and result artifacts are stored under the repository Git common dir
 
 The supported worker is the local Codex CLI in read-only mode. In WSL, Meta-Harness may invoke the installed Windows Codex through its Windows Node executable while translating only controller-owned workspace, schema, and output paths; prompt and argument boundaries remain direct and shell-free.
 
-The process receives:
+The process receives, in order:
 
-- read-only sandbox authority;
-- no interactive approval prompts;
-- the complete work session;
-- repository-local instructions;
+- product direction exact snapshot;
+- product result, journey state, do-now, newly true behavior, and done when;
+- repository-local instructions and relevant implementation context;
+- read-only sandbox authority and no interactive approval prompts;
 - exact path and action boundaries;
-- explicit prohibition on planning restart, direct filesystem mutation, scope widening, compatibility work, Git publication, credentials, and destructive operations.
+- explicit prohibition on planning restart, product-direction mutation, direct filesystem mutation, scope widening, compatibility work, Git publication, credentials, and destructive operations.
 
 The worker returns structured JSON:
 
@@ -153,7 +177,7 @@ After materialization, Meta-Harness proves:
 
 Any violation fails closed.
 
-Meta-Harness then runs each exact validation command. If validation fails and attempts remain, the failure output is sent back to the same work session for repair. The product result and boundaries do not change between attempts.
+Meta-Harness then runs each exact validation command. If validation fails and attempts remain, the failure output is sent back to the same work session for repair. The product result, product-direction snapshot, and boundaries do not change between attempts. Resume requires persisted content, persisted digest, and live repository-root `PRODUCT.md` bytes/digest to agree; otherwise the session is blocked and a new work session must be started from the current direction.
 
 ## Delivery close
 

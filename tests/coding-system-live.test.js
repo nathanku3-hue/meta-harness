@@ -43,6 +43,8 @@ test("live coding system carries one result through Codex and exact validation",
     "",
   ].join("\n"), "utf8");
   fs.writeFileSync(path.join(root, "README.md"), "Implement the smallest code required by the existing test.\n", "utf8");
+  const { writeProductMd } = require("./helpers/product-direction");
+  const productDirection = writeProductMd(root);
   git(root, ["add", "."]);
   git(root, ["commit", "-m", "failing product fixture"]);
   git(root, ["remote", "add", "origin", origin]);
@@ -51,8 +53,8 @@ test("live coding system carries one result through Codex and exact validation",
   const branch = git(root, ["branch", "--show-current"]);
 
   const session = sealWorkSession({
-    schemaVersion: "work-session/v1",
-    intent: { version: "live-proof/v1", digest: "sha256:" + "3".repeat(64) },
+    schemaVersion: "work-session/v2",
+    productDirection,
     productResult: "Make the existing sum test pass.",
     journeyState: "The repository has one failing test because src/sum.js is absent.",
     doNow: "Implement the smallest CommonJS src/sum.js exporting sum(a, b).",

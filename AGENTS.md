@@ -29,12 +29,13 @@ Use outcome-first planning.
 ## Coding-system law
 
 - `meta-harness work` is the primary product path. Normal help and normal reporting must remain product-facing.
-- `work-session/v1` is the complete active coding brief. The worker must consume it directly and must not reconstruct product intent from status files or reopen broad planning.
+- Repository-root `PRODUCT.md` is owner-authored product direction. Pin exact bytes into every `work-session/v2`. Never generate, summarize, or overwrite it. Never mutate it through the worker path.
+- `work-session/v2` is the complete active coding brief. The worker must consume it directly, receive product direction before local engineering context, and must not reconstruct product intent from status files or reopen broad planning.
 - Start implementation immediately. Reversible edits, focused validation, bounded repair, and dirty-worktree isolation inside the session are already authorized.
 - Continue coherent in-scope dirtiness. Preserve unrelated dirtiness in place and use an isolated sibling worktree.
 - The coding worker remains read-only and returns complete bounded file contents. Meta-Harness validates and materializes them through the controller.
-- The coding worker may not reset, clean, stash, revert, stage, commit, push, tag, publish, delete files, change branches, or mutate worktree topology.
-- Reject traversal, symlink targets, duplicate or oversized proposals, changes outside `allowedPaths`, Git-index mutation, HEAD movement, or branch changes.
+- The coding worker may not reset, clean, stash, revert, stage, commit, push, tag, publish, delete files, change branches, mutate worktree topology, or change `PRODUCT.md`.
+- Reject traversal, symlink targets, duplicate or oversized proposals, changes outside `allowedPaths`, any `PRODUCT.md` mutation, Git-index mutation, HEAD movement, or branch changes.
 - Run declared validation outside the model and return failures to the same session until its attempt budget is exhausted.
 - Do not add compatibility aliases, recursive planner packets, RunSpec migrations, queues, daemons, swarms, or provider frameworks without a new observed product defect.
 

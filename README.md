@@ -5,12 +5,15 @@ Meta-Harness is a local coding system for one owner.
 State the product result once. Meta-Harness carries it into a read-only coding worker, validates and materializes bounded file contents, protects existing work, runs exact validation, repairs bounded failures, and returns the observable result.
 
 ```text
-accepted result
+owner product direction
+→ accepted result
 → code
 → validation
 → repair
 → delivered result
 ```
+
+Author repository-root `PRODUCT.md` once (Version, Endgame, Target user, Core user journey, Taste — prefer, Taste — reject, Non-negotiables, Shipping definition, Change rule). Every `work` session pins those exact bytes. Meta-Harness never invents or rewrites product taste.
 
 ## Primary command
 
@@ -40,7 +43,7 @@ The low-friction `--goal` path defaults to no commit or push. For each allowed p
 
 ## Work sessions
 
-For precise scope and validation, use a sealed `work-session/v1` JSON file:
+For precise scope and validation, use a sealed `work-session/v2` JSON file:
 
 ```powershell
 meta-harness work E:\Code\my-project --session .\work-session.json
@@ -48,6 +51,7 @@ meta-harness work E:\Code\my-project --session .\work-session.json
 
 The session binds:
 
+- exact product-direction snapshot from `PRODUCT.md`;
 - product result and current journey state;
 - immediate action and newly true behavior;
 - done and stop conditions;
@@ -58,9 +62,9 @@ The session binds:
 - bounded repair attempts;
 - explicit controller authority to commit and optionally push.
 
-See `templates/contracts/work-session-v1.md` for the complete contract.
+See `templates/contracts/work-session-v2.md` for the complete contract.
 
-A low-friction `--goal` invocation creates a safe default session. Use explicit session JSON when exact commands or path boundaries matter.
+A low-friction `--goal` invocation pins live `PRODUCT.md` and creates a safe default session. Use explicit session JSON when exact commands or path boundaries matter. Explicit sessions still require a live matching `PRODUCT.md`.
 
 ## Resume
 
@@ -70,7 +74,7 @@ Meta-Harness stores the sealed work session under the repository Git common dire
 meta-harness work E:\Code\my-project --resume
 ```
 
-The resumed worker receives the same product result, boundaries, and stop conditions. It does not reconstruct intent from status files or reopen planning.
+The resumed worker receives the same product direction, product result, boundaries, and stop conditions. If live `PRODUCT.md` changed, was deleted, or no longer matches the sealed snapshot, resume fails closed and a new work session is required.
 
 ## Dirty repositories
 

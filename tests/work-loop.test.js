@@ -9,6 +9,7 @@ const test = require("node:test");
 const { runWork } = require("../lib/work-loop");
 const { sealWorkSession } = require("../lib/work-session");
 const { ROOT, tempDir } = require("./helpers/cli");
+const { directionFromContent } = require("./helpers/product-direction");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
 
@@ -27,7 +28,9 @@ function repository(t) {
   git(root, ["config", "user.email", "work-loop@example.invalid"]);
   fs.writeFileSync(path.join(root, ".gitignore"), ".worktrees/\n", "utf8");
   fs.writeFileSync(path.join(root, "README.md"), "baseline\n", "utf8");
-  git(root, ["add", ".gitignore", "README.md"]);
+  const { writeProductMd } = require("./helpers/product-direction");
+  writeProductMd(root);
+  git(root, ["add", ".gitignore", "README.md", "PRODUCT.md"]);
   git(root, ["commit", "-m", "baseline"]);
   t.after(() => fs.rmSync(parent, { recursive: true, force: true }));
   return root;
@@ -57,8 +60,8 @@ function session({
     ? [{ argv: check, cwd: ".", timeoutSeconds: 30 }]
     : validation;
   return sealWorkSession({
-    schemaVersion: "work-session/v1",
-    intent: { version: "test-intent/v1", digest: "sha256:" + "2".repeat(64) },
+    schemaVersion: "work-session/v2",
+    productDirection: directionFromContent(),
     productResult: "Create the delivered result file.",
     journeyState: "The coding task is accepted.",
     doNow: "Create src/result.txt.",

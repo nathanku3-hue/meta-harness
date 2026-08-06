@@ -16,6 +16,7 @@ const {
 } = require("../lib/work-git");
 const { sealWorkSession } = require("../lib/work-session");
 const { tempDir } = require("./helpers/cli");
+const { directionFromContent } = require("./helpers/product-direction");
 
 function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
@@ -36,6 +37,8 @@ function repository(t) {
   fs.writeFileSync(path.join(root, "accepted.txt"), "baseline accepted\n", "utf8");
   fs.writeFileSync(path.join(root, "staged.txt"), "baseline staged\n", "utf8");
   fs.writeFileSync(path.join(root, "dirty.txt"), "baseline dirty\n", "utf8");
+  const { writeProductMd } = require("./helpers/product-direction");
+  writeProductMd(root);
   git(root, ["add", "."]);
   git(root, ["commit", "-m", "baseline"]);
   git(root, ["remote", "add", "origin", origin]);
@@ -52,8 +55,8 @@ function remoteHead(root, branch) {
 
 function isolatedSession() {
   return sealWorkSession({
-    schemaVersion: "work-session/v1",
-    intent: { version: "worktree-test/v1", digest: "sha256:" + "4".repeat(64) },
+    schemaVersion: "work-session/v2",
+    productDirection: directionFromContent(),
     productResult: "Create the isolated result.",
     journeyState: "Owner dirtiness must remain untouched.",
     doNow: "Prepare the isolated workspace.",
@@ -87,7 +90,9 @@ test("isolated creator stays inside the repository and does not contaminate the 
   assert.equal(workspace.workspacePath, fs.realpathSync.native(expected));
   assert.equal(fs.existsSync(path.join(parent, ".meta-harness-worktrees")), false);
   assert.deepEqual(fs.readdirSync(parent).sort(), beforeParentEntries);
-  assert.match(git(root, ["worktree", "list", "--porcelain"]), new RegExp(`worktree ${expected.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+  const listed = git(root, ["worktree", "list", "--porcelain"]).replace(/\\/g, "/");
+  const expectedListed = expected.replace(/\\/g, "/");
+  assert.match(listed, new RegExp(`worktree ${expectedListed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
   assert.doesNotMatch(git(root, ["status", "--short"]), /\.worktrees/u);
 });
 

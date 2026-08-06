@@ -60,9 +60,9 @@ Exactly one command is public: `work`. Existing commands are internal advanced t
 
 ### 2. Planning-to-working continuity
 
-`work-session/v1` is the mandatory execution brief. It binds:
+`work-session/v2` is the mandatory execution brief. It binds:
 
-- intent version and digest;
+- exact product-direction bytes, version, and raw-byte digest from repository-root `PRODUCT.md`;
 - product result;
 - journey state;
 - immediate action;
@@ -77,7 +77,7 @@ Exactly one command is public: `work`. Existing commands are internal advanced t
 - bounded retry count;
 - explicit commit and optional push authority.
 
-The coding worker consumes this object directly. It does not reconstruct the product result from status files or reopen planning.
+The coding worker consumes this object directly. Product direction is injected before local engineering context. The worker does not reconstruct taste or philosophy from status files and does not reopen planning. There is no supported `work-session/v1` compatibility path.
 
 ### 3. Dirty-worktree behavior
 
@@ -121,10 +121,10 @@ The historical accepted score was `62/100`: strong authority and custody, weak c
 | One public product command, sealed work session, real worker materialization, dirty isolation, resume, and bounded delivery | 78 |
 | Standalone `--goal` seals external validation, retries failure, and blocks before mutation when validation is unavailable; complete closure verification remains green | 82 |
 | One real SOTA-assimilation episode closes an observed validation-discovery gap, removes displaced legacy paths, and delivers a validated external-repository result | 84 |
-| One real web-originated low-friction `--goal` journey reaches `DONE` without explicit-session or status-finalizer repair | 85 |
+| One real external repository low-friction `--goal` journey automatically carries exact product direction and reaches `DONE` without explicit-session or status-finalizer repair; fresh resume keeps the same direction | 85 |
 | Demonstrated multi-repository speed/reliability advantage over direct unmanaged coding | 88+ |
 
-`84/100` is the current working product score after `SOTA_ASSIMILATION_EPISODE_1`. Eureka revision `41723ff80d7b919cb536c4fa296670de9b7ce5aa` reproduced the blocked nested-package journey; scope-nearest validation changed it to executable, and the accepted CLI change reached `DONE` with 30/30 target tests. The episode required an explicit session and deterministic status finalizer, so the zero-repair `85/100` threshold remains open. No successor slice is active.
+`84/100` remains the banked working product score after `SOTA_ASSIMILATION_EPISODE_1` until the revised `85/100` journey is demonstrated on a real external repository. Active slice `PRODUCT_DIRECTION_CONTINUITY_1` makes owner taste a pinned, replayable input to every coding round. Implementation-only completion does not raise the score.
 
 The repository-wide quality ratchet still reports inherited baseline debt from older control-plane files. That debt is not evidence against the validated-goal journey: the new coding modules and tests remain within their line budgets, and the public product surface remains one command. Reopening unrelated module cleanup would be roadmap drift, so the debt remains visible and non-blocking until real product use demonstrates impact.
 
@@ -143,6 +143,8 @@ Do not build:
 
 ## After 84
 
-Use the coding system. No successor slice is active, including `TRUST-BOUNDARY-1`.
+Active slice: `PRODUCT_DIRECTION_CONTINUITY_1`.
 
-The next build is selected only from retained real-use friction. Episode 1 already closed nested npm-package validation discovery, repository-local isolation, WSL-to-Windows Codex argument transport, and contradictory partial-status handling. Do not convert the episode into a generic assimilation schema, crawler, registry, daemon, ranking engine, or another audit cycle.
+Owner states product direction once in `PRODUCT.md`; every coding session, repair, resume, and fresh-worker continuation must carry the exact same direction until the owner changes the file. Do not build product graphs, automated taste mining, candidate registries, dashboards, daily alignment crons, or a full multi-system product-control rewrite in this slice.
+
+Episode 1 already closed nested npm-package validation discovery, repository-local isolation, WSL-to-Windows Codex argument transport, and contradictory partial-status handling. Do not convert that episode into a generic assimilation schema, crawler, registry, daemon, ranking engine, or another audit cycle.

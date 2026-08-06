@@ -7,6 +7,7 @@ const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const { ROOT, runRaw, tempDir } = require("./helpers/cli");
+const { writeProductMd } = require("./helpers/product-direction");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
 
@@ -25,6 +26,7 @@ function repo(t, { withValidation = true } = {}) {
   git(root, ["config", "user.email", "cli-work@example.invalid"]);
   fs.writeFileSync(path.join(root, ".gitignore"), ".worktrees/\n", "utf8");
   fs.writeFileSync(path.join(root, "README.md"), "baseline\n", "utf8");
+  writeProductMd(root);
   if (withValidation) {
     fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({
       scripts: { test: "node verify.js" },

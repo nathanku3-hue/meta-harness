@@ -15,14 +15,12 @@ const {
   validateWorkSession,
 } = require("../lib/work-session");
 const { tempDir } = require("./helpers/cli");
+const { directionFromContent, SAMPLE_PRODUCT_MD, writeProductMd } = require("./helpers/product-direction");
 
-function explicitSession() {
+function explicitSession(overrides = {}) {
   return sealWorkSession({
     schemaVersion: WORK_SESSION_SCHEMA,
-    intent: {
-      version: "intent-v1",
-      digest: "sha256:" + "1".repeat(64),
-    },
+    productDirection: directionFromContent(),
     productResult: "Ship one product-facing coding command.",
     journeyState: "The product direction is accepted and implementation is ready.",
     doNow: "Implement the primary work command.",
@@ -36,24 +34,32 @@ function explicitSession() {
     validation: [{ argv: ["node", "--test"], cwd: ".", timeoutSeconds: 60 }],
     maxAttempts: 2,
     delivery: { commit: true, push: false },
+    ...overrides,
   });
 }
 
-test("work-session/v1 seals product continuity and exact path/validation scope", () => {
+test("work-session/v2 seals product direction bytes and exact path/validation scope", () => {
   const session = explicitSession();
-  assert.equal(session.schemaVersion, "work-session/v1");
+  assert.equal(session.schemaVersion, "work-session/v2");
   assert.equal(session.sessionDigest, computeWorkSessionDigest(session));
   assert.equal(Object.isFrozen(validateWorkSession(session)), true);
   assert.equal(Object.isFrozen(session.delivery), true);
   assert.deepEqual(session.delivery, { commit: true, push: false });
   assert.deepEqual(session.allowedPaths, ["lib", "tests"]);
   assert.equal(session.productResult, "Ship one product-facing coding command.");
+  assert.equal(session.productDirection.content, SAMPLE_PRODUCT_MD);
+  assert.match(session.productDirection.digest, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(session.intent, undefined);
 });
 
-test("goal shorthand creates a complete low-friction product brief", () => {
+test("goal shorthand pins live PRODUCT.md into a complete low-friction brief", (t) => {
+  const root = tempDir("goal-session-");
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const direction = writeProductMd(root);
   const validation = [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 300 }];
   const session = createGoalWorkSession({
     goal: "Add a visible result.",
+    repositoryPath: root,
     allowedPaths: ["src"],
     dirtyPolicy: "isolate",
     validation,
@@ -65,18 +71,28 @@ test("goal shorthand creates a complete low-friction product brief", () => {
   assert.equal(session.maxAttempts, 2);
   assert.deepEqual(session.validation, validation);
   assert.deepEqual(session.delivery, { commit: false, push: false });
-  assert.match(session.intent.digest, /^sha256:[a-f0-9]{64}$/);
+  assert.equal(session.productDirection.digest, direction.digest);
+  assert.equal(session.productDirection.content, direction.content);
   const changedValidation = createGoalWorkSession({
     goal: "Add a visible result.",
+    repositoryPath: root,
     allowedPaths: ["src"],
     validation: [{ argv: ["node", "--test"], cwd: ".", timeoutSeconds: 300 }],
   });
   assert.notEqual(changedValidation.sessionDigest, session.sessionDigest);
 });
 
-test("coding prompt carries exact controller validation as context", () => {
+test("coding prompt carries product direction before result and engineering context", () => {
   const session = explicitSession();
   const prompt = buildCodingPrompt(session, { attempt: 1, priorFailure: "", workspaceMode: "current" });
+  const directionIndex = prompt.indexOf("Product direction (owner-authored; immutable for this session):");
+  const resultIndex = prompt.indexOf("Product result:");
+  const validationIndex = prompt.indexOf("Controller-owned validation:");
+  assert.ok(directionIndex >= 0);
+  assert.ok(resultIndex > directionIndex);
+  assert.ok(validationIndex > resultIndex);
+  assert.ok(prompt.includes(SAMPLE_PRODUCT_MD));
+  assert.match(prompt, /Never propose changes to PRODUCT\.md/);
   assert.match(prompt, /Controller-owned validation:/);
   assert.match(prompt, /\{"argv":\["node","--test"\],"cwd":"\.","timeoutSeconds":60\}/);
   assert.match(prompt, /read-only.*not a blocker/i);
@@ -105,6 +121,14 @@ test("work session rejects digest drift, traversal, extra fields, and invalid at
   assert.throws(
     () => sealWorkSession({ ...session, delivery: { commit: false, push: true } }),
     (error) => error.code === "MH_WORK_SESSION_DELIVERY",
+  );
+  assert.throws(
+    () => sealWorkSession({
+      ...session,
+      productDirection: undefined,
+      intent: { version: "owner-goal/v1", digest: "sha256:" + "1".repeat(64) },
+    }),
+    (error) => error.code === "MH_WORK_SESSION_SHAPE" || error.code === "MH_WORK_SESSION_SCHEMA",
   );
 });
 

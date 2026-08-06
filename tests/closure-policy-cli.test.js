@@ -17,7 +17,7 @@ test("init creates per-repo markdown harness state", () => {
 
   const harness = path.join(cwd, ".meta-harness");
   assert.equal(fs.existsSync(path.join(harness, "status.md")), true);
-  assert.equal(fs.existsSync(path.join(harness, "phase-map.md")), true);
+  assert.equal(fs.existsSync(path.join(harness, "phase-map.md")), false);
   assert.equal(fs.existsSync(path.join(harness, "events.jsonl")), true);
   assert.equal(fs.existsSync(path.join(harness, "streams", "coding.md")), true);
   assert.equal(fs.existsSync(path.join(harness, "workers", "worker-report-template.md")), true);
