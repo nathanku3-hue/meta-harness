@@ -1,40 +1,39 @@
 # Meta-Harness Current Product State
 
-State: VALIDATED_GOAL_1_COMPLETE
+State: SOTA_ASSIMILATION_EPISODE_1_COMPLETE
 Current checkout: `integration/post-0.4`
-Accepted product score: `82/100`
+Accepted product score: `84/100`
 
 ## Product result
 
-A solo developer can state one coding result through `meta-harness work --goal`. Meta-Harness now requires controller-owned external validation before it creates a workspace or launches the coding worker, carries that exact validation through repair, and reports a terminal product result without treating worker narrative as proof.
+A solo developer can state one coding result through `meta-harness work`. For npm repositories, low-friction `--goal` validation now follows each allowed path to its nearest regular `package.json`, requires one unambiguous package root, and runs exact controller-owned `npm test` from that package directory. Unrelated owner work is preserved in an ignored repository-local worktree.
 
 ## Current state
 
-- The prevention-pilot stream and Quant operation remain historical evidence, not the roadmap.
-- `meta-harness work` remains the only public command and the default product surface.
-- A standalone `--goal` resolves a regular root `package.json` `scripts.test` into exact `npm test` validation.
-- Missing, malformed, empty, symlinked, or placeholder root validation returns terminal `BLOCKED` before workspace creation, worker launch, or repository mutation.
-- The exact controller validation is included in the coding prompt, executed outside the model, and returned to the same sealed session for bounded repair after failure.
-- Clean, coherent-dirty, isolated-dirty, resume, exact-path delivery, and Git/path/index/HEAD boundaries remain enforced.
-- WSL-mounted repositories use native Git; Windows-spelled repositories may use Windows Git when available.
-- The web-originated operation ended terminally as `BLOCKED`; it is not still running and is not counted as a successful delivered goal.
-- Closure verification passes 112 test files and 768 tests with zero failures, plus focused validation, sync, whitespace, and package dry-run checks.
-- Quality observation retains inherited repository-wide ratchet debt. The validated-goal files add no new coding-module budget violation, so unrelated cleanup is not the active product work.
-- The installed template manifest contains the verified `work-session-v1.md` hash `16a0982742033a655a39c28915ee3cdadee4c6b2ce9bb689d01498ae45ea3d87`.
+- Episode 1 used exact Eureka revision `41723ff80d7b919cb536c4fa296670de9b7ce5aa` and the goal “Make Eureka reject unknown CLI options instead of silently accepting them.”
+- The baseline `--goal` journey returned `BLOCKED` before workspace creation because validation existed under `learn-diff/package.json`, not at the repository root.
+- Two bounded frontier-search rounds selected scope-nearest package resolution. Repository-wide enumeration and extra configuration were rejected as broader and more ambiguous.
+- The same journey then reached `READY`; an explicit sealed session completed the Eureka change in `.worktrees/meta-harness-744f19ec7b`.
+- Eureka now rejects unknown options, preserves documented capture/verify parsing, and passes its controller-owned `learn-diff` oracle: 30/30 tests.
+- WSL uses the installed Windows Codex through Windows Node without a command shell. Prompt, schema, output, and workspace arguments retain exact boundaries.
+- Passed controller validation can return a contradictory worker-marked partial result for bounded completion instead of treating worker narrative as proof.
+- The unconsumed research ingest, summarize, and handoff runtime paths, routes, fixtures, and self-referential tests were deleted without aliases or a grace period. Historical decisions and Git history remain.
+- Terminal Meta-Harness verification passes 109 test files and 762 tests with zero failures. Sync checks 33 artifacts; whitespace and package dry-run checks pass.
+- The quality gate still reports inherited and pre-existing working-tree ratchet debt, including the already-open `work-git.js` isolation slice. Episode 1's new modules and tests remain within their line budgets.
+- Commit and push were not authorized. Meta-Harness and Eureka changes remain in their respective working trees.
 
 ## Do now
 
-No active slice. Use `meta-harness work` and wait for observed real-use friction. Do not open `TRUST-BOUNDARY-1` or another successor from this closure alone.
+No additional build slice is active. Review and bank the exact validated working-tree changes when commit authority is supplied. Do not open another assimilation framework, audit cycle, crawler, registry, or compatibility path from this closure.
 
 ## Done when
 
-- standalone `--goal` cannot proceed without usable controller-owned validation;
-- unsupported validation blocks before workspace creation, worker launch, or mutation;
-- failed validation returns to the same sealed session for bounded repair;
-- focused and complete tests pass;
-- sync, whitespace, package dry-run, and quality observation are reconciled;
-- the exact closure paths are committed and `origin/integration/post-0.4` equals local HEAD;
-- product truth remains at `82/100` until a real web-originated validated goal reaches `DONE` with an observable result.
+- scope-nearest npm validation remains deterministic and cross-package ambiguity fails closed;
+- repository-local worktree identity and resume binding remain enforced;
+- the Eureka target retains the validated unknown-option behavior;
+- focused and complete tests, sync, whitespace, and package checks remain green;
+- any authorized commit contains only the exact closure paths;
+- `85/100` is claimed only after a real low-friction `--goal` journey reaches `DONE` without explicit-session or deterministic-finalizer repair.
 
 ## Stop only if
 

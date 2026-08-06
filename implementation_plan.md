@@ -1,4 +1,4 @@
-# CODING_SYSTEM_1 — COMPLETE
+# CODING_SYSTEM_1 + SOTA_ASSIMILATION_EPISODE_1 — COMPLETE
 
 ## Intent
 
@@ -18,7 +18,7 @@ Make Meta-Harness itself the low-friction coding product. One accepted result mu
 
 3. **Resolve dirty work without owner-work mutation.**
    - Continue clean or coherent in-scope work.
-   - Preserve unrelated dirtiness and create a sibling worktree.
+   - Preserve unrelated dirtiness and create an ignored repository-local worktree.
    - Never reset, clean, stash, revert, stage, or auto-close worktrees.
 
 4. **Run the coding worker.**
@@ -69,10 +69,16 @@ AGENTS.md
 
 The existing active-guidance/reflection files remain part of the same problem-solving correction because they directly solve durable post-phase learning.
 
+## SOTA Assimilation Episode 1
+
+The first episode began from an observed product failure rather than an assimilation framework. On exact Eureka revision `41723ff80d7b919cb536c4fa296670de9b7ce5aa`, `learn-diff/npm test` passed while low-friction `--goal` returned `BLOCKED` because validation was nested. Two bounded search rounds selected scope-nearest package resolution: every allowed path walks to its nearest regular `package.json`, and all paths must agree on one package root. Repository-wide enumeration and extra configuration were rejected.
+
+The mechanism was adopted in the same working round. Meta-Harness changed the target journey to `READY`, preserved the target in a repository-local isolated worktree, and delivered the Eureka unknown-option repair with controller validation passing 30/30. WSL worker invocation was repaired to call the installed Windows Codex through Windows Node without a shell. Contradictory worker-marked partial status now receives bounded completion after passed controller validation. Unconsumed ingest/summarize/handoff runtime paths and self-referential tests were deleted without compatibility.
+
 ## Completion
 
-Complete. `meta-harness work` obtained bounded code from a real read-only worker, materialized it through the controller, and passed exact external validation. Dirty owner work remained untouched, resume preserved the same product brief, Meta-Harness self-hosted a bounded test addition, default help contains no gate-facing journey, 110 test files and 756 tests pass, sync checks 33 artifacts, whitespace and package closure pass, and no compatibility or orchestration framework was added.
+Complete. The terminal Meta-Harness tree passes 109 test files and 762 tests, sync checks 33 artifacts, whitespace and package dry-run checks pass, and Episode 1 additions remain within module budgets. The quality gate still exposes inherited and pre-existing working-tree debt, including the already-open `work-git.js` isolation change; it was not converted into a cleanup campaign. The working product score is `84/100`. Commit and push were not authorized.
 
 ## Forbidden expansion
 
-No RunSpec migration, old-runtime restoration, provider abstraction, queue, daemon, swarm, dashboard, auto Git publication, cleanup campaign, or external repository product milestone.
+No RunSpec migration, old-runtime restoration, provider abstraction, queue, daemon, swarm, dashboard, generic assimilation schema, crawler, candidate registry, auto Git publication, cleanup campaign, compatibility restoration, or mandatory successor audit.

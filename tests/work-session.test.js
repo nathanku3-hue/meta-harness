@@ -79,6 +79,9 @@ test("coding prompt carries exact controller validation as context", () => {
   const prompt = buildCodingPrompt(session, { attempt: 1, priorFailure: "", workspaceMode: "current" });
   assert.match(prompt, /Controller-owned validation:/);
   assert.match(prompt, /\{"argv":\["node","--test"\],"cwd":"\.","timeoutSeconds":60\}/);
+  assert.match(prompt, /read-only.*not a blocker/i);
+  assert.match(prompt, /returning complete file contents/i);
+  assert.match(prompt, /Do not ask for a writable workspace/i);
 });
 
 test("work session rejects digest drift, traversal, extra fields, and invalid attempts", () => {

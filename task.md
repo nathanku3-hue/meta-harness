@@ -1,37 +1,37 @@
-# Current Task — Coding System Shipped
+# Current Task — SOTA Assimilation Episode 1 Complete
 
 ## Product result
 
-One command carries an accepted software result into coding, validation, bounded repair, and a concise observable result without another planning round or routine owner approval.
+One real external-repository friction was closed end to end: `meta-harness work --goal` now discovers one unambiguous scope-nearest npm validation root, and Eureka rejects unknown CLI options with exact controller validation.
 
 ## Current state
 
-- Prevention-pilot terminalization is complete and closed.
-- Quant is not the next Meta-Harness milestone.
-- The coding loop, sealed work session, workspace selector, Codex worker, external validation, retry, and boundary enforcement are implemented in the current tree.
-- The active post-phase-reflection contract is also implemented and must remain bounded to durable cross-repository learning.
-- Deterministic focused tests prove clean work, coherent dirty continuation, unrelated dirty isolation, resume, repair retry, and fail-closed path/index behavior.
+- Exact target: `E:\Code\eureka` at `41723ff80d7b919cb536c4fa296670de9b7ce5aa`.
+- Baseline: the target's nested `learn-diff/package.json` oracle passed 29/29, while Meta-Harness returned `BLOCKED` because it only inspected the repository root.
+- Promoted mechanism: nearest `package.json` from each allowed path; all paths must resolve to the same package or fail closed.
+- Target result: isolated worktree `work/make-eureka-reject-unknown-cli-optio-744f19ec7b`, two changed paths, controller validation 30/30, outcome `DONE`.
+- Repository-local managed worktrees, persisted resume identity, WSL-to-Windows Codex argument transport, and validated-partial bounded completion are implemented in the current Meta-Harness tree.
+- Unconsumed research ingest/summarize/handoff runtime paths and their active self-tests were deleted without compatibility aliases.
+- Meta-Harness terminal verification: 109 test files, 762 tests, zero failures; sync, whitespace, and package dry-run pass.
+- Quality retains inherited and pre-existing working-tree debt; no Episode 1 module crossed its budget.
+- No commit or push was authorized in either repository.
 
 ## Do now
 
-No active slice. Use `meta-harness work`. Wait for observed real-use friction.
+No active build slice. Review and bank the validated Meta-Harness and Eureka working-tree changes only when exact commit authority is supplied.
 
 ## Done when
 
-- `meta-harness work` is the only public/default command;
-- the worker consumes the exact product brief rather than reconstructing it from status;
-- existing owner dirtiness is continued or isolated without destructive handling;
-- a real allowed file change and exact validation succeed;
-- failed validation is repaired in the same bounded session;
-- staging, commit, push, branch, HEAD, and path escape remain prohibited;
-- full verification and package checks pass;
-- the durable reflection is current;
-- the accepted coding-system score is `85/100`.
+- the exact closure paths are committed without unrelated bytes, if authorized;
+- the Eureka behavior remains validated;
+- no removed research compatibility path returns;
+- no generic assimilation framework is opened without repeated real episodes;
+- the accepted product score remains `84/100` until a zero-repair low-friction `--goal` journey earns `85/100`.
 
 ## Stop only if
 
-The local coding worker is unavailable, the target cannot be isolated safely, the accepted path boundary is insufficient, protected access is required, or evidence proves the requested result materially unsafe or impossible.
+Commit scope is ambiguous, unique owner work would be endangered, protected access is required, or exact validation no longer reproduces.
 
 ## Prohibitions
 
-No compatibility aliases, RunSpec/v3, queue, daemon, swarm, provider framework, auto-commit, auto-push, auto-publication, cleanup campaign, or external product journey.
+No compatibility aliases, generic assimilation schema, candidate registry, crawler, database, queue, daemon, swarm, provider framework, auto-commit, auto-push, auto-publication, cleanup campaign, or mandatory next audit.

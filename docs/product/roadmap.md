@@ -89,7 +89,7 @@ coherent dirtiness entirely inside accepted paths
 → inspect and continue
 
 unrelated or cross-boundary dirtiness
-→ preserve original bytes and create an isolated sibling worktree
+→ preserve original bytes and create an ignored repository-local `.worktrees/` worktree
 ```
 
 Meta-Harness never resets, cleans, stashes, or reverts owner work automatically. The worker cannot stage, commit, push, tag, publish, change branches, or mutate worktree topology.
@@ -120,10 +120,11 @@ The historical accepted score was `62/100`: strong authority and custody, weak c
 |---|---:|
 | One public product command, sealed work session, real worker materialization, dirty isolation, resume, and bounded delivery | 78 |
 | Standalone `--goal` seals external validation, retries failure, and blocks before mutation when validation is unavailable; complete closure verification remains green | 82 |
-| One real web-originated `--goal` journey reaches `DONE` and delivers an observable product result without routine owner repair | 85 |
+| One real SOTA-assimilation episode closes an observed validation-discovery gap, removes displaced legacy paths, and delivers a validated external-repository result | 84 |
+| One real web-originated low-friction `--goal` journey reaches `DONE` without explicit-session or status-finalizer repair | 85 |
 | Demonstrated multi-repository speed/reliability advantage over direct unmanaged coding | 88+ |
 
-`82/100` is accepted after `VALIDATED-GOAL-1`. The observed web-originated operation ended terminally as `BLOCKED`; this proves fail-closed validation behavior but does not prove successful end-to-end delivery. No successor slice is open.
+`84/100` is the current working product score after `SOTA_ASSIMILATION_EPISODE_1`. Eureka revision `41723ff80d7b919cb536c4fa296670de9b7ce5aa` reproduced the blocked nested-package journey; scope-nearest validation changed it to executable, and the accepted CLI change reached `DONE` with 30/30 target tests. The episode required an explicit session and deterministic status finalizer, so the zero-repair `85/100` threshold remains open. No successor slice is active.
 
 The repository-wide quality ratchet still reports inherited baseline debt from older control-plane files. That debt is not evidence against the validated-goal journey: the new coding modules and tests remain within their line budgets, and the public product surface remains one command. Reopening unrelated module cleanup would be roadmap drift, so the debt remains visible and non-blocking until real product use demonstrates impact.
 
@@ -140,8 +141,8 @@ Do not build:
 - another repository-governance campaign;
 - a dashboard for the harness.
 
-## After 82
+## After 84
 
 Use the coding system. No successor slice is active, including `TRUST-BOUNDARY-1`.
 
-The next build is selected only from a retained defect in a real coding session. A successful web-originated validated goal may justify the next score increase, but validation discovery beyond root `npm test`, interruption recovery, or a second supported worker are not roadmap commitments and are not pre-authorized.
+The next build is selected only from retained real-use friction. Episode 1 already closed nested npm-package validation discovery, repository-local isolation, WSL-to-Windows Codex argument transport, and contradictory partial-status handling. Do not convert the episode into a generic assimilation schema, crawler, registry, daemon, ranking engine, or another audit cycle.

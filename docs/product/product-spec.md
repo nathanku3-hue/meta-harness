@@ -78,7 +78,7 @@ The digest is domain-separated SHA-256 over canonical session content excluding 
 - `delivery.commit`: explicit controller authority to commit the exact validated accepted paths.
 - `delivery.push`: explicit controller authority to push the resulting commit; valid only when commit authority is also true.
 
-`--goal` creates a complete low-friction session with safe defaults and resolves a regular root `package.json` `scripts.test` into exact controller-owned `npm test` validation. If no usable root test script exists, the result is `BLOCKED` before workspace creation, worker launch, or repository mutation. Explicit session JSON is required when validation uses another command or when exact done criteria and path boundaries matter.
+`--goal` creates a complete low-friction session with safe defaults. For each allowed path, Meta-Harness selects the nearest regular `package.json` between that path and the repository root; every allowed path must resolve to the same package. It seals exact controller-owned `npm test` validation with the selected package directory as `cwd`. Missing, malformed, symlinked, placeholder, or cross-package validation returns `BLOCKED` before workspace creation, worker launch, or repository mutation. Explicit session JSON is required when validation uses another command or when exact done criteria and path boundaries matter.
 
 ## Workspace resolution
 
@@ -94,7 +94,7 @@ When every existing changed path is inside `allowedPaths` and policy is `continu
 
 ### Unrelated or cross-boundary dirtiness
 
-Create or reuse an isolated sibling worktree and branch derived from the session digest. The original checkout remains byte-preserved.
+Create or reuse an ignored repository-local `.worktrees/meta-harness-<digest>` worktree and branch derived from the session digest. The physical path, persisted session identity, and Git registration must agree; symlink, junction, substituted-path, or unregistered-worktree state fails closed. The original checkout remains byte-preserved.
 
 ### Prohibited dirty handling
 
@@ -114,7 +114,7 @@ Work-session and result artifacts are stored under the repository Git common dir
 
 ## Coding worker
 
-The supported worker is the local Codex CLI in read-only mode.
+The supported worker is the local Codex CLI in read-only mode. In WSL, Meta-Harness may invoke the installed Windows Codex through its Windows Node executable while translating only controller-owned workspace, schema, and output paths; prompt and argument boundaries remain direct and shell-free.
 
 The process receives:
 
@@ -260,12 +260,13 @@ No RunSpec/v3, provider abstraction, queue, daemon, scheduler, swarm, dashboard,
 
 ## Acceptance
 
-`VALIDATED-GOAL-1` is accepted at `82/100` because:
+`SOTA_ASSIMILATION_EPISODE_1` raises the working product evidence to `84/100`:
 
-1. standalone `--goal` now seals a usable root `npm test` command as controller-owned validation instead of relying on worker narrative;
-2. a repository without usable validation returns terminal `BLOCKED` before workspace creation, worker launch, or repository mutation;
-3. the exact validation command is carried into the coding prompt, executed outside the model, and returned to the same session for bounded repair when it fails;
-4. clean, coherent-dirty, isolated-dirty, resume, delivery, WSL Git selection, and path/index/HEAD boundaries remain covered;
-5. closure verification passes 112 test files and 768 tests with zero failures, plus sync, whitespace, and package dry-run checks; quality observation retains inherited repository-wide ratchet debt without adding a new coding-module budget violation.
+1. exact baseline on Eureka revision `41723ff80d7b919cb536c4fa296670de9b7ce5aa` reproduced `--goal` as `BLOCKED` because validation existed only in `learn-diff/package.json`;
+2. two bounded frontier-search rounds selected scope-nearest package resolution over repository-wide enumeration or additional configuration, then the resolver changed the same journey from `BLOCKED` to `READY`;
+3. the accepted Eureka change rejects unknown CLI options, preserves documented parsing, and reaches terminal `DONE` in an isolated repository-local worktree with controller-owned `npm test` passing 30/30;
+4. WSL launches the existing Windows Codex through Windows Node without a shell, and passed controller validation can return a contradictory worker-marked partial result for bounded completion instead of accepting narrative as product truth;
+5. the unconsumed research ingest, summarize, and handoff runtime paths and their self-referential tests were deleted without aliases or a compatibility interval;
+6. terminal Meta-Harness verification passes 109 test files and 762 tests, sync checks 33 artifacts, whitespace and package dry-run checks pass, and the episode's new modules/tests remain inside their line budgets.
 
-The web-originated operation ended terminally as `BLOCKED`; it proves correct fail-closed behavior, not a successful delivered goal. `85/100` is not earned until a real web-originated `--goal` journey reaches `DONE` with an observable product result.
+The quality ratchet still reports inherited and pre-existing working-tree debt, including the already-open `work-git.js` isolation slice; it did not identify a new Episode 1 module-budget violation. `85/100` remains unclaimed because the successful target delivery required an explicit sealed session and a deterministic status finalizer after observed worker transport/policy defects. Commit and push were not authorized.

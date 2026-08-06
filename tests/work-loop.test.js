@@ -25,8 +25,9 @@ function repository(t) {
   git(root, ["init"]);
   git(root, ["config", "user.name", "Work Loop Test"]);
   git(root, ["config", "user.email", "work-loop@example.invalid"]);
+  fs.writeFileSync(path.join(root, ".gitignore"), ".worktrees/\n", "utf8");
   fs.writeFileSync(path.join(root, "README.md"), "baseline\n", "utf8");
-  git(root, ["add", "README.md"]);
+  git(root, ["add", ".gitignore", "README.md"]);
   git(root, ["commit", "-m", "baseline"]);
   t.after(() => fs.rmSync(parent, { recursive: true, force: true }));
   return root;
@@ -166,8 +167,25 @@ test("worker-marked partial work is never delivered", async (t) => {
   assert.equal(fs.readFileSync(path.join(root, "src", "result.txt"), "utf8"), "delivered\n");
 });
 
-test("unrelated dirtiness is preserved while work moves to an isolated branch", async (t) => {
+test("passed controller validation returns a worker-marked partial result for bounded completion", async (t) => {
   const root = repository(t);
+  const result = await runWork({
+    repositoryPath: root,
+    session: session({ maxAttempts: 2 }),
+    env: workerEnv({ FAKE_WORKER_PARTIAL_FIRST: "1" }),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.attempts, 2);
+  assert.equal(result.validation[0].passed, true);
+  assert.deepEqual(result.changedPaths, ["src/result.txt"]);
+  assert.equal(fs.readFileSync(path.join(root, "src", "result.txt"), "utf8"), "delivered\n");
+});
+
+test("unrelated dirtiness is preserved while work moves to a repo-local isolated branch", async (t) => {
+  const root = repository(t);
+  const parent = path.dirname(root);
+  const parentEntries = fs.readdirSync(parent).sort();
   fs.writeFileSync(path.join(root, "README.md"), "owner dirtiness\n", "utf8");
   const result = await runWork({
     repositoryPath: root,
@@ -179,6 +197,11 @@ test("unrelated dirtiness is preserved while work moves to an isolated branch", 
   assert.equal(result.workspace.mode, "isolated");
   assert.equal(result.workspace.created, true);
   assert.match(result.workspace.branch, /^work\/create-the-delivered-result-file-/);
+  assert.equal(path.dirname(path.dirname(result.workspace.path)), root);
+  assert.match(path.basename(result.workspace.path), /^meta-harness-[a-f0-9]{10}$/u);
+  assert.equal(fs.existsSync(path.join(parent, ".meta-harness-worktrees")), false);
+  assert.deepEqual(fs.readdirSync(parent).sort(), parentEntries);
+  assert.match(git(root, ["worktree", "list", "--porcelain"]), /\.worktrees[\\/]meta-harness-/u);
   assert.equal(fs.readFileSync(path.join(root, "README.md"), "utf8"), "owner dirtiness\n");
   assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
   assert.equal(fs.readFileSync(path.join(result.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");

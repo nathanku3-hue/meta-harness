@@ -28,7 +28,7 @@ Outcome: DONE
 Product result: Add CSV export to the report page
 Current state: The owner has authorized this coding result...
 Observable result: The report page now exports the visible rows as CSV.
-Workspace: isolated — E:\Code\.meta-harness-worktrees\my-project-...
+Workspace: isolated — E:\Code\my-project\.worktrees\meta-harness-...
 Validation: 2/2 passed
 Commit: not_authorized
 Push: not_authorized
@@ -36,7 +36,7 @@ Blocker: none
 Next: Review and bank the delivered change.
 ```
 
-The low-friction `--goal` path defaults to no commit or push. It resolves a regular root `package.json` `scripts.test` into exact controller-owned `npm test` validation. If that validation cannot be resolved—or is only the default placeholder failure—the command returns `BLOCKED` before workspace creation, worker launch, or repository mutation. Use an explicit sealed work session when validation requires another command. An explicit sealed work session may authorize the controller to commit exact validated paths and optionally push the current branch to `origin`. Tags, publication, clean, reset, stash, and revert remain outside this flow.
+The low-friction `--goal` path defaults to no commit or push. For each allowed path it walks toward the repository root, selects the nearest regular `package.json`, and requires every allowed path to resolve to the same package. Meta-Harness then seals exact controller-owned `npm test` validation with that package directory as `cwd`. Missing, malformed, symlinked, placeholder, or cross-package validation returns `BLOCKED` before workspace creation, worker launch, or repository mutation. Use an explicit sealed work session when validation requires another command. An explicit sealed work session may authorize the controller to commit exact validated paths and optionally push the current branch to `origin`. Tags, publication, clean, reset, stash, and revert remain outside this flow.
 
 ## Work sessions
 
@@ -84,7 +84,7 @@ all existing changes inside allowed paths
 → continue coherent work with --continue-dirty
 
 unrelated or cross-boundary changes
-→ preserve them and create an isolated sibling worktree
+→ preserve them and create an ignored repository-local `.worktrees/` worktree
 ```
 
 Inspect the choice without creating a worktree or launching a worker:

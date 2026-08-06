@@ -23,6 +23,7 @@ function repo(t, { withValidation = true } = {}) {
   git(root, ["init"]);
   git(root, ["config", "user.name", "CLI Work Test"]);
   git(root, ["config", "user.email", "cli-work@example.invalid"]);
+  fs.writeFileSync(path.join(root, ".gitignore"), ".worktrees/\n", "utf8");
   fs.writeFileSync(path.join(root, "README.md"), "baseline\n", "utf8");
   if (withValidation) {
     fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({
@@ -172,7 +173,11 @@ test("dry run selects isolation without creating a worktree and resume preserves
   assert.equal(planned.outcome, "READY");
   assert.equal(planned.workspace.mode, "isolated");
   assert.equal(planned.workspace.wouldCreate, true);
+  assert.equal(path.dirname(path.dirname(planned.workspace.path)), root);
+  assert.match(path.basename(planned.workspace.path), /^meta-harness-[a-f0-9]{10}$/u);
   assert.equal(fs.existsSync(planned.workspace.path), false);
+  const parent = path.dirname(root);
+  const parentEntries = fs.readdirSync(parent).sort();
 
   const executed = runRaw(ROOT, [
     "work", root,
@@ -183,10 +188,16 @@ test("dry run selects isolation without creating a worktree and resume preserves
   assert.equal(executed.status, 0, executed.stderr);
   const delivered = JSON.parse(executed.stdout);
   assert.equal(delivered.workspace.mode, "isolated");
+  assert.equal(delivered.workspace.path, planned.workspace.path);
+  assert.equal(fs.existsSync(path.join(parent, ".meta-harness-worktrees")), false);
+  assert.deepEqual(fs.readdirSync(parent).sort(), parentEntries);
 
   const resumed = runRaw(ROOT, ["work", root, "--resume", "--dry-run", "--json"], { env: env() });
   assert.equal(resumed.status, 0, resumed.stderr);
-  assert.equal(JSON.parse(resumed.stdout).productResult, "Create the delivered result file.");
+  const resumedResult = JSON.parse(resumed.stdout);
+  assert.equal(resumedResult.productResult, "Create the delivered result file.");
+  assert.equal(resumedResult.workspace.path, delivered.workspace.path);
+  assert.equal(resumedResult.workspace.wouldCreate, false);
 });
 
 test("default help is one coding journey and advanced help contains internal commands", () => {

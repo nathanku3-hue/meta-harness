@@ -6,7 +6,15 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
-const { deliverValidatedChanges, hashAcceptedPaths } = require("../lib/work-git");
+const {
+  deliverValidatedChanges,
+  hashAcceptedPaths,
+  loadLatestWorkSession,
+  persistWorkSession,
+  prepareWorkspace,
+  worktreePlan,
+} = require("../lib/work-git");
+const { sealWorkSession } = require("../lib/work-session");
 const { tempDir } = require("./helpers/cli");
 
 function git(cwd, args) {
@@ -24,6 +32,7 @@ function repository(t) {
   git(root, ["init"]);
   git(root, ["config", "user.name", "Work Git Test"]);
   git(root, ["config", "user.email", "work-git@example.invalid"]);
+  fs.writeFileSync(path.join(root, ".gitignore"), ".worktrees/\n", "utf8");
   fs.writeFileSync(path.join(root, "accepted.txt"), "baseline accepted\n", "utf8");
   fs.writeFileSync(path.join(root, "staged.txt"), "baseline staged\n", "utf8");
   fs.writeFileSync(path.join(root, "dirty.txt"), "baseline dirty\n", "utf8");
@@ -33,13 +42,108 @@ function repository(t) {
   git(root, ["push", "-u", "origin", "HEAD"]);
   const branch = git(root, ["branch", "--show-current"]);
   t.after(() => fs.rmSync(parent, { recursive: true, force: true }));
-  return { root, origin, branch };
+  return { parent, root, origin, branch };
 }
 
 function remoteHead(root, branch) {
   const output = git(root, ["ls-remote", "--heads", "origin", `refs/heads/${branch}`]);
   return output.split(/\s+/)[0];
 }
+
+function isolatedSession() {
+  return sealWorkSession({
+    schemaVersion: "work-session/v1",
+    intent: { version: "worktree-test/v1", digest: "sha256:" + "4".repeat(64) },
+    productResult: "Create the isolated result.",
+    journeyState: "Owner dirtiness must remain untouched.",
+    doNow: "Prepare the isolated workspace.",
+    newlyTrueBehavior: "A repository-local managed worktree is ready.",
+    doneWhen: "The physical path is repo-local and registered by Git.",
+    stopOnlyIf: ["Repository-local isolation cannot be established safely."],
+    authorizedReversibleActions: ["Create a repository-local worktree.", "Inspect Git registration."],
+    ownerOnlyActions: ["Delete legacy isolation residue."],
+    allowedPaths: ["accepted.txt"],
+    dirtyPolicy: "continue-in-scope",
+    validation: [],
+    maxAttempts: 1,
+    delivery: { commit: false, push: false },
+  });
+}
+
+test("isolated creator stays inside the repository and does not contaminate the parent", (t) => {
+  const { parent, root } = repository(t);
+  fs.writeFileSync(path.join(root, "dirty.txt"), "owner dirtiness\n", "utf8");
+  const beforeParentEntries = fs.readdirSync(parent).sort();
+  const session = isolatedSession();
+  const expected = path.join(root, ".worktrees", `meta-harness-${session.sessionDigest.slice(-10)}`);
+
+  const plan = worktreePlan(root, session);
+  assert.equal(plan.mode, "isolated");
+  assert.equal(plan.workspacePath, expected);
+  assert.equal(plan.legacyIsolationRoot, null);
+
+  const workspace = prepareWorkspace(root, session);
+  assert.equal(workspace.created, true);
+  assert.equal(workspace.workspacePath, fs.realpathSync.native(expected));
+  assert.equal(fs.existsSync(path.join(parent, ".meta-harness-worktrees")), false);
+  assert.deepEqual(fs.readdirSync(parent).sort(), beforeParentEntries);
+  assert.match(git(root, ["worktree", "list", "--porcelain"]), new RegExp(`worktree ${expected.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+  assert.doesNotMatch(git(root, ["status", "--short"]), /\.worktrees/u);
+});
+
+test("isolation refuses an unignored or linked repository-local worktree root", (t) => {
+  const unignored = repository(t).root;
+  fs.writeFileSync(path.join(unignored, ".gitignore"), "node_modules/\n", "utf8");
+  fs.writeFileSync(path.join(unignored, "dirty.txt"), "owner dirtiness\n", "utf8");
+  assert.throws(
+    () => worktreePlan(unignored, isolatedSession()),
+    (error) => error.code === "MH_WORK_WORKTREE_IGNORE",
+  );
+  assert.equal(fs.existsSync(path.join(unignored, ".worktrees")), false);
+
+  const { parent, root } = repository(t);
+  const outside = path.join(parent, "outside-worktrees");
+  fs.mkdirSync(outside);
+  fs.symlinkSync(outside, path.join(root, ".worktrees"), process.platform === "win32" ? "junction" : "dir");
+  fs.writeFileSync(path.join(root, "dirty.txt"), "owner dirtiness\n", "utf8");
+  assert.throws(
+    () => worktreePlan(root, isolatedSession()),
+    (error) => error.code === "MH_WORK_WORKTREE_ROOT" || error.code === "MH_WORK_WORKTREE_ESCAPE",
+  );
+});
+
+test("resume binds repository, persisted workspace record, session identity, and Git registration", (t) => {
+  const { parent, root } = repository(t);
+  fs.writeFileSync(path.join(root, "dirty.txt"), "owner dirtiness\n", "utf8");
+  const session = isolatedSession();
+  const workspace = prepareWorkspace(root, session);
+  const state = persistWorkSession(root, session, workspace);
+  const legacyRoot = path.join(parent, ".meta-harness-worktrees");
+  fs.mkdirSync(legacyRoot);
+
+  const resumed = loadLatestWorkSession(root);
+  const resumedPlan = worktreePlan(root, resumed);
+  assert.equal(resumed.sessionDigest, session.sessionDigest);
+  assert.equal(resumedPlan.workspacePath, workspace.workspacePath);
+  assert.equal(resumedPlan.wouldCreate, false);
+  assert.equal(resumedPlan.legacyIsolationRoot, legacyRoot);
+
+  git(root, ["worktree", "remove", workspace.workspacePath]);
+  fs.mkdirSync(workspace.workspacePath);
+  assert.throws(
+    () => loadLatestWorkSession(root),
+    (error) => error.code === "MH_WORK_RESUME",
+  );
+
+  const pointerPath = path.join(state.directory, "latest.json");
+  const pointer = JSON.parse(fs.readFileSync(pointerPath, "utf8"));
+  pointer.workspace.path = path.join(parent, "substituted", path.basename(workspace.workspacePath));
+  fs.writeFileSync(pointerPath, `${JSON.stringify(pointer, null, 2)}\n`, "utf8");
+  assert.throws(
+    () => loadLatestWorkSession(root),
+    (error) => error.code === "MH_WORK_RESUME" || error.code === "MH_WORK_WORKTREE_ESCAPE",
+  );
+});
 
 test("delivery does not commit or push without exact authority", (t) => {
   const { root, branch } = repository(t);

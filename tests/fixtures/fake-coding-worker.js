@@ -31,7 +31,9 @@ if (process.env.FAKE_WORKER_DIRECT_WRITE === "1" || process.env.FAKE_WORKER_STAG
   }
 }
 
-const status = process.env.FAKE_WORKER_STATUS || "done";
+const status = process.env.FAKE_WORKER_PARTIAL_FIRST === "1" && attempt === 1
+  ? "partial"
+  : process.env.FAKE_WORKER_STATUS || "done";
 const result = {
   status,
   observableResult: `Prepared ${relativePath} on attempt ${attempt}.`,
