@@ -74,7 +74,6 @@ stopOnlyIf[]
 authorizedReversibleActions[]
 ownerOnlyActions[]
 allowedPaths[]
-dirtyPolicy
 validation[]
 maxAttempts
 delivery.commit
@@ -96,7 +95,6 @@ The session digest is domain-separated SHA-256 over canonical session content ex
 - `authorizedReversibleActions`: work the coding worker may perform without another owner decision.
 - `ownerOnlyActions`: scope, product-direction change, access, publication, destructive action, or material risk reserved for the owner.
 - `allowedPaths`: exact repository-relative edit boundary; traversal and `.git` are rejected; `PRODUCT.md` remains protected even if listed.
-- `dirtyPolicy`: `continue-in-scope` or `isolate`.
 - `validation`: exact argv, cwd, and timeout commands run by Meta-Harness, not trusted from worker narrative.
 - `maxAttempts`: one to three coding/repair attempts.
 - `delivery.commit`: explicit controller authority to commit the exact validated accepted paths.
@@ -104,21 +102,38 @@ The session digest is domain-separated SHA-256 over canonical session content ex
 
 `--goal` pins live `PRODUCT.md` and creates a complete low-friction session with safe defaults. For each allowed path, Meta-Harness selects the nearest regular `package.json` between that path and the repository root; every allowed path must resolve to the same package. It seals exact controller-owned `npm test` validation with the selected package directory as `cwd`. Missing product direction, missing validation, malformed packages, symlinks, placeholders, or cross-package validation returns `BLOCKED` before workspace creation, worker launch, or repository mutation. Explicit session JSON is required when validation uses another command or when exact done criteria and path boundaries matter. Explicit sessions still require a live matching `PRODUCT.md`.
 
-## Workspace resolution
+## Workspace resolution and custody
 
-Before launching a worker, Meta-Harness reads Git state with porcelain-v1 NUL framing and rename/copy awareness.
+Workspace authority is identity-based, not cleanliness-based. `dirtyPolicy` and `continue-in-scope` do not exist.
 
-### Clean repository
+### NEW
 
-Use the current checkout.
+Every new work session:
 
-### Coherent dirty repository
+1. resolves the source repository and seals its exact current HEAD as the immutable `baseHead`;
+2. allocates a fresh random `workspaceId`;
+3. creates a new ignored repository-local `.worktrees/meta-harness-<workspaceId>` worktree and unique branch from `baseHead`, even if the source checkout is clean;
+4. proves the new worktree is clean and exactly at `baseHead`;
+5. writes a create-only workspace identity marker inside that linked worktree's Git administrative directory;
+6. writes digest-bound `workspace-custody/v1` under the Git common directory and transitions `CREATED_CLEAN → ACTIVE`, generation 1;
+7. acquires a controller-owned workspace execution lease before any material attempt begins.
 
-When every existing changed path is inside `allowedPaths` and policy is `continue-in-scope`, preserve and continue the current work. Dirtiness is not treated as a generic blocker.
+The source checkout is never a coding execution workspace. Existing source mutable bytes are preserved but never inherited.
 
-### Unrelated or cross-boundary dirtiness
+### RESUME
 
-Create or reuse an ignored repository-local `.worktrees/meta-harness-<digest>` worktree and branch derived from the session digest. The physical path, persisted session identity, and Git registration must agree; symlink, junction, substituted-path, or unregistered-worktree state fails closed. The original checkout remains byte-preserved.
+`--resume` is the only reuse path. It requires the exact persisted session plus controller-owned workspace custody to remain `ACTIVE`, with matching repository root, workspace UUID, physical path, Git administrative identity marker, branch, sealed `baseHead`, current HEAD, generation, live `PRODUCT.md`, and expected dirty-manifest digest. Before execution, the controller must also acquire the workspace's exclusive execution lease; a concurrent controller receives `MH_WORKSPACE_BUSY`. A mismatch returns `MH_WORKSPACE_CUSTODY_MISMATCH`; a terminal state returns `MH_WORKSPACE_NOT_EXECUTABLE`. Meta-Harness never updates the expected manifest because new dirt "looks in scope."
+
+### Terminalization
+
+A workspace becomes permanently non-executable when the bounded session ends:
+
+- committed success → `TERMINAL_COMMITTED`;
+- validated success without commit authority → `TERMINAL_SEALED_DIRTY`;
+- blocked/exhausted work → `TERMINAL_BLOCKED` or `TERMINAL_BLOCKED_DIRTY`;
+- explicit abandonment → `TERMINAL_ABANDONED`.
+
+Terminal bytes may remain for inspection or owner action. Cleaning, resetting, restoring the same bytes, or deleting/recreating the same physical path cannot restore workspace authority. Immutable commits may be selected as later bases; terminal mutable workspaces are never reused.
 
 ### Prohibited dirty handling
 
@@ -134,7 +149,7 @@ Meta-Harness never automatically:
 
 Staging, commit, and push are controller-owned delivery actions. They occur only after a `DONE` result and passed validation, and only when the sealed `delivery` authority permits them.
 
-Work-session and result artifacts are stored under the repository Git common directory, outside tracked working-tree bytes.
+Work-session, result, execution-permit, and workspace-custody artifacts are stored under the repository Git common directory, outside tracked working-tree bytes. The workspace identity marker lives in the linked worktree's Git administrative directory, also outside working-tree bytes.
 
 ## Coding worker
 
@@ -166,7 +181,11 @@ Worker-reported validation is advisory. Declared session validation remains auth
 
 ## Post-worker enforcement
 
-Before materialization, Meta-Harness proves the read-only worker left HEAD, branch identity, Git index bytes, and working-tree bytes unchanged. It then validates and materializes the returned file contents.
+Before each worker attempt, Meta-Harness compiles an immutable `execution-permit/v1` from the sealed work session plus the exact current `ACTIVE` workspace custody, exclusive controller execution lease, and Git facts. `ExecutionPermit.generation` equals `WorkspaceCustody.generation`, and the permit binds the workspace UUID, custody-record digest, and execution-lease digest in addition to HEAD, branch, owned paths, and dirty manifest. Permit issuance, generation advance, and terminalization require the same live lease. The permit is create-only and consumed before worker launch. A bounded repair advances workspace custody to generation N+1 before the next permit is compiled; replay of a consumed or stale-generation permit fails closed. The permit grants only named material capabilities. Outcome read, evaluation, trial debit, state transition, route reopening, publication, and capital-action capabilities are known but denied unless a future controller path explicitly grants them.
+
+The normal worker runtime cannot be replaced by the configured test worker hook unless `META_HARNESS_TEST_MODE=1`; production execution remains on the sandboxed read-only worker.
+
+Before materialization, Meta-Harness proves the consumed permit still matches live `PRODUCT.md`, session identity, repository/workspace identity, HEAD, branch, owned paths, and the attempt's initial dirty manifest. This proves the read-only worker left the generation baseline unchanged. It then validates and materializes the returned file contents only under the permit's `CONTROLLER_MATERIALIZE` capability.
 
 After materialization, Meta-Harness proves:
 
@@ -177,7 +196,7 @@ After materialization, Meta-Harness proves:
 
 Any violation fails closed.
 
-Meta-Harness then runs each exact validation command. If validation fails and attempts remain, the failure output is sent back to the same work session for repair. The product result, product-direction snapshot, and boundaries do not change between attempts. Resume requires persisted content, persisted digest, and live repository-root `PRODUCT.md` bytes/digest to agree; otherwise the session is blocked and a new work session must be started from the current direction.
+Meta-Harness then runs each exact validation command. If validation fails and attempts remain, the controller advances the same ACTIVE workspace to the next generation using the exact post-validation dirty-manifest digest, then sends the failure output back for bounded repair under a newly compiled permit. The product result, product-direction snapshot, and boundaries do not change between attempts. `--resume` never repairs custody mismatches and never reopens terminal workspaces.
 
 ## Delivery close
 
@@ -210,6 +229,7 @@ blocker
 nextAction
 attempts
 sessionDigest
+executionPermits[] = { permitId, attemptId, generation, permitDigest, state }
 timestamps
 ```
 

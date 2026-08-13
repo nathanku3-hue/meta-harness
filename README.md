@@ -57,7 +57,6 @@ The session binds:
 - done and stop conditions;
 - reversible worker authority and owner-only decisions;
 - allowed paths;
-- dirty-worktree policy;
 - exact validation commands;
 - bounded repair attempts;
 - explicit controller authority to commit and optionally push.
@@ -74,22 +73,30 @@ Meta-Harness stores the sealed work session under the repository Git common dire
 meta-harness work E:\Code\my-project --resume
 ```
 
-The resumed worker receives the same product direction, product result, boundaries, and stop conditions. If live `PRODUCT.md` changed, was deleted, or no longer matches the sealed snapshot, resume fails closed and a new work session is required.
+Resume is the only workspace-reuse path. It succeeds only when the latest workspace remains `ACTIVE` and its session digest, workspace UUID, Git administrative identity, branch, sealed base commit, generation, live `PRODUCT.md`, and expected dirty-manifest digest all still match. Terminal or mismatched workspaces never resume and are never repaired by heuristic dirt classification.
 
-## Dirty repositories
+## Workspace custody
 
-Meta-Harness treats dirtiness as a workspace-selection fact, not a generic gate.
+A new session never inherits a mutable workspace, even when the source checkout is clean.
 
 ```text
-clean checkout
-→ work in place
+NEW
+→ seal exact source HEAD as immutable base commit
+→ create fresh UUID-backed ignored `.worktrees/` worktree
+→ verify clean Git state
+→ create controller-owned workspace custody
+→ ACTIVE generation 1
 
-all existing changes inside allowed paths
-→ continue coherent work with --continue-dirty
+RESUME
+→ exact still-ACTIVE workspace custody only
+→ exclusive controller execution lease
 
-unrelated or cross-boundary changes
-→ preserve them and create an ignored repository-local `.worktrees/` worktree
+TERMINAL
+→ bytes may remain
+→ execution authority never returns
 ```
+
+Source-checkout dirtiness is preserved byte-for-byte and is never classified as safe enough to continue. Only one controller may hold the execution lease for an ACTIVE workspace generation; concurrent resume fails closed. A successful no-commit result becomes `TERMINAL_SEALED_DIRTY`; a committed result becomes `TERMINAL_COMMITTED`. Immutable commits may be used as later bases, but terminal mutable workspaces are never reused. Cleaning, resetting, or recreating a terminal worktree cannot resurrect authority.
 
 Inspect the choice without creating a worktree or launching a worker:
 

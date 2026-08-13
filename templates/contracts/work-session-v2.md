@@ -13,7 +13,7 @@ owner-authored PRODUCT.md
 → exact bytes + digest pin
 → accepted product result
 → sealed work session
-→ dirty-worktree continuation or isolation
+→ fresh controller-owned workspace generation from immutable base commit
 → read-only coding worker (direction first)
 → controller materialization
 → focused validation
@@ -54,7 +54,6 @@ owner-authored PRODUCT.md
     "Provide credentials or approve publication/destructive action."
   ],
   "allowedPaths": ["src", "tests"],
-  "dirtyPolicy": "continue-in-scope",
   "validation": [
     {
       "argv": ["npm", "test"],
@@ -86,11 +85,15 @@ Start a new work session from the new direction.
 
 - Controller materialization rejects any write targeting `PRODUCT.md` even if a session lists it in `allowedPaths`.
 
-## Dirty-worktree behavior
+## Workspace custody
 
-- Clean checkout: work in the checkout.
-- Existing changes entirely inside `allowedPaths` with `continue-in-scope`: inspect and continue them.
-- Unrelated or cross-boundary dirtiness: preserve it and create an isolated sibling worktree.
+- `dirtyPolicy` does not exist. Workspace safety is not an owner preference.
+- Every NEW session seals the source checkout's exact HEAD commit and creates a fresh UUID-backed ignored `.worktrees/` worktree from that immutable commit, even when the source checkout is clean.
+- The source checkout is never a coding execution workspace and its mutable bytes are never inherited.
+- Only `--resume` may reuse a workspace, and only when controller-owned custody is still `ACTIVE` with exact session, workspace UUID, Git administrative marker, branch, base HEAD, generation, `PRODUCT.md`, and expected dirty-manifest identity. The controller must also acquire the workspace's exclusive execution lease; concurrent execution fails closed.
+- Each bounded repair advances the same workspace custody generation; `ExecutionPermit.generation` must equal `WorkspaceCustody.generation`, and the permit binds the live workspace execution-lease digest.
+- Successful committed work terminalizes as `TERMINAL_COMMITTED`; successful uncommitted work terminalizes as `TERMINAL_SEALED_DIRTY`; exhausted or blocked work terminalizes and cannot resume.
+- Terminal workspace bytes may remain, but workspace authority never returns. Manual cleanup, reset, byte restoration, or path recreation cannot resurrect it.
 - Never reset, clean, stash, or revert owner work automatically.
 - The coding worker remains read-only and returns complete `{ path, content }` file changes.
 - Meta-Harness rejects traversal, symlinks, duplicate paths, oversized content, out-of-bound files, and `PRODUCT.md` mutations before controller-owned materialization.

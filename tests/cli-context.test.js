@@ -70,19 +70,28 @@ test("context check emits valid JSON and writes local ignored artifacts by defau
   assert.equal(mdOutputs.length >= 1, true);
 });
 
-test("context packet emits a JSON envelope with compact packet markdown", () => {
+test("context packet emits a JSON envelope with compact review packet markdown", () => {
   const cwd = copyFixture("complete");
   writePrebuiltGate(cwd);
 
-  const stdout = run(cwd, ["context", "packet", "ROUND-001", "--for", "worker", "--json"]);
+  const stdout = run(cwd, ["context", "packet", "ROUND-001", "--for", "review", "--json"]);
   const data = JSON.parse(stdout);
 
   assert.equal(data.round_id, "ROUND-001");
-  assert.equal(data.for, "worker");
+  assert.equal(data.for, "review");
   assert.equal(typeof data.packet_markdown, "string");
   assert.match(data.packet_markdown, /Goal/i);
   assert.match(data.packet_markdown, /Evidence/i);
   assert.equal(data.packet_markdown.length < 12000, true);
+});
+
+test("standalone worker context packet is retired in favor of ExecutionPermit authority", () => {
+  const cwd = copyFixture("complete");
+  writePrebuiltGate(cwd);
+
+  const result = runRaw(cwd, ["context", "packet", "ROUND-001", "--for", "worker", "--json"]);
+  assert.notEqual(result.status, 0);
+  assert.match(`${result.stdout}\n${result.stderr}`, /single-use ExecutionPermit/);
 });
 
 test("context ask returns at most three blocker-clearing questions", () => {
@@ -181,7 +190,7 @@ test("context packet --target reads target repo artifacts from outside its direc
     target,
     "ROUND-001",
     "--for",
-    "worker",
+    "review",
     "--json",
   ]);
   const data = JSON.parse(stdout);

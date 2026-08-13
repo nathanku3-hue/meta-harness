@@ -82,6 +82,6 @@ test("default help is one product-facing coding journey and advanced help retain
   assert.match(advanced, /meta-harness skill check --target <repo>/);
   assert.match(advanced, /meta-harness release candidate <create\|verify-preterminal\|verify-publication>/);
   assert.match(advanced, /meta-harness governance snapshot \[--target <repo>\]/);
-  assert.match(advanced, /meta-harness context packet <round-id> --for <worker\|review\|planning>/);
+  assert.match(advanced, /meta-harness context packet <round-id> --for <review\|planning>/);
   assert.match(advanced, /Streams: coding, research, writing, review/);
 });

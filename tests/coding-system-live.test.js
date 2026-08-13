@@ -64,7 +64,6 @@ test("live coding system carries one result through Codex and exact validation",
     authorizedReversibleActions: ["Read the repository.", "Create or edit files inside src.", "Run the existing focused test."],
     ownerOnlyActions: ["Change the requested behavior.", "Expand delivery beyond the current branch and origin."],
     allowedPaths: ["src"],
-    dirtyPolicy: "continue-in-scope",
     validation: [{
       argv: [process.execPath, "--test", "tests/sum.test.js"],
       cwd: ".",

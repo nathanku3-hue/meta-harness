@@ -30,7 +30,6 @@ function explicitSession(overrides = {}) {
     authorizedReversibleActions: ["Edit allowed files.", "Run tests."],
     ownerOnlyActions: ["Publish a release."],
     allowedPaths: ["lib", "tests"],
-    dirtyPolicy: "continue-in-scope",
     validation: [{ argv: ["node", "--test"], cwd: ".", timeoutSeconds: 60 }],
     maxAttempts: 2,
     delivery: { commit: true, push: false },
@@ -61,7 +60,6 @@ test("goal shorthand pins live PRODUCT.md into a complete low-friction brief", (
     goal: "Add a visible result.",
     repositoryPath: root,
     allowedPaths: ["src"],
-    dirtyPolicy: "isolate",
     validation,
   });
   assert.equal(session.productResult, "Add a visible result.");

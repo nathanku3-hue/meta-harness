@@ -60,7 +60,6 @@ function sealedSession(root, overrides = {}) {
     authorizedReversibleActions: ["Edit src.", "Run validation."],
     ownerOnlyActions: ["Change PRODUCT.md."],
     allowedPaths: ["src", "PRODUCT.md"],
-    dirtyPolicy: "continue-in-scope",
     validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
     maxAttempts: 2,
     delivery: { commit: false, push: false },

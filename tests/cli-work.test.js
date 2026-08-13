@@ -48,31 +48,34 @@ function repo(t, { withValidation = true } = {}) {
 function env(extra = {}) {
   return {
     ...process.env,
+    META_HARNESS_TEST_MODE: "1",
     META_HARNESS_WORKER_COMMAND_JSON: JSON.stringify([process.execPath, FAKE_WORKER]),
     ...extra,
   };
 }
 
-test("primary work command executes code and reports product fields before evidence", (t) => {
+test("primary work command executes in a fresh workspace and reports product fields before evidence", (t) => {
   const root = repo(t);
   const result = runRaw(ROOT, [
     "work", root,
     "--goal", "Create the delivered result file.",
     "--allow", "src",
-    "--continue-dirty",
     "--json",
   ], { env: env({ FAKE_WORKER_RETRY: "1" }) });
   assert.equal(result.status, 0, result.stderr);
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.outcome, "DONE");
   assert.equal(parsed.productResult, "Create the delivered result file.");
-  assert.equal(parsed.workspace.mode, "current");
+  assert.equal(parsed.workspace.mode, "isolated");
+  assert.equal(parsed.workspace.state, "TERMINAL_SEALED_DIRTY");
   assert.equal(parsed.attempts, 2);
   assert.equal(parsed.validation.length, 1);
   assert.equal(parsed.validation[0].passed, true);
   assert.deepEqual(parsed.changedPaths, ["src/result.txt"]);
   assert.deepEqual(parsed.delivery.commit, { status: "not_authorized" });
   assert.deepEqual(parsed.delivery.push, { status: "not_authorized" });
+  assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
+  assert.equal(fs.readFileSync(path.join(parsed.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
 });
 
 test("duplicate normalized allow paths fail before workspace or worker activity", (t) => {
@@ -160,7 +163,7 @@ test("unsupported goal blocks before worker, workspace, or repository mutation",
   assert.doesNotMatch(human.stdout, /worker-reported/);
 });
 
-test("dry run selects isolation without creating a worktree and resume preserves the brief", (t) => {
+test("dry run previews fresh isolation; completed terminal workspace cannot resume or be reused", (t) => {
   const root = repo(t);
   fs.writeFileSync(path.join(root, "README.md"), "owner dirtiness\n", "utf8");
   const dry = runRaw(ROOT, [
@@ -176,7 +179,7 @@ test("dry run selects isolation without creating a worktree and resume preserves
   assert.equal(planned.workspace.mode, "isolated");
   assert.equal(planned.workspace.wouldCreate, true);
   assert.equal(path.dirname(path.dirname(planned.workspace.path)), root);
-  assert.match(path.basename(planned.workspace.path), /^meta-harness-[a-f0-9]{10}$/u);
+  assert.match(path.basename(planned.workspace.path), /^meta-harness-[0-9a-f-]{36}$/u);
   assert.equal(fs.existsSync(planned.workspace.path), false);
   const parent = path.dirname(root);
   const parentEntries = fs.readdirSync(parent).sort();
@@ -190,16 +193,25 @@ test("dry run selects isolation without creating a worktree and resume preserves
   assert.equal(executed.status, 0, executed.stderr);
   const delivered = JSON.parse(executed.stdout);
   assert.equal(delivered.workspace.mode, "isolated");
-  assert.equal(delivered.workspace.path, planned.workspace.path);
+  assert.notEqual(delivered.workspace.path, planned.workspace.path);
+  assert.equal(delivered.workspace.state, "TERMINAL_SEALED_DIRTY");
   assert.equal(fs.existsSync(path.join(parent, ".meta-harness-worktrees")), false);
   assert.deepEqual(fs.readdirSync(parent).sort(), parentEntries);
 
   const resumed = runRaw(ROOT, ["work", root, "--resume", "--dry-run", "--json"], { env: env() });
-  assert.equal(resumed.status, 0, resumed.stderr);
-  const resumedResult = JSON.parse(resumed.stdout);
-  assert.equal(resumedResult.productResult, "Create the delivered result file.");
-  assert.equal(resumedResult.workspace.path, delivered.workspace.path);
-  assert.equal(resumedResult.workspace.wouldCreate, false);
+  assert.notEqual(resumed.status, 0);
+  assert.match(`${resumed.stdout}\n${resumed.stderr}`, /workspace is terminal or inactive|not executable/i);
+
+  const second = runRaw(ROOT, [
+    "work", root,
+    "--goal", "Create the delivered result file.",
+    "--allow", "src",
+    "--json",
+  ], { env: env() });
+  assert.equal(second.status, 0, second.stderr);
+  const secondResult = JSON.parse(second.stdout);
+  assert.notEqual(secondResult.workspace.workspaceId, delivered.workspace.workspaceId);
+  assert.notEqual(secondResult.workspace.path, delivered.workspace.path);
 });
 
 test("default help is one coding journey and advanced help contains internal commands", () => {

@@ -1,0 +1,186 @@
+"use strict";
+
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const { spawnSync } = require("node:child_process");
+const test = require("node:test");
+
+const {
+  assertConsumedPermitCapability,
+  assertExecutionPermitCurrent,
+  assertPermitCapability,
+  consumeExecutionPermit,
+  issueExecutionPermit,
+  validateExecutionPermit,
+} = require("../lib/execution-permit");
+const {
+  prepareWorkspace,
+  stateDirectory,
+  workspaceRegistryDirectory,
+} = require("../lib/work-git");
+const { captureBoundary } = require("../lib/work-loop");
+const { sealWorkSession } = require("../lib/work-session");
+const {
+  acquireWorkspaceExecutionLease,
+  releaseWorkspaceExecutionLease,
+} = require("../lib/workspace-custody");
+const { tempDir } = require("./helpers/cli");
+const { directionFromContent, writeProductMd } = require("./helpers/product-direction");
+
+function git(cwd, args) {
+  const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  return String(result.stdout || "").trim();
+}
+
+function repository(t) {
+  const parent = tempDir("execution-permit-");
+  const root = path.join(parent, "repository");
+  fs.mkdirSync(root);
+  git(root, ["init"]);
+  git(root, ["config", "user.name", "Execution Permit Test"]);
+  git(root, ["config", "user.email", "execution-permit@example.invalid"]);
+  fs.writeFileSync(path.join(root, ".gitignore"), ".worktrees/\n", "utf8");
+  fs.writeFileSync(path.join(root, "README.md"), "baseline\n", "utf8");
+  writeProductMd(root);
+  git(root, ["add", ".gitignore", "README.md", "PRODUCT.md"]);
+  git(root, ["commit", "-m", "baseline"]);
+  t.after(() => fs.rmSync(parent, { recursive: true, force: true }));
+  return root;
+}
+
+function session() {
+  return sealWorkSession({
+    schemaVersion: "work-session/v2",
+    productDirection: directionFromContent(),
+    productResult: "Create one visible result.",
+    journeyState: "The result is accepted and not yet delivered.",
+    doNow: "Create src/result.txt.",
+    newlyTrueBehavior: "The result file exists.",
+    doneWhen: "The result file exists and validation passes.",
+    stopOnlyIf: ["The allowed path is insufficient."],
+    authorizedReversibleActions: ["Edit src.", "Run validation."],
+    ownerOnlyActions: ["Publish the repository."],
+    allowedPaths: ["src"],
+    validation: [{ argv: [process.execPath, "-e", "process.exit(0)"], cwd: ".", timeoutSeconds: 30 }],
+    maxAttempts: 2,
+    delivery: { commit: false, push: false },
+  });
+}
+
+function leasedWorkspace(t, root, workSession) {
+  const workspace = prepareWorkspace(root, workSession);
+  const registryDir = workspaceRegistryDirectory(root);
+  const workspaceLease = acquireWorkspaceExecutionLease({ registryDir, workspaceId: workspace.workspaceId });
+  t.after(() => releaseWorkspaceExecutionLease({ registryDir, lease: workspaceLease }));
+  return { workspace, registryDir, workspaceLease };
+}
+
+test("ExecutionPermit is generation-bound, single-use, lease-bound, and capability-limited", (t) => {
+  const root = repository(t);
+  const workSession = session();
+  const { workspace, registryDir, workspaceLease } = leasedWorkspace(t, root, workSession);
+  const boundary = captureBoundary(workspace.workspacePath, workSession.allowedPaths);
+  const permit = issueExecutionPermit({
+    repositoryRoot: workspace.repositoryRoot,
+    workspacePath: workspace.workspacePath,
+    session: workSession,
+    attempt: 1,
+    boundary,
+    workspaceCustody: workspace.custody,
+    workspaceLease,
+    workspaceRegistryDir: registryDir,
+    stateDirectory: stateDirectory(root),
+  });
+
+  assert.equal(validateExecutionPermit(permit).generation, 1);
+  assert.equal(permit.authority.workspaceId, workspace.workspaceId);
+  assert.equal(permit.authority.workspaceCustodyDigest, workspace.custody.recordDigest);
+  assert.equal(permit.authority.workspaceLeaseDigest, workspaceLease.leaseDigest);
+  assert.equal(Object.isFrozen(permit), true);
+  assert.equal(Object.isFrozen(permit.authority), true);
+  assert.equal(Object.isFrozen(permit.capabilities), true);
+  assert.deepEqual(permit.capabilities, [
+    "CODE_PROPOSE",
+    "CONTROLLER_MATERIALIZE",
+    "CONTROLLER_VALIDATE",
+  ]);
+  const consumed = consumeExecutionPermit({ stateDirectory: stateDirectory(root), permit });
+  assert.equal(consumed.entryCapability, "CODE_PROPOSE");
+  assert.equal(
+    assertConsumedPermitCapability({
+      stateDirectory: stateDirectory(root),
+      permit,
+      capability: "CONTROLLER_VALIDATE",
+    }).permitDigest,
+    permit.permitDigest,
+  );
+  assert.throws(
+    () => consumeExecutionPermit({ stateDirectory: stateDirectory(root), permit }),
+    (error) => error.code === "MH_EXECUTION_PERMIT_REPLAY",
+  );
+  assert.throws(
+    () => assertPermitCapability(permit, "CONTROLLER_PUSH"),
+    (error) => error.code === "MH_EXECUTION_CAPABILITY_DENIED",
+  );
+  assert.throws(
+    () => assertPermitCapability(permit, "OUTCOME_READ"),
+    (error) => error.code === "MH_EXECUTION_CAPABILITY_DENIED",
+  );
+  assert.throws(
+    () => assertPermitCapability(permit, "ROOT_SHELL"),
+    (error) => error.code === "MH_EXECUTION_PERMIT_CAPABILITY",
+  );
+});
+
+test("ExecutionPermit generation baseline fails closed before material execution", (t) => {
+  const root = repository(t);
+  const workSession = session();
+  const { workspace, registryDir, workspaceLease } = leasedWorkspace(t, root, workSession);
+  const boundary = captureBoundary(workspace.workspacePath, workSession.allowedPaths);
+  const permit = issueExecutionPermit({
+    repositoryRoot: workspace.repositoryRoot,
+    workspacePath: workspace.workspacePath,
+    session: workSession,
+    attempt: 1,
+    boundary,
+    workspaceCustody: workspace.custody,
+    workspaceLease,
+    workspaceRegistryDir: registryDir,
+    stateDirectory: stateDirectory(root),
+  });
+
+  fs.mkdirSync(path.join(workspace.workspacePath, "src"));
+  fs.writeFileSync(path.join(workspace.workspacePath, "src", "surprise.txt"), "external mutation\n", "utf8");
+  const changedBoundary = captureBoundary(workspace.workspacePath, workSession.allowedPaths);
+
+  assert.throws(
+    () => assertExecutionPermitCurrent({
+      permit,
+      session: workSession,
+      repositoryRoot: workspace.repositoryRoot,
+      workspacePath: workspace.workspacePath,
+      workspaceCustody: workspace.custody,
+      workspaceLease,
+      workspaceRegistryDir: registryDir,
+      boundary: changedBoundary,
+      requireInitialDirtyManifest: true,
+    }),
+    (error) => error.code === "MH_EXECUTION_PERMIT_STALE",
+  );
+});
+
+test("workspace execution lease prevents two controllers from executing the same ACTIVE generation", (t) => {
+  const root = repository(t);
+  const workSession = session();
+  const workspace = prepareWorkspace(root, workSession);
+  const registryDir = workspaceRegistryDirectory(root);
+  const first = acquireWorkspaceExecutionLease({ registryDir, workspaceId: workspace.workspaceId });
+  t.after(() => releaseWorkspaceExecutionLease({ registryDir, lease: first }));
+
+  assert.throws(
+    () => acquireWorkspaceExecutionLease({ registryDir, workspaceId: workspace.workspaceId }),
+    (error) => error.code === "MH_WORKSPACE_BUSY",
+  );
+});

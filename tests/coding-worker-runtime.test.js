@@ -71,3 +71,23 @@ test("native Linux retains the native Codex command", () => {
     pathStyle: "native",
   });
 });
+
+test("configured worker override is test-only and cannot replace the sandboxed worker in normal execution", () => {
+  const command = JSON.stringify(["node", "fake-worker.js"]);
+  assert.throws(
+    () => resolveCodingWorker({ META_HARNESS_WORKER_COMMAND_JSON: command }, "linux", () => undefined),
+    (error) => error.code === "MH_WORKER_CONFIG",
+  );
+
+  assert.deepEqual(
+    resolveCodingWorker({
+      META_HARNESS_TEST_MODE: "1",
+      META_HARNESS_WORKER_COMMAND_JSON: command,
+    }, "linux", () => undefined),
+    {
+      executable: "node",
+      prefixArgs: ["fake-worker.js"],
+      identity: "test-worker",
+    },
+  );
+});

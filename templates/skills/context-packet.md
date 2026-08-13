@@ -1,9 +1,11 @@
 ---
 name: context-packet
-description: Assemble a compact context packet for a fresh worker from harness truth files.
+description: Assemble a compact planning or review inspection packet from harness truth files; execution workers receive compiled ExecutionPermit authority instead.
 ---
 
-# Context Packet
+# Context Inspection Packet
+
+This skill is inspection-only. Do not use it to authorize a worker. `meta-harness work` compiles worker execution authority from the sealed work session and current repository/workspace facts into a single-use `execution-permit/v1`.
 
 ## Sources (read in order)
 
@@ -22,13 +24,15 @@ description: Assemble a compact context packet for a fresh worker from harness t
 2. **Scope** - owned files, forbidden files, out-of-scope
 3. **Stack** - runtime, framework, test command
 4. **Evidence required** - what proves done
-5. **Stop rules** - when to pause instead of improvise
+5. **Stop rules** - when to stop instead of improvise
 6. **Decisions** - relevant prior decisions by ID
 7. **Freshness** - any docs/API uncertainty flags
 
 ## Rules
 
-- Max 3 pages equivalent
-- No raw chat logs
-- No stale truth (gate freshness score must be >= 6)
-- If gate verdict was "narrowed", packet must state the narrowed scope explicitly
+- Audience is `review` or `planning`; standalone `worker` packets are retired.
+- Max 3 pages equivalent.
+- No raw chat logs.
+- Stale or low-freshness packets are inspection-only and must carry warnings.
+- If gate verdict was `narrowed`, packet must state the narrowed scope explicitly.
+- Never reinterpret a packet as execution authority; only a current, consumed ExecutionPermit authorizes a material worker attempt.

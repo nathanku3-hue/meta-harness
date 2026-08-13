@@ -71,13 +71,13 @@ function writeContextArtifact(root, roundId, content) {
   writeFile(root, `.meta-harness/local/context/${roundId}.json`, `${JSON.stringify(content, null, 2)}\n`);
 }
 
-test("worker packets block on required blocked gate while review packets inspect with warnings", () => {
+test("worker packets are retired while review packets inspect blocked gates with warnings", () => {
   const cwd = initAdoptedRepo();
   writeContextArtifact(cwd, "ROUND-001", artifact());
 
   const worker = runRaw(cwd, ["context", "packet", "ROUND-001", "--for", "worker", "--json"]);
   assert.notEqual(worker.status, 0);
-  assert.match(`${worker.stdout}\n${worker.stderr}`, /blocked by required context gate/);
+  assert.match(`${worker.stdout}\n${worker.stderr}`, /single-use ExecutionPermit/);
 
   const review = run(cwd, ["context", "packet", "ROUND-001", "--for", "review", "--json"]);
   const packet = JSON.parse(review);

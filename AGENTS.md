@@ -29,15 +29,15 @@ Use outcome-first planning.
 - Begin the first reversible product action in the working round. Do not replay the planning climax as another planning or approval cycle.
 - Use product language in normal user-facing messages: outcome, user journey, action, result, blocker, risk, and owner action. Keep internal gate, phase, candidate, custody, and evidence labels inside technical evidence unless the user explicitly asks for them.
 - Ask the owner only for scope expansion, irreversible action, credentials or protected access, material risk, or taste. Routine branch, worktree, test, repair, and evidence operations inside the accepted scope are execution, not decisions.
-- If existing dirty work is coherent and relevant, inspect and continue it. If it is unrelated, preserve it and use an isolated worktree rather than turning dirtiness into the roadmap.
+- Preserve existing dirty work as evidence or owner state, but do not infer execution authority from cleanliness, path scope, or apparent coherence. For `meta-harness work`, NEW always gets a fresh controller-owned managed worktree; only an exact still-ACTIVE session may RESUME its owned generation.
 
 ## Coding-system law
 
 - `meta-harness work` is the primary product path. Normal help and normal reporting must remain product-facing.
 - Repository-root `PRODUCT.md` is owner-authored product direction. Pin exact bytes into every `work-session/v2`. Never generate, summarize, or overwrite it. Never mutate it through the worker path.
 - `work-session/v2` is the complete active coding brief. The worker must consume it directly, receive product direction before local engineering context, and must not reconstruct product intent from status files or reopen broad planning.
-- Start implementation immediately. Reversible edits, focused validation, bounded repair, and dirty-worktree isolation inside the session are already authorized.
-- Continue coherent in-scope dirtiness. Preserve unrelated dirtiness in place and use an isolated sibling worktree.
+- Start implementation immediately. Reversible edits, focused validation, bounded repair, and controller-owned workspace creation inside the session are already authorized.
+- A NEW work session never inherits a mutable workspace. Seal an immutable base commit, create a fresh clean managed worktree with a new workspace identity, and execute there. RESUME is the only reuse path and requires exact ACTIVE workspace custody, generation, Git identity, dirty-manifest agreement, and the exclusive controller execution lease. Concurrent execution of one ACTIVE generation fails closed. Terminal workspace authority never returns even if its bytes are cleaned or restored.
 - The coding worker remains read-only and returns complete bounded file contents. Meta-Harness validates and materializes them through the controller.
 - The coding worker may not reset, clean, stash, revert, stage, commit, push, tag, publish, delete files, change branches, mutate worktree topology, or change `PRODUCT.md`.
 - Reject traversal, symlink targets, duplicate or oversized proposals, changes outside `allowedPaths`, any `PRODUCT.md` mutation, Git-index mutation, HEAD movement, or branch changes.

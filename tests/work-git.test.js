@@ -66,7 +66,6 @@ function isolatedSession() {
     authorizedReversibleActions: ["Create a repository-local worktree.", "Inspect Git registration."],
     ownerOnlyActions: ["Delete legacy isolation residue."],
     allowedPaths: ["accepted.txt"],
-    dirtyPolicy: "continue-in-scope",
     validation: [],
     maxAttempts: 1,
     delivery: { commit: false, push: false },
@@ -78,20 +77,21 @@ test("isolated creator stays inside the repository and does not contaminate the 
   fs.writeFileSync(path.join(root, "dirty.txt"), "owner dirtiness\n", "utf8");
   const beforeParentEntries = fs.readdirSync(parent).sort();
   const session = isolatedSession();
-  const expected = path.join(root, ".worktrees", `meta-harness-${session.sessionDigest.slice(-10)}`);
-
   const plan = worktreePlan(root, session);
   assert.equal(plan.mode, "isolated");
-  assert.equal(plan.workspacePath, expected);
   assert.equal(plan.legacyIsolationRoot, null);
+  assert.match(path.basename(plan.workspacePath), /^meta-harness-[0-9a-f-]{36}$/u);
 
-  const workspace = prepareWorkspace(root, session);
+  const workspace = prepareWorkspace(root, session, plan);
   assert.equal(workspace.created, true);
-  assert.equal(workspace.workspacePath, fs.realpathSync.native(expected));
+  assert.equal(workspace.workspacePath, fs.realpathSync.native(plan.workspacePath));
+  assert.equal(workspace.custody.state, "ACTIVE");
+  assert.equal(workspace.custody.generation, 1);
+  assert.equal(workspace.custody.workspaceId, workspace.workspaceId);
   assert.equal(fs.existsSync(path.join(parent, ".meta-harness-worktrees")), false);
   assert.deepEqual(fs.readdirSync(parent).sort(), beforeParentEntries);
   const listed = git(root, ["worktree", "list", "--porcelain"]).replace(/\\/g, "/");
-  const expectedListed = expected.replace(/\\/g, "/");
+  const expectedListed = plan.workspacePath.replace(/\\/g, "/");
   assert.match(listed, new RegExp(`worktree ${expectedListed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
   assert.doesNotMatch(git(root, ["status", "--short"]), /\.worktrees/u);
 });
@@ -113,7 +113,7 @@ test("isolation refuses an unignored or linked repository-local worktree root", 
   fs.writeFileSync(path.join(root, "dirty.txt"), "owner dirtiness\n", "utf8");
   assert.throws(
     () => worktreePlan(root, isolatedSession()),
-    (error) => error.code === "MH_WORK_WORKTREE_ROOT" || error.code === "MH_WORK_WORKTREE_ESCAPE",
+    (error) => ["MH_WORK_WORKTREE_IGNORE", "MH_WORK_WORKTREE_ROOT", "MH_WORK_WORKTREE_ESCAPE"].includes(error.code),
   );
 });
 
@@ -137,7 +137,7 @@ test("resume binds repository, persisted workspace record, session identity, and
   fs.mkdirSync(workspace.workspacePath);
   assert.throws(
     () => loadLatestWorkSession(root),
-    (error) => error.code === "MH_WORK_RESUME",
+    (error) => ["MH_WORK_RESUME", "MH_WORKSPACE_CUSTODY_MISMATCH", "MH_WORK_WORKTREE_MISSING"].includes(error.code),
   );
 
   const pointerPath = path.join(state.directory, "latest.json");
@@ -146,7 +146,39 @@ test("resume binds repository, persisted workspace record, session identity, and
   fs.writeFileSync(pointerPath, `${JSON.stringify(pointer, null, 2)}\n`, "utf8");
   assert.throws(
     () => loadLatestWorkSession(root),
-    (error) => error.code === "MH_WORK_RESUME" || error.code === "MH_WORK_WORKTREE_ESCAPE",
+    (error) => ["MH_WORK_RESUME", "MH_WORKSPACE_CUSTODY_MISMATCH", "MH_WORK_WORKTREE_ESCAPE"].includes(error.code),
+  );
+});
+
+test("resume never adopts an unexpected dirty manifest even when the change is in-scope", (t) => {
+  const { root } = repository(t);
+  const session = isolatedSession();
+  const workspace = prepareWorkspace(root, session);
+  persistWorkSession(root, session, workspace);
+
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "unexpected in-scope mutation\n", "utf8");
+  assert.throws(
+    () => loadLatestWorkSession(root),
+    (error) => error.code === "MH_WORKSPACE_CUSTODY_MISMATCH",
+  );
+});
+
+test("removing and recreating the same physical worktree path cannot inherit the old workspace identity", (t) => {
+  const { root } = repository(t);
+  const session = isolatedSession();
+  const workspace = prepareWorkspace(root, session);
+  persistWorkSession(root, session, workspace);
+  const originalPath = workspace.workspacePath;
+  const originalBranch = workspace.branch;
+  const originalHead = workspace.baseHead;
+
+  git(root, ["worktree", "remove", originalPath]);
+  git(root, ["worktree", "add", originalPath, originalBranch]);
+  assert.equal(git(originalPath, ["rev-parse", "HEAD"]), originalHead);
+  assert.equal(git(originalPath, ["branch", "--show-current"]), originalBranch);
+  assert.throws(
+    () => loadLatestWorkSession(root),
+    (error) => ["MH_WORK_WORKTREE_IDENTITY", "MH_WORKSPACE_CUSTODY_MISMATCH"].includes(error.code),
   );
 });
 
