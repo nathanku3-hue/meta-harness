@@ -53,11 +53,12 @@ function remoteHead(root, branch) {
   return output.split(/\s+/)[0];
 }
 
-function isolatedSession() {
+function isolatedSession(root, base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) }) {
   return sealWorkSession({
-    schemaVersion: "work-session/v3",
+    schemaVersion: "work-session/v4",
     productDirection: directionFromContent(),
     origin: { type: "OWNER_GOAL" },
+    base,
     productResult: "Create the isolated result.",
     journeyState: "Owner dirtiness must remain untouched.",
     doNow: "Prepare the isolated workspace.",
@@ -77,7 +78,7 @@ test("isolated creator stays inside the repository and does not contaminate the 
   const { parent, root } = repository(t);
   fs.writeFileSync(path.join(root, "dirty.txt"), "owner dirtiness\n", "utf8");
   const beforeParentEntries = fs.readdirSync(parent).sort();
-  const session = isolatedSession();
+  const session = isolatedSession(root);
   const plan = worktreePlan(root, session);
   assert.equal(plan.mode, "isolated");
   assert.equal(plan.legacyIsolationRoot, null);
@@ -102,7 +103,7 @@ test("isolation refuses an unignored or linked repository-local worktree root", 
   fs.writeFileSync(path.join(unignored, ".gitignore"), "node_modules/\n", "utf8");
   fs.writeFileSync(path.join(unignored, "dirty.txt"), "owner dirtiness\n", "utf8");
   assert.throws(
-    () => worktreePlan(unignored, isolatedSession()),
+    () => worktreePlan(unignored, isolatedSession(unignored)),
     (error) => error.code === "MH_WORK_WORKTREE_IGNORE",
   );
   assert.equal(fs.existsSync(path.join(unignored, ".worktrees")), false);
@@ -113,7 +114,7 @@ test("isolation refuses an unignored or linked repository-local worktree root", 
   fs.symlinkSync(outside, path.join(root, ".worktrees"), process.platform === "win32" ? "junction" : "dir");
   fs.writeFileSync(path.join(root, "dirty.txt"), "owner dirtiness\n", "utf8");
   assert.throws(
-    () => worktreePlan(root, isolatedSession()),
+    () => worktreePlan(root, isolatedSession(root)),
     (error) => ["MH_WORK_WORKTREE_IGNORE", "MH_WORK_WORKTREE_ROOT", "MH_WORK_WORKTREE_ESCAPE"].includes(error.code),
   );
 });
@@ -121,7 +122,7 @@ test("isolation refuses an unignored or linked repository-local worktree root", 
 test("resume binds repository, persisted workspace record, session identity, and Git registration", (t) => {
   const { parent, root } = repository(t);
   fs.writeFileSync(path.join(root, "dirty.txt"), "owner dirtiness\n", "utf8");
-  const session = isolatedSession();
+  const session = isolatedSession(root);
   const workspace = prepareWorkspace(root, session);
   const state = persistWorkSession(root, session, workspace);
   const legacyRoot = path.join(parent, ".meta-harness-worktrees");
@@ -151,9 +152,37 @@ test("resume binds repository, persisted workspace record, session identity, and
   );
 });
 
+test("resume keeps its sealed base when origin and the source branch advance", (t) => {
+  const { root, branch } = repository(t);
+  const baseHead = git(root, ["rev-parse", "HEAD"]);
+  const session = isolatedSession(root, {
+    type: "REMOTE_REF",
+    remote: "origin",
+    ref: `refs/heads/${branch}`,
+    commit: baseHead,
+  });
+  const workspace = prepareWorkspace(root, session);
+  persistWorkSession(root, session, workspace);
+
+  fs.writeFileSync(path.join(root, "upstream.txt"), "advanced after session creation\n", "utf8");
+  git(root, ["add", "upstream.txt"]);
+  git(root, ["commit", "-m", "advance source and origin"]);
+  git(root, ["push", "origin", "HEAD"]);
+  const advancedHead = git(root, ["rev-parse", "HEAD"]);
+  assert.notEqual(advancedHead, baseHead);
+  assert.equal(remoteHead(root, branch), advancedHead);
+
+  const resumed = loadLatestWorkSession(root);
+  assert.equal(resumed.base.commit, baseHead);
+  const plan = worktreePlan(root, resumed);
+  assert.equal(plan.resumed, true);
+  assert.equal(plan.baseHead, baseHead);
+  assert.equal(git(plan.workspacePath, ["rev-parse", "HEAD"]), baseHead);
+});
+
 test("resume never adopts an unexpected dirty manifest even when the change is in-scope", (t) => {
   const { root } = repository(t);
-  const session = isolatedSession();
+  const session = isolatedSession(root);
   const workspace = prepareWorkspace(root, session);
   persistWorkSession(root, session, workspace);
 
@@ -166,7 +195,7 @@ test("resume never adopts an unexpected dirty manifest even when the change is i
 
 test("removing and recreating the same physical worktree path cannot inherit the old workspace identity", (t) => {
   const { root } = repository(t);
-  const session = isolatedSession();
+  const session = isolatedSession(root);
   const workspace = prepareWorkspace(root, session);
   persistWorkSession(root, session, workspace);
   const originalPath = workspace.workspacePath;
@@ -183,7 +212,7 @@ test("removing and recreating the same physical worktree path cannot inherit the
   );
 });
 
-test("delivery does not commit or push without exact authority", (t) => {
+test("delivery never writes through the source checkout", (t) => {
   const { root, branch } = repository(t);
   const baseline = git(root, ["rev-parse", "HEAD"]);
   fs.writeFileSync(path.join(root, "accepted.txt"), "validated result\n", "utf8");
@@ -197,53 +226,64 @@ test("delivery does not commit or push without exact authority", (t) => {
   });
   assert.deepEqual(refused.commit, { status: "not_authorized" });
   assert.deepEqual(refused.push, { status: "not_authorized" });
-  assert.equal(git(root, ["rev-parse", "HEAD"]), baseline);
-  assert.equal(remoteHead(root, branch), baseline);
-
-  const committed = deliverValidatedChanges({
-    workspacePath: root,
-    acceptedPathHashes,
-    delivery: { commit: true, push: false },
-    productResult: "Write the validated result.",
-  });
-  assert.equal(committed.commit.status, "committed");
-  assert.equal(committed.push.status, "not_authorized");
-  assert.notEqual(committed.commit.sha, baseline);
-  assert.equal(git(root, ["rev-parse", "HEAD"]), committed.commit.sha);
-  assert.equal(remoteHead(root, branch), baseline);
-});
-
-test("mutation after accepted-path hashing blocks delivery", (t) => {
-  const { root } = repository(t);
-  const baseline = git(root, ["rev-parse", "HEAD"]);
-  fs.writeFileSync(path.join(root, "accepted.txt"), "validated result\n", "utf8");
-  const acceptedPathHashes = hashAcceptedPaths(root, ["accepted.txt"]);
-  fs.writeFileSync(path.join(root, "accepted.txt"), "mutated after validation\n", "utf8");
 
   assert.throws(
     () => deliverValidatedChanges({
+      repositoryRoot: root,
       workspacePath: root,
+      session: isolatedSession(root),
+      workspaceCustody: {},
+      acceptedPathHashes,
+      delivery: { commit: true, push: false },
+      productResult: "Write the validated result.",
+    }),
+    (error) => ["MH_WORK_DELIVERY_WORKSPACE", "MH_WORKSPACE_CUSTODY_SHAPE"].includes(error.code),
+  );
+  assert.equal(git(root, ["rev-parse", "HEAD"]), baseline);
+  assert.equal(remoteHead(root, branch), baseline);
+});
+
+test("mutation after accepted-path hashing blocks managed-worktree delivery", (t) => {
+  const { root } = repository(t);
+  const session = isolatedSession(root);
+  const workspace = prepareWorkspace(root, session);
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "validated result\n", "utf8");
+  const acceptedPathHashes = hashAcceptedPaths(workspace.workspacePath, ["accepted.txt"]);
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "mutated after validation\n", "utf8");
+
+  assert.throws(
+    () => deliverValidatedChanges({
+      repositoryRoot: root,
+      workspacePath: workspace.workspacePath,
+      session,
+      workspaceCustody: workspace.custody,
       acceptedPathHashes,
       delivery: { commit: true, push: false },
       productResult: "Write the validated result.",
     }),
     (error) => error.code === "MH_WORK_DELIVERY_MUTATION",
   );
-  assert.equal(git(root, ["rev-parse", "HEAD"]), baseline);
-  assert.equal(git(root, ["diff", "--cached", "--name-only"]), "");
+  assert.equal(git(workspace.workspacePath, ["rev-parse", "HEAD"]), workspace.baseHead);
+  assert.equal(git(workspace.workspacePath, ["diff", "--cached", "--name-only"]), "");
 });
 
-test("delivery commits only accepted paths, preserves unrelated dirtiness, and verifies pushed HEAD", (t) => {
-  const { root, branch } = repository(t);
-  fs.writeFileSync(path.join(root, "staged.txt"), "owner staged change\n", "utf8");
-  git(root, ["add", "staged.txt"]);
-  const stagedBefore = git(root, ["diff", "--cached", "--binary", "--", "staged.txt"]);
-  fs.writeFileSync(path.join(root, "dirty.txt"), "owner dirty change\n", "utf8");
-  fs.writeFileSync(path.join(root, "accepted.txt"), "validated result\n", "utf8");
-  const acceptedPathHashes = hashAcceptedPaths(root, ["accepted.txt"]);
+test("managed delivery commits only accepted paths, preserves unrelated dirtiness, and verifies pushed HEAD", (t) => {
+  const { root, branch: sourceBranch } = repository(t);
+  const sourceHead = git(root, ["rev-parse", "HEAD"]);
+  const session = isolatedSession(root);
+  const workspace = prepareWorkspace(root, session);
+  fs.writeFileSync(path.join(workspace.workspacePath, "staged.txt"), "owner staged change\n", "utf8");
+  git(workspace.workspacePath, ["add", "staged.txt"]);
+  const stagedBefore = git(workspace.workspacePath, ["diff", "--cached", "--binary", "--", "staged.txt"]);
+  fs.writeFileSync(path.join(workspace.workspacePath, "dirty.txt"), "owner dirty change\n", "utf8");
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "validated result\n", "utf8");
+  const acceptedPathHashes = hashAcceptedPaths(workspace.workspacePath, ["accepted.txt"]);
 
   const delivered = deliverValidatedChanges({
-    workspacePath: root,
+    repositoryRoot: root,
+    workspacePath: workspace.workspacePath,
+    session,
+    workspaceCustody: workspace.custody,
     acceptedPathHashes,
     delivery: { commit: true, push: true },
     productResult: "Write the validated result.",
@@ -254,10 +294,12 @@ test("delivery commits only accepted paths, preserves unrelated dirtiness, and v
   assert.deepEqual(delivered.commit.paths, ["accepted.txt"]);
   assert.equal(delivered.push.status, "remote_equal");
   assert.equal(delivered.push.sha, delivered.commit.sha);
-  assert.equal(remoteHead(root, branch), delivered.commit.sha);
-  assert.equal(git(root, ["diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"]), "accepted.txt");
-  assert.equal(git(root, ["diff", "--cached", "--binary", "--", "staged.txt"]), stagedBefore);
-  assert.equal(git(root, ["diff", "--cached", "--name-only"]), "staged.txt");
-  assert.equal(git(root, ["diff", "--name-only"]), "dirty.txt");
-  assert.equal(fs.readFileSync(path.join(root, "dirty.txt"), "utf8"), "owner dirty change\n");
+  assert.equal(remoteHead(root, workspace.branch), delivered.commit.sha);
+  assert.equal(remoteHead(root, sourceBranch), sourceHead);
+  assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
+  assert.equal(git(workspace.workspacePath, ["diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"]), "accepted.txt");
+  assert.equal(git(workspace.workspacePath, ["diff", "--cached", "--binary", "--", "staged.txt"]), stagedBefore);
+  assert.equal(git(workspace.workspacePath, ["diff", "--cached", "--name-only"]), "staged.txt");
+  assert.equal(git(workspace.workspacePath, ["diff", "--name-only"]), "dirty.txt");
+  assert.equal(fs.readFileSync(path.join(workspace.workspacePath, "dirty.txt"), "utf8"), "owner dirty change\n");
 });

@@ -39,11 +39,11 @@ Blocker: none
 Next: Review and bank the delivered change.
 ```
 
-The low-friction `--goal` path defaults to no commit or push. For each allowed path it walks toward the repository root, selects the nearest regular `package.json`, and requires every allowed path to resolve to the same package. Meta-Harness then seals exact controller-owned `npm test` validation with that package directory as `cwd`. Missing, malformed, symlinked, placeholder, or cross-package validation returns `BLOCKED` before workspace creation, worker launch, or repository mutation. Use an explicit sealed work session when validation requires another command. An explicit sealed work session may authorize the controller to commit exact validated paths and optionally push the current branch to `origin`. Tags, publication, clean, reset, stash, and revert remain outside this flow.
+The low-friction `--goal` path defaults to no commit or push. It first resolves the trusted base once, then walks the **sealed base commit tree** from each allowed path toward the repository root, selects the nearest regular `package.json`, and requires every allowed path to resolve to the same package. Dirty or untracked source-checkout manifests are therefore irrelevant. Meta-Harness seals exact controller-owned `npm test` validation with that package directory as `cwd`. Missing, malformed, symlinked, placeholder, or cross-package validation returns `BLOCKED` before workspace creation or worker launch. Use an explicit sealed work session when validation requires another command. An explicit sealed work session may authorize the controller to commit exact validated paths and optionally push the managed worktree branch to `origin`. Tags, publication, clean, reset, stash, and revert remain outside this flow.
 
 ## Work sessions
 
-For precise scope and validation, use a sealed `work-session/v2` JSON file:
+For precise scope and validation, use a sealed `work-session/v4` JSON file:
 
 ```powershell
 meta-harness work E:\Code\my-project --session .\work-session.json
@@ -52,6 +52,8 @@ meta-harness work E:\Code\my-project --session .\work-session.json
 The session binds:
 
 - exact product-direction snapshot from `PRODUCT.md`;
+- explicit origin provenance (`OWNER_GOAL` or an immutable Repo Decision digest);
+- exact trusted work base (`REMOTE_REF`, `LOCAL_REF`, or `EXACT_COMMIT`) with its resolved commit;
 - product result and current journey state;
 - immediate action and newly true behavior;
 - done and stop conditions;
@@ -61,9 +63,9 @@ The session binds:
 - bounded repair attempts;
 - explicit controller authority to commit and optionally push.
 
-The canonical coding brief is `work-session/v3`; repo-directed sessions carry one explicit `origin.decisionDigest` provenance edge, while direct owner goals carry `origin.type = OWNER_GOAL`.
+The canonical coding brief is `work-session/v4`; repo-directed sessions carry one explicit `origin.decisionDigest` provenance edge, while direct owner goals carry `origin.type = OWNER_GOAL`.
 
-A low-friction `--goal` invocation pins live `PRODUCT.md` and creates a safe default session. Use explicit session JSON when exact commands or path boundaries matter. Explicit sessions still require a live matching `PRODUCT.md`.
+A low-friction `--goal` invocation pins live `PRODUCT.md`, resolves and fetches the exact `origin` default-branch commit, and creates a safe default session. `--base` may select an explicit already-available local ref or exact commit. Use explicit session JSON when exact commands or path boundaries matter. Explicit sessions still require a live matching `PRODUCT.md`.
 
 ## Optional repo decision authority
 
@@ -75,16 +77,16 @@ repo projector / interpreter
 → world-transition/v1
 → immutable world-head/v1
 → current-world-pointer/v1
-→ repo-decision/v2 = DISPATCH | NO_DISPATCH
+→ repo-decision/v3 = DISPATCH | NO_DISPATCH
    ├─ NO_DISPATCH → no session / workspace / permit / attempt
-   └─ DISPATCH → work-session/v3 → ExecutionPermit → attempt-entry/v1
+   └─ DISPATCH → work-session/v4 → ExecutionPermit → attempt-entry/v1
                 → bounded worker / validation
                 → aggregate execution-closure/v1
                 → repo interpretation
                 → world-transition/v1 → successor WorldHead
 ```
 
-A `repo-decision/v2` binds live `PRODUCT.md`, opaque charter bytes, the authoritative WorldHead, and optional owner-directive bytes. A `DISPATCH` action contains only the generic execution brief needed by the coding kernel. `NO_DISPATCH` is inert and has finite generic reasons such as `WAIT_EXTERNAL`, `USE_PRODUCT`, and `NO_VALUABLE_ACTION`.
+A `repo-decision/v3` binds live `PRODUCT.md`, opaque charter bytes, the authoritative WorldHead, optional owner-directive bytes, and an exact work base for DISPATCH. A `DISPATCH` action contains only the generic execution brief needed by the coding kernel. `NO_DISPATCH` is inert and has finite generic reasons such as `WAIT_EXTERNAL`, `USE_PRODUCT`, and `NO_VALUABLE_ACTION`.
 
 The first `AttemptEntry` is the Decision's permit-consumption event itself. Repo Decision admission and WorldHead transitions use the same short-lived repository authority lock, so a Decision cannot enter against a Head that concurrently ceased to be current and the same Decision cannot acquire two generation-1 entries. Bounded repair generations are continuations of the same admitted session/workspace authority.
 
@@ -110,8 +112,9 @@ A new session never inherits a mutable workspace, even when the source checkout 
 
 ```text
 NEW
-→ seal exact source HEAD as immutable base commit
-→ create fresh UUID-backed ignored `.worktrees/` worktree
+→ resolve trusted base exactly once before session sealing
+→ seal base identity + exact commit and derive goal validation from that tree
+→ create fresh UUID-backed ignored `.worktrees/` worktree at `base.commit`
 → verify clean Git state
 → create controller-owned workspace custody
 → ACTIVE generation 1
@@ -125,7 +128,7 @@ TERMINAL
 → execution authority never returns
 ```
 
-Source-checkout dirtiness is preserved byte-for-byte and is never classified as safe enough to continue. Only one controller may hold the execution lease for an ACTIVE workspace generation; concurrent resume fails closed. A successful no-commit result becomes `TERMINAL_SEALED_DIRTY`; a committed result becomes `TERMINAL_COMMITTED`. Immutable commits may be used as later bases, but terminal mutable workspaces are never reused. Cleaning, resetting, or recreating a terminal worktree cannot resurrect authority.
+Source-checkout working-tree bytes, HEAD, and index are never execution authority and are not rewritten by NEW workspace selection. Default base resolution may acquire missing Git objects, but it never pulls, resets, checks out, merges, cleans, stashes, or updates the source branch. Only one controller may hold the execution lease for an ACTIVE workspace generation; concurrent resume fails closed. A successful no-commit result becomes `TERMINAL_SEALED_DIRTY`; a committed result becomes `TERMINAL_COMMITTED`. Immutable commits may be used as later bases, but terminal mutable workspaces are never reused. Cleaning, resetting, or recreating a terminal worktree cannot resurrect authority.
 
 Inspect the choice without creating a worktree or launching a worker:
 
@@ -153,7 +156,7 @@ The Codex worker remains read-only and returns complete `{ path, content }` chan
 
 Meta-Harness runs validation commands outside the model. If validation fails and the retry budget remains, the failure is returned to the same work session for bounded repair.
 
-After a `DONE` result and passed validation, Meta-Harness hashes the exact accepted paths. It commits only when `delivery.commit` is true, blocks if those bytes changed after validation, preserves unrelated dirty and staged paths, and pushes the current branch to `origin` only when `delivery.push` is true. A successful push is reported only after remote HEAD equals the local commit.
+After a `DONE` result and passed validation, Meta-Harness hashes the exact accepted paths. Commit or push is permitted only from the exact ACTIVE controller-owned managed worktree whose UUID, Git registration, identity marker, sealed base, and custody match the session; the source checkout cannot be a delivery target. Meta-Harness blocks if accepted bytes changed after validation, preserves unrelated managed-worktree dirt and staged paths, and pushes that managed branch to `origin` only when `delivery.push` is true. A successful push is reported only after remote HEAD equals the local commit.
 
 After every worker attempt and materialization, Meta-Harness rejects:
 

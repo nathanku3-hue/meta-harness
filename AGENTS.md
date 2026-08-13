@@ -34,8 +34,8 @@ Use outcome-first planning.
 ## Coding-system law
 
 - `meta-harness work` is the primary product path. Normal help and normal reporting must remain product-facing.
-- Repository-root `PRODUCT.md` is owner-authored product direction. Pin exact bytes into every `work-session/v2`. Never generate, summarize, or overwrite it. Never mutate it through the worker path.
-- `work-session/v2` is the complete active coding brief. The worker must consume it directly, receive product direction before local engineering context, and must not reconstruct product intent from status files or reopen broad planning.
+- Repository-root `PRODUCT.md` is owner-authored product direction. Pin exact bytes into every `work-session/v4`. Never generate, summarize, or overwrite it. Never mutate it through the worker path.
+- `work-session/v4` is the complete active coding brief. The worker must consume it directly, receive product direction before local engineering context, and must not reconstruct product intent from status files or reopen broad planning.
 - Start implementation immediately. Reversible edits, focused validation, bounded repair, and controller-owned workspace creation inside the session are already authorized.
 - A NEW work session never inherits a mutable workspace. Seal an immutable base commit, create a fresh clean managed worktree with a new workspace identity, and execute there. RESUME is the only reuse path and requires exact ACTIVE workspace custody, generation, Git identity, dirty-manifest agreement, and the exclusive controller execution lease. Concurrent execution of one ACTIVE generation fails closed. Terminal workspace authority never returns even if its bytes are cleaned or restored.
 - The coding worker remains read-only and returns complete bounded file contents. Meta-Harness validates and materializes them through the controller.

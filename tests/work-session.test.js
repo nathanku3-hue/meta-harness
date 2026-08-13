@@ -17,11 +17,14 @@ const {
 const { tempDir } = require("./helpers/cli");
 const { directionFromContent, SAMPLE_PRODUCT_MD, writeProductMd } = require("./helpers/product-direction");
 
+const TEST_BASE = Object.freeze({ type: "EXACT_COMMIT", commit: "1".repeat(40) });
+
 function explicitSession(overrides = {}) {
   return sealWorkSession({
     schemaVersion: WORK_SESSION_SCHEMA,
     productDirection: directionFromContent(),
     origin: { type: "OWNER_GOAL" },
+    base: TEST_BASE,
     productResult: "Ship one product-facing coding command.",
     journeyState: "The product direction is accepted and implementation is ready.",
     doNow: "Implement the primary work command.",
@@ -38,10 +41,11 @@ function explicitSession(overrides = {}) {
   });
 }
 
-test("work-session/v3 seals product direction, provenance, and exact path/validation scope", () => {
+test("work-session/v4 seals product direction, provenance, trusted base, and exact path/validation scope", () => {
   const session = explicitSession();
-  assert.equal(session.schemaVersion, "work-session/v3");
+  assert.equal(session.schemaVersion, "work-session/v4");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
+  assert.deepEqual(session.base, TEST_BASE);
   assert.equal(session.sessionDigest, computeWorkSessionDigest(session));
   assert.equal(Object.isFrozen(validateWorkSession(session)), true);
   assert.equal(Object.isFrozen(session.delivery), true);
@@ -61,6 +65,7 @@ test("goal shorthand pins live PRODUCT.md into a complete low-friction brief", (
   const session = createGoalWorkSession({
     goal: "Add a visible result.",
     repositoryPath: root,
+    base: TEST_BASE,
     allowedPaths: ["src"],
     validation,
   });
@@ -76,6 +81,7 @@ test("goal shorthand pins live PRODUCT.md into a complete low-friction brief", (
   const changedValidation = createGoalWorkSession({
     goal: "Add a visible result.",
     repositoryPath: root,
+    base: TEST_BASE,
     allowedPaths: ["src"],
     validation: [{ argv: ["node", "--test"], cwd: ".", timeoutSeconds: 300 }],
   });

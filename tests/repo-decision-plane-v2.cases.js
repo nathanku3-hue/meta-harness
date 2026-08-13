@@ -3,7 +3,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { spawnSync } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const { findExecutionClosureForDecision } = require("../lib/execution-closure");
@@ -42,6 +42,7 @@ const { runRaw, tempDir } = require("./helpers/cli");
 const { writeProductMd } = require("./helpers/product-direction");
 
 const FAKE_WORKER = path.join(__dirname, "fixtures", "fake-coding-worker.js");
+const AUTHORITY_RACE = path.join(__dirname, "fixtures", "world-authority-race.js");
 
 function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
@@ -63,6 +64,106 @@ function workerEnv(extra = {}) {
     META_HARNESS_WORKER_COMMAND_JSON: JSON.stringify([process.execPath, FAKE_WORKER]),
     ...extra,
   };
+}
+
+function waitForFile(filePath, timeoutMs = 5000) {
+  const startedAt = Date.now();
+  return new Promise((resolve, reject) => {
+    function poll() {
+      if (fs.existsSync(filePath)) return resolve();
+      if (Date.now() - startedAt > timeoutMs) return reject(new Error(`timed out waiting for ${filePath}`));
+      setTimeout(poll, 5);
+    }
+    poll();
+  });
+}
+
+function childOutcome(child) {
+  return new Promise((resolve, reject) => {
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => { stdout += chunk; });
+    child.stderr.on("data", (chunk) => { stderr += chunk; });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code !== 0) return reject(new Error(stderr || stdout || `race child exited ${code}`));
+      const lines = stdout.trim().split(/\r?\n/u).filter(Boolean);
+      try {
+        resolve(JSON.parse(lines.at(-1)));
+      } catch (error) {
+        reject(new Error(`invalid race child output: ${stdout || stderr}: ${error.message}`));
+      }
+    });
+  });
+}
+
+function spawnAuthorityRace(root, role, readyPath, extraEnv) {
+  return spawn(process.execPath, [AUTHORITY_RACE], {
+    cwd: root,
+    windowsHide: true,
+    stdio: ["ignore", "pipe", "pipe"],
+    env: {
+      ...process.env,
+      MH_RACE_ROLE: role,
+      MH_RACE_READY: readyPath,
+      MH_RACE_REPOSITORY: root,
+      ...extraEnv,
+    },
+  });
+}
+
+function assertRaceWinner(current, first, successor, admissionOutcome, transitionOutcome) {
+  if (admissionOutcome.ok) {
+    assert.equal(admissionOutcome.status, "ENTERED");
+    assert.equal(transitionOutcome.code, "MH_WORLD_HEAD_FROZEN");
+    assert.equal(current.headDigest, first.head.headDigest);
+    return;
+  }
+  assert.equal(admissionOutcome.code, "MH_REPO_DECISION_STALE");
+  assert.equal(transitionOutcome.status, "APPLIED");
+  assert.equal(current.worldDigest, successor.worldDigest);
+}
+
+function assertAuthorityRaceResult(root, first, successor, admissionOutcome, transitionOutcome) {
+  const current = readCurrentWorldHead(root).head;
+  const admissionWon = admissionOutcome.ok === true;
+  const transitionWon = transitionOutcome.ok === true;
+  assert.notEqual(admissionWon, transitionWon);
+  assertRaceWinner(current, first, successor, admissionOutcome, transitionOutcome);
+}
+
+async function runAuthorityRace(root, first, compiled, prepared, successor, transition) {
+  const barrier = path.join(root, "authority-race.barrier");
+  const admissionReady = path.join(root, "authority-race.admission.ready");
+  const transitionReady = path.join(root, "authority-race.transition.ready");
+  fs.writeFileSync(barrier, "hold\n", "utf8");
+  const admissionChild = spawnAuthorityRace(root, "admission", admissionReady, {
+    MH_RACE_BARRIER: barrier,
+    MH_RACE_STATE_DIRECTORY: prepared.permitStateDirectory,
+    MH_RACE_PERMIT: JSON.stringify(prepared.permit),
+    MH_RACE_SESSION: JSON.stringify(compiled.session),
+  });
+  const transitionChild = spawnAuthorityRace(root, "transition", transitionReady, {
+    MH_RACE_BARRIER: barrier,
+    MH_RACE_TRANSITION: JSON.stringify(transition),
+  });
+  try {
+    await Promise.all([waitForFile(admissionReady), waitForFile(transitionReady)]);
+    const admissionOutcomePromise = childOutcome(admissionChild);
+    const transitionOutcomePromise = childOutcome(transitionChild);
+    fs.unlinkSync(barrier);
+    const [admissionOutcome, transitionOutcome] = await Promise.all([
+      admissionOutcomePromise,
+      transitionOutcomePromise,
+    ]);
+    assert.equal(Number(admissionOutcome.ok) + Number(transitionOutcome.ok), 1);
+    assertAuthorityRaceResult(root, first, successor, admissionOutcome, transitionOutcome);
+  } finally {
+    if (fs.existsSync(barrier)) fs.unlinkSync(barrier);
+    if (admissionChild.exitCode === null) admissionChild.kill();
+    if (transitionChild.exitCode === null) transitionChild.kill();
+    releaseWorkspaceExecutionLease({ registryDir: prepared.registryDir, lease: prepared.lease });
+  }
 }
 
 function repository(t) {
@@ -160,7 +261,7 @@ function decisionDocument(root, worldHeadDigest, decision = null) {
   const direction = pinProductDirection(root);
   const charter = loadRepoCharter(root);
   return {
-    schemaVersion: "repo-decision/v2",
+    schemaVersion: "repo-decision/v3",
     productDirectionDigest: direction.digest,
     charterDigest: charter.digest,
     worldHeadDigest,
@@ -176,6 +277,7 @@ function decisionDocument(root, worldHeadDigest, decision = null) {
         doneWhen: "Controller validation passes.",
         stopOnlyIf: ["The allowed path is insufficient."],
         allowedPaths: ["src", "tests"],
+        base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
         validation: [validationCommand()],
         maxAttempts: 2,
         delivery: { commit: false, push: false },
@@ -212,15 +314,60 @@ function persistProjectionObjects(root, payload) {
   return { world, worldDigest, attestation };
 }
 
-test("authoritative WorldHead compiles minimal work-session/v3 provenance", (t) => {
+function realityTransition(predecessorHeadDigest, successor) {
+  const body = {
+    schemaVersion: "world-transition/v1",
+    predecessorHeadDigest,
+    cause: {
+      type: "REALITY_REFRESH",
+      projectionDigest: computeWorldProjectionDigest(successor.worldDigest, successor.attestation.attestationDigest),
+    },
+    successorWorldDigest: successor.worldDigest,
+    successorAttestationDigest: successor.attestation.attestationDigest,
+  };
+  return validateWorldTransition({ ...body, transitionDigest: computeWorldTransitionDigest(body) });
+}
+
+test("authoritative WorldHead compiles minimal work-session/v4 provenance", (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { claims: ["repo-owned"], hypotheses: ["opaque"] });
   installDecision(root, initial.head.headDigest);
   const compiled = compileRepoDecisionWork(root);
   assert.equal(compiled.type, "DISPATCH");
-  assert.equal(compiled.session.schemaVersion, "work-session/v3");
+  assert.equal(compiled.session.schemaVersion, "work-session/v4");
+  assert.equal(compiled.session.base.commit, git(root, ["rev-parse", "HEAD"]));
   assert.deepEqual(compiled.session.origin, { type: "REPO_DECISION", decisionDigest: compiled.decisionDigest });
   assert.equal(compiled.session.origin.worldDigest, undefined);
+});
+
+test("authoritative World product direction must still match live owner direction", (t) => {
+  const root = repository(t);
+  const initial = persistWorld(root, { observations: ["projected-under-v1"] });
+  const originalDirection = pinProductDirection(root);
+  const changedDirection = originalDirection.content
+    .replace("product-direction-v1", "product-direction-v2")
+    .replace("Deliver one clear product result", "Deliver the revised product result");
+  writeProductMd(root, changedDirection);
+  installDecision(root, initial.head.headDigest);
+
+  assert.throws(
+    () => compileRepoDecisionWork(root),
+    (error) => error.code === "MH_REPO_DECISION_STALE" && /authoritative World product direction/.test(error.message),
+  );
+});
+
+test("mutable candidate repo-world overwrite is inert to authoritative WorldHead", (t) => {
+  const root = repository(t);
+  const initial = persistWorld(root, { observations: ["authoritative"] });
+  installDecision(root, initial.head.headDigest);
+  const candidate = persistProjectionObjects(root, { observations: ["candidate-only"] });
+  writeJson(root, ".meta-harness/repo-world.json", candidate.world);
+
+  const compiled = compileRepoDecisionWork(root);
+  assert.equal(compiled.type, "DISPATCH");
+  assert.equal(compiled.worldHeadDigest, initial.head.headDigest);
+  assert.equal(readCurrentWorldHead(root).head.worldDigest, initial.worldDigest);
+  assert.notEqual(candidate.worldDigest, initial.worldDigest);
 });
 
 test("local source drift blocks dispatch from authoritative attestation", (t) => {
@@ -269,6 +416,21 @@ test("WorldHead lineage is immutable and exact transition retry is idempotent", 
   assert.equal(readCurrentWorldHead(root).head.generation, 2);
 });
 
+test("two competing transitions from the same predecessor have exactly one CAS winner", (t) => {
+  const root = repository(t);
+  const first = persistWorld(root, { observations: ["H"] });
+  const left = persistProjectionObjects(root, { observations: ["left"] });
+  const right = persistProjectionObjects(root, { observations: ["right"] });
+  const leftTransition = realityTransition(first.head.headDigest, left);
+  const rightTransition = realityTransition(first.head.headDigest, right);
+
+  const applied = commitTransition(root, leftTransition);
+  assert.equal(applied.status, "APPLIED");
+  assert.throws(() => commitTransition(root, rightTransition), (error) => error.code === "MH_WORLD_CONFLICT");
+  assert.equal(readCurrentWorldHead(root).head.headDigest, applied.head.headDigest);
+  assert.equal(readCurrentWorldHead(root).head.worldDigest, left.worldDigest);
+});
+
 test("aggregate ExecutionClosure covers every bounded repair AttemptEntry", async (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { observations: ["ready"] });
@@ -288,11 +450,12 @@ test("aggregate ExecutionClosure covers every bounded repair AttemptEntry", asyn
   assert.match(closure.workResultDigest, /^sha256:[a-f0-9]{64}$/u);
 });
 
-function enterWithoutWorker(root, session) {
+function prepareEntryWithoutWorker(root, session) {
   const workspace = prepareWorkspace(root, session);
   const registryDir = workspaceRegistryDirectory(root);
   const lease = acquireWorkspaceExecutionLease({ registryDir, workspaceId: workspace.workspaceId });
   const boundary = captureBoundary(workspace.workspacePath, session.allowedPaths);
+  const permitStateDirectory = stateDirectory(root);
   const permit = issueExecutionPermit({
     repositoryRoot: workspace.repositoryRoot,
     workspacePath: workspace.workspacePath,
@@ -302,12 +465,21 @@ function enterWithoutWorker(root, session) {
     workspaceCustody: workspace.custody,
     workspaceLease: lease,
     workspaceRegistryDir: registryDir,
-    stateDirectory: stateDirectory(root),
+    stateDirectory: permitStateDirectory,
   });
+  return { workspace, registryDir, lease, permitStateDirectory, permit };
+}
+
+function enterWithoutWorker(root, session) {
+  const prepared = prepareEntryWithoutWorker(root, session);
   try {
-    return enterExecutionAttempt({ stateDirectory: stateDirectory(root), permit, session });
+    return enterExecutionAttempt({
+      stateDirectory: prepared.permitStateDirectory,
+      permit: prepared.permit,
+      session,
+    });
   } finally {
-    releaseWorkspaceExecutionLease({ registryDir, lease });
+    releaseWorkspaceExecutionLease({ registryDir: prepared.registryDir, lease: prepared.lease });
   }
 }
 
@@ -344,6 +516,36 @@ test("AttemptEntry admission freezes its predecessor WorldHead against reality r
   assert.equal(readCurrentWorldHead(root).head.headDigest, first.head.headDigest);
 });
 
+test("missing immutable admitted Decision fails closed instead of permitting reality refresh", (t) => {
+  const root = repository(t);
+  const first = persistWorld(root, { observations: ["H"] });
+  installDecision(root, first.head.headDigest);
+  const compiled = compileRepoDecisionWork(root);
+  enterWithoutWorker(root, compiled.session);
+  fs.unlinkSync(objectPath(root, "decisions", compiled.decisionDigest));
+
+  const successor = persistProjectionObjects(root, { observations: ["must-not-apply"] });
+  assert.throws(
+    () => commitTransition(root, realityTransition(first.head.headDigest, successor)),
+    (error) => error.code === "MH_WORLD_AUTHORITY_MISSING",
+  );
+  assert.equal(readCurrentWorldHead(root).head.headDigest, first.head.headDigest);
+});
+
+test("missing generation-1 AttemptEntry cannot erase durable admission evidence", async (t) => {
+  const root = repository(t);
+  const run = await completedDecisionRun(root);
+  const entryPath = attemptEntryPath(root, { type: "REPO_DECISION", decisionDigest: run.compiled.decisionDigest }, 1);
+  fs.unlinkSync(entryPath);
+  const successor = persistProjectionObjects(root, { observations: ["must-not-refresh"] });
+
+  assert.throws(
+    () => commitTransition(root, realityTransition(run.initial.head.headDigest, successor)),
+    (error) => error.code === "MH_WORLD_AUTHORITY_MISSING",
+  );
+  assert.equal(readCurrentWorldHead(root).head.headDigest, run.initial.head.headDigest);
+});
+
 test("WorldTransition winning first makes stale Decision unable to enter", (t) => {
   const root = repository(t);
   const first = persistWorld(root, { observations: ["H"] });
@@ -370,6 +572,17 @@ test("same Repo Decision has exactly one generation-1 admission collision point"
   );
   const entryDir = path.dirname(attemptEntryPath(root, { type: "REPO_DECISION", decisionDigest: compiled.decisionDigest }, 1));
   assert.deepEqual(fs.readdirSync(entryDir), ["1.json"]);
+});
+
+test("concurrent admission and WorldTransition interleaving has one authority winner", async (t) => {
+  const root = repository(t);
+  const first = persistWorld(root, { observations: ["H"] });
+  installDecision(root, first.head.headDigest);
+  const compiled = compileRepoDecisionWork(root);
+  const prepared = prepareEntryWithoutWorker(root, compiled.session);
+  const successor = persistProjectionObjects(root, { observations: ["H1"] });
+  const transition = realityTransition(first.head.headDigest, successor);
+  await runAuthorityRace(root, first, compiled, prepared, successor, transition);
 });
 
 function learningTransition(root, predecessorHeadDigest, closure, successor) {
@@ -401,6 +614,52 @@ test("durable result freezes dispatch until it is banked", async (t) => {
   assert.equal(run.result.outcome, "DONE");
   assert.match(run.closure.workResultDigest, /^sha256:[a-f0-9]{64}$/u);
   assert.throws(() => compileRepoDecisionWork(root), (error) => error.code === "MH_WORLD_HEAD_FROZEN");
+});
+
+test("ATTEMPT_LEARNING banks the admitted execution once and rejects wrong-predecessor or double banking", async (t) => {
+  const root = repository(t);
+  const run = await completedDecisionRun(root);
+  const successor = persistProjectionObjects(root, { observations: ["learned"] });
+  const transition = learningTransition(root, run.initial.head.headDigest, run.closure, successor);
+
+  const applied = commitTransition(root, transition);
+  assert.equal(applied.status, "APPLIED");
+  assert.equal(applied.head.worldDigest, successor.worldDigest);
+  assert.equal(applied.head.generation, run.initial.head.generation + 1);
+  assert.equal(commitTransition(root, transition).status, "ALREADY_APPLIED");
+
+  const wrongSuccessor = persistProjectionObjects(root, { observations: ["wrong-predecessor"] });
+  const wrongPredecessor = learningTransition(root, run.initial.head.headDigest, run.closure, wrongSuccessor);
+  assert.throws(() => commitTransition(root, wrongPredecessor), (error) => error.code === "MH_WORLD_CONFLICT");
+
+  const duplicateSuccessor = persistProjectionObjects(root, { observations: ["double-bank"] });
+  const doubleBank = learningTransition(root, applied.head.headDigest, run.closure, duplicateSuccessor);
+  assert.throws(() => commitTransition(root, doubleBank), (error) => error.code === "MH_WORLD_TRANSITION_CAUSE");
+});
+
+test("ATTEMPT_LEARNING fails closed when the referenced immutable work result is missing", async (t) => {
+  const root = repository(t);
+  const run = await completedDecisionRun(root);
+  const successor = persistProjectionObjects(root, { observations: ["must-not-bank"] });
+  const transition = learningTransition(root, run.initial.head.headDigest, run.closure, successor);
+  fs.unlinkSync(objectPath(root, "work-results", run.closure.workResultDigest));
+
+  assert.throws(() => commitTransition(root, transition), (error) => error.code === "MH_WORLD_AUTHORITY_MISSING");
+  assert.equal(readCurrentWorldHead(root).head.headDigest, run.initial.head.headDigest);
+});
+
+test("ATTEMPT_LEARNING fails closed when a referenced AttemptEntry is corrupted", async (t) => {
+  const root = repository(t);
+  const run = await completedDecisionRun(root);
+  const entryPath = attemptEntryPath(root, { type: "REPO_DECISION", decisionDigest: run.compiled.decisionDigest }, 1);
+  const entry = JSON.parse(fs.readFileSync(entryPath, "utf8"));
+  entry.enteredAt = new Date(Date.parse(entry.enteredAt) + 1000).toISOString();
+  fs.writeFileSync(entryPath, `${JSON.stringify(entry, null, 2)}\n`, "utf8");
+  const successor = persistProjectionObjects(root, { observations: ["must-not-bank"] });
+  const transition = learningTransition(root, run.initial.head.headDigest, run.closure, successor);
+
+  assert.throws(() => commitTransition(root, transition), (error) => error.code === "MH_ATTEMPT_ENTRY_READ");
+  assert.equal(readCurrentWorldHead(root).head.headDigest, run.initial.head.headDigest);
 });
 
 module.exports = {};

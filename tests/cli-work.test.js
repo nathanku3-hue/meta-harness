@@ -17,10 +17,12 @@ function git(cwd, args) {
   return String(result.stdout || "").trim();
 }
 
-function repo(t, { withValidation = true } = {}) {
+function repo(t, { withValidation = true, withOrigin = true } = {}) {
   const parent = tempDir("cli-work-");
   const root = path.join(parent, "repo");
+  const origin = path.join(parent, "origin.git");
   fs.mkdirSync(root);
+  if (withOrigin) git(parent, ["init", "--bare", origin]);
   git(root, ["init"]);
   git(root, ["config", "user.name", "CLI Work Test"]);
   git(root, ["config", "user.email", "cli-work@example.invalid"]);
@@ -41,6 +43,12 @@ function repo(t, { withValidation = true } = {}) {
   }
   git(root, ["add", "."]);
   git(root, ["commit", "-m", "baseline"]);
+  if (withOrigin) {
+    git(root, ["remote", "add", "origin", origin]);
+    git(root, ["push", "-u", "origin", "HEAD"]);
+    const branch = git(root, ["branch", "--show-current"]);
+    git(parent, ["--git-dir", origin, "symbolic-ref", "HEAD", `refs/heads/${branch}`]);
+  }
   t.after(() => fs.rmSync(parent, { recursive: true, force: true }));
   return root;
 }
@@ -212,6 +220,95 @@ test("dry run previews fresh isolation; completed terminal workspace cannot resu
   const secondResult = JSON.parse(second.stdout);
   assert.notEqual(secondResult.workspace.workspaceId, delivered.workspace.workspaceId);
   assert.notEqual(secondResult.workspace.path, delivered.workspace.path);
+});
+
+test("dirty stale diverged source uses fresh remote authority and sealed-tree validation without source mutation", (t) => {
+  const root = repo(t);
+  const parent = path.dirname(root);
+  const origin = git(root, ["remote", "get-url", "origin"]);
+  const producer = path.join(parent, "producer");
+  const baseline = git(root, ["rev-parse", "HEAD"]);
+  const sourceBranch = git(root, ["branch", "--show-current"]);
+  assert.equal(git(root, ["rev-parse", `refs/remotes/origin/${sourceBranch}`]), baseline);
+
+  git(parent, ["clone", origin, producer]);
+  git(producer, ["config", "user.name", "Remote Producer"]);
+  git(producer, ["config", "user.email", "remote-producer@example.invalid"]);
+
+  fs.writeFileSync(path.join(root, "LOCAL_ONLY.md"), "local divergent commit\n", "utf8");
+  git(root, ["add", "LOCAL_ONLY.md"]);
+  git(root, ["commit", "-m", "local divergent source commit"]);
+  const sourceHead = git(root, ["rev-parse", "HEAD"]);
+  fs.writeFileSync(path.join(producer, "REMOTE_ONLY.md"), "fresh remote base\n", "utf8");
+  git(producer, ["add", "REMOTE_ONLY.md"]);
+  git(producer, ["commit", "-m", "advance remote base"]);
+  git(producer, ["push", "origin", "HEAD"]);
+  const remoteHead = git(producer, ["rev-parse", "HEAD"]);
+  assert.notEqual(remoteHead, sourceHead);
+
+  fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({
+    scripts: { test: "echo \"Error: no test specified\" && exit 1" },
+  }, null, 2)}\n`, "utf8");
+  fs.writeFileSync(path.join(root, "README.md"), "owner dirty README\n", "utf8");
+  fs.writeFileSync(path.join(root, "source-only.tmp"), "owner untracked state\n", "utf8");
+  const beforeStatus = git(root, ["status", "--porcelain=v1", "--untracked-files=all"]);
+  const beforeIndex = git(root, ["diff", "--cached", "--binary"]);
+  const beforePackage = fs.readFileSync(path.join(root, "package.json"), "utf8");
+  const beforeReadme = fs.readFileSync(path.join(root, "README.md"), "utf8");
+
+  const result = runRaw(ROOT, [
+    "work", root,
+    "--goal", "Create the delivered result file.",
+    "--allow", "src",
+    "--json",
+  ], { env: env() });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.outcome, "DONE");
+  assert.equal(parsed.workspace.baseHead, remoteHead);
+  assert.equal(git(parsed.workspace.path, ["rev-parse", "HEAD"]), remoteHead);
+  assert.equal(fs.existsSync(path.join(parsed.workspace.path, "REMOTE_ONLY.md")), true);
+  assert.equal(fs.existsSync(path.join(parsed.workspace.path, "LOCAL_ONLY.md")), false);
+  assert.equal(parsed.validation.length, 1);
+  assert.equal(parsed.validation[0].passed, true);
+  assert.equal(git(root, ["merge-base", sourceHead, remoteHead]), baseline);
+  assert.equal(git(root, ["rev-list", "--left-right", "--count", `${sourceHead}...${remoteHead}`]), "1\t1");
+
+  assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
+  assert.equal(git(root, ["rev-parse", `refs/remotes/origin/${sourceBranch}`]), baseline);
+  assert.equal(git(root, ["status", "--porcelain=v1", "--untracked-files=all"]), beforeStatus);
+  assert.equal(git(root, ["diff", "--cached", "--binary"]), beforeIndex);
+  assert.equal(fs.readFileSync(path.join(root, "package.json"), "utf8"), beforePackage);
+  assert.equal(fs.readFileSync(path.join(root, "README.md"), "utf8"), beforeReadme);
+});
+
+test("explicit --base HEAD is the deliberate local-authority escape hatch", (t) => {
+  const root = repo(t, { withOrigin: false });
+  const head = git(root, ["rev-parse", "HEAD"]);
+
+  const defaultResult = runRaw(ROOT, [
+    "work", root,
+    "--goal", "Create the delivered result file.",
+    "--allow", "src",
+    "--dry-run",
+    "--json",
+  ], { env: env() });
+  assert.notEqual(defaultResult.status, 0);
+
+  const explicit = runRaw(ROOT, [
+    "work", root,
+    "--goal", "Create the delivered result file.",
+    "--allow", "src",
+    "--base", "HEAD",
+    "--dry-run",
+    "--json",
+  ], { env: env() });
+  assert.equal(explicit.status, 0, explicit.stderr || explicit.stdout);
+  const parsed = JSON.parse(explicit.stdout);
+  assert.equal(parsed.outcome, "READY");
+  assert.equal(parsed.workspace.wouldCreate, true);
+  assert.equal(fs.existsSync(parsed.workspace.path), false);
+  assert.equal(git(root, ["rev-parse", "HEAD"]), head);
 });
 
 test("default help is one coding journey and advanced help contains internal commands", () => {

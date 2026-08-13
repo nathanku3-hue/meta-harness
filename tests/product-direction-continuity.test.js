@@ -49,9 +49,10 @@ function npmRepo(t) {
 function sealedSession(root, overrides = {}) {
   const direction = pinProductDirection(root);
   return sealWorkSession({
-    schemaVersion: "work-session/v3",
+    schemaVersion: "work-session/v4",
     productDirection: direction,
     origin: { type: "OWNER_GOAL" },
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
     productResult: "Create src/result.txt with delivered content.",
     journeyState: "Direction is pinned; coding may begin.",
     doNow: "Write src/result.txt.",
@@ -85,16 +86,17 @@ test("--goal rejects malformed PRODUCT.md before workspace activity", (t) => {
   assert.match(String(result.stderr || result.stdout || ""), /heading|PRODUCT\.md|section/i);
 });
 
-test("created v3 session contains exact PRODUCT.md bytes and matching digest", (t) => {
+test("created v4 session contains exact PRODUCT.md bytes, base, and matching digest", (t) => {
   const root = npmRepo(t);
   const live = pinProductDirection(root);
   const session = createGoalWorkSession({
     goal: "Add a visible result.",
     repositoryPath: root,
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
     allowedPaths: ["src"],
     validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
   });
-  assert.equal(session.schemaVersion, "work-session/v3");
+  assert.equal(session.schemaVersion, "work-session/v4");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.equal(session.productDirection.content, live.content);
   assert.equal(session.productDirection.digest, live.digest);
@@ -106,6 +108,7 @@ test("fake-worker prompt receives exact direction bytes before result and contex
   const session = createGoalWorkSession({
     goal: "Add a visible result.",
     repositoryPath: root,
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
     allowedPaths: ["src"],
     validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
   });
@@ -127,6 +130,7 @@ test("validation repair prompt reuses unchanged product-direction snapshot bytes
   const session = createGoalWorkSession({
     goal: "Add a visible result.",
     repositoryPath: root,
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
     allowedPaths: ["src"],
     validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
   });

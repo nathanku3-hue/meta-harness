@@ -53,9 +53,10 @@ test("live coding system carries one result through Codex and exact validation",
   const branch = git(root, ["branch", "--show-current"]);
 
   const session = sealWorkSession({
-    schemaVersion: "work-session/v3",
+    schemaVersion: "work-session/v4",
     productDirection,
     origin: { type: "OWNER_GOAL" },
+    base: { type: "EXACT_COMMIT", commit: head },
     productResult: "Make the existing sum test pass.",
     journeyState: "The repository has one failing test because src/sum.js is absent.",
     doNow: "Implement the smallest CommonJS src/sum.js exporting sum(a, b).",

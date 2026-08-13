@@ -50,11 +50,12 @@ function repository(t) {
   return root;
 }
 
-function session() {
+function session(root) {
   return sealWorkSession({
-    schemaVersion: "work-session/v3",
+    schemaVersion: "work-session/v4",
     productDirection: directionFromContent(),
     origin: { type: "OWNER_GOAL" },
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
     productResult: "Create one visible result.",
     journeyState: "The result is accepted and not yet delivered.",
     doNow: "Create src/result.txt.",
@@ -80,7 +81,7 @@ function leasedWorkspace(t, root, workSession) {
 
 test("ExecutionPermit is generation-bound, single-use, lease-bound, and capability-limited", (t) => {
   const root = repository(t);
-  const workSession = session();
+  const workSession = session(root);
   const { workspace, registryDir, workspaceLease } = leasedWorkspace(t, root, workSession);
   const boundary = captureBoundary(workspace.workspacePath, workSession.allowedPaths);
   const permit = issueExecutionPermit({
@@ -139,7 +140,7 @@ test("ExecutionPermit is generation-bound, single-use, lease-bound, and capabili
 
 test("ExecutionPermit generation baseline fails closed before material execution", (t) => {
   const root = repository(t);
-  const workSession = session();
+  const workSession = session(root);
   const { workspace, registryDir, workspaceLease } = leasedWorkspace(t, root, workSession);
   const boundary = captureBoundary(workspace.workspacePath, workSession.allowedPaths);
   const permit = issueExecutionPermit({
@@ -176,7 +177,7 @@ test("ExecutionPermit generation baseline fails closed before material execution
 
 test("workspace execution lease prevents two controllers from executing the same ACTIVE generation", (t) => {
   const root = repository(t);
-  const workSession = session();
+  const workSession = session(root);
   const workspace = prepareWorkspace(root, workSession);
   const registryDir = workspaceRegistryDirectory(root);
   const first = acquireWorkspaceExecutionLease({ registryDir, workspaceId: workspace.workspaceId });

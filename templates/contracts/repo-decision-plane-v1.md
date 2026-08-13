@@ -1,6 +1,6 @@
 # Repo Decision Authority — hard-cut contract
 
-This file documents the current repo decision authority substrate. The repository retains this packaged filename, but the protocol objects are `repo-world/v2`, `repo-decision/v2`, `work-session/v3`, and the v1 transactional primitives named below. There is no compatibility parser for the retired semantic Decision Plane schemas.
+This file documents the current repo decision authority substrate. The repository retains this packaged filename, but the protocol objects are `repo-world/v2`, `repo-decision/v3`, `work-session/v4`, and the v1 transactional primitives named below. There is no compatibility parser for the retired semantic Decision Plane schemas.
 
 ## Boundary
 
@@ -19,11 +19,11 @@ immutable world-head/v1
         ↓
 current-world-pointer/v1
         ↓
-repo-decision/v2
+repo-decision/v3
         ├── NO_DISPATCH → inert
         └── DISPATCH
               ↓
-         work-session/v3
+         work-session/v4
               ↓
          execution-permit/v1
               ↓
@@ -60,7 +60,7 @@ The kernel does not understand domain-specific evidence meaning.
 
 A regular non-symlink `.meta-harness/repo-charter.json` opts the repository into repo decision authority. The charter is opaque policy bytes; Meta-Harness binds its digest but does not validate a generic policy ontology.
 
-While opted in, direct material bypass through `--goal`, `--session`, or `--allow` is rejected. Coding workers may not mutate these repo authority inputs:
+While opted in, direct material bypass through `--goal`, `--session`, `--allow`, or `--base` is rejected. The Repo Decision itself carries the resolved work-base authority. Coding workers may not mutate these repo authority inputs:
 
 ```text
 .meta-harness/repo-charter.json
@@ -276,15 +276,15 @@ same transition
 → no new generation
 ```
 
-## `repo-decision/v2`
+## `repo-decision/v3`
 
-Decision identity is the digest of the exact validated Decision bytes, which are persisted immutably before execution. This makes `work-session/v3 → decisionDigest` dereferenceable even if the mutable repo-side Decision file later changes.
+Decision identity is the digest of the exact validated Decision bytes, which are persisted immutably before execution. This makes `work-session/v4 → decisionDigest` dereferenceable even if the mutable repo-side Decision file later changes.
 
 Common authority fields:
 
 ```json
 {
-  "schemaVersion": "repo-decision/v2",
+  "schemaVersion": "repo-decision/v3",
   "productDirectionDigest": "sha256:...",
   "charterDigest": "sha256:...",
   "worldHeadDigest": "sha256:...",
@@ -309,6 +309,7 @@ The decision is a true sum type.
     "doneWhen": "Observable completion condition",
     "stopOnlyIf": ["Material stop condition"],
     "allowedPaths": ["src", "tests"],
+    "base": { "type": "EXACT_COMMIT", "commit": "<exact Git commit oid>" },
     "validation": [
       { "argv": ["node", "--test"], "cwd": ".", "timeoutSeconds": 300 }
     ],
@@ -339,7 +340,7 @@ OWNER_DECISION_REQUIRED
 
 `NO_DISPATCH` creates no work session, workspace, ExecutionPermit, or AttemptEntry.
 
-## `work-session/v3`
+## `work-session/v4`
 
 The schema break is intentional. Repo-directed work carries one minimal provenance edge:
 
@@ -365,13 +366,13 @@ Direct owner work carries:
 No World digest or attestation digest is duplicated in the session. The authority chain is:
 
 ```text
-work-session/v3
+work-session/v4
 → decisionDigest
 → worldHeadDigest
 → worldDigest + attestationDigest + lastTransitionDigest
 ```
 
-Decision identity is not encoded in `stopOnlyIf` prose and no regex provenance recovery exists.
+The Repo Decision DISPATCH action also carries the exact resolved `base`; compilation copies that authority into `work-session/v4`. Base refs are not re-resolved during compilation or execution. Decision identity is not encoded in `stopOnlyIf` prose and no regex provenance recovery exists.
 
 ## `attempt-entry/v1`
 

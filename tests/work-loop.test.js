@@ -46,7 +46,7 @@ function addOrigin(root) {
   return git(root, ["branch", "--show-current"]);
 }
 
-function session({
+function session(root, {
   allowedPaths = ["src"],
   maxAttempts = 2,
   delivery = { commit: false, push: false },
@@ -61,9 +61,10 @@ function session({
     ? [{ argv: check, cwd: ".", timeoutSeconds: 30 }]
     : validation;
   return sealWorkSession({
-    schemaVersion: "work-session/v3",
+    schemaVersion: "work-session/v4",
     productDirection: directionFromContent(),
     origin: { type: "OWNER_GOAL" },
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
     productResult: "Create the delivered result file.",
     journeyState: "The coding task is accepted.",
     doNow: "Create src/result.txt.",
@@ -97,7 +98,7 @@ test("zero validation blocks before workspace creation or worker launch", async 
   };
   const result = await runWork({
     repositoryPath: root,
-    session: session({ validation: [] }),
+    session: session(root, { validation: [] }),
     runner,
   });
   assert.equal(result.outcome, "BLOCKED");
@@ -110,7 +111,7 @@ test("zero validation blocks before workspace creation or worker launch", async 
 
   const dry = await runWork({
     repositoryPath: root,
-    session: session({ validation: [] }),
+    session: session(root, { validation: [] }),
     dryRun: true,
     runner,
   });
@@ -120,7 +121,7 @@ test("zero validation blocks before workspace creation or worker launch", async 
 
 test("durable AttemptEntry exists before worker execution", async (t) => {
   const root = repository(t);
-  const workSession = session();
+  const workSession = session(root);
   let runnerCalls = 0;
   await assert.rejects(
     runWork({
@@ -142,7 +143,7 @@ test("durable AttemptEntry exists before worker execution", async (t) => {
 
 test("work loop carries a product brief into a fresh isolated generation and exact validation", async (t) => {
   const root = repository(t);
-  const result = await runWork({ repositoryPath: root, session: session(), env: workerEnv(), timeoutSeconds: 30 });
+  const result = await runWork({ repositoryPath: root, session: session(root), env: workerEnv(), timeoutSeconds: 30 });
   assert.equal(result.outcome, "DONE");
   assert.equal(result.workspace.mode, "isolated");
   assert.equal(result.workspace.state, "TERMINAL_SEALED_DIRTY");
@@ -163,7 +164,7 @@ test("validated work commits and pushes only the terminal worktree branch with s
   const sourceHead = git(root, ["rev-parse", "HEAD"]);
   const result = await runWork({
     repositoryPath: root,
-    session: session({ delivery: { commit: true, push: true } }),
+    session: session(root, { delivery: { commit: true, push: true } }),
     env: workerEnv(),
     timeoutSeconds: 30,
   });
@@ -189,7 +190,7 @@ test("worker-marked partial work is terminal and never delivered", async (t) => 
   const root = repository(t);
   const result = await runWork({
     repositoryPath: root,
-    session: session({ delivery: { commit: true, push: false } }),
+    session: session(root, { delivery: { commit: true, push: false } }),
     env: workerEnv({ FAKE_WORKER_STATUS: "partial" }),
     timeoutSeconds: 30,
   });
@@ -205,7 +206,7 @@ test("passed controller validation advances generation before bounded completion
   const root = repository(t);
   const result = await runWork({
     repositoryPath: root,
-    session: session({ maxAttempts: 2 }),
+    session: session(root, { maxAttempts: 2 }),
     env: workerEnv({ FAKE_WORKER_PARTIAL_FIRST: "1" }),
     timeoutSeconds: 30,
   });
@@ -225,7 +226,7 @@ test("unrelated source dirtiness is preserved while every new session uses a fre
   fs.writeFileSync(path.join(root, "README.md"), "owner dirtiness\n", "utf8");
   const result = await runWork({
     repositoryPath: root,
-    session: session({ allowedPaths: ["src"] }),
+    session: session(root, { allowedPaths: ["src"] }),
     env: workerEnv(),
     timeoutSeconds: 30,
   });
@@ -247,7 +248,7 @@ test("new session never inherits coherent in-scope dirtiness from the source che
   const root = repository(t);
   fs.mkdirSync(path.join(root, "src"));
   fs.writeFileSync(path.join(root, "src", "result.txt"), "unfinished\n", "utf8");
-  const result = await runWork({ repositoryPath: root, session: session(), env: workerEnv(), timeoutSeconds: 30 });
+  const result = await runWork({ repositoryPath: root, session: session(root), env: workerEnv(), timeoutSeconds: 30 });
   assert.equal(result.outcome, "DONE");
   assert.equal(result.workspace.mode, "isolated");
   assert.equal(fs.readFileSync(path.join(root, "src", "result.txt"), "utf8"), "unfinished\n");
@@ -258,7 +259,7 @@ test("clean terminal committed workspace cannot resume and cleanliness cannot re
   const root = repository(t);
   const result = await runWork({
     repositoryPath: root,
-    session: session({ delivery: { commit: true, push: false } }),
+    session: session(root, { delivery: { commit: true, push: false } }),
     env: workerEnv(),
     timeoutSeconds: 30,
   });
@@ -278,7 +279,7 @@ test("clean terminal committed workspace cannot resume and cleanliness cannot re
 
 test("terminal sealed-dirty workspace stays terminal after manual cleanup or byte restoration", async (t) => {
   const root = repository(t);
-  const result = await runWork({ repositoryPath: root, session: session(), env: workerEnv(), timeoutSeconds: 30 });
+  const result = await runWork({ repositoryPath: root, session: session(root), env: workerEnv(), timeoutSeconds: 30 });
   assert.equal(result.workspace.state, "TERMINAL_SEALED_DIRTY");
   fs.rmSync(path.join(result.workspace.path, "src"), { recursive: true, force: true });
   assert.equal(git(result.workspace.path, ["status", "--short"]), "");
@@ -299,7 +300,7 @@ test("failed validation is returned to a fresh single-use permit for bounded rep
   const root = repository(t);
   const result = await runWork({
     repositoryPath: root,
-    session: session({ maxAttempts: 2 }),
+    session: session(root, { maxAttempts: 2 }),
     env: workerEnv({ FAKE_WORKER_RETRY: "1" }),
     timeoutSeconds: 30,
   });
@@ -317,7 +318,7 @@ test("direct worker writes invalidate the attempt generation before controller m
   await assert.rejects(
     runWork({
       repositoryPath: root,
-      session: session(),
+      session: session(root),
       env: workerEnv({ FAKE_WORKER_DIRECT_WRITE: "1" }),
       timeoutSeconds: 30,
     }),
@@ -346,7 +347,7 @@ test("live product-direction drift after permit consumption blocks before materi
   };
 
   await assert.rejects(
-    runWork({ repositoryPath: root, session: session(), runner }),
+    runWork({ repositoryPath: root, session: session(root), runner }),
     (error) => error.code === "MH_PRODUCT_DIRECTION_DRIFT",
   );
   assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
@@ -357,7 +358,7 @@ test("worker path and Git-index escapes fail closed", async (t) => {
   await assert.rejects(
     runWork({
       repositoryPath: outsideRoot,
-      session: session(),
+      session: session(outsideRoot),
       env: workerEnv({ FAKE_WORKER_PATH: "outside.txt" }),
       timeoutSeconds: 30,
     }),
@@ -368,7 +369,7 @@ test("worker path and Git-index escapes fail closed", async (t) => {
   await assert.rejects(
     runWork({
       repositoryPath: stagedRoot,
-      session: session(),
+      session: session(stagedRoot),
       env: workerEnv({ FAKE_WORKER_STAGE: "1" }),
       timeoutSeconds: 30,
     }),

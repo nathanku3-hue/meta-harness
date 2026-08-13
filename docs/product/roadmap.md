@@ -60,9 +60,11 @@ Exactly one command is public: `work`. Existing commands are internal advanced t
 
 ### 2. Planning-to-working continuity
 
-`work-session/v2` is the mandatory execution brief. It binds:
+`work-session/v4` is the mandatory execution brief. It binds:
 
 - exact product-direction bytes, version, and raw-byte digest from repository-root `PRODUCT.md`;
+- explicit origin provenance (`OWNER_GOAL` or immutable Repo Decision digest);
+- exact trusted Git work base and resolved commit;
 - product result;
 - journey state;
 - immediate action;
@@ -72,27 +74,27 @@ Exactly one command is public: `work`. Existing commands are internal advanced t
 - reversible worker authority;
 - owner-only actions;
 - exact path boundary;
-- dirty-worktree policy;
+- fresh-workspace identity and resumable custody rules;
 - validation commands;
 - bounded retry count;
 - explicit commit and optional push authority.
 
-The coding worker consumes this object directly. Product direction is injected before local engineering context. The worker does not reconstruct taste or philosophy from status files and does not reopen planning. There is no supported `work-session/v1` compatibility path.
+The coding worker consumes this object directly. Product direction is injected before local engineering context. The worker does not reconstruct taste or philosophy from status files and does not reopen planning. Only `work-session/v4` is active; v1, v2, and v3 are retired.
 
-### 3. Dirty-worktree behavior
+### 3. Workspace custody behavior
 
 ```text
-clean checkout
-→ work in place
+NEW session
+→ resolve or accept exact sealed work base commit
+→ create a fresh UUID-backed ignored `.worktrees/` worktree from that base
+→ activate generation-1 workspace custody
 
-coherent dirtiness entirely inside accepted paths
-→ inspect and continue
-
-unrelated or cross-boundary dirtiness
-→ preserve original bytes and create an ignored repository-local `.worktrees/` worktree
+RESUME
+→ reuse only the exact still-ACTIVE session/workspace generation
+→ require matching Git identity, dirty manifest, product direction, and exclusive execution lease
 ```
 
-Meta-Harness never resets, cleans, stashes, or reverts owner work automatically. The worker cannot stage, commit, push, tag, publish, change branches, or mutate worktree topology.
+The source checkout is never the coding execution workspace, regardless of cleanliness. Meta-Harness never resets, cleans, stashes, or reverts owner work automatically. Terminal workspace authority never returns. The worker cannot stage, commit, push, tag, publish, change branches, or mutate worktree topology.
 
 ### 4. Real coding execution
 

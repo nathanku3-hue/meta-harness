@@ -78,6 +78,7 @@ test("materializer rejects Decision Plane control-state mutations even under a b
     ".meta-harness/repo-charter.json",
     ".meta-harness/repo-world.json",
     ".meta-harness/repo-decision.json",
+    ".META-HARNESS/REPO-DECISION.JSON",
     ".meta-harness/owner-directive.md",
   ]) {
     assert.throws(
