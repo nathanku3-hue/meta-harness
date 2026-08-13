@@ -71,6 +71,23 @@ test("materializer rejects files outside the allowed boundary", (t) => {
   assert.equal(fs.existsSync(path.join(root, "docs", "outside.txt")), false);
 });
 
+test("materializer rejects Decision Plane control-state mutations even under a broad allowed path", (t) => {
+  const { root } = workspace(t);
+
+  for (const controlPath of [
+    ".meta-harness/repo-charter.json",
+    ".meta-harness/repo-world.json",
+    ".meta-harness/repo-decision.json",
+    ".meta-harness/owner-directive.md",
+  ]) {
+    assert.throws(
+      () => materializeWorkerChanges(root, [{ path: controlPath, content: "mutated\n" }], ["."]),
+      (error) => error.code === "MH_REPO_DECISION_PROTECTED" && /Decision Plane control state/.test(error.message),
+    );
+    assert.equal(fs.existsSync(path.join(root, ...controlPath.split("/"))), false);
+  }
+});
+
 test("materializer rejects oversized content before writing", (t) => {
   const { root } = workspace(t);
 

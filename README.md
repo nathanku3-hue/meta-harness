@@ -65,6 +65,25 @@ See `templates/contracts/work-session-v2.md` for the complete contract.
 
 A low-friction `--goal` invocation pins live `PRODUCT.md` and creates a safe default session. Use explicit session JSON when exact commands or path boundaries matter. Explicit sessions still require a live matching `PRODUCT.md`.
 
+## Optional repo Decision Plane
+
+Complex repositories may opt into a repo-owned Decision Plane by adding `.meta-harness/repo-charter.json`. Meta-Harness does not become the domain planner: the repository owns objective hierarchy, epistemic state, candidate generation, validity meaning, external-state verification, learning ingestion, and selection policy; Meta-Harness validates the current decision and compiles it into the existing `work-session/v2` execution kernel.
+
+```text
+PRODUCT.md + optional owner directive
+→ repo-charter/v1
+→ repo-world/v1 (truth separate from recommendation)
+→ repo-decision/v1
+→ work-session/v2
+→ existing workspace / permit / worker / validation kernel
+```
+
+When the charter is present, `meta-harness work <repository>` requires current `.meta-harness/repo-world.json` and `.meta-harness/repo-decision.json`. Direct `--goal`, `--session`, and `--allow` bypasses are rejected. The world binds the live product direction, charter, committed execution substrate, and charter-required external identity names; the decision additionally binds the world and optional `.meta-harness/owner-directive.md` digest. Any drift requires recomputation before execution. A bound current owner directive may override charter strategy or the derived recommendation while factual world state remains unchanged. Terminal routes require a structural `PASS` validity marker, and a terminal route can become `LEGAL` only when the World records new evidence claimed to invalidate the prior basis. Coding workers cannot mutate the charter, world, decision, or owner-directive control files.
+
+A material repo decision becomes single-use when the first actual worker attempt starts, after its execution permit is consumed and before worker invocation. Later failure or exception does not make that decision reusable; bounded repair attempts inside the same `work` invocation remain allowed. Before another invocation, repository intelligence must bank the result or an explicit evidence-backed no-change finding into a new world and recompute the decision. Meta-Harness records execution/result receipts but deliberately does not interpret scientific meaning or update repo knowledge itself.
+
+See `templates/contracts/repo-decision-plane-v1.md` for the strict contract and precedence invariants.
+
 ## Resume
 
 Meta-Harness stores the sealed work session under the repository Git common directory, outside tracked working-tree bytes.

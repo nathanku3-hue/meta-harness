@@ -116,6 +116,31 @@ test("zero validation blocks before workspace creation or worker launch", async 
   assert.equal(workerCalls, 0);
 });
 
+test("attempt-start hook fires after permit consumption and before worker execution", async (t) => {
+  const root = repository(t);
+  let hookCalls = 0;
+  let runnerCalls = 0;
+  await assert.rejects(
+    runWork({
+      repositoryPath: root,
+      session: session(),
+      onAttemptStart: ({ attempt, executionPermit }) => {
+        hookCalls += 1;
+        assert.equal(attempt, 1);
+        assert.equal(executionPermit.state, "ISSUED");
+        assert.match(executionPermit.permitDigest, /^sha256:[a-f0-9]{64}$/u);
+      },
+      runner: async () => {
+        runnerCalls += 1;
+        throw new Error("worker exploded after attempt entry");
+      },
+    }),
+    /worker exploded after attempt entry/,
+  );
+  assert.equal(hookCalls, 1);
+  assert.equal(runnerCalls, 1);
+});
+
 test("work loop carries a product brief into a fresh isolated generation and exact validation", async (t) => {
   const root = repository(t);
   const result = await runWork({ repositoryPath: root, session: session(), env: workerEnv(), timeoutSeconds: 30 });
