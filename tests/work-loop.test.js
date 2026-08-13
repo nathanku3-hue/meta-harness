@@ -6,6 +6,7 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
+const { attemptEntriesRoot } = require("../lib/world-authority");
 const { loadLatestWorkSession } = require("../lib/work-git");
 const { runWork } = require("../lib/work-loop");
 const { sealWorkSession } = require("../lib/work-session");
@@ -60,8 +61,9 @@ function session({
     ? [{ argv: check, cwd: ".", timeoutSeconds: 30 }]
     : validation;
   return sealWorkSession({
-    schemaVersion: "work-session/v2",
+    schemaVersion: "work-session/v3",
     productDirection: directionFromContent(),
+    origin: { type: "OWNER_GOAL" },
     productResult: "Create the delivered result file.",
     journeyState: "The coding task is accepted.",
     doNow: "Create src/result.txt.",
@@ -116,28 +118,25 @@ test("zero validation blocks before workspace creation or worker launch", async 
   assert.equal(workerCalls, 0);
 });
 
-test("attempt-start hook fires after permit consumption and before worker execution", async (t) => {
+test("durable AttemptEntry exists before worker execution", async (t) => {
   const root = repository(t);
-  let hookCalls = 0;
+  const workSession = session();
   let runnerCalls = 0;
   await assert.rejects(
     runWork({
       repositoryPath: root,
-      session: session(),
-      onAttemptStart: ({ attempt, executionPermit }) => {
-        hookCalls += 1;
-        assert.equal(attempt, 1);
-        assert.equal(executionPermit.state, "ISSUED");
-        assert.match(executionPermit.permitDigest, /^sha256:[a-f0-9]{64}$/u);
-      },
-      runner: async () => {
+      session: workSession,
+      runner: async ({ executionPermit }) => {
         runnerCalls += 1;
+        const entryPath = path.join(attemptEntriesRoot(root), "owner", executionPermit.authority.workspaceId, "1.json");
+        assert.equal(fs.existsSync(entryPath), true);
+        const entry = JSON.parse(fs.readFileSync(entryPath, "utf8"));
+        assert.equal(entry.permitDigest, executionPermit.permitDigest);
         throw new Error("worker exploded after attempt entry");
       },
     }),
     /worker exploded after attempt entry/,
   );
-  assert.equal(hookCalls, 1);
   assert.equal(runnerCalls, 1);
 });
 
@@ -309,7 +308,8 @@ test("failed validation is returned to a fresh single-use permit for bounded rep
   assert.equal(result.validation[0].passed, true);
   assert.deepEqual(result.executionPermits.map((permit) => permit.generation), [1, 2]);
   assert.equal(new Set(result.executionPermits.map((permit) => permit.permitId)).size, 2);
-  assert.ok(result.executionPermits.every((permit) => permit.state === "CONSUMED"));
+  assert.ok(result.executionPermits.every((permit) => permit.state === "ENTERED"));
+  assert.ok(result.executionPermits.every((permit) => /^sha256:[a-f0-9]{64}$/u.test(permit.attemptEntryDigest)));
 });
 
 test("direct worker writes invalidate the attempt generation before controller materialization", async (t) => {

@@ -61,28 +61,38 @@ The session binds:
 - bounded repair attempts;
 - explicit controller authority to commit and optionally push.
 
-See `templates/contracts/work-session-v2.md` for the complete contract.
+The canonical coding brief is `work-session/v3`; repo-directed sessions carry one explicit `origin.decisionDigest` provenance edge, while direct owner goals carry `origin.type = OWNER_GOAL`.
 
 A low-friction `--goal` invocation pins live `PRODUCT.md` and creates a safe default session. Use explicit session JSON when exact commands or path boundaries matter. Explicit sessions still require a live matching `PRODUCT.md`.
 
-## Optional repo Decision Plane
+## Optional repo decision authority
 
-Complex repositories may opt into a repo-owned Decision Plane by adding `.meta-harness/repo-charter.json`. Meta-Harness does not become the domain planner: the repository owns objective hierarchy, epistemic state, candidate generation, validity meaning, external-state verification, learning ingestion, and selection policy; Meta-Harness validates the current decision and compiles it into the existing `work-session/v2` execution kernel.
+Complex repositories may opt into repo-owned decision authority by adding `.meta-harness/repo-charter.json`. The charter is opaque policy bytes to Meta-Harness: repository intelligence owns claims, hypotheses, evidence meaning, applicability, ranking, resurrection semantics, and any domain allocator. The kernel owns only identity, mechanically checkable attestation, single-entry execution authority, operational closure, immutable World lineage, and compare-and-swap authority.
 
 ```text
-PRODUCT.md + optional owner directive
-→ repo-charter/v1
-→ repo-world/v1 (truth separate from recommendation)
-→ repo-decision/v1
-→ work-session/v2
-→ existing workspace / permit / worker / validation kernel
+repo projector / interpreter
+→ immutable repo-world/v2 + world-attestation/v1
+→ world-transition/v1
+→ immutable world-head/v1
+→ current-world-pointer/v1
+→ repo-decision/v2 = DISPATCH | NO_DISPATCH
+   ├─ NO_DISPATCH → no session / workspace / permit / attempt
+   └─ DISPATCH → work-session/v3 → ExecutionPermit → attempt-entry/v1
+                → bounded worker / validation
+                → aggregate execution-closure/v1
+                → repo interpretation
+                → world-transition/v1 → successor WorldHead
 ```
 
-When the charter is present, `meta-harness work <repository>` requires current `.meta-harness/repo-world.json` and `.meta-harness/repo-decision.json`. Direct `--goal`, `--session`, and `--allow` bypasses are rejected. The world binds the live product direction, charter, committed execution substrate, and charter-required external identity names; the decision additionally binds the world and optional `.meta-harness/owner-directive.md` digest. Any drift requires recomputation before execution. A bound current owner directive may override charter strategy or the derived recommendation while factual world state remains unchanged. Terminal routes require a structural `PASS` validity marker, and a terminal route can become `LEGAL` only when the World records new evidence claimed to invalidate the prior basis. Coding workers cannot mutate the charter, world, decision, or owner-directive control files.
+A `repo-decision/v2` binds live `PRODUCT.md`, opaque charter bytes, the authoritative WorldHead, and optional owner-directive bytes. A `DISPATCH` action contains only the generic execution brief needed by the coding kernel. `NO_DISPATCH` is inert and has finite generic reasons such as `WAIT_EXTERNAL`, `USE_PRODUCT`, and `NO_VALUABLE_ACTION`.
 
-A material repo decision becomes single-use when the first actual worker attempt starts, after its execution permit is consumed and before worker invocation. Later failure or exception does not make that decision reusable; bounded repair attempts inside the same `work` invocation remain allowed. Before another invocation, repository intelligence must bank the result or an explicit evidence-backed no-change finding into a new world and recompute the decision. Meta-Harness records execution/result receipts but deliberately does not interpret scientific meaning or update repo knowledge itself.
+The first `AttemptEntry` is the Decision's permit-consumption event itself. Repo Decision admission and WorldHead transitions use the same short-lived repository authority lock, so a Decision cannot enter against a Head that concurrently ceased to be current and the same Decision cannot acquire two generation-1 entries. Bounded repair generations are continuations of the same admitted session/workspace authority.
 
-See `templates/contracts/repo-decision-plane-v1.md` for the strict contract and precedence invariants.
+`execution-closure/v1` closes the whole bounded execution and lists every AttemptEntry in order. Its disposition is operational only; terms such as support, inconclusive evidence, claim validity, or scientific failure remain repo interpretation. A hard controller interruption after AttemptEntry is recovered from durable controller evidence without replaying the material attempt.
+
+Every authoritative World change is a `world-transition/v1`. Immutable WorldHead objects remain dereferenceable; only the tiny current-world pointer is mutable. Once a Decision is admitted against Head H, H is frozen until that execution is durably closed and banked. A durable result therefore cannot be overtaken by an unrelated reality refresh, omitted from required learning, or applied to a different predecessor lineage.
+
+See `templates/contracts/repo-decision-plane-v1.md` for the protocol contract.
 
 ## Resume
 

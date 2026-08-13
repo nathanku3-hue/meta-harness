@@ -21,6 +21,7 @@ function explicitSession(overrides = {}) {
   return sealWorkSession({
     schemaVersion: WORK_SESSION_SCHEMA,
     productDirection: directionFromContent(),
+    origin: { type: "OWNER_GOAL" },
     productResult: "Ship one product-facing coding command.",
     journeyState: "The product direction is accepted and implementation is ready.",
     doNow: "Implement the primary work command.",
@@ -37,9 +38,10 @@ function explicitSession(overrides = {}) {
   });
 }
 
-test("work-session/v2 seals product direction bytes and exact path/validation scope", () => {
+test("work-session/v3 seals product direction, provenance, and exact path/validation scope", () => {
   const session = explicitSession();
-  assert.equal(session.schemaVersion, "work-session/v2");
+  assert.equal(session.schemaVersion, "work-session/v3");
+  assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.equal(session.sessionDigest, computeWorkSessionDigest(session));
   assert.equal(Object.isFrozen(validateWorkSession(session)), true);
   assert.equal(Object.isFrozen(session.delivery), true);

@@ -49,8 +49,9 @@ function npmRepo(t) {
 function sealedSession(root, overrides = {}) {
   const direction = pinProductDirection(root);
   return sealWorkSession({
-    schemaVersion: "work-session/v2",
+    schemaVersion: "work-session/v3",
     productDirection: direction,
+    origin: { type: "OWNER_GOAL" },
     productResult: "Create src/result.txt with delivered content.",
     journeyState: "Direction is pinned; coding may begin.",
     doNow: "Write src/result.txt.",
@@ -84,7 +85,7 @@ test("--goal rejects malformed PRODUCT.md before workspace activity", (t) => {
   assert.match(String(result.stderr || result.stdout || ""), /heading|PRODUCT\.md|section/i);
 });
 
-test("created v2 session contains exact PRODUCT.md bytes and matching digest", (t) => {
+test("created v3 session contains exact PRODUCT.md bytes and matching digest", (t) => {
   const root = npmRepo(t);
   const live = pinProductDirection(root);
   const session = createGoalWorkSession({
@@ -93,7 +94,8 @@ test("created v2 session contains exact PRODUCT.md bytes and matching digest", (
     allowedPaths: ["src"],
     validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
   });
-  assert.equal(session.schemaVersion, "work-session/v2");
+  assert.equal(session.schemaVersion, "work-session/v3");
+  assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.equal(session.productDirection.content, live.content);
   assert.equal(session.productDirection.digest, live.digest);
   assert.equal(session.productDirection.content, SAMPLE_PRODUCT_MD);

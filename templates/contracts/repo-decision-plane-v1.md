@@ -1,294 +1,483 @@
-# Repo Decision Plane v1
+# Repo Decision Authority — hard-cut contract
 
-Decision Plane is an optional repository-owned protocol for complex systems that need domain-specific truth, learning, and next-action selection before Meta-Harness coding execution.
-
-Meta-Harness does not implement a domain allocator. It validates the repository's current decision and deterministically compiles that decision into the existing `work-session/v2` kernel.
+This file documents the current repo decision authority substrate. The repository retains this packaged filename, but the protocol objects are `repo-world/v2`, `repo-decision/v2`, `work-session/v3`, and the v1 transactional primitives named below. There is no compatibility parser for the retired semantic Decision Plane schemas.
 
 ## Boundary
 
-```text
-owner intent / PRODUCT.md
-repo-charter/v1
-repo-world/v1
-optional owner-directive.md
-        ↓
-repo-specific decision logic
-        ↓
-repo-decision/v1
-        ↓
-Meta-Harness compiler
-        ↓
-work-session/v2
-        ↓
-existing workspace / permit / worker / validation kernel
-```
-
-The kernel never decides domain value. Repo policy never weakens workspace custody, path safety, read-only worker authority, controller-owned materialization, or owner-only irreversible authority.
-
-## Opt-in
-
-A repository opts in by providing a regular non-symlink file at:
+Meta-Harness is not a domain planner or epistemic oracle. Repository intelligence owns interpretation, applicability, ranking, claims, hypotheses, negative knowledge, terminal semantics, resurrection rules, and allocation policy. The kernel owns only identities and properties it can mechanically enforce.
 
 ```text
-.meta-harness/repo-charter.json
+repo-native sources / external observations
+        ↓
+repo projector / interpreter
+        ↓
+immutable repo-world/v2 + world-attestation/v1
+        ↓
+world-transition/v1
+        ↓
+immutable world-head/v1
+        ↓
+current-world-pointer/v1
+        ↓
+repo-decision/v2
+        ├── NO_DISPATCH → inert
+        └── DISPATCH
+              ↓
+         work-session/v3
+              ↓
+         execution-permit/v1
+              ↓
+         attempt-entry/v1
+              ↓
+         bounded worker / validation
+              ↓
+         execution-closure/v1
+              ↓
+         repo interpretation
+              ↓
+         world-transition/v1
+              ↓
+         successor world-head/v1
 ```
 
-Once present, material `meta-harness work` execution cannot be sourced from `--goal`, `--session`, or `--allow`. The current decision must come from:
+The kernel understands:
+
+```text
+identity
+sha256 digests
+authority bindings
+attestation facts it can actually recompute
+DISPATCH / NO_DISPATCH
+AttemptEntry
+operational closure
+WorldHead lineage
+exclusive lock + compare-and-swap
+```
+
+The kernel does not understand domain-specific evidence meaning.
+
+## Opt-in and protected control paths
+
+A regular non-symlink `.meta-harness/repo-charter.json` opts the repository into repo decision authority. The charter is opaque policy bytes; Meta-Harness binds its digest but does not validate a generic policy ontology.
+
+While opted in, direct material bypass through `--goal`, `--session`, or `--allow` is rejected. Coding workers may not mutate these repo authority inputs:
 
 ```text
 .meta-harness/repo-charter.json
 .meta-harness/repo-world.json
+.meta-harness/world-attestation.json
+.meta-harness/world-transition.json
+.meta-harness/repo-interpretation.json
 .meta-harness/repo-decision.json
-```
-
-An optional current owner strategy directive may live at:
-
-```text
 .meta-harness/owner-directive.md
 ```
 
-The directive is raw owner input, not a fourth protocol object. Its exact byte digest is bound by `repo-decision/v1`. Absence is bound as `null`, so adding or removing a directive also makes the decision stale.
+`repo-world.json`, `world-attestation.json`, and `world-transition.json` are repo-side candidate/projection files only. Replacing their bytes does not itself replace authoritative World state. Authority is the immutable object store plus `current-world-pointer/v1`.
 
-## `repo-charter/v1`
+## Immutable protocol objects and mutable pointer
 
-The charter is slow-changing and owner/version-controlled. It defines repository decision semantics without redefining kernel safety.
+Protocol objects are stored by digest under the repository Git common directory. At minimum the authority chain retains immutable objects for:
 
-Required fields:
+```text
+worlds/<worldDigest>.json
+attestations/<attestationDigest>.json
+decisions/<decisionDigest>.json
+transitions/<transitionDigest>.json
+heads/<headDigest>.json
+interpretations/<interpretationDigest>.json
+work-results/<workResultDigest>.json
+execution-closures/<closureDigest>.json
+```
+
+The sole mutable World authority is:
 
 ```json
 {
-  "schemaVersion": "repo-charter/v1",
-  "version": "repo-policy-v1",
-  "productDirectionDigest": "sha256:...",
-  "objectiveHierarchy": ["PRIMARY", "PROCESS"],
-  "factualTruthPrecedence": [
-    "validated_observation",
-    "canonical_factual_state",
-    "derived_status",
-    "prose_history"
-  ],
-  "strategicAuthorityPrecedence": [
-    "current_owner_directive",
-    "product_direction",
-    "repo_charter",
-    "derived_recommendation",
-    "stale_history"
-  ],
-  "falsificationLayers": [],
-  "resurrectionLaw": ["..."],
-  "externalStateRequirements": ["data-snapshot"],
-  "allocationPolicy": ["..."]
+  "schemaVersion": "current-world-pointer/v1",
+  "headDigest": "sha256:..."
 }
 ```
 
-`externalStateRequirements` contains required identity names, not prose descriptions. Each name must be present in `repo-world/v1.truth.externalInputIdentities` before a decision can compile.
-
-Additional domain-specific sources may be inserted into the two precedence lists, but these constitutional relative orders cannot be inverted:
-
-```text
-validated_observation
-> canonical_factual_state
-> derived_status
-> prose_history
-```
-
-```text
-current_owner_directive
-> product_direction
-> repo_charter
-> derived_recommendation
-> stale_history
-```
-
-This enforces the distinction:
-
-```text
-machine factual state may correct what already happened;
-derived machine recommendation cannot override what the owner currently values.
-```
-
-## `repo-world/v1`
-
-The world is machine-maintained epistemic state. It deliberately separates authoritative truth from derived recommendations and binds the committed code/config substrate against which the decision was made.
+A `world-head/v1` is immutable:
 
 ```json
 {
-  "schemaVersion": "repo-world/v1",
+  "schemaVersion": "world-head/v1",
+  "generation": 12,
+  "worldDigest": "sha256:...",
+  "attestationDigest": "sha256:...",
+  "lastTransitionDigest": "sha256:...",
+  "headDigest": "sha256:..."
+}
+```
+
+Old Head identities therefore remain dereferenceable after the current pointer advances.
+
+## `repo-world/v2`
+
+World payload is intentionally opaque to the kernel:
+
+```json
+{
+  "schemaVersion": "repo-world/v2",
   "productDirectionDigest": "sha256:...",
-  "charterDigest": "sha256:...",
-  "executionBaseDigest": "sha256:...",
-  "truth": {
-    "facts": [],
-    "supportedClaims": [],
-    "contradictedClaims": [],
-    "notEstablishedClaims": [],
-    "positiveKnowledge": [],
-    "negativeKnowledge": [],
-    "terminalRoutes": [
-      {
-        "id": "stopped-route",
-        "reason": "...",
-        "evidenceRef": "receipt:negative-result",
-        "validity": {
-          "verdict": "PASS",
-          "evidenceRef": "receipt:test-validity"
-        },
-        "resurrectionCondition": "New evidence must invalidate the prior epistemic basis."
-      }
-    ],
-    "externalInputIdentities": [
-      { "name": "data-snapshot", "identity": "snapshot:..." }
-    ],
-    "activeTracks": [],
-    "blockedTracks": [],
-    "currentBottleneck": "..."
-  },
-  "recommendation": {
-    "candidateActions": [
-      {
-        "id": "action-id",
-        "routeId": "route-id",
-        "result": "Useful result",
-        "status": "LEGAL",
-        "reason": "...",
-        "priorBasisInvalidatedByEvidenceRef": null
-      }
-    ],
-    "recommendedNextActionId": null
+  "payload": {
+    "repoOwnsThisShape": true
   }
 }
 ```
 
-Claims are mutually exclusive across `supportedClaims`, `contradictedClaims`, and `notEstablishedClaims` by claim id.
+A repository may change payload terminology from claims/hypotheses/routes to missions/observations/constraints without changing Meta-Harness source.
 
-### Committed execution-base binding
+## `world-attestation/v1`
 
-`executionBaseDigest` is computed from the exact tracked tree at current `HEAD`, including tracked object identities, modes, types, and paths. The four Decision Plane control files are excluded from this digest to avoid a self-referential world hash:
-
-```text
-.meta-harness/repo-charter.json
-.meta-harness/repo-world.json
-.meta-harness/repo-decision.json
-.meta-harness/owner-directive.md
-```
-
-If any other committed tracked substrate changes, the world is stale and cannot dispatch work until repository intelligence rebuilds the world and decision. Mutable source-checkout dirt is still excluded by the existing fresh-worktree kernel; it never silently becomes the execution base.
-
-### Terminal validity and resurrection
-
-A route may appear in `terminalRoutes` only when its retained validity verdict is exactly `PASS`. The validity receipt is domain-owned evidence; Meta-Harness enforces the presence and PASS state but does not decide scientific validity itself. `UNKNOWN` or invalid tests cannot be encoded as terminal route death.
-
-A candidate action names its logical `routeId`. A candidate for a route retained as terminal cannot become `LEGAL` unless `priorBasisInvalidatedByEvidenceRef` points to new evidence already banked in world truth. That evidence must differ from the prior terminal-result and validity receipts. A blocked terminal route carries no resurrection claim.
-
-This gives the generic state law:
-
-```text
-negative observation
-→ domain validity interpretation
-→ validity PASS
-→ terminal route may be banked
-
-terminal route
-→ new truth evidence invalidates prior basis
-→ legal probation/reopen candidate may exist
-```
-
-Changing recommendation prose, a parameter label, or enthusiasm alone cannot reopen a terminal route.
-
-Candidate actions belong under `recommendation`, never under `truth`. The repository may recommend one action, while a current owner directive may legitimately cause a different current `LEGAL` candidate to be selected.
-
-## `repo-decision/v1`
-
-The decision is intentionally small: it binds current identities and selects one legal action with the execution fields needed to compile `work-session/v2`.
+Attestation binds a World to projector identity and source observations:
 
 ```json
 {
-  "schemaVersion": "repo-decision/v1",
+  "schemaVersion": "world-attestation/v1",
+  "worldDigest": "sha256:...",
+  "projectorDigest": "sha256:...",
+  "sources": [],
+  "generatedAt": "2026-08-13T00:00:00.000Z",
+  "attestationDigest": "sha256:..."
+}
+```
+
+The kernel verifies only properties it can actually verify.
+
+### Local file source
+
+```json
+{
+  "type": "LOCAL_FILE",
+  "sourceId": "canonical-input",
+  "path": "state/current.json",
+  "digest": "sha256:...",
+  "observedAt": "2026-08-13T00:00:00.000Z",
+  "validUntil": null
+}
+```
+
+Meta-Harness resolves the repository path, rejects traversal/symlinks, reads current bytes, and recomputes the digest.
+
+### Git ref source
+
+```json
+{
+  "type": "GIT_REF",
+  "sourceId": "committed-base",
+  "ref": "HEAD",
+  "objectId": "0123456789abcdef...",
+  "observedAt": "2026-08-13T00:00:00.000Z",
+  "validUntil": null
+}
+```
+
+Meta-Harness resolves the ref through its bounded Git helper and compares current object identity.
+
+### Opaque observation
+
+```json
+{
+  "type": "OPAQUE",
+  "sourceId": "market-feed",
+  "identity": "repo-adapter-observation:...",
+  "observationDigest": "sha256:...",
+  "observedAt": "2026-08-13T00:00:00.000Z",
+  "validUntil": "2026-08-13T00:10:00.000Z"
+}
+```
+
+For opaque external reality, Meta-Harness validates binding and declared time validity. It does not claim to have independently verified Bloomberg, Jira, a market feed, or another remote system. Repo intelligence owns that observation unless a generic live identity mechanism exists and the kernel actually uses it.
+
+## `world-transition/v1`
+
+There is one substrate for making another World authoritative:
+
+```json
+{
+  "schemaVersion": "world-transition/v1",
+  "predecessorHeadDigest": "sha256:...",
+  "cause": {},
+  "successorWorldDigest": "sha256:...",
+  "successorAttestationDigest": "sha256:...",
+  "transitionDigest": "sha256:..."
+}
+```
+
+Allowed causes are deliberately generic.
+
+### Reality refresh
+
+```json
+{
+  "type": "REALITY_REFRESH",
+  "projectionDigest": "sha256:..."
+}
+```
+
+### Attempt learning
+
+```json
+{
+  "type": "ATTEMPT_LEARNING",
+  "executionClosureDigest": "sha256:...",
+  "interpretationDigest": "sha256:..."
+}
+```
+
+### Attempt aborted
+
+```json
+{
+  "type": "ATTEMPT_ABORTED",
+  "executionClosureDigest": "sha256:..."
+}
+```
+
+`ATTEMPT_ABORTED` carries no fake interpretation. A semantic no-change result may keep the same World payload while still producing a successor Head generation, so the execution is durably banked exactly once.
+
+## Shared World-authority lock and CAS
+
+Repo Decision admission and WorldTransition commit use the same short-lived exclusive repository authority lock.
+
+Decision generation-1 entry:
+
+```text
+acquire world-authority lock
+→ read current pointer / Head
+→ require Decision.worldHeadDigest == current Head
+→ require no existing first admission for that Head
+→ create + fsync AttemptEntry
+→ release lock
+```
+
+WorldTransition:
+
+```text
+acquire same lock
+→ read current pointer / Head
+→ require predecessorHeadDigest == current Head
+→ validate admitted-execution constraints
+→ persist immutable transition + successor Head
+→ atomically replace current-world pointer
+→ release lock
+```
+
+Atomic rename alone is not treated as concurrent CAS; the exclusive lock supplies the mutual exclusion.
+
+An exact transition retry after a crash is idempotent:
+
+```text
+same transition
++ current Head already equals its deterministic successor Head
+→ ALREADY_APPLIED
+→ no new generation
+```
+
+## `repo-decision/v2`
+
+Decision identity is the digest of the exact validated Decision bytes, which are persisted immutably before execution. This makes `work-session/v3 → decisionDigest` dereferenceable even if the mutable repo-side Decision file later changes.
+
+Common authority fields:
+
+```json
+{
+  "schemaVersion": "repo-decision/v2",
   "productDirectionDigest": "sha256:...",
   "charterDigest": "sha256:...",
-  "worldDigest": "sha256:...",
+  "worldHeadDigest": "sha256:...",
   "ownerDirectiveDigest": null,
-  "objective": "PRIMARY",
-  "selectedAction": {
-    "id": "action-id",
-    "result": "Useful result",
+  "decision": {}
+}
+```
+
+The decision is a true sum type.
+
+### DISPATCH
+
+```json
+{
+  "type": "DISPATCH",
+  "action": {
+    "id": "bounded-action",
+    "productResult": "Observable product result",
+    "journeyState": "Current user journey state",
     "doNow": "Nearest coding action",
-    "newlyTrueBehavior": "Observable behavior after execution",
+    "newlyTrueBehavior": "Behavior that becomes true",
     "doneWhen": "Observable completion condition",
-    "whyNow": "Why this legal candidate is selected now",
-    "claimLayer": null,
-    "stopOnlyIf": ["..."],
+    "stopOnlyIf": ["Material stop condition"],
     "allowedPaths": ["src", "tests"],
     "validation": [
       { "argv": ["node", "--test"], "cwd": ".", "timeoutSeconds": 300 }
     ],
     "maxAttempts": 2,
     "delivery": { "commit": false, "push": false }
-  },
-  "rejectedAlternatives": []
+  }
 }
 ```
 
-The selected action must reference a current `LEGAL` candidate in `repo-world/v1`, its result must match that candidate, and any non-null `claimLayer` must be declared by the charter. Without a current owner directive, the decision objective must equal the charter primary objective. When a current owner directive exists, its exact digest is bound and repo intelligence may select a different current strategy/objective because owner strategy outranks the charter and derived recommendation; Meta-Harness does not attempt to semantically parse owner prose.
+### NO_DISPATCH
 
-## Staleness
-
-Before material execution Meta-Harness requires:
-
-```text
-live PRODUCT.md digest       == charter.productDirectionDigest
-live PRODUCT.md digest       == world.productDirectionDigest
-current charter digest       == world.charterDigest
-current committed-base digest == world.executionBaseDigest
-all charter-required external identity names exist in world truth
-live PRODUCT.md digest       == decision.productDirectionDigest
-current charter digest       == decision.charterDigest
-current world digest         == decision.worldDigest
-current owner directive digest == decision.ownerDirectiveDigest
+```json
+{
+  "type": "NO_DISPATCH",
+  "reason": "NO_VALUABLE_ACTION"
+}
 ```
 
-Any mismatch is non-executable. Recompute the affected world/decision rather than reconciling stale prose.
-
-`repo-decision/v1` compiles into the existing `work-session/v2`; the work-session schema is not extended. The complete repo-decision content digest is included in a generated stop condition, so the existing session digest also binds the decision identity. Resume therefore fails if the current decision no longer compiles to the persisted session.
-
-The coding worker cannot mutate `repo-charter.json`, `repo-world.json`, `repo-decision.json`, or `owner-directive.md`, even under a broad allowed path. The read-only worker is also instructed not to reconstruct its sealed execution brief from planner/status prose or historical Decision Plane copies present in the immutable workspace base. Charter changes remain owner/policy work; world/decision updates remain Decision Plane work outside the coding worker path.
-
-## Learning closure: one decision, one entered execution
-
-Decision consumption happens when the controller has consumed the attempt's `ExecutionPermit` and immediately before the coding worker is invoked. Meta-Harness writes a create-only `repo-decision-consumption/v1` marker under the repository Git common directory. The marker binds decision digest, session digest, attempt id, and permit digest.
-
-This timing is deliberate: once a real worker attempt has entered, a later worker exception, boundary violation, or validation failure cannot make the decision look unused. Bounded repair attempts in the same `work` invocation remain legal and reuse the same decision-consumption marker while workspace generation and ExecutionPermit identities advance normally.
-
-When `work` returns a result after one or more attempts, Meta-Harness writes a separate create-only `repo-decision-result/v1` receipt. A result receipt requires the prior matching attempt-consumption marker.
-
-After attempt entry, the same decision cannot start another material execution. Before a later `work`, repository intelligence must interpret what happened and create a new world/decision pair.
-
-Valid closure includes either:
+Generic reasons are:
 
 ```text
-observable result / failed attempt evidence
-→ validity / interpretation
-→ factual or claim-state delta
-→ positive or negative knowledge delta
-→ new repo-world
-→ new repo-decision
+WAIT_EXTERNAL
+WAIT_MATURITY
+USE_PRODUCT
+NO_VALUABLE_ACTION
+OWNER_DECISION_REQUIRED
 ```
 
-or an explicit evidence-backed no-change finding banked into the new world.
+`NO_DISPATCH` creates no work session, workspace, ExecutionPermit, or AttemptEntry.
 
-This rule prevents a fresh agent from silently rerunning an already-entered recommendation while keeping domain interpretation outside the Meta-Harness kernel.
+## `work-session/v3`
 
-## Deliberate non-goals
+The schema break is intentional. Repo-directed work carries one minimal provenance edge:
 
-Decision Plane v1 does not provide:
+```json
+{
+  "origin": {
+    "type": "REPO_DECISION",
+    "decisionDigest": "sha256:..."
+  }
+}
+```
 
-- a universal allocator or scoring formula;
-- Quant, trading, scientific, or SaaS-specific semantics;
-- adaptive/learned ranking;
-- automatic charter mutation;
-- automatic PRODUCT.md mutation;
-- a provider/plugin framework, daemon, queue, or scheduler;
-- a generic provenance platform;
-- outcome reading, evaluation, trial-debit, state-transition, or route-reopen execution capabilities.
+Direct owner work carries:
 
-Repositories own candidate generation, evidence validity semantics, result interpretation, and ranking. Meta-Harness's coding ExecutionPermit continues to deny outcome/evaluation/trial-debit/state-transition/route-reopen capabilities unless a future explicitly authorized controller path grants them. Ranking-policy evolution, if added later, should be evidence-bound and promoted through replay/shadow evaluation rather than silently learning from successful-looking outcomes.
+```json
+{
+  "origin": {
+    "type": "OWNER_GOAL"
+  }
+}
+```
+
+No World digest or attestation digest is duplicated in the session. The authority chain is:
+
+```text
+work-session/v3
+→ decisionDigest
+→ worldHeadDigest
+→ worldDigest + attestationDigest + lastTransitionDigest
+```
+
+Decision identity is not encoded in `stopOnlyIf` prose and no regex provenance recovery exists.
+
+## `attempt-entry/v1`
+
+AttemptEntry is the permit-consumption event itself. There is no separate execution-permit-consumption receipt and no separate repo-decision-consumption callback.
+
+A Repo Decision generation-1 entry is stored at a Decision-scoped collision point. Bounded repairs may create ordinals 2 and 3 only as continuations of the same admitted session/workspace authority.
+
+```json
+{
+  "schemaVersion": "attempt-entry/v1",
+  "permitId": "uuid",
+  "permitDigest": "sha256:...",
+  "sessionDigest": "sha256:...",
+  "attemptId": "uuid",
+  "generation": 1,
+  "ordinal": 1,
+  "workspaceId": "uuid",
+  "origin": {
+    "type": "REPO_DECISION",
+    "decisionDigest": "sha256:..."
+  },
+  "enteredAt": "...",
+  "entryDigest": "sha256:..."
+}
+```
+
+After generation-1 entry exists, that material attempt is forever non-replayable.
+
+## Aggregate `execution-closure/v1`
+
+Closure describes observable execution facts for the whole bounded run, not epistemic meaning for one attempt:
+
+```json
+{
+  "schemaVersion": "execution-closure/v1",
+  "sessionDigest": "sha256:...",
+  "origin": {
+    "type": "REPO_DECISION",
+    "decisionDigest": "sha256:..."
+  },
+  "attemptEntries": ["sha256:E1", "sha256:E2"],
+  "disposition": "COMPLETED",
+  "workResultDigest": "sha256:R",
+  "closedAt": "...",
+  "closureDigest": "sha256:..."
+}
+```
+
+Operational dispositions include completed, partial, blocked, controller-rejected, and interrupted-after-entry. `INCONCLUSIVE`, `SUPPORTS`, claim validity, or scientific failure are not kernel dispositions.
+
+A durable work result is persisted before/with closure identity. Recovery therefore follows this law:
+
+> Record the strongest operational disposition supported by durable controller evidence. If no later durable evidence exists after AttemptEntry, close as `INTERRUPTED_AFTER_ENTRY`.
+
+Recovery reconstructs controller knowledge; it never reruns consumed material authority.
+
+## Head-freeze law after admission
+
+Once a Repo Decision has an AttemptEntry against Head H, H may not advance for any unrelated reason until that execution is closed and banked.
+
+```text
+Head H
+→ Decision D
+→ generation-1 AttemptEntry
+
+REALITY_REFRESH on H       forbidden
+another Decision on H      forbidden
+second generation-1 D      forbidden
+```
+
+The allowed successor transition is the closure of D, optionally with repo interpretation and freshly projected/attested successor reality.
+
+For any ATTEMPT_* transition for D:
+
+```text
+predecessorHeadDigest == D.worldHeadDigest
+```
+
+This prevents wrong-predecessor learning, duplicate banking, and an external refresh overtaking a durable result.
+
+## Recovery outcomes
+
+If controller death leaves:
+
+```text
+AttemptEntry
++ no durable work result
++ no closure
+```
+
+recovery creates an aggregate `INTERRUPTED_AFTER_ENTRY` closure and banks an `ATTEMPT_ABORTED` transition without replaying the worker.
+
+If durable work-result evidence exists but closure is missing, recovery must reconstruct closure from that stronger evidence rather than downgrade completion to interruption.
+
+If a closure has a work result, the Head remains frozen until repo intelligence supplies the matching `ATTEMPT_LEARNING` interpretation/successor transition.
+
+## Non-goals
+
+This substrate does not implement:
+
+- a generic allocator;
+- scientific validity or evidence-applicability semantics;
+- hypothesis similarity or alias detection;
+- Quant D1-D9 semantics;
+- automatic knowledge interpretation;
+- a generic provenance DAG;
+- a provider/plugin framework, daemon, queue, or scheduler.
+
+Those remain repository intelligence or future work justified by an observed product defect.

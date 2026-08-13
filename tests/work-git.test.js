@@ -55,8 +55,9 @@ function remoteHead(root, branch) {
 
 function isolatedSession() {
   return sealWorkSession({
-    schemaVersion: "work-session/v2",
+    schemaVersion: "work-session/v3",
     productDirection: directionFromContent(),
+    origin: { type: "OWNER_GOAL" },
     productResult: "Create the isolated result.",
     journeyState: "Owner dirtiness must remain untouched.",
     doNow: "Prepare the isolated workspace.",

@@ -7,10 +7,10 @@ const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const {
-  assertConsumedPermitCapability,
+  assertEnteredPermitCapability,
   assertExecutionPermitCurrent,
   assertPermitCapability,
-  consumeExecutionPermit,
+  enterExecutionAttempt,
   issueExecutionPermit,
   validateExecutionPermit,
 } = require("../lib/execution-permit");
@@ -52,8 +52,9 @@ function repository(t) {
 
 function session() {
   return sealWorkSession({
-    schemaVersion: "work-session/v2",
+    schemaVersion: "work-session/v3",
     productDirection: directionFromContent(),
+    origin: { type: "OWNER_GOAL" },
     productResult: "Create one visible result.",
     journeyState: "The result is accepted and not yet delivered.",
     doNow: "Create src/result.txt.",
@@ -106,18 +107,20 @@ test("ExecutionPermit is generation-bound, single-use, lease-bound, and capabili
     "CONTROLLER_MATERIALIZE",
     "CONTROLLER_VALIDATE",
   ]);
-  const consumed = consumeExecutionPermit({ stateDirectory: stateDirectory(root), permit });
-  assert.equal(consumed.entryCapability, "CODE_PROPOSE");
+  const entry = enterExecutionAttempt({ stateDirectory: stateDirectory(root), permit, session: workSession });
+  assert.equal(entry.origin.type, "OWNER_GOAL");
+  assert.equal(entry.permitDigest, permit.permitDigest);
   assert.equal(
-    assertConsumedPermitCapability({
+    assertEnteredPermitCapability({
       stateDirectory: stateDirectory(root),
       permit,
+      attemptEntry: entry,
       capability: "CONTROLLER_VALIDATE",
     }).permitDigest,
     permit.permitDigest,
   );
   assert.throws(
-    () => consumeExecutionPermit({ stateDirectory: stateDirectory(root), permit }),
+    () => enterExecutionAttempt({ stateDirectory: stateDirectory(root), permit, session: workSession }),
     (error) => error.code === "MH_EXECUTION_PERMIT_REPLAY",
   );
   assert.throws(
