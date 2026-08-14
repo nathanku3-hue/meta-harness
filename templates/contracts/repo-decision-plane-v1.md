@@ -425,9 +425,9 @@ Operational dispositions include completed, partial, blocked, controller-rejecte
 
 A durable work result is persisted before/with closure identity. Recovery therefore follows this law:
 
-> Record the strongest operational disposition supported by durable controller evidence. If no later durable evidence exists after AttemptEntry, close as `INTERRUPTED_AFTER_ENTRY`.
+> Record the strongest operational disposition supported by durable controller evidence. If no later durable evidence exists after AttemptEntry, close as `INTERRUPTED_AFTER_ENTRY`. A mechanically recovered exact BANK is later durable evidence and must not be downgraded to interruption.
 
-Recovery reconstructs controller knowledge; it never reruns consumed material authority.
+Recovery reconstructs controller knowledge; it never reruns consumed material authority. When durable candidate-seal plus managed-workspace Git proof establishes the exact BANK, recovery persists a durable operational result before reconstructing `COMPLETED` closure.
 
 ## Head-freeze law after admission
 
@@ -460,10 +460,13 @@ If controller death leaves:
 ```text
 AttemptEntry
 + no durable work result
++ no mechanically proven exact BANK
 + no closure
 ```
 
 recovery creates an aggregate `INTERRUPTED_AFTER_ENTRY` closure and banks an `ATTEMPT_ABORTED` transition without replaying the worker.
+
+If controller death occurs after exact BANK but before the operational work result or closure is persisted, recovery must re-prove the durable candidate seal against the managed workspace HEAD/tree/index/status, terminalize the workspace as `TERMINAL_COMMITTED`, persist a durable recovered work result, and reconstruct `COMPLETED` closure. That closure requires `ATTEMPT_LEARNING`; `ATTEMPT_ABORTED` is forbidden.
 
 If durable work-result evidence exists but closure is missing, recovery must reconstruct closure from that stronger evidence rather than downgrade completion to interruption.
 

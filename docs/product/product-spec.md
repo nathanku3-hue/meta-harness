@@ -305,6 +305,8 @@ After `DONE` plus passed validation, Meta-Harness:
 
 This happens even when an older `work-session/v4` contains `delivery.commit=false`.
 
+If controller death occurs after the exact BANK commit but before operational result/closure persistence, restart must re-prove the durable candidate seal against the managed workspace Git state, recover `TERMINAL_COMMITTED`, and reconstruct a durable `COMPLETED` Repo Decision closure. That recovered execution requires `ATTEMPT_LEARNING` and cannot be banked as `ATTEMPT_ABORTED`.
+
 Push remains explicit publication authority. When `delivery.push=true`, the existing controller push path may publish the managed branch and must verify remote equality. Normal owner-result routing does not infer push authority.
 
 The source checkout's branch, HEAD, index, and dirty bytes are never the delivery target and remain unchanged.

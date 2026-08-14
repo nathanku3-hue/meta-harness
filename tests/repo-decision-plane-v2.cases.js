@@ -6,7 +6,10 @@ const path = require("node:path");
 const { spawn, spawnSync } = require("node:child_process");
 const test = require("node:test");
 
-const { findExecutionClosureForDecision } = require("../lib/execution-closure");
+const {
+  findExecutionClosureForDecision,
+  findExecutionWorkResultForDecision,
+} = require("../lib/execution-closure");
 const { enterExecutionAttempt, issueExecutionPermit } = require("../lib/execution-permit");
 const { pinProductDirection } = require("../lib/product-direction");
 const {
@@ -35,9 +38,20 @@ const {
   readCurrentWorldHead,
   validateWorldTransition,
 } = require("../lib/world-transition");
-const { captureBoundary, runWork } = require("../lib/work-loop");
-const { prepareWorkspace, stateDirectory, workspaceRegistryDirectory } = require("../lib/work-git");
-const { acquireWorkspaceExecutionLease, releaseWorkspaceExecutionLease } = require("../lib/workspace-custody");
+const { captureBoundary, runValidation, runWork } = require("../lib/work-loop");
+const {
+  deliverValidatedChanges,
+  persistWorkSession,
+  prepareWorkspace,
+  sealCandidate,
+  stateDirectory,
+  workspaceRegistryDirectory,
+} = require("../lib/work-git");
+const {
+  acquireWorkspaceExecutionLease,
+  readWorkspaceCustody,
+  releaseWorkspaceExecutionLease,
+} = require("../lib/workspace-custody");
 const { runRaw, tempDir } = require("./helpers/cli");
 const { writeProductMd } = require("./helpers/product-direction");
 
@@ -501,6 +515,96 @@ test("orphan first AttemptEntry recovers as interruption without replay", (t) =>
 
   installDecision(root, recovered.head.headDigest);
   assert.equal(compileRepoDecisionWork(root).type, "DISPATCH");
+});
+
+test("BANK completed before Decision closure recovers as COMPLETED and cannot become ATTEMPT_ABORTED", (t) => {
+  const root = repository(t);
+  const initial = persistWorld(root, { observations: ["ready"] });
+  installDecision(root, initial.head.headDigest);
+  const compiled = compileRepoDecisionWork(root);
+  const prepared = prepareEntryWithoutWorker(root, compiled.session);
+  persistWorkSession(root, compiled.session, prepared.workspace);
+  let entry;
+  let banked;
+  try {
+    entry = enterExecutionAttempt({
+      stateDirectory: prepared.permitStateDirectory,
+      permit: prepared.permit,
+      session: compiled.session,
+    });
+    fs.writeFileSync(path.join(prepared.workspace.workspacePath, "src", "result.txt"), "delivered\n", "utf8");
+    const after = captureBoundary(prepared.workspace.workspacePath, compiled.session.allowedPaths);
+    const seal = sealCandidate({
+      stateDirectory: prepared.permitStateDirectory,
+      session: compiled.session,
+      workspace: prepared.workspace,
+      boundary: after,
+      materializedPaths: ["src/result.txt"],
+    });
+    const validations = runValidation(prepared.workspace.workspacePath, compiled.session.validation, workerEnv());
+    assert.equal(validations.length, 1);
+    assert.equal(validations[0].passed, true);
+    banked = deliverValidatedChanges({
+      repositoryRoot: root,
+      workspacePath: prepared.workspace.workspacePath,
+      session: compiled.session,
+      workspaceCustody: prepared.workspace.custody,
+      candidateSeal: seal,
+      stateDirectory: prepared.permitStateDirectory,
+      delivery: { commit: true, push: false },
+      productResult: compiled.session.productResult,
+    });
+  } finally {
+    releaseWorkspaceExecutionLease({ registryDir: prepared.registryDir, lease: prepared.lease });
+  }
+
+  assert.equal(banked.commit.status, "committed");
+  assert.equal(git(prepared.workspace.workspacePath, ["status", "--short"]), "");
+  assert.equal(findExecutionClosureForDecision(root, compiled.decisionDigest), null);
+  assert.equal(findExecutionWorkResultForDecision(root, compiled.decisionDigest), null);
+
+  assert.throws(
+    () => prepareAuthoritativeWorld(root),
+    (error) => error.code === "MH_WORLD_HEAD_FROZEN",
+  );
+
+  const custody = readWorkspaceCustody(prepared.registryDir, prepared.workspace.workspaceId);
+  assert.equal(custody.state, "TERMINAL_COMMITTED");
+  assert.equal(custody.terminal.commitSha, banked.commit.sha);
+  assert.equal(git(prepared.workspace.workspacePath, ["status", "--short"]), "");
+
+  const closure = findExecutionClosureForDecision(root, compiled.decisionDigest);
+  assert.equal(closure.disposition, "COMPLETED");
+  assert.deepEqual(closure.attemptEntries, [entry.entryDigest]);
+  assert.match(closure.workResultDigest, /^sha256:[a-f0-9]{64}$/u);
+  const workResult = findExecutionWorkResultForDecision(root, compiled.decisionDigest);
+  assert.equal(workResult.result.schemaVersion, "work-bank-recovery-result/v1");
+  assert.equal(workResult.result.outcome, "DONE");
+  assert.equal(workResult.result.workspace.state, "TERMINAL_COMMITTED");
+  assert.equal(workResult.result.workspace.commitSha, banked.commit.sha);
+  assert.match(workResult.result.bankEvidence.candidateSealDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.match(workResult.result.bankEvidence.custodyValidationDigest, /^sha256:[a-f0-9]{64}$/u);
+
+  const abortedBody = {
+    schemaVersion: "world-transition/v1",
+    predecessorHeadDigest: initial.head.headDigest,
+    cause: { type: "ATTEMPT_ABORTED", executionClosureDigest: closure.closureDigest },
+    successorWorldDigest: initial.worldDigest,
+    successorAttestationDigest: initial.attestation.attestationDigest,
+  };
+  const aborted = validateWorldTransition({
+    ...abortedBody,
+    transitionDigest: computeWorldTransitionDigest(abortedBody),
+  });
+  assert.throws(
+    () => commitTransition(root, aborted),
+    (error) => error.code === "MH_WORLD_TRANSITION_CLOSURE",
+  );
+
+  const successor = persistProjectionObjects(root, { observations: ["learned-from-recovered-bank"] });
+  const learned = commitTransition(root, learningTransition(root, initial.head.headDigest, closure, successor));
+  assert.equal(learned.status, "APPLIED");
+  assert.equal(learned.head.worldDigest, successor.worldDigest);
 });
 
 test("AttemptEntry admission freezes its predecessor WorldHead against reality refresh", (t) => {
