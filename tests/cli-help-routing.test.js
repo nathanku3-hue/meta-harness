@@ -25,8 +25,21 @@ test("normal surface rejects workflow controls while retained diagnostics keep t
   assert.equal(productError.stderr, "");
   assert.match(productError.stdout, /^Blocked: normal work accepts only a product result/i);
   assertCliError(runRaw(ROOT, ["work"], { productSurface: true }), "MH_USAGE", /'work' is internal; normal usage is meta-harness/i);
-  assertCliError(runRaw(ROOT, ["sync"]), "MH_USAGE", /unknown sync action: missing/);
+  assertCliError(runRaw(ROOT, ["sync"], { productSurface: true }), "MH_USAGE", /'sync' is internal; normal usage is meta-harness/i);
   assertCliError(runRaw(ROOT, ["merge"]), "MH_USAGE", /unknown merge action: missing/);
+});
+
+test("repo adoption commands are directly invokable without reopening the workflow console", () => {
+  const cwd = tempDir("meta-harness-adoption-");
+  const install = runRaw(cwd, ["templates", "install"], { productSurface: true });
+  assert.equal(install.status, 0, install.stderr);
+  const check = runRaw(cwd, ["sync", "check", "--target", cwd], { productSurface: true });
+  assert.equal(check.status, 0, check.stderr || check.stdout);
+
+  const help = run(ROOT, ["--help"]);
+  assert.doesNotMatch(help, /templates install|sync check/);
+  const advanced = run(ROOT, ["help", "--advanced"]);
+  assert.doesNotMatch(advanced, /templates install|sync check/);
 });
 
 test("missing target keeps human error unless json mode is requested", () => {

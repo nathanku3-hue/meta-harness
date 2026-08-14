@@ -119,12 +119,12 @@ test("templates install refuses dirty repositories unless explicitly allowed", (
   writeFile(cwd, "dirty.txt", "uncommitted\n");
 
   const before = snapshotTree(cwd);
-  const rejected = runRaw(cwd, ["templates", "install"]);
+  const rejected = runRaw(cwd, ["templates", "install"], { productSurface: true });
   assertCliError(rejected, "MH_USAGE", /Repository is dirty/);
   assert.deepEqual(snapshotTree(cwd), before);
   assert.equal(fs.existsSync(path.join(cwd, "AGENTS.md")), false);
 
-  const allowed = runRaw(cwd, ["templates", "install", "--allow-dirty"]);
+  const allowed = runRaw(cwd, ["templates", "install", "--allow-dirty"], { productSurface: true });
   assert.equal(allowed.status, 0, allowed.stderr);
   assert.equal(fs.existsSync(path.join(cwd, "AGENTS.md")), true);
 });

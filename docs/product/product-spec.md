@@ -345,9 +345,11 @@ Machine/evidence contracts may retain richer fields internally. They are not hum
 
 ## Internal maintenance boundary
 
-Historical command handlers for evidence, release, templates, layout, governance, portfolio, sync, and other maintenance remain internal implementation while their unique semantics are classified and retired or moved behind library/script entrypoints.
+Historical command handlers for evidence, release, layout, governance, portfolio, and other maintenance remain internal implementation while their unique semantics are classified and retired or moved behind library/script entrypoints.
 
-They are not public command metadata and must not appear in the normal or advanced human help inventory. Product tests exercise them through an explicit maintenance test context rather than treating them as supported user workflow.
+Repository adoption retains two narrow operator maintenance entrypoints: `meta-harness sync check --target <repo>` is read-only, and `meta-harness templates install [--overwrite]` installs repo-local guidance while preserving the dirty-work refusal unless the operator explicitly supplies `--allow-dirty`. These adoption entrypoints remain absent from normal and advanced help because they are installation/maintenance operations, not product workflow controls.
+
+All other historical commands are not public command metadata and must not appear in the normal or advanced human help inventory. Product tests exercise them through an explicit maintenance test context rather than treating them as supported user workflow.
 
 The target end state has no category called "advanced user workflow command."
 

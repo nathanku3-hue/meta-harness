@@ -17,6 +17,11 @@ function wantsJson(argv) {
   return argv.includes("--json");
 }
 
+function isRepoAdoptionCommand(argv) {
+  return (argv[0] === "sync" && argv[1] === "check")
+    || (argv[0] === "templates" && argv[1] === "install");
+}
+
 function writeHumanError(error, context) {
   const harnessError = normalizeHarnessError(error);
   context.stderr.write(`meta-harness: ${harnessError.code}: ${harnessError.message}\n`);
@@ -85,7 +90,8 @@ async function run(argv, context = createCommandContext()) {
       return result?.exitCode || 0;
     }
     const maintenanceContext = context.env.META_HARNESS_INTERNAL_CLI === "1"
-      || (context.env.npm_lifecycle_event === "prepublishOnly" && command === "release");
+      || (context.env.npm_lifecycle_event === "prepublishOnly" && command === "release")
+      || isRepoAdoptionCommand(argv);
     if (!maintenanceContext) {
       throw new UsageError(`'${command}' is internal; normal usage is meta-harness \"<result>\" or meta-harness`);
     }
