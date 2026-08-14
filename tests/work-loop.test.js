@@ -89,6 +89,19 @@ function workerEnv(extra = {}) {
   };
 }
 
+function workerResult(changes, status = "done") {
+  return {
+    result: {
+      status,
+      observableResult: "Prepared the requested result.",
+      changes,
+      validation: [],
+      blocker: "",
+      nextAction: "Use the result.",
+    },
+  };
+}
+
 test("zero validation blocks before workspace creation or worker launch", async (t) => {
   const root = repository(t);
   let workerCalls = 0;
@@ -290,6 +303,130 @@ test("legacy commit=false cannot disable automatic local banking", async (t) => 
     () => loadLatestWorkSession(root),
     (error) => error.code === "MH_WORKSPACE_NOT_EXECUTABLE",
   );
+});
+
+test("candidate identity uses actual Git delta when a previously materialized path is restored", async (t) => {
+  const root = repository(t);
+  const workSession = session(root, { allowedPaths: ["README.md", "src"], maxAttempts: 2 });
+  const runner = async ({ attempt }) => attempt === 1
+    ? workerResult([{ path: "README.md", content: "temporary change\n" }])
+    : workerResult([
+      { path: "README.md", content: "baseline\n" },
+      { path: "src/result.txt", content: "delivered\n" },
+    ]);
+
+  const result = await runWork({ repositoryPath: root, session: workSession, runner, timeoutSeconds: 30 });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.attempts, 2);
+  assert.deepEqual(result.changedPaths, ["src/result.txt"]);
+  assert.deepEqual(result.delivery.commit.paths, ["src/result.txt"]);
+  assert.equal(git(result.workspace.path, ["diff", "--name-only", "--no-renames", workSession.base.commit, "HEAD"]), "src/result.txt");
+  assert.equal(fs.readFileSync(path.join(result.workspace.path, "README.md"), "utf8"), "baseline\n");
+});
+
+test("validation that mutates accepted content invalidates the sealed Git candidate", async (t) => {
+  const root = repository(t);
+  const workSession = session(root, {
+    validation: [{
+      argv: [process.execPath, "-e", "require('fs').writeFileSync('src/result.txt','validator-mutated\\n')"],
+      cwd: ".",
+      timeoutSeconds: 30,
+    }],
+  });
+  await assert.rejects(
+    runWork({ repositoryPath: root, session: workSession, env: workerEnv(), timeoutSeconds: 30 }),
+    (error) => error.code === "MH_WORK_VALIDATION_MUTATION",
+  );
+});
+
+test("validation that creates extra nonignored Git dirt invalidates the sealed candidate", async (t) => {
+  const root = repository(t);
+  const workSession = session(root, {
+    validation: [{
+      argv: [process.execPath, "-e", "require('fs').writeFileSync('src/generated.txt','generated\\n')"],
+      cwd: ".",
+      timeoutSeconds: 30,
+    }],
+  });
+  await assert.rejects(
+    runWork({ repositoryPath: root, session: workSession, env: workerEnv(), timeoutSeconds: 30 }),
+    (error) => error.code === "MH_WORK_VALIDATION_MUTATION",
+  );
+});
+
+test("validation may create ignored artifacts without changing the bankable Git candidate", async (t) => {
+  const root = repository(t);
+  fs.appendFileSync(path.join(root, ".gitignore"), ".cache/\n", "utf8");
+  git(root, ["add", ".gitignore"]);
+  git(root, ["commit", "-m", "ignore validation cache"]);
+  const workSession = session(root, {
+    validation: [{
+      argv: [
+        process.execPath,
+        "-e",
+        "const fs=require('fs'); fs.mkdirSync('.cache',{recursive:true}); fs.writeFileSync('.cache/result','cache'); if(fs.readFileSync('src/result.txt','utf8')!=='delivered\\n') process.exit(7)",
+      ],
+      cwd: ".",
+      timeoutSeconds: 30,
+    }],
+  });
+  const result = await runWork({ repositoryPath: root, session: workSession, env: workerEnv(), timeoutSeconds: 30 });
+  assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
+  assert.deepEqual(result.delivery.commit.paths, ["src/result.txt"]);
+  assert.equal(git(result.workspace.path, ["status", "--short"]), "");
+  assert.equal(fs.readFileSync(path.join(result.workspace.path, ".cache", "result"), "utf8"), "cache");
+});
+
+test("validation that changes Git file-mode representation invalidates the sealed candidate", async (t) => {
+  const root = repository(t);
+  if (git(root, ["config", "--bool", "core.filemode"]) !== "true") {
+    t.skip("Git file-mode tracking is disabled on this filesystem");
+    return;
+  }
+  const workSession = session(root, {
+    validation: [{
+      argv: [process.execPath, "-e", "require('fs').chmodSync('src/result.txt',0o755)"],
+      cwd: ".",
+      timeoutSeconds: 30,
+    }],
+  });
+  await assert.rejects(
+    runWork({ repositoryPath: root, session: workSession, env: workerEnv(), timeoutSeconds: 30 }),
+    (error) => error.code === "MH_WORK_VALIDATION_MUTATION",
+  );
+});
+
+test("a no-change validated candidate closes without manufacturing an empty commit", async (t) => {
+  const root = repository(t);
+  const workSession = session(root, {
+    allowedPaths: ["README.md"],
+    validation: [{ argv: [process.execPath, "-e", "process.exit(0)"], cwd: ".", timeoutSeconds: 30 }],
+  });
+  const result = await runWork({
+    repositoryPath: root,
+    session: workSession,
+    runner: async () => workerResult([{ path: "README.md", content: "baseline\n" }]),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
+  assert.equal(result.delivery.commit.status, "no_changes");
+  assert.deepEqual(result.delivery.commit.paths, []);
+  assert.deepEqual(result.changedPaths, []);
+  assert.equal(git(result.workspace.path, ["rev-parse", "HEAD"]), workSession.base.commit);
+  assert.equal(git(result.workspace.path, ["status", "--short"]), "");
+});
+
+test("publication failure does not downgrade a successfully banked local result", async (t) => {
+  const root = repository(t);
+  const workSession = session(root, { delivery: { commit: true, push: true } });
+  const result = await runWork({ repositoryPath: root, session: workSession, env: workerEnv(), timeoutSeconds: 30 });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
+  assert.equal(result.delivery.commit.status, "committed");
+  assert.equal(result.delivery.push.status, "failed");
+  assert.equal(git(result.workspace.path, ["status", "--short"]), "");
+  assert.notEqual(git(result.workspace.path, ["rev-parse", "HEAD"]), workSession.base.commit);
 });
 
 test("failed validation is returned to a fresh single-use permit for bounded repair", async (t) => {

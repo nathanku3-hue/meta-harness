@@ -8,10 +8,13 @@ const test = require("node:test");
 
 const {
   deliverValidatedChanges,
-  hashAcceptedPaths,
+  inspectWorkspace,
+  latestWorkSessionState,
   loadLatestWorkSession,
   persistWorkSession,
   prepareWorkspace,
+  publishBankedChanges,
+  sealCandidate,
   worktreePlan,
 } = require("../lib/work-git");
 const { sealWorkSession } = require("../lib/work-session");
@@ -212,29 +215,21 @@ test("removing and recreating the same physical worktree path cannot inherit the
   );
 });
 
-test("delivery never writes through the source checkout", (t) => {
+test("BANK never writes through the source checkout even when legacy commit=false", (t) => {
   const { root, branch } = repository(t);
   const baseline = git(root, ["rev-parse", "HEAD"]);
   fs.writeFileSync(path.join(root, "accepted.txt"), "validated result\n", "utf8");
-  const acceptedPathHashes = hashAcceptedPaths(root, ["accepted.txt"]);
-
-  const refused = deliverValidatedChanges({
-    workspacePath: root,
-    acceptedPathHashes,
-    delivery: { commit: false, push: false },
-    productResult: "Write the validated result.",
-  });
-  assert.deepEqual(refused.commit, { status: "not_authorized" });
-  assert.deepEqual(refused.push, { status: "not_authorized" });
+  const session = isolatedSession(root);
 
   assert.throws(
     () => deliverValidatedChanges({
       repositoryRoot: root,
       workspacePath: root,
-      session: isolatedSession(root),
+      session,
       workspaceCustody: {},
-      acceptedPathHashes,
-      delivery: { commit: true, push: false },
+      candidateSeal: null,
+      stateDirectory: path.join(root, ".git", "meta-harness", "work-sessions"),
+      delivery: { commit: false, push: false },
       productResult: "Write the validated result.",
     }),
     (error) => ["MH_WORK_DELIVERY_WORKSPACE", "MH_WORKSPACE_CUSTODY_SHAPE"].includes(error.code),
@@ -243,13 +238,21 @@ test("delivery never writes through the source checkout", (t) => {
   assert.equal(remoteHead(root, branch), baseline);
 });
 
-test("mutation after accepted-path hashing blocks managed-worktree delivery", (t) => {
+test("mutation after the durable Git candidate seal blocks BANK", (t) => {
   const { root } = repository(t);
   const session = isolatedSession(root);
   const workspace = prepareWorkspace(root, session);
+  const state = persistWorkSession(root, session, workspace);
   fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "validated result\n", "utf8");
-  const acceptedPathHashes = hashAcceptedPaths(workspace.workspacePath, ["accepted.txt"]);
-  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "mutated after validation\n", "utf8");
+  const inspected = inspectWorkspace(workspace.workspacePath, session.allowedPaths);
+  const seal = sealCandidate({
+    stateDirectory: state.directory,
+    session,
+    workspace,
+    boundary: { head: inspected.head, inspected },
+    materializedPaths: ["accepted.txt"],
+  });
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "mutated after seal\n", "utf8");
 
   assert.throws(
     () => deliverValidatedChanges({
@@ -257,49 +260,151 @@ test("mutation after accepted-path hashing blocks managed-worktree delivery", (t
       workspacePath: workspace.workspacePath,
       session,
       workspaceCustody: workspace.custody,
-      acceptedPathHashes,
+      candidateSeal: seal,
+      stateDirectory: state.directory,
       delivery: { commit: true, push: false },
       productResult: "Write the validated result.",
     }),
-    (error) => error.code === "MH_WORK_DELIVERY_MUTATION",
+    (error) => error.code === "MH_WORK_BANK_MUTATION",
   );
   assert.equal(git(workspace.workspacePath, ["rev-parse", "HEAD"]), workspace.baseHead);
   assert.equal(git(workspace.workspacePath, ["diff", "--cached", "--name-only"]), "");
 });
 
-test("managed delivery commits only accepted paths, preserves unrelated dirtiness, and verifies pushed HEAD", (t) => {
+test("foreign managed-worktree dirt after sealing blocks BANK without cleanup", (t) => {
+  const { root } = repository(t);
+  const session = isolatedSession(root);
+  const workspace = prepareWorkspace(root, session);
+  const state = persistWorkSession(root, session, workspace);
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "validated result\n", "utf8");
+  const inspected = inspectWorkspace(workspace.workspacePath, session.allowedPaths);
+  const seal = sealCandidate({
+    stateDirectory: state.directory,
+    session,
+    workspace,
+    boundary: { head: inspected.head, inspected },
+    materializedPaths: ["accepted.txt"],
+  });
+  fs.writeFileSync(path.join(workspace.workspacePath, "staged.txt"), "foreign staged change\n", "utf8");
+  git(workspace.workspacePath, ["add", "staged.txt"]);
+  const stagedBefore = git(workspace.workspacePath, ["diff", "--cached", "--binary", "--", "staged.txt"]);
+
+  assert.throws(
+    () => deliverValidatedChanges({
+      repositoryRoot: root,
+      workspacePath: workspace.workspacePath,
+      session,
+      workspaceCustody: workspace.custody,
+      candidateSeal: seal,
+      stateDirectory: state.directory,
+      delivery: { commit: true, push: false },
+      productResult: "Write the validated result.",
+    }),
+    (error) => error.code === "MH_WORK_BANK_MUTATION",
+  );
+  assert.equal(git(workspace.workspacePath, ["diff", "--cached", "--binary", "--", "staged.txt"]), stagedBefore);
+  assert.equal(fs.readFileSync(path.join(workspace.workspacePath, "staged.txt"), "utf8"), "foreign staged change\n");
+  assert.equal(git(workspace.workspacePath, ["rev-parse", "HEAD"]), workspace.baseHead);
+});
+
+test("BANK commits the exact sealed Git tree and PUBLISH is a later operation", (t) => {
   const { root, branch: sourceBranch } = repository(t);
   const sourceHead = git(root, ["rev-parse", "HEAD"]);
   const session = isolatedSession(root);
   const workspace = prepareWorkspace(root, session);
-  fs.writeFileSync(path.join(workspace.workspacePath, "staged.txt"), "owner staged change\n", "utf8");
-  git(workspace.workspacePath, ["add", "staged.txt"]);
-  const stagedBefore = git(workspace.workspacePath, ["diff", "--cached", "--binary", "--", "staged.txt"]);
-  fs.writeFileSync(path.join(workspace.workspacePath, "dirty.txt"), "owner dirty change\n", "utf8");
+  const state = persistWorkSession(root, session, workspace);
   fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "validated result\n", "utf8");
-  const acceptedPathHashes = hashAcceptedPaths(workspace.workspacePath, ["accepted.txt"]);
+  const inspected = inspectWorkspace(workspace.workspacePath, session.allowedPaths);
+  const seal = sealCandidate({
+    stateDirectory: state.directory,
+    session,
+    workspace,
+    boundary: { head: inspected.head, inspected },
+    materializedPaths: ["accepted.txt"],
+  });
 
-  const delivered = deliverValidatedChanges({
+  const banked = deliverValidatedChanges({
     repositoryRoot: root,
     workspacePath: workspace.workspacePath,
     session,
     workspaceCustody: workspace.custody,
-    acceptedPathHashes,
-    delivery: { commit: true, push: true },
+    candidateSeal: seal,
+    stateDirectory: state.directory,
+    delivery: { commit: false, push: true },
     productResult: "Write the validated result.",
   });
+  assert.equal(banked.validation, "passed");
+  assert.equal(banked.commit.status, "committed");
+  assert.deepEqual(banked.commit.paths, ["accepted.txt"]);
+  assert.deepEqual(banked.push, { status: "not_attempted" });
+  assert.equal(git(workspace.workspacePath, ["rev-parse", "HEAD^{tree}"]), seal.candidateTreeOid);
+  assert.equal(git(workspace.workspacePath, ["diff", "--name-only", "--no-renames", workspace.baseHead, "HEAD"]), "accepted.txt");
+  assert.equal(git(workspace.workspacePath, ["status", "--short"]), "");
+  assert.equal(git(workspace.workspacePath, ["diff", "--cached", "--name-only"]), "");
 
-  assert.equal(delivered.validation, "passed");
-  assert.equal(delivered.commit.status, "committed");
-  assert.deepEqual(delivered.commit.paths, ["accepted.txt"]);
-  assert.equal(delivered.push.status, "remote_equal");
-  assert.equal(delivered.push.sha, delivered.commit.sha);
-  assert.equal(remoteHead(root, workspace.branch), delivered.commit.sha);
+  const published = publishBankedChanges({ workspacePath: workspace.workspacePath, commit: banked.commit, push: true });
+  assert.equal(published.status, "remote_equal");
+  assert.equal(remoteHead(root, workspace.branch), banked.commit.sha);
   assert.equal(remoteHead(root, sourceBranch), sourceHead);
   assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
-  assert.equal(git(workspace.workspacePath, ["diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"]), "accepted.txt");
-  assert.equal(git(workspace.workspacePath, ["diff", "--cached", "--binary", "--", "staged.txt"]), stagedBefore);
-  assert.equal(git(workspace.workspacePath, ["diff", "--cached", "--name-only"]), "staged.txt");
-  assert.equal(git(workspace.workspacePath, ["diff", "--name-only"]), "dirty.txt");
-  assert.equal(fs.readFileSync(path.join(workspace.workspacePath, "dirty.txt"), "utf8"), "owner dirty change\n");
+});
+
+test("ACTIVE custody deterministically recovers an exact BANK completed before terminalization", (t) => {
+  const { root } = repository(t);
+  const session = isolatedSession(root);
+  const workspace = prepareWorkspace(root, session);
+  const state = persistWorkSession(root, session, workspace);
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "validated result\n", "utf8");
+  const inspected = inspectWorkspace(workspace.workspacePath, session.allowedPaths);
+  const seal = sealCandidate({
+    stateDirectory: state.directory,
+    session,
+    workspace,
+    boundary: { head: inspected.head, inspected },
+    materializedPaths: ["accepted.txt"],
+  });
+  const banked = deliverValidatedChanges({
+    repositoryRoot: root,
+    workspacePath: workspace.workspacePath,
+    session,
+    workspaceCustody: workspace.custody,
+    candidateSeal: seal,
+    stateDirectory: state.directory,
+    delivery: { commit: true, push: false },
+    productResult: "Write the validated result.",
+  });
+  assert.equal(banked.commit.status, "committed");
+
+  const recovered = latestWorkSessionState(root);
+  assert.equal(recovered.state, "TERMINAL");
+  assert.equal(recovered.custodyState, "TERMINAL_COMMITTED");
+  assert.equal(git(workspace.workspacePath, ["status", "--short"]), "");
+});
+
+test("HEAD movement without an exact candidate-seal proof recovers as blocked, never committed", (t) => {
+  const { root } = repository(t);
+  const session = isolatedSession(root);
+  const workspace = prepareWorkspace(root, session);
+  const state = persistWorkSession(root, session, workspace);
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "validated result\n", "utf8");
+  const inspected = inspectWorkspace(workspace.workspacePath, session.allowedPaths);
+  sealCandidate({
+    stateDirectory: state.directory,
+    session,
+    workspace,
+    boundary: { head: inspected.head, inspected },
+    materializedPaths: ["accepted.txt"],
+  });
+
+  fs.writeFileSync(path.join(workspace.workspacePath, "dirty.txt"), "foreign committed change\n", "utf8");
+  git(workspace.workspacePath, ["add", "accepted.txt", "dirty.txt"]);
+  git(workspace.workspacePath, ["commit", "-m", "foreign commit"]);
+  const movedHead = git(workspace.workspacePath, ["rev-parse", "HEAD"]);
+  assert.notEqual(movedHead, workspace.baseHead);
+  assert.equal(git(workspace.workspacePath, ["status", "--short"]), "");
+
+  const recovered = latestWorkSessionState(root);
+  assert.equal(recovered.state, "TERMINAL");
+  assert.equal(recovered.custodyState, "TERMINAL_BLOCKED");
+  assert.equal(git(workspace.workspacePath, ["rev-parse", "HEAD"]), movedHead);
 });
