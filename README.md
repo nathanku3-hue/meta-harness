@@ -2,204 +2,143 @@
 
 Meta-Harness is a local coding system for one owner.
 
-State the product result once. Meta-Harness carries it into a read-only coding worker, validates and materializes bounded file contents, protects existing work, runs exact validation, repairs bounded failures, and returns the observable result.
+State the software result once. Meta-Harness chooses the mechanically correct internal continuation, works in a controller-owned isolated worktree, validates outside the model, repairs bounded failures, banks validated bytes in a local immutable commit, and returns the product result.
 
 ```text
-owner product direction
-→ accepted result
+product result
 → code
 → validation
-→ repair
-→ delivered result
+→ bounded repair when needed
+→ local immutable commit
+→ concise result
 ```
 
-Author repository-root `PRODUCT.md` once (Version, Endgame, Target user, Core user journey, Taste — prefer, Taste — reject, Non-negotiables, Shipping definition, Change rule). Every `work` session pins those exact bytes. Meta-Harness never invents or rewrites product taste.
+Repository-root `PRODUCT.md` remains owner-authored product direction. Meta-Harness reads and pins its exact bytes; it never invents, rewrites, or mutates product taste.
 
-## Primary command
+## Use the product
+
+From the target repository:
 
 ```powershell
-meta-harness work E:\Code\my-project `
-  --goal "Add CSV export to the report page" `
-  --allow src `
-  --allow tests
+meta-harness "Add CSV export to the report page"
 ```
 
-The default output is product-facing:
+If work is interrupted, run:
+
+```powershell
+meta-harness
+```
+
+Meta-Harness decides NEW, RESUME, or STOP from retained repository and workspace truth. The owner does not select a session, actor, validation command, workspace, resume mode, or commit policy.
+
+A normal successful run may surface only coarse liveness plus closure:
 
 ```text
-Outcome: DONE
-Product result: Add CSV export to the report page
-Current state: The owner has authorized this coding result...
-Observable result: The report page now exports the visible rows as CSV.
-Workspace: isolated — E:\Code\my-project\.worktrees\meta-harness-...
-Validation: 2/2 passed
-Commit: not_authorized
-Push: not_authorized
-Blocker: none
-Next: Review and bank the delivered change.
+Working…
+Validating…
+Repairing validation…
+Done — CSV export works. Validation passed and the result is banked locally.
 ```
 
-The low-friction `--goal` path defaults to no commit or push. It first resolves the trusted base once, then walks the **sealed base commit tree** from each allowed path toward the repository root, selects the nearest regular `package.json`, and requires every allowed path to resolve to the same package. Dirty or untracked source-checkout manifests are therefore irrelevant. Meta-Harness seals exact controller-owned `npm test` validation with that package directory as `cwd`. Missing, malformed, symlinked, placeholder, or cross-package validation returns `BLOCKED` before workspace creation or worker launch. Use an explicit sealed work session when validation requires another command. An explicit sealed work session may authorize the controller to commit exact validated paths and optionally push the managed worktree branch to `origin`. Tags, publication, clean, reset, stash, and revert remain outside this flow.
+Automatic internal transitions do not become decision requests. Liveness is deliberately coarse: no workspace UUIDs, generations, custody digests, actor handoffs, session digests, or commit hashes appear in normal output.
 
-## Work sessions
-
-For precise scope and validation, use a sealed `work-session/v4` JSON file:
-
-```powershell
-meta-harness work E:\Code\my-project --session .\work-session.json
-```
-
-The session binds:
-
-- exact product-direction snapshot from `PRODUCT.md`;
-- explicit origin provenance (`OWNER_GOAL` or an immutable Repo Decision digest);
-- exact trusted work base (`REMOTE_REF`, `LOCAL_REF`, or `EXACT_COMMIT`) with its resolved commit;
-- product result and current journey state;
-- immediate action and newly true behavior;
-- done and stop conditions;
-- reversible worker authority and owner-only decisions;
-- allowed paths;
-- exact validation commands;
-- bounded repair attempts;
-- explicit controller authority to commit and optionally push.
-
-The canonical coding brief is `work-session/v4`; repo-directed sessions carry one explicit `origin.decisionDigest` provenance edge, while direct owner goals carry `origin.type = OWNER_GOAL`.
-
-A low-friction `--goal` invocation pins live `PRODUCT.md`, resolves and fetches the exact `origin` default-branch commit, and creates a safe default session. `--base` may select an explicit already-available local ref or exact commit. Use explicit session JSON when exact commands or path boundaries matter. Explicit sessions still require a live matching `PRODUCT.md`.
-
-## Optional repo decision authority
-
-Complex repositories may opt into repo-owned decision authority by adding `.meta-harness/repo-charter.json`. The charter is opaque policy bytes to Meta-Harness: repository intelligence owns claims, hypotheses, evidence meaning, applicability, ranking, resurrection semantics, and any domain allocator. The kernel owns only identity, mechanically checkable attestation, single-entry execution authority, operational closure, immutable World lineage, and compare-and-swap authority.
+When nothing is mechanically active:
 
 ```text
-repo projector / interpreter
-→ immutable repo-world/v2 + world-attestation/v1
-→ world-transition/v1
-→ immutable world-head/v1
-→ current-world-pointer/v1
-→ repo-decision/v3 = DISPATCH | NO_DISPATCH
-   ├─ NO_DISPATCH → no session / workspace / permit / attempt
-   └─ DISPATCH → work-session/v4 → ExecutionPermit → attempt-entry/v1
-                → bounded worker / validation
-                → aggregate execution-closure/v1
-                → repo interpretation
-                → world-transition/v1 → successor WorldHead
+No active slice.
+Use the product.
+Wait for observed real-use friction.
 ```
 
-A `repo-decision/v3` binds live `PRODUCT.md`, opaque charter bytes, the authoritative WorldHead, optional owner-directive bytes, and an exact work base for DISPATCH. A `DISPATCH` action contains only the generic execution brief needed by the coding kernel. `NO_DISPATCH` is inert and has finite generic reasons such as `WAIT_EXTERNAL`, `USE_PRODUCT`, and `NO_VALUABLE_ACTION`.
+Owner intervention is reserved for product/taste decisions, scope expansion, credentials or protected access, destructive action, publication, or material risk. A surfaced owner decision is one question; an external blocker includes the smallest corrective action available.
 
-The first `AttemptEntry` is the Decision's permit-consumption event itself. Repo Decision admission and WorldHead transitions use the same short-lived repository authority lock, so a Decision cannot enter against a Head that concurrently ceased to be current and the same Decision cannot acquire two generation-1 entries. Bounded repair generations are continuations of the same admitted session/workspace authority.
-
-`execution-closure/v1` closes the whole bounded execution and lists every AttemptEntry in order. Its disposition is operational only; terms such as support, inconclusive evidence, claim validity, or scientific failure remain repo interpretation. A hard controller interruption after AttemptEntry is recovered from durable controller evidence without replaying the material attempt.
-
-Every authoritative World change is a `world-transition/v1`. Immutable WorldHead objects remain dereferenceable; only the tiny current-world pointer is mutable. Once a Decision is admitted against Head H, H is frozen until that execution is durably closed and banked. A durable result therefore cannot be overtaken by an unrelated reality refresh, omitted from required learning, or applied to a different predecessor lineage.
-
-See `templates/contracts/repo-decision-plane-v1.md` for the protocol contract.
-
-## Resume
-
-Meta-Harness stores the sealed work session under the repository Git common directory, outside tracked working-tree bytes.
+## Tiny diagnostic surface
 
 ```powershell
-meta-harness work E:\Code\my-project --resume
+meta-harness inspect
 ```
 
-Resume is the only workspace-reuse path. It succeeds only when the latest workspace remains `ACTIVE` and its session digest, workspace UUID, Git administrative identity, branch, sealed base commit, generation, live `PRODUCT.md`, and expected dirty-manifest digest all still match. Terminal or mismatched workspaces never resume and are never repaired by heuristic dirt classification.
+`inspect` reports only coarse state, the active product result when one exists, and whether continuation is automatic. It does not expose lifecycle identifiers.
 
-## Workspace custody
-
-A new session never inherits a mutable workspace, even when the source checkout is clean.
-
-```text
-NEW
-→ resolve trusted base exactly once before session sealing
-→ seal base identity + exact commit and derive goal validation from that tree
-→ create fresh UUID-backed ignored `.worktrees/` worktree at `base.commit`
-→ verify clean Git state
-→ create controller-owned workspace custody
-→ ACTIVE generation 1
-
-RESUME
-→ exact still-ACTIVE workspace custody only
-→ exclusive controller execution lease
-
-TERMINAL
-→ bytes may remain
-→ execution authority never returns
-```
-
-Source-checkout working-tree bytes, HEAD, and index are never execution authority and are not rewritten by NEW workspace selection. Default base resolution may acquire missing Git objects, but it never pulls, resets, checks out, merges, cleans, stashes, or updates the source branch. Only one controller may hold the execution lease for an ACTIVE workspace generation; concurrent resume fails closed. A successful no-commit result becomes `TERMINAL_SEALED_DIRTY`; a committed result becomes `TERMINAL_COMMITTED`. Immutable commits may be used as later bases, but terminal mutable workspaces are never reused. Cleaning, resetting, or recreating a terminal worktree cannot resurrect authority.
-
-Inspect the choice without creating a worktree or launching a worker:
-
-```powershell
-meta-harness work E:\Code\my-project `
-  --goal "Repair the parser" `
-  --allow src/parser `
-  --dry-run `
-  --json
-```
-
-## Validation and repair
-
-Explicit sessions declare validation as exact argument arrays:
-
-```json
-{
-  "argv": ["npm", "test", "--", "parser"],
-  "cwd": ".",
-  "timeoutSeconds": 300
-}
-```
-
-The Codex worker remains read-only and returns complete `{ path, content }` changes. Meta-Harness rejects traversal, symlinks, duplicate paths, oversized content, and files outside the session boundary before controller-owned materialization.
-
-Meta-Harness runs validation commands outside the model. If validation fails and the retry budget remains, the failure is returned to the same work session for bounded repair.
-
-After a `DONE` result and passed validation, Meta-Harness hashes the exact accepted paths. Commit or push is permitted only from the exact ACTIVE controller-owned managed worktree whose UUID, Git registration, identity marker, sealed base, and custody match the session; the source checkout cannot be a delivery target. Meta-Harness blocks if accepted bytes changed after validation, preserves unrelated managed-worktree dirt and staged paths, and pushes that managed branch to `origin` only when `delivery.push` is true. A successful push is reported only after remote HEAD equals the local commit.
-
-After every worker attempt and materialization, Meta-Harness rejects:
-
-- changes outside allowed paths;
-- staging or index mutation;
-- commits or HEAD movement;
-- branch changes.
-
-## Product surface and advanced tools
-
-Default help exposes one coding journey:
+Default and advanced help do not expose an operator workflow console:
 
 ```powershell
 meta-harness --help
-```
-
-Authority, custody, review, release, portfolio, and maintenance tools remain available as advanced internals:
-
-```powershell
 meta-harness help --advanced
 ```
 
-They are not the normal product mental model and no compatibility aliases are maintained.
+Historical lifecycle commands remain internal maintenance implementation while their unique semantics are being retired or library-ized. They are not part of the human product grammar.
 
-## Advanced worker-report evidence
+## Internal journey state
 
-The legacy worker-report command remains an advanced evidence surface. Its first five non-empty lines are:
+Meta-Harness keeps rich internal state so the owner does not have to operate it. The reducer answers a narrow question: what is mechanically next?
 
 ```text
-User journey executed
-Observable result produced
-User accomplished or learned
-Product blocker
-Next executable product action
+new accepted result + no ACTIVE custody → NEW
+same accepted result + ACTIVE custody   → RESUME
+no result + ACTIVE custody              → RESUME
+no result + no selected work            → STOP
+different result while work is ACTIVE   → owner input
 ```
 
-Worker reports place no title or internal metadata before them. This evidence contract does not replace the shorter `work` product result shown to the owner.
+The reducer does not own product semantics. Product direction, scope authority, Git custody, validation evidence, repo decision authority, and publication authority remain in their existing bounded contracts.
 
-## Post-phase learning
+`work-session/v4` remains the complete internal coding brief. It pins exact `PRODUCT.md` bytes, provenance, immutable base, result, scope, validation, repair budget, and publication authority. Normal users neither author nor select it.
 
-Template installation adds a managed reflection block to root `AGENTS.md`. Sync verifies that active guidance matches the packaged contract.
+## Automatic base and scope
 
-`E:\Code\post_phase_reflection.md` is reserved for durable cross-repository lessons. Detailed branch state, test transcripts, custody receipts, and temporary blockers belong in the affected repository.
+NEW work selects an immutable Git base before session sealing:
+
+1. the current branch's configured remote upstream when one exists;
+2. otherwise `origin`'s advertised default branch;
+3. otherwise the sole configured remote's advertised default branch;
+4. otherwise local `HEAD` when the repository has no remotes.
+
+Multiple remotes without a configured upstream fail closed rather than guessing.
+
+Normal owner work uses repository-wide internal scope with hard controller protections and bounded change budgets. `PRODUCT.md`, Git authority, and repository harness control/state files cannot be written by the coding worker. Traversal, symlink targets, duplicate paths, oversized proposals, Git-index mutation, branch movement, and changes outside the sealed boundary fail closed.
+
+Source-checkout mutable bytes are preserved and are never execution authority. Every NEW session receives a fresh ignored repository-local `.worktrees/meta-harness-<id>` worktree at the sealed base commit. RESUME requires exact still-ACTIVE custody; terminal workspace authority never returns.
+
+## Deterministic validation adapters
+
+Validation is derived from the **sealed base tree**, never dirty source-checkout bytes and never model judgment.
+
+Supported adapters include:
+
+- sealed `.meta-harness/validation.json` → exact repository-declared argv/cwd/timeout;
+- `package.json` → package-manager-native `test` (`pnpm`, `yarn`, or `npm` according to the sealed lockfile);
+- `pytest.ini` or `pyproject.toml` → `python -m pytest`;
+- `Cargo.toml` → `cargo test`;
+- `go.mod` → `go test ./...`;
+- one scope-nearest `.sln` or `.csproj` → `dotnet test`.
+
+Each adapter resolves the scope-nearest project from immutable tree facts and fails closed when allowed paths imply multiple projects or otherwise ambiguous validation. If no deterministic adapter matches, work blocks before workspace creation or worker launch.
+
+The coding worker is read-only and returns complete file contents. The controller materializes accepted paths, runs validation outside the model, and returns failures to the same bounded result for repair.
+
+## Automatic local banking
+
+A local commit is closure, not publication.
+
+After `DONE` plus passed controller validation, Meta-Harness:
+
+1. hashes the exact accepted paths;
+2. proves the exact ACTIVE controller-owned managed worktree and generation still match;
+3. verifies accepted bytes did not change after validation;
+4. stages only accepted paths;
+5. creates a local immutable commit on the managed branch;
+6. terminalizes the workspace as `TERMINAL_COMMITTED`.
+
+Legacy `delivery.commit=false` metadata cannot disable this local banking step. Push, PR, merge, release, tags, credentials, destructive cleanup, and other publication/external actions remain explicit authority.
+
+The source checkout's HEAD, index, branch, and existing dirty bytes are not rewritten by local banking.
+
+## Optional repository decision authority
+
+Complex repositories may opt into repo-owned decision authority through `.meta-harness/repo-charter.json`. Repository intelligence owns domain meaning; Meta-Harness owns generic identity, attestation checks it can mechanically prove, single-entry execution authority, workspace custody, operational closure, and immutable World lineage.
+
+A current `repo-decision/v3` is either `DISPATCH` or inert `NO_DISPATCH`. DISPATCH compiles an internal `work-session/v4`; NO_DISPATCH creates no workspace or attempt. The normal owner still does not route planners, coders, auditors, sessions, or generations.
 
 ## Installation
 
@@ -220,13 +159,10 @@ Requirements:
 ```powershell
 npm test
 node bin\meta-harness.js --help
-node bin\meta-harness.js help --advanced
-node bin\meta-harness.js quality check
-node bin\meta-harness.js sync check --target .
 ```
+
+Internal maintenance handlers are tested separately from the human CLI surface. Product tests assert that ordinary users cannot encounter lifecycle controls and that automatic states advance without asking them which workflow command, actor, session, validation path, or local commit policy comes next.
 
 ## Deliberate boundaries
 
-This coding product does not include a queue, daemon, scheduler, swarm, generic provider layer, dashboard, RunSpec migration, automatic publication, or destructive worktree management.
-
-The owner remains responsible for scope expansion, credentials, protected access, publication, destructive action, and material risk decisions.
+Meta-Harness does not include a queue, daemon, scheduler, swarm, generic provider layer, dashboard, recursive planner packet, automatic publication, or destructive worktree management.

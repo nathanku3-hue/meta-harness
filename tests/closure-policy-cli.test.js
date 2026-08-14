@@ -72,13 +72,11 @@ test("worker-report outcome-first leading-field contract is consistent across do
     "Product blocker",
     "Next executable product action",
   ]) {
-    assert.match(readme, new RegExp(field));
-    assert.match(productSpec, new RegExp(field));
+    assert.doesNotMatch(readme, new RegExp(field));
+    assert.doesNotMatch(productSpec, new RegExp(field));
     assert.match(workerDone, new RegExp(field));
     assert.match(harnessState, new RegExp(field));
   }
-  assert.match(readme, /no title or internal metadata before them/);
-  assert.match(productSpec, /Reports must not begin with `# Worker PM Brief`/);
   assert.match(workerDone, /first five non-empty lines/i);
   assert.match(workerDone, /Only after those five lines may the report include:/);
   assert.match(harnessState, /first five non-empty lines/i);

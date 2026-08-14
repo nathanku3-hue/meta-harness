@@ -38,6 +38,7 @@ function runCli(cwd, args) {
     cwd,
     encoding: "utf8",
     windowsHide: true,
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
   });
 }
 
@@ -89,9 +90,10 @@ test("layout manifest and close CLI expose the real transaction", () => {
   assert.equal(JSON.parse(fs.readFileSync(receipt, "utf8")).state, "closed");
 });
 
-test("layout command is registered in advanced help with both bounded actions", () => {
+test("layout maintenance actions are absent from the human diagnostic help", () => {
   const result = runCli(tempDir("layout-cli-help-"), ["help", "--advanced"]);
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /meta-harness layout manifest --target <repo> --output <path>/);
-  assert.match(result.stdout, /meta-harness layout close --target <path> --manifest <path> --receipt <path>/);
+  assert.match(result.stdout, /meta-harness diagnostics/);
+  assert.doesNotMatch(result.stdout, /meta-harness layout manifest/);
+  assert.doesNotMatch(result.stdout, /meta-harness layout close/);
 });

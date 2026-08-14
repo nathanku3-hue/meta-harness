@@ -107,6 +107,7 @@ test("ExecutionPermit is generation-bound, single-use, lease-bound, and capabili
     "CODE_PROPOSE",
     "CONTROLLER_MATERIALIZE",
     "CONTROLLER_VALIDATE",
+    "CONTROLLER_COMMIT",
   ]);
   const entry = enterExecutionAttempt({ stateDirectory: stateDirectory(root), permit, session: workSession });
   assert.equal(entry.origin.type, "OWNER_GOAL");

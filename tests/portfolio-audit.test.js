@@ -212,7 +212,12 @@ test("portfolio audit CLI is registered and remains report-only when findings ex
     "--copy",
     copy,
     "--json",
-  ], { cwd: dirty.root, encoding: "utf8", windowsHide: true });
+  ], {
+    cwd: dirty.root,
+    encoding: "utf8",
+    windowsHide: true,
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
 
   assert.equal(result.status, 0, result.stderr);
   const summary = JSON.parse(result.stdout);
@@ -223,5 +228,6 @@ test("portfolio audit CLI is registered and remains report-only when findings ex
 
   const help = spawnSync(process.execPath, [CLI, "help", "--advanced"], { encoding: "utf8", windowsHide: true });
   assert.equal(help.status, 0);
-  assert.match(help.stdout, /meta-harness portfolio audit --policy <path> --output <path>/);
+  assert.match(help.stdout, /meta-harness diagnostics/);
+  assert.doesNotMatch(help.stdout, /meta-harness portfolio audit/);
 });

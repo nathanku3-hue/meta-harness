@@ -40,8 +40,8 @@ test("public command and check registries are deterministic metadata surfaces", 
   assert.deepEqual(commands.map((item) => item.name), commands.map((item) => item.name).slice().sort());
   assert.equal(commands.every((item) => typeof item.owner === "string" && item.owner.length > 0), true);
   assert.equal(commands.every((item) => Object.hasOwn(item, "public")), true);
-  assert.deepEqual(commands.filter((item) => item.public).map((item) => item.name), ["work"]);
-  assert.equal(commands.filter((item) => item.internal).length, commands.length - 1);
+  assert.deepEqual(commands.filter((item) => item.public).map((item) => item.name), []);
+  assert.equal(commands.filter((item) => item.internal).length, commands.length);
 
   const checks = checkIdRegistry();
   assert.deepEqual(checks.map((item) => item.id), checks.map((item) => item.id).slice().sort());
@@ -64,24 +64,17 @@ test("public command and check registries are deterministic metadata surfaces", 
   assert.equal(checks.every((item) => typeof item.strictRequired === "boolean"), true);
 });
 
-test("default help is one product-facing coding journey and advanced help retains evidence tools", () => {
+test("human help exposes the ghost journey and no lifecycle console", () => {
   const help = renderHelp();
   assert.match(help, /^meta-harness\n/);
-  assert.match(help, /meta-harness work <repository> --goal <result>/);
-  assert.doesNotMatch(help, /meta-harness execute --request/);
-  assert.doesNotMatch(help, /meta-harness governance snapshot/);
+  assert.match(help, /meta-harness "<result>"/);
+  assert.match(help, /meta-harness inspect/);
+  assert.doesNotMatch(help, /--goal|--resume|--session|--allow|--base|--commit|--json/);
+  assert.doesNotMatch(help, /meta-harness execute|meta-harness governance|meta-harness ready/);
 
   const advanced = renderHelp({ advanced: true });
-  assert.match(advanced, /^meta-harness advanced commands/);
-  assert.equal(
-    advanced.split("meta-harness execute --request <absolute-path> [--json]").length - 1,
-    1,
-  );
-  assert.match(advanced, /meta-harness ready --target <repo>/);
-  assert.match(advanced, /meta-harness merge check --pr <n> --scope <scope>/);
-  assert.match(advanced, /meta-harness skill check --target <repo>/);
-  assert.match(advanced, /meta-harness release candidate <create\|verify-preterminal\|verify-publication>/);
-  assert.match(advanced, /meta-harness governance snapshot \[--target <repo>\]/);
-  assert.match(advanced, /meta-harness context packet <round-id> --for <review\|planning>/);
-  assert.match(advanced, /Streams: coding, research, writing, review/);
+  assert.match(advanced, /^meta-harness diagnostics/);
+  assert.match(advanced, /meta-harness inspect/);
+  assert.match(advanced, /no advanced workflow console/i);
+  assert.doesNotMatch(advanced, /meta-harness execute|meta-harness ready|meta-harness merge|meta-harness governance/);
 });

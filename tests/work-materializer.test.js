@@ -89,6 +89,14 @@ test("materializer rejects Decision Plane control-state mutations even under a b
   }
 });
 
+test("materializer rejects harness state under repository-wide scope", (t) => {
+  const { root } = workspace(t);
+  assert.throws(
+    () => materializeWorkerChanges(root, [{ path: ".meta-harness/status.md", content: "changed\n" }], ["."]),
+    (error) => error.code === "MH_WORK_CONTROL_PATH",
+  );
+});
+
 test("materializer rejects oversized content before writing", (t) => {
   const { root } = workspace(t);
 

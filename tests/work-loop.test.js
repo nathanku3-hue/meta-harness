@@ -146,11 +146,12 @@ test("work loop carries a product brief into a fresh isolated generation and exa
   const result = await runWork({ repositoryPath: root, session: session(root), env: workerEnv(), timeoutSeconds: 30 });
   assert.equal(result.outcome, "DONE");
   assert.equal(result.workspace.mode, "isolated");
-  assert.equal(result.workspace.state, "TERMINAL_SEALED_DIRTY");
+  assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
   assert.equal(result.validation.length, 1);
   assert.equal(result.validation[0].passed, true);
   assert.deepEqual(result.changedPaths, ["src/result.txt"]);
-  assert.deepEqual(result.delivery.commit, { status: "not_authorized" });
+  assert.equal(result.delivery.commit.status, "committed");
+  assert.deepEqual(result.delivery.commit.paths, ["src/result.txt"]);
   assert.deepEqual(result.delivery.push, { status: "not_authorized" });
   assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
   assert.equal(fs.readFileSync(path.join(result.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
@@ -211,7 +212,7 @@ test("passed controller validation advances generation before bounded completion
     timeoutSeconds: 30,
   });
   assert.equal(result.outcome, "DONE");
-  assert.equal(result.workspace.state, "TERMINAL_SEALED_DIRTY");
+  assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
   assert.equal(result.attempts, 2);
   assert.deepEqual(result.executionPermits.map((permit) => permit.generation), [1, 2]);
   assert.equal(result.validation[0].passed, true);
@@ -277,19 +278,14 @@ test("clean terminal committed workspace cannot resume and cleanliness cannot re
   );
 });
 
-test("terminal sealed-dirty workspace stays terminal after manual cleanup or byte restoration", async (t) => {
+test("legacy commit=false cannot disable automatic local banking", async (t) => {
   const root = repository(t);
-  const result = await runWork({ repositoryPath: root, session: session(root), env: workerEnv(), timeoutSeconds: 30 });
-  assert.equal(result.workspace.state, "TERMINAL_SEALED_DIRTY");
-  fs.rmSync(path.join(result.workspace.path, "src"), { recursive: true, force: true });
+  const workSession = session(root, { delivery: { commit: false, push: false } });
+  const result = await runWork({ repositoryPath: root, session: workSession, env: workerEnv(), timeoutSeconds: 30 });
+  assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
+  assert.equal(result.delivery.commit.status, "committed");
   assert.equal(git(result.workspace.path, ["status", "--short"]), "");
-  assert.throws(
-    () => loadLatestWorkSession(root),
-    (error) => error.code === "MH_WORKSPACE_NOT_EXECUTABLE",
-  );
-
-  fs.mkdirSync(path.join(result.workspace.path, "src"));
-  fs.writeFileSync(path.join(result.workspace.path, "src", "result.txt"), "delivered\n", "utf8");
+  assert.notEqual(git(result.workspace.path, ["rev-parse", "HEAD"]), workSession.base.commit);
   assert.throws(
     () => loadLatestWorkSession(root),
     (error) => error.code === "MH_WORKSPACE_NOT_EXECUTABLE",

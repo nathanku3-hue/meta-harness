@@ -61,6 +61,7 @@ function run(cwd, args) {
   return childProcess.spawnSync(process.execPath, [BIN, ...args], {
     cwd,
     encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
   });
 }
 

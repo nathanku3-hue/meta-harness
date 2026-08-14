@@ -16,6 +16,15 @@ function tempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-sync-"));
 }
 
+function runInternalCli(cwd, args) {
+  const root = path.resolve(__dirname, "..");
+  const cli = path.join(root, "bin", "meta-harness.js");
+  return spawnSync(process.execPath, [cli, ...args], {
+    cwd,
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
+}
+
 function writeFile(root, relativePath, content) {
   const filePath = path.join(root, ...relativePath.split("/"));
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -278,14 +287,14 @@ test("templates install/upgrade round-trip integration test", () => {
   const targetRoot = tempDir();
 
   // 1. Run templates install command (requires init first)
-  const resultInit = spawnSync(process.execPath, [CLI, "init"], { cwd: targetRoot });
+  const resultInit = runInternalCli(targetRoot, ["init"]);
   assert.equal(resultInit.status, 0);
 
-  const resultInstall = spawnSync(process.execPath, [CLI, "templates", "install", "--allow-dirty"], { cwd: targetRoot });
+  const resultInstall = runInternalCli(targetRoot, ["templates", "install", "--allow-dirty"]);
   assert.equal(resultInstall.status, 0);
 
   // 2. Run sync check --target <temp>
-  const resultCheck1 = spawnSync(process.execPath, [CLI, "sync", "check", "--target", targetRoot], { cwd: targetRoot });
+  const resultCheck1 = runInternalCli(targetRoot, ["sync", "check", "--target", targetRoot]);
   assert.equal(resultCheck1.status, 0);
 
   // 3. Modify one installed template
@@ -293,16 +302,16 @@ test("templates install/upgrade round-trip integration test", () => {
   fs.writeFileSync(targetTemplatePath, "modified-content\n", "utf8");
 
   // 4. Run sync check --target <temp>, verify DRIFT detected
-  const resultCheck2 = spawnSync(process.execPath, [CLI, "sync", "check", "--target", targetRoot], { cwd: targetRoot });
+  const resultCheck2 = runInternalCli(targetRoot, ["sync", "check", "--target", targetRoot]);
   assert.notEqual(resultCheck2.status, 0);
   assert.match(resultCheck2.stdout.toString("utf8"), /DRIFT/);
 
   // 5. Re-install with overwrite
-  const resultReinstall = spawnSync(process.execPath, [CLI, "templates", "install", "--overwrite", "--allow-dirty"], { cwd: targetRoot });
+  const resultReinstall = runInternalCli(targetRoot, ["templates", "install", "--overwrite", "--allow-dirty"]);
   assert.equal(resultReinstall.status, 0);
 
   // 6. Verify PASS restored
-  const resultCheck3 = spawnSync(process.execPath, [CLI, "sync", "check", "--target", targetRoot], { cwd: targetRoot });
+  const resultCheck3 = runInternalCli(targetRoot, ["sync", "check", "--target", targetRoot]);
   assert.equal(resultCheck3.status, 0);
 
   // 7. Init remains advisory and does not mint canonical authority.
@@ -317,10 +326,10 @@ test("templates install failure rollback test", () => {
   const CLI = path.join(ROOT, "bin", "meta-harness.js");
   const targetRoot = tempDir();
 
-  const resultInit = spawnSync(process.execPath, [CLI, "init"], { cwd: targetRoot });
+  const resultInit = runInternalCli(targetRoot, ["init"]);
   assert.equal(resultInit.status, 0);
 
-  const resultInstall = spawnSync(process.execPath, [CLI, "templates", "install", "--allow-dirty"], { cwd: targetRoot });
+  const resultInstall = runInternalCli(targetRoot, ["templates", "install", "--allow-dirty"]);
   assert.equal(resultInstall.status, 0);
   
   const initialManifest = fs.readFileSync(path.join(targetRoot, ".meta-harness", "templates", "manifest.json"), "utf8");

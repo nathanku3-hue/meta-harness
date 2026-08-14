@@ -11,6 +11,7 @@ const {
   computeWorkSessionDigest,
   createGoalWorkSession,
   loadWorkSession,
+  reduceJourneyState,
   sealWorkSession,
   validateWorkSession,
 } = require("../lib/work-session");
@@ -40,6 +41,15 @@ function explicitSession(overrides = {}) {
     ...overrides,
   });
 }
+
+test("journey reducer keeps automatic continuation mechanically bounded", () => {
+  const active = explicitSession({ productResult: "Add CSV export." });
+  assert.equal(reduceJourneyState({ ownerResult: "Add CSV export." }).next.operation, "NEW");
+  assert.equal(reduceJourneyState({ activeSession: active }).next.operation, "RESUME");
+  assert.equal(reduceJourneyState({ ownerResult: "Add CSV export.", activeSession: active }).next.operation, "RESUME");
+  assert.equal(reduceJourneyState({ ownerResult: "Change the export format.", activeSession: active }).next.automatic, false);
+  assert.equal(reduceJourneyState({ compiledDecision: { type: "NO_DISPATCH", reason: "USE_PRODUCT" } }).next.operation, "STOP");
+});
 
 test("work-session/v4 seals product direction, provenance, trusted base, and exact path/validation scope", () => {
   const session = explicitSession();

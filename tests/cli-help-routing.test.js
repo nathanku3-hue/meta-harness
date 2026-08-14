@@ -4,22 +4,27 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const { ROOT, assertCliError, run, runRaw, tempDir } = require("./helpers/cli");
 
-test("default help is product-facing while advanced help retains internal routes", () => {
+test("default help is the ghost journey while advanced help retains diagnostics", () => {
   const output = run(ROOT, ["--help"]);
   assert.match(output, /^meta-harness\n\nA coding system that carries one accepted product result/);
-  assert.match(output, /meta-harness work <repository> --goal <result>/);
+  assert.match(output, /meta-harness "<result>"/);
+  assert.match(output, /continues the mechanically correct active work or stops/i);
   assert.doesNotMatch(output, /meta-harness worker-report/);
   assert.doesNotMatch(output, /meta-harness merge check/);
 
   const advanced = run(ROOT, ["help", "--advanced"]);
-  assert.match(advanced, /^meta-harness advanced commands/);
-  assert.match(advanced, /meta-harness worker-report \[worker-id\].*--task <user-journey>/);
-  assert.match(advanced, /meta-harness merge check --base <base> --head <head> --scope <scope>/);
-  assert.match(advanced, /meta-harness repos remove <name>/);
+  assert.match(advanced, /^meta-harness diagnostics/);
+  assert.match(advanced, /meta-harness inspect/);
+  assert.match(advanced, /no advanced workflow console/i);
+  assert.doesNotMatch(advanced, /worker-report|merge check|repos remove/);
 });
 
-test("unknown command and missing subcommand keep typed human errors", () => {
-  assertCliError(runRaw(ROOT, ["unknown-command"]), "MH_USAGE", /unknown command: unknown-command/);
+test("normal surface rejects workflow controls while retained diagnostics keep typed errors", () => {
+  const productError = runRaw(ROOT, ["--not-a-normal-work-flag"]);
+  assert.equal(productError.status, 2);
+  assert.equal(productError.stderr, "");
+  assert.match(productError.stdout, /^Blocked: normal work accepts only a product result/i);
+  assertCliError(runRaw(ROOT, ["work"], { productSurface: true }), "MH_USAGE", /'work' is internal; normal usage is meta-harness/i);
   assertCliError(runRaw(ROOT, ["sync"]), "MH_USAGE", /unknown sync action: missing/);
   assertCliError(runRaw(ROOT, ["merge"]), "MH_USAGE", /unknown merge action: missing/);
 });

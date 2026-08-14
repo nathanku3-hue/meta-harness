@@ -16,7 +16,11 @@ function tempDir() {
 }
 
 function run(cwd, args) {
-  const result = spawnSync(process.execPath, [CLI, ...args], { cwd, encoding: "utf8" });
+  const result = spawnSync(process.execPath, [CLI, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
   if (result.status !== 0) {
     throw new Error(`Command failed: ${args.join(" ")}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
   }
@@ -24,7 +28,11 @@ function run(cwd, args) {
 }
 
 function runRaw(cwd, args) {
-  return spawnSync(process.execPath, [CLI, ...args], { cwd, encoding: "utf8" });
+  return spawnSync(process.execPath, [CLI, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
 }
 
 function errorCode(result) {

@@ -8,6 +8,8 @@ const { spawnSync } = require("node:child_process");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const CLI = path.join(ROOT, "bin", "meta-harness.js");
+const { commandNames } = require("../../lib/command-registry");
+const INTERNAL_COMMANDS = new Set(commandNames());
 
 function tempDir(prefix = "meta-harness-") {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -69,11 +71,17 @@ function run(cwd, args, options = {}) {
 }
 
 function runRaw(cwd, args, options = {}) {
+  const { productSurface = false, ...spawnOptions } = options;
+  const internal = !productSurface && INTERNAL_COMMANDS.has(args[0]);
+  const selectedEnv = { ...(spawnOptions.env || process.env) };
+  if (productSurface) delete selectedEnv.META_HARNESS_INTERNAL_CLI;
+  if (internal) selectedEnv.META_HARNESS_INTERNAL_CLI = "1";
   return spawnSync(process.execPath, [CLI, ...args], {
     cwd,
     encoding: "utf8",
     shell: false,
-    ...options,
+    ...spawnOptions,
+    env: selectedEnv,
   });
 }
 

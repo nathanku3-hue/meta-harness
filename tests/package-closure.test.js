@@ -81,7 +81,7 @@ test("package closure rejects a source-only relative dependency", (t) => {
   );
 });
 
-test("0.4 tarball has exact transitive package closure and loads every installed command", (t) => {
+test("0.4 tarball ships the product path without the historical command console", (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-package-gate-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const packRoot = path.join(root, "pack");
@@ -90,6 +90,7 @@ test("0.4 tarball has exact transitive package closure and loads every installed
   fs.mkdirSync(projectRoot, { recursive: true });
   fs.writeFileSync(path.join(root, "empty-npmrc"), "", "utf8");
   const env = isolatedNpmEnvironment(root);
+  delete env.META_HARNESS_INTERNAL_CLI;
 
   const dry = JSON.parse(runNpm(["pack", "--dry-run", "--ignore-scripts", "--json"], { env }));
   assert.equal(dry.length, 1);
@@ -153,11 +154,10 @@ test("0.4 tarball has exact transitive package closure and loads every installed
   for (const token of ["CERTIFICATION_PREPARE", "CERTIFICATION_ASSESS", "CERTIFICATION_VERIFIED", "produceCertificationEvidence", "repository-application"]) {
     assert.equal(installedExecutable.includes(token), false, token);
   }
+  const installedHandlers = fs.readdirSync(path.join(installedRoot, "lib", "commands")).sort();
+  assert.deepEqual(installedHandlers, ["work.js"]);
   const registry = require(path.join(installedRoot, "lib", "command-registry.js"));
-  for (const spec of registry.commandSpecs) {
-    const resolved = registry.resolveCommand([spec.name]);
-    assert.equal(typeof resolved.handler, "function", spec.name);
-  }
+  assert.equal(registry.commandRegistry().every((entry) => entry.internal), true);
 
   const help = spawnSync(process.execPath, [path.join(installedRoot, "bin", "meta-harness.js"), "--help"], {
     cwd: projectRoot,
@@ -167,7 +167,18 @@ test("0.4 tarball has exact transitive package closure and loads every installed
     timeout: 30000,
   });
   assert.equal(help.status, 0, help.stderr);
-  assert.match(help.stdout, /meta-harness/);
+  assert.match(help.stdout, /meta-harness "<result>"/);
+  assert.doesNotMatch(help.stdout, /meta-harness work|worker-report|governance|--resume|--session/);
+
+  const retiredCommand = spawnSync(process.execPath, [path.join(installedRoot, "bin", "meta-harness.js"), "work"], {
+    cwd: projectRoot,
+    env,
+    encoding: "utf8",
+    shell: false,
+    timeout: 30000,
+  });
+  assert.equal(retiredCommand.status, 2);
+  assert.match(retiredCommand.stderr, /'work' is internal; normal usage is meta-harness/);
   t.diagnostic(JSON.stringify({
     version: packed[0].version,
     tarball: tarballs[0],
@@ -179,7 +190,7 @@ test("0.4 tarball has exact transitive package closure and loads every installed
     javascriptEntries: closure.javascriptEntryCount,
     staticRelativeDependencies: closure.staticRelativeDependencyCount,
     retiredAuthorityTokenScan: retiredAuthorityIssues.length === 0,
-    installedCommandsLoaded: registry.commandSpecs.length,
+    installedCommandHandlers: installedHandlers.length,
     installedCliHelp: true,
   }));
 });

@@ -57,7 +57,12 @@ function runFile(testFile) {
     let stdout = "";
     let stderr = "";
     let timedOut = false;
-    const child = spawn(process.execPath, args, { cwd: root, shell: false, stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(process.execPath, args, {
+      cwd: root,
+      shell: false,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+    });
     const timer = setTimeout(() => {
       timedOut = true;
       child.kill("SIGTERM");

@@ -19,7 +19,11 @@ const wj = (fp, v) => {
   fs.mkdirSync(path.dirname(fp), { recursive: true });
   fs.writeFileSync(fp, `${JSON.stringify(v, null, 2)}\n`);
 };
-const cli = (cwd, args) => spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8" });
+const cli = (cwd, args) => spawnSync(process.execPath, [BIN, ...args], {
+  cwd,
+  encoding: "utf8",
+  env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+});
 
 function readyReadiness(over = {}) {
   return {

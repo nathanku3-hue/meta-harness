@@ -8,6 +8,9 @@ const test = require("node:test");
 
 const { ROOT, runRaw, tempDir } = require("./helpers/cli");
 const { writeProductMd } = require("./helpers/product-direction");
+const { persistWorkSession, prepareWorkspace } = require("../lib/work-git");
+const { createGoalWorkSession } = require("../lib/work-session");
+const { renderHuman } = require("../lib/commands/work");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
 
@@ -75,12 +78,13 @@ test("primary work command executes in a fresh workspace and reports product fie
   assert.equal(parsed.outcome, "DONE");
   assert.equal(parsed.productResult, "Create the delivered result file.");
   assert.equal(parsed.workspace.mode, "isolated");
-  assert.equal(parsed.workspace.state, "TERMINAL_SEALED_DIRTY");
+  assert.equal(parsed.workspace.state, "TERMINAL_COMMITTED");
   assert.equal(parsed.attempts, 2);
   assert.equal(parsed.validation.length, 1);
   assert.equal(parsed.validation[0].passed, true);
   assert.deepEqual(parsed.changedPaths, ["src/result.txt"]);
-  assert.deepEqual(parsed.delivery.commit, { status: "not_authorized" });
+  assert.equal(parsed.delivery.commit.status, "committed");
+  assert.deepEqual(parsed.delivery.commit.paths, ["src/result.txt"]);
   assert.deepEqual(parsed.delivery.push, { status: "not_authorized" });
   assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
   assert.equal(fs.readFileSync(path.join(parsed.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
@@ -167,7 +171,8 @@ test("unsupported goal blocks before worker, workspace, or repository mutation",
     "--allow", "src",
   ], { env: env() });
   assert.equal(human.status, 1, human.stderr);
-  assert.match(human.stdout, /Validation: unavailable/);
+  assert.match(human.stdout, /^Blocked:/m);
+  assert.doesNotMatch(human.stdout, /Workspace:|Commit:|Push:|session|work-session/i);
   assert.doesNotMatch(human.stdout, /worker-reported/);
 });
 
@@ -202,7 +207,7 @@ test("dry run previews fresh isolation; completed terminal workspace cannot resu
   const delivered = JSON.parse(executed.stdout);
   assert.equal(delivered.workspace.mode, "isolated");
   assert.notEqual(delivered.workspace.path, planned.workspace.path);
-  assert.equal(delivered.workspace.state, "TERMINAL_SEALED_DIRTY");
+  assert.equal(delivered.workspace.state, "TERMINAL_COMMITTED");
   assert.equal(fs.existsSync(path.join(parent, ".meta-harness-worktrees")), false);
   assert.deepEqual(fs.readdirSync(parent).sort(), parentEntries);
 
@@ -266,7 +271,8 @@ test("dirty stale diverged source uses fresh remote authority and sealed-tree va
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.outcome, "DONE");
   assert.equal(parsed.workspace.baseHead, remoteHead);
-  assert.equal(git(parsed.workspace.path, ["rev-parse", "HEAD"]), remoteHead);
+  assert.equal(git(parsed.workspace.path, ["rev-parse", "HEAD"]), parsed.delivery.commit.sha);
+  assert.equal(git(parsed.workspace.path, ["rev-parse", "HEAD^"]), remoteHead);
   assert.equal(fs.existsSync(path.join(parsed.workspace.path, "REMOTE_ONLY.md")), true);
   assert.equal(fs.existsSync(path.join(parsed.workspace.path, "LOCAL_ONLY.md")), false);
   assert.equal(parsed.validation.length, 1);
@@ -311,17 +317,102 @@ test("explicit --base HEAD is the deliberate local-authority escape hatch", (t) 
   assert.equal(git(root, ["rev-parse", "HEAD"]), head);
 });
 
-test("default help is one coding journey and advanced help contains internal commands", () => {
+test("ghost journey accepts one result, shows coarse liveness, validates, and banks locally", (t) => {
+  const root = repo(t);
+  const sourceHead = git(root, ["rev-parse", "HEAD"]);
+  const result = runRaw(root, ["Create the delivered result file."], {
+    env: env({ FAKE_WORKER_RETRY: "1" }),
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(result.stdout, /^Working…$/m);
+  assert.match(result.stdout, /^Validating…$/m);
+  assert.match(result.stdout, /^Repairing validation…$/m);
+  assert.match(result.stdout, /^Done — /m);
+  assert.doesNotMatch(result.stdout, /Outcome:|Workspace:|Commit:|Push:|sessionDigest|workspaceId|sha256:/i);
+
+  const latest = JSON.parse(fs.readFileSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json"), "utf8"));
+  assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
+  assert.notEqual(git(latest.workspace.path, ["rev-parse", "HEAD"]), sourceHead);
+  assert.equal(git(latest.workspace.path, ["status", "--short"]), "");
+  assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
+
+  const after = runRaw(root, [], { env: env() });
+  assert.equal(after.status, 0, after.stderr);
+  assert.equal(after.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
+});
+
+test("bare meta-harness resumes the exact active generation without an owner resume decision", (t) => {
+  const root = repo(t);
+  const session = createGoalWorkSession({
+    goal: "Create the delivered result file.",
+    repositoryPath: root,
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
+    allowedPaths: ["."],
+    validation: [{
+      argv: [process.execPath, "-e", "const fs=require('fs'); if(fs.readFileSync('src/result.txt','utf8')!=='delivered\\n') process.exit(7)"],
+      cwd: ".",
+      timeoutSeconds: 30,
+    }],
+    delivery: { commit: true, push: false },
+  });
+  const workspace = prepareWorkspace(root, session);
+  persistWorkSession(root, session, workspace);
+
+  const result = runRaw(root, [], { env: env() });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(result.stdout, /^Working…$/m);
+  assert.match(result.stdout, /^Done — /m);
+  assert.doesNotMatch(result.stdout, /resume|session|workspace|generation|actor|custody/i);
+  assert.equal(git(workspace.workspacePath, ["status", "--short"]), "");
+  assert.notEqual(git(workspace.workspacePath, ["rev-parse", "HEAD"]), session.base.commit);
+});
+
+test("bare meta-harness stops cleanly when no active result exists", (t) => {
+  const root = repo(t);
+  const result = runRaw(root, [], { env: env() });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
+});
+
+test("inspect is a coarse diagnostic surface without lifecycle identifiers", (t) => {
+  const root = repo(t);
+  const result = runRaw(root, ["inspect"], { env: env() });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout, "State: idle\nNext: state a product result when something is worth changing.\n");
+  assert.doesNotMatch(result.stdout, /workspace|session|generation|custody|sha256|uuid/i);
+});
+
+test("blocked presentation distinguishes owner questions from executable external correction", () => {
+  const render = (result) => {
+    let output = "";
+    renderHuman({ stdout: { write: (chunk) => { output += String(chunk); } } }, result);
+    return output;
+  };
+  assert.equal(render({
+    outcome: "BLOCKED",
+    blocker: "Date semantics require owner taste.",
+    nextAction: "Should exported dates use local time or UTC?",
+  }), "Need you: Should exported dates use local time or UTC?\n");
+  assert.equal(render({
+    outcome: "BLOCKED",
+    blocker: "GitHub authentication is required.",
+    nextAction: "gh auth login",
+  }), "Blocked: GitHub authentication is required.\nRun: gh auth login\n");
+});
+
+test("default help is one coding journey and diagnostic help hides internal commands", () => {
   const basic = runRaw(ROOT, ["--help"]);
   assert.equal(basic.status, 0, basic.stderr);
   assert.match(basic.stdout, /A coding system that carries one accepted product result/);
-  assert.match(basic.stdout, /meta-harness work <repository> --goal/);
+  assert.match(basic.stdout, /meta-harness "<result>"/);
+  assert.match(basic.stdout, /mechanically correct active work/i);
   assert.doesNotMatch(basic.stdout, /meta-harness gate scope/);
   assert.doesNotMatch(basic.stdout, /meta-harness governance snapshot/);
 
   const advanced = runRaw(ROOT, ["help", "--advanced"]);
   assert.equal(advanced.status, 0, advanced.stderr);
-  assert.match(advanced.stdout, /meta-harness advanced commands/);
-  assert.match(advanced.stdout, /meta-harness gate scope/);
-  assert.match(advanced.stdout, /meta-harness governance snapshot/);
+  assert.match(advanced.stdout, /meta-harness diagnostics/);
+  assert.match(advanced.stdout, /meta-harness inspect/);
+  assert.doesNotMatch(advanced.stdout, /meta-harness gate scope/);
+  assert.doesNotMatch(advanced.stdout, /meta-harness governance snapshot/);
 });

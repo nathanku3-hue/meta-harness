@@ -51,6 +51,48 @@ test("goal validation resolves one exact npm test command", (t) => {
   assert.equal(Object.isFrozen(resolved.validation[0].argv), true);
 });
 
+test("goal validation chooses package-manager-native commands from sealed lockfiles", (t) => {
+  const root = repository(t);
+  writePackage(root, { scripts: { test: "node --test" } });
+  fs.writeFileSync(path.join(root, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n", "utf8");
+  let resolved = resolveGoalValidation(root, commitTree(root, "pnpm package"));
+  assert.deepEqual(resolved.validation[0].argv, ["pnpm", "test"]);
+  fs.rmSync(path.join(root, "pnpm-lock.yaml"));
+  fs.writeFileSync(path.join(root, "yarn.lock"), "# yarn lock\n", "utf8");
+  resolved = resolveGoalValidation(root, commitTree(root, "yarn package"));
+  assert.deepEqual(resolved.validation[0].argv, ["yarn", "test"]);
+});
+
+test("goal validation resolves Python, Cargo, Go, and .NET adapters from sealed markers", (t) => {
+  const cases = [
+    ["pyproject.toml", "[project]\nname='fixture'\n", "python", ["python", "-m", "pytest"]],
+    ["Cargo.toml", "[package]\nname='fixture'\nversion='0.1.0'\n", "cargo", ["cargo", "test"]],
+    ["go.mod", "module example.invalid/fixture\n\ngo 1.22\n", "go", ["go", "test", "./..."]],
+    ["fixture.csproj", "<Project></Project>\n", "dotnet", ["dotnet", "test", "fixture.csproj"]],
+  ];
+  for (const [file, content, adapter, argv] of cases) {
+    const root = repository(t);
+    fs.writeFileSync(path.join(root, file), content, "utf8");
+    const resolved = resolveGoalValidation(root, commitTree(root, `sealed ${adapter}`));
+    assert.equal(resolved.supported, true, resolved.reason);
+    assert.equal(resolved.adapter, adapter);
+    assert.deepEqual(resolved.validation[0].argv, argv);
+  }
+});
+
+test("sealed validation policy wins over inferred project adapters", (t) => {
+  const root = repository(t);
+  fs.mkdirSync(path.join(root, ".meta-harness"));
+  fs.writeFileSync(path.join(root, ".meta-harness", "validation.json"), `${JSON.stringify({
+    schemaVersion: "meta-harness-validation/v1",
+    commands: [{ argv: ["node", "--test"], cwd: ".", timeoutSeconds: 45 }],
+  }, null, 2)}\n`, "utf8");
+  writePackage(root, { scripts: { test: "node verify.js" } });
+  const resolved = resolveGoalValidation(root, commitTree(root, "sealed validation policy"));
+  assert.equal(resolved.adapter, "policy");
+  assert.deepEqual(resolved.validation, [{ argv: ["node", "--test"], cwd: ".", timeoutSeconds: 45 }]);
+});
+
 test("goal validation rejects missing, malformed, empty, and placeholder npm tests", (t) => {
   const root = repository(t);
   assert.equal(resolveGoalValidation(root, commitTree(root, "empty tree")).supported, false);
