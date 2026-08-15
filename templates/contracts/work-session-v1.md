@@ -1,6 +1,6 @@
 # Work Session v1 (retired)
 
-**Retired.** Active coding sessions use `work-session/v4` with explicit origin provenance and exact product-direction snapshots. See `templates/contracts/work-session-v4.md`. Neither v1 nor v2 has a supported compatibility parser.
+**Retired.** Active coding sessions use `work-session/v5` with explicit origin provenance, exact product-direction snapshots, typed mutation, isolated verification, and controller acceptance. See `templates/contracts/work-session-v5.md`. v1 has no supported compatibility parser.
 
 ---
 

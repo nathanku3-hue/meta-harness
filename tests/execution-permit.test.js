@@ -52,7 +52,7 @@ function repository(t) {
 
 function session(root) {
   return sealWorkSession({
-    schemaVersion: "work-session/v4",
+    schemaVersion: "work-session/v5",
     productDirection: directionFromContent(),
     origin: { type: "OWNER_GOAL" },
     base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },

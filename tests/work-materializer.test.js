@@ -7,7 +7,7 @@ const test = require("node:test");
 
 const {
   MAX_FILE_BYTES,
-  materializeWorkerChanges,
+  materializeWorkerOperations,
 } = require("../lib/work-materializer");
 const { tempDir } = require("./helpers/cli");
 
@@ -19,30 +19,47 @@ function workspace(t) {
   return { parent, root };
 }
 
-test("materializer writes new and existing files inside the allowed boundary", (t) => {
+test("materializer applies WRITE to new and existing files inside the allowed boundary", (t) => {
   const { root } = workspace(t);
   const existingPath = path.join(root, "existing.txt");
   fs.writeFileSync(existingPath, "before\n", "utf8");
 
-  const changedPaths = materializeWorkerChanges(root, [
-    { path: "src/result.txt", content: "delivered\n" },
-    { path: "existing.txt", content: "after\n" },
+  const changedPaths = materializeWorkerOperations(root, [
+    { type: "WRITE", path: "src/result.txt", content: "delivered\n" },
+    { type: "WRITE", path: "existing.txt", content: "after\n" },
   ], ["src", "existing.txt"]);
 
-  assert.deepEqual(changedPaths, ["src/result.txt", "existing.txt"]);
+  assert.deepEqual(changedPaths, ["existing.txt", "src/result.txt"]);
   assert.equal(fs.readFileSync(path.join(root, "src", "result.txt"), "utf8"), "delivered\n");
   assert.equal(fs.readFileSync(existingPath, "utf8"), "after\n");
 });
 
-test("materializer rejects duplicate paths before writing", (t) => {
+test("materializer applies DELETE and MOVE as explicit typed operations", (t) => {
+  const { root } = workspace(t);
+  fs.mkdirSync(path.join(root, "src"));
+  fs.writeFileSync(path.join(root, "src", "delete-me.txt"), "delete\n", "utf8");
+  fs.writeFileSync(path.join(root, "src", "before.txt"), "move\n", "utf8");
+
+  const changedPaths = materializeWorkerOperations(root, [
+    { type: "DELETE", path: "src/delete-me.txt" },
+    { type: "MOVE", from: "src/before.txt", to: "src/after.txt" },
+  ], ["src"]);
+
+  assert.deepEqual(changedPaths, ["src/after.txt", "src/before.txt", "src/delete-me.txt"]);
+  assert.equal(fs.existsSync(path.join(root, "src", "delete-me.txt")), false);
+  assert.equal(fs.existsSync(path.join(root, "src", "before.txt")), false);
+  assert.equal(fs.readFileSync(path.join(root, "src", "after.txt"), "utf8"), "move\n");
+});
+
+test("materializer rejects duplicate touched paths before writing", (t) => {
   const { root } = workspace(t);
 
   assert.throws(
-    () => materializeWorkerChanges(root, [
-      { path: "src/result.txt", content: "first\n" },
-      { path: "src/result.txt", content: "second\n" },
+    () => materializeWorkerOperations(root, [
+      { type: "WRITE", path: "src/result.txt", content: "first\n" },
+      { type: "WRITE", path: "src/result.txt", content: "second\n" },
     ], ["src"]),
-    (error) => error.code === "MH_WORK_CHANGES" && /duplicate path/.test(error.message),
+    (error) => error.code === "MH_WORK_OPERATIONS" && /same path/.test(error.message),
   );
   assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
 });
@@ -51,10 +68,10 @@ test("materializer rejects path traversal", (t) => {
   const { parent, root } = workspace(t);
 
   assert.throws(
-    () => materializeWorkerChanges(root, [
-      { path: "../escape.txt", content: "escaped\n" },
+    () => materializeWorkerOperations(root, [
+      { type: "WRITE", path: "../escape.txt", content: "escaped\n" },
     ], ["."]),
-    (error) => error.code === "MH_WORK_CHANGE_PATH",
+    (error) => error.code === "MH_WORK_OPERATION_PATH",
   );
   assert.equal(fs.existsSync(path.join(parent, "escape.txt")), false);
 });
@@ -63,15 +80,15 @@ test("materializer rejects files outside the allowed boundary", (t) => {
   const { root } = workspace(t);
 
   assert.throws(
-    () => materializeWorkerChanges(root, [
-      { path: "docs/outside.txt", content: "outside\n" },
+    () => materializeWorkerOperations(root, [
+      { type: "WRITE", path: "docs/outside.txt", content: "outside\n" },
     ], ["src"]),
     (error) => error.code === "MH_WORK_BOUNDARY_PATH",
   );
   assert.equal(fs.existsSync(path.join(root, "docs", "outside.txt")), false);
 });
 
-test("materializer rejects Decision Plane control-state mutations even under a broad allowed path", (t) => {
+test("materializer rejects Decision Plane control-state mutations even under broad scope", (t) => {
   const { root } = workspace(t);
 
   for (const controlPath of [
@@ -82,29 +99,53 @@ test("materializer rejects Decision Plane control-state mutations even under a b
     ".meta-harness/owner-directive.md",
   ]) {
     assert.throws(
-      () => materializeWorkerChanges(root, [{ path: controlPath, content: "mutated\n" }], ["."]),
+      () => materializeWorkerOperations(root, [{ type: "WRITE", path: controlPath, content: "mutated\n" }], ["."]),
       (error) => error.code === "MH_REPO_DECISION_PROTECTED" && /Decision Plane control state/.test(error.message),
     );
     assert.equal(fs.existsSync(path.join(root, ...controlPath.split("/"))), false);
   }
 });
 
-test("materializer rejects harness state under repository-wide scope", (t) => {
+test("materializer rejects harness state and PRODUCT.md for every mutation type", (t) => {
   const { root } = workspace(t);
+  fs.writeFileSync(path.join(root, "PRODUCT.md"), "owner\n", "utf8");
   assert.throws(
-    () => materializeWorkerChanges(root, [{ path: ".meta-harness/status.md", content: "changed\n" }], ["."]),
+    () => materializeWorkerOperations(root, [{ type: "WRITE", path: ".meta-harness/status.md", content: "changed\n" }], ["."]),
     (error) => error.code === "MH_WORK_CONTROL_PATH",
   );
+  assert.throws(
+    () => materializeWorkerOperations(root, [{ type: "DELETE", path: "PRODUCT.md" }], ["."]),
+    (error) => error.code === "MH_PRODUCT_DIRECTION_PROTECTED",
+  );
+  assert.equal(fs.readFileSync(path.join(root, "PRODUCT.md"), "utf8"), "owner\n");
 });
 
-test("materializer rejects oversized content before writing", (t) => {
+test("materializer rejects oversized WRITE content before writing", (t) => {
   const { root } = workspace(t);
 
   assert.throws(
-    () => materializeWorkerChanges(root, [
-      { path: "src/oversized.txt", content: "x".repeat(MAX_FILE_BYTES + 1) },
+    () => materializeWorkerOperations(root, [
+      { type: "WRITE", path: "src/oversized.txt", content: "x".repeat(MAX_FILE_BYTES + 1) },
     ], ["src"]),
-    (error) => error.code === "MH_WORK_CHANGE_SIZE" && /exceeds/.test(error.message),
+    (error) => error.code === "MH_WORK_OPERATION_SIZE" && /exceeds/.test(error.message),
   );
   assert.equal(fs.existsSync(path.join(root, "src", "oversized.txt")), false);
+});
+
+test("materializer rejects DELETE missing source and MOVE existing target", (t) => {
+  const { root } = workspace(t);
+  fs.mkdirSync(path.join(root, "src"));
+  fs.writeFileSync(path.join(root, "src", "source.txt"), "source\n", "utf8");
+  fs.writeFileSync(path.join(root, "src", "target.txt"), "target\n", "utf8");
+
+  assert.throws(
+    () => materializeWorkerOperations(root, [{ type: "DELETE", path: "src/missing.txt" }], ["src"]),
+    (error) => error.code === "MH_WORK_OPERATION_MISSING",
+  );
+  assert.throws(
+    () => materializeWorkerOperations(root, [{ type: "MOVE", from: "src/source.txt", to: "src/target.txt" }], ["src"]),
+    (error) => error.code === "MH_WORK_OPERATION_EXISTS",
+  );
+  assert.equal(fs.readFileSync(path.join(root, "src", "source.txt"), "utf8"), "source\n");
+  assert.equal(fs.readFileSync(path.join(root, "src", "target.txt"), "utf8"), "target\n");
 });

@@ -51,9 +51,9 @@ test("journey reducer keeps automatic continuation mechanically bounded", () => 
   assert.equal(reduceJourneyState({ compiledDecision: { type: "NO_DISPATCH", reason: "USE_PRODUCT" } }).next.operation, "STOP");
 });
 
-test("work-session/v4 seals product direction, provenance, trusted base, and exact path/validation scope", () => {
+test("work-session/v5 seals product direction, provenance, trusted base, and exact path/validation scope", () => {
   const session = explicitSession();
-  assert.equal(session.schemaVersion, "work-session/v4");
+  assert.equal(session.schemaVersion, "work-session/v5");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.deepEqual(session.base, TEST_BASE);
   assert.equal(session.sessionDigest, computeWorkSessionDigest(session));
@@ -112,13 +112,17 @@ test("coding prompt carries product direction before result and engineering cont
   assert.match(prompt, /Controller-owned validation:/);
   assert.match(prompt, /\{"argv":\["node","--test"\],"cwd":"\.","timeoutSeconds":60\}/);
   assert.match(prompt, /read-only.*not a blocker/i);
-  assert.match(prompt, /returning complete file contents/i);
+  assert.match(prompt, /typed operations/i);
   assert.match(prompt, /Do not ask for a writable workspace/i);
   assert.match(prompt, /Do not reconstruct or override this sealed execution brief from planner\/status prose or repository Decision Plane control files/i);
 });
 
 test("work session rejects digest drift, traversal, extra fields, and invalid attempts", () => {
   const session = explicitSession();
+  assert.throws(
+    () => validateWorkSession({ ...session, schemaVersion: "work-session/v4" }),
+    (error) => error.code === "MH_WORK_SESSION_SCHEMA",
+  );
   assert.throws(
     () => validateWorkSession({ ...session, productResult: "drifted" }),
     (error) => error.code === "MH_WORK_SESSION_DIGEST",

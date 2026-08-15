@@ -83,7 +83,7 @@ different result while work is ACTIVE   → owner input
 
 The reducer does not own product semantics. Product direction, scope authority, Git custody, validation evidence, repo decision authority, and publication authority remain in their existing bounded contracts.
 
-`work-session/v4` remains the complete internal coding brief. It pins exact `PRODUCT.md` bytes, provenance, immutable base, result, scope, validation, repair budget, and publication authority. Normal users neither author nor select it.
+`work-session/v5` is the complete internal coding brief. It pins exact `PRODUCT.md` bytes, provenance, immutable base, result, scope, validation, repair budget, and publication authority. v5 is an incompatible transaction cut: typed worker mutation, an immutable candidate tree, isolated verification, controller-owned acceptance, and acceptance-gated BANK. Normal users neither author nor select it, and v4 is not accepted on the v5 execution path.
 
 ## Automatic base and scope
 
@@ -115,20 +115,23 @@ Supported adapters include:
 
 Each adapter resolves the scope-nearest project from immutable tree facts and fails closed when allowed paths imply multiple projects or otherwise ambiguous validation. If no deterministic adapter matches, work blocks before workspace creation or worker launch.
 
-The coding worker is read-only and returns complete file contents. The controller materializes accepted paths, runs validation outside the model, and returns failures to the same bounded result for repair.
+The coding worker is read-only and returns only typed `WRITE`, `DELETE`, or `MOVE` operations. The controller materializes them, seals one Git-authoritative `candidateTreeOid`, verifies that exact tree inside the Linux namespace/chroot verifier, and derives acceptance from the sealed validation evidence. Worker `done`/`partial` status is advisory and cannot authorize or veto BANK. Validation failures return to the same bounded result for repair.
+
+Machine work results retain verification/acceptance digests plus controller-observed `work-metrics/v1` timing and repair facts (NEW/RESUME, proposal latency, verifier time, operation mix, output/event volume, repair count). Normal human output does not expose those internals. Meta-Harness does not persist execution memory unless measured repair/resume reconstruction loss later proves it necessary.
 
 ## Automatic local banking
 
 A local commit is closure, not publication.
 
-After `DONE` plus passed controller validation, Meta-Harness:
+After controller acceptance of the exact sealed candidate under isolated verification, Meta-Harness:
 
-1. hashes the exact accepted paths;
-2. proves the exact ACTIVE controller-owned managed worktree and generation still match;
-3. verifies accepted bytes did not change after validation;
-4. stages only accepted paths;
-5. creates a local immutable commit on the managed branch;
-6. terminalizes the workspace as `TERMINAL_COMMITTED`.
+1. proves the exact ACTIVE controller-owned managed worktree and generation still match;
+2. proves the candidate seal is still current;
+3. requires an untampered acceptance value bound to the session, candidate seal, candidate tree, and verification digest;
+4. stages the exact sealed no-renames path set;
+5. proves the staged Git tree equals `candidateTreeOid`;
+6. creates a local immutable commit on the managed branch;
+7. terminalizes the workspace as `TERMINAL_COMMITTED`.
 
 Legacy `delivery.commit=false` metadata cannot disable this local banking step. Push, PR, merge, release, tags, credentials, destructive cleanup, and other publication/external actions remain explicit authority.
 
@@ -138,7 +141,7 @@ The source checkout's HEAD, index, branch, and existing dirty bytes are not rewr
 
 Complex repositories may opt into repo-owned decision authority through `.meta-harness/repo-charter.json`. Repository intelligence owns domain meaning; Meta-Harness owns generic identity, attestation checks it can mechanically prove, single-entry execution authority, workspace custody, operational closure, and immutable World lineage.
 
-A current `repo-decision/v3` is either `DISPATCH` or inert `NO_DISPATCH`. DISPATCH compiles an internal `work-session/v4`; NO_DISPATCH creates no workspace or attempt. The normal owner still does not route planners, coders, auditors, sessions, or generations.
+A current `repo-decision/v3` is either `DISPATCH` or inert `NO_DISPATCH`. DISPATCH compiles an internal `work-session/v5`; NO_DISPATCH creates no workspace or attempt. The normal owner still does not route planners, coders, auditors, sessions, or generations.
 
 ## Installation
 
@@ -152,7 +155,10 @@ Requirements:
 - Node.js 20 or newer;
 - Git;
 - local Codex CLI with an authenticated `CODEX_HOME`;
-- validation tools required by the target repository.
+- validation tools required by the target repository;
+- for `meta-harness work`, Linux with unprivileged user, mount, network, and PID namespaces plus `chroot`/`setpriv` (WSL is the supported Windows execution route).
+
+Native Windows never silently falls back to unisolated v5 validation. Portable/package surfaces may still run natively on Windows, but authority-bearing `work` execution must use the Linux/WSL verifier boundary.
 
 ## Development
 

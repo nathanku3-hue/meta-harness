@@ -8,7 +8,7 @@ const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const { sealWorkSession } = require("../lib/work-session");
-const { CLI } = require("./helpers/cli");
+const { CLI, ROOT } = require("./helpers/cli");
 
 const enabled = /^(?:1|true)$/i.test(String(process.env.META_HARNESS_LIVE_WORK || ""));
 
@@ -22,7 +22,8 @@ test("live coding system carries one result through Codex and exact validation",
   skip: !enabled,
   timeout: 280_000,
 }, (t) => {
-  const parent = fs.mkdtempSync(path.join(os.tmpdir(), "meta-harness-live-work-"));
+  const tempBase = process.env.WSL_DISTRO_NAME ? path.dirname(ROOT) : os.tmpdir();
+  const parent = fs.mkdtempSync(path.join(tempBase, "meta-harness-live-work-"));
   const root = path.join(parent, "repository");
   const origin = path.join(parent, "origin.git");
   fs.mkdirSync(root);
@@ -33,6 +34,7 @@ test("live coding system carries one result through Codex and exact validation",
   git(root, ["config", "user.name", "Meta Harness Live Work"]);
   git(root, ["config", "user.email", "live-work@example.invalid"]);
   fs.mkdirSync(path.join(root, "tests"));
+  fs.writeFileSync(path.join(root, ".gitignore"), ".worktrees/\n", "utf8");
   fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({ type: "commonjs" }, null, 2)}\n`, "utf8");
   fs.writeFileSync(path.join(root, "tests", "sum.test.js"), [
     '"use strict";',
@@ -53,7 +55,7 @@ test("live coding system carries one result through Codex and exact validation",
   const branch = git(root, ["branch", "--show-current"]);
 
   const session = sealWorkSession({
-    schemaVersion: "work-session/v4",
+    schemaVersion: "work-session/v5",
     productDirection,
     origin: { type: "OWNER_GOAL" },
     base: { type: "EXACT_COMMIT", commit: head },

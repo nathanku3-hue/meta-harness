@@ -9,6 +9,7 @@ const { spawn } = require("node:child_process");
 const root = path.resolve(__dirname, "..");
 const testsRoot = path.join(root, "tests");
 const SERIAL_TEST = /(?:^|\/)(?:cli-expert-packet|cli-ready|cli-ready-repro|judge|release-check|release-check-evidence|runtime-execution-custody(?:-devspace-live|-live|-process-tree)?)\.test\.js$/;
+const LINUX_EXECUTION_TEST = /(?:^|\/)(?:cli-work|repo-decision-plane|work-loop)\.test\.js$/;
 const DEFAULT_CONCURRENCY = Math.max(1, Math.min(3, os.availableParallelism ? os.availableParallelism() : os.cpus().length || 2));
 const PARALLEL_CONCURRENCY = positiveInteger(process.env.META_HARNESS_TEST_CONCURRENCY, DEFAULT_CONCURRENCY);
 const FILE_TIMEOUT_MS = positiveInteger(process.env.META_HARNESS_TEST_FILE_TIMEOUT_MS, 240_000);
@@ -140,12 +141,19 @@ async function runSerial(files) {
 }
 
 async function main() {
-  const tests = collectTests(testsRoot);
+  const discovered = collectTests(testsRoot);
+  const platformSkipped = process.platform === "linux"
+    ? []
+    : discovered.filter((file) => LINUX_EXECUTION_TEST.test(toSlash(path.relative(root, file))));
+  const tests = discovered.filter((file) => !platformSkipped.includes(file));
   const serialTests = tests.filter((file) => SERIAL_TEST.test(toSlash(path.relative(root, file))));
   const parallelTests = tests.filter((file) => !SERIAL_TEST.test(toSlash(path.relative(root, file))));
   const started = Date.now();
   const results = [];
 
+  if (platformSkipped.length > 0) {
+    console.error(`# platform-skipped execution test files: ${platformSkipped.length} (v5 work requires Linux namespaces)`);
+  }
   if (parallelTests.length > 0) {
     console.error(`# parallel test files: ${parallelTests.length} (concurrency ${PARALLEL_CONCURRENCY})`);
     results.push(...await runPool(parallelTests, PARALLEL_CONCURRENCY));

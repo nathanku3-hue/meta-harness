@@ -11,7 +11,7 @@ const {
   PRODUCT_DIRECTION_BLOCKED,
   pinProductDirection,
 } = require("../lib/product-direction");
-const { materializeWorkerChanges } = require("../lib/work-materializer");
+const { materializeWorkerOperations } = require("../lib/work-materializer");
 const {
   createGoalWorkSession,
   sealWorkSession,
@@ -49,7 +49,7 @@ function npmRepo(t) {
 function sealedSession(root, overrides = {}) {
   const direction = pinProductDirection(root);
   return sealWorkSession({
-    schemaVersion: "work-session/v4",
+    schemaVersion: "work-session/v5",
     productDirection: direction,
     origin: { type: "OWNER_GOAL" },
     base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
@@ -86,7 +86,7 @@ test("--goal rejects malformed PRODUCT.md before workspace activity", (t) => {
   assert.match(String(result.stderr || result.stdout || ""), /heading|PRODUCT\.md|section/i);
 });
 
-test("created v4 session contains exact PRODUCT.md bytes, base, and matching digest", (t) => {
+test("created v5 session contains exact PRODUCT.md bytes, base, and matching digest", (t) => {
   const root = npmRepo(t);
   const live = pinProductDirection(root);
   const session = createGoalWorkSession({
@@ -96,7 +96,7 @@ test("created v4 session contains exact PRODUCT.md bytes, base, and matching dig
     allowedPaths: ["src"],
     validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
   });
-  assert.equal(session.schemaVersion, "work-session/v4");
+  assert.equal(session.schemaVersion, "work-session/v5");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.equal(session.productDirection.content, live.content);
   assert.equal(session.productDirection.digest, live.digest);
@@ -187,7 +187,8 @@ test("mid-session live PRODUCT.md change including deletion returns product-faci
 test("worker proposal to mutate PRODUCT.md is rejected even when listed as allowed", (t) => {
   const root = npmRepo(t);
   assert.throws(
-    () => materializeWorkerChanges(root, [{
+    () => materializeWorkerOperations(root, [{
+      type: "WRITE",
       path: "PRODUCT.md",
       content: SAMPLE_PRODUCT_MD.replace("Solo developer", "rewritten by worker"),
     }], ["src", "PRODUCT.md"]),

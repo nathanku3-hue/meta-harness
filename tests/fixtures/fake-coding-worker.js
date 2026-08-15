@@ -37,7 +37,7 @@ const status = process.env.FAKE_WORKER_PARTIAL_FIRST === "1" && attempt === 1
 const result = {
   status,
   observableResult: `Prepared ${relativePath} on attempt ${attempt}.`,
-  changes: status === "blocked" ? [] : [{ path: relativePath, content }],
+  operations: status === "blocked" ? [] : [{ type: "WRITE", path: relativePath, content }],
   validation: ["fake worker completed"],
   blocker: process.env.FAKE_WORKER_BLOCKER || "",
   nextAction: process.env.FAKE_WORKER_NEXT || "Review and bank the delivered change.",

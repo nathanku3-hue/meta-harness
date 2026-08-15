@@ -10,6 +10,7 @@ const {
   findExecutionClosureForDecision,
   findExecutionWorkResultForDecision,
 } = require("../lib/execution-closure");
+const { domainDigest } = require("../lib/contracts/digest");
 const { enterExecutionAttempt, issueExecutionPermit } = require("../lib/execution-permit");
 const { pinProductDirection } = require("../lib/product-direction");
 const {
@@ -38,8 +39,9 @@ const {
   readCurrentWorldHead,
   validateWorldTransition,
 } = require("../lib/world-transition");
-const { captureBoundary, runValidation, runWork } = require("../lib/work-loop");
+const { captureBoundary, runWork } = require("../lib/work-loop");
 const {
+  acceptCandidate,
   deliverValidatedChanges,
   persistWorkSession,
   prepareWorkspace,
@@ -78,6 +80,30 @@ function workerEnv(extra = {}) {
     META_HARNESS_WORKER_COMMAND_JSON: JSON.stringify([process.execPath, FAKE_WORKER]),
     ...extra,
   };
+}
+
+function acceptedCandidate(session, seal) {
+  const body = {
+    schemaVersion: "candidate-verification/v1",
+    isolation: "linux-user-mount-net-pid-chroot/v1",
+    candidateTreeOid: seal.candidateTreeOid,
+    commands: session.validation.map((command) => ({
+      argv: command.argv,
+      cwd: command.cwd,
+      passed: true,
+      exitCode: 0,
+      durationMs: 1,
+      output: "",
+    })),
+  };
+  return acceptCandidate({
+    session,
+    candidateSeal: seal,
+    verification: {
+      ...body,
+      verificationDigest: domainDigest("meta-harness-candidate-verification/v1", body),
+    },
+  });
 }
 
 function waitForFile(filePath, timeoutMs = 5000) {
@@ -342,13 +368,13 @@ function realityTransition(predecessorHeadDigest, successor) {
   return validateWorldTransition({ ...body, transitionDigest: computeWorldTransitionDigest(body) });
 }
 
-test("authoritative WorldHead compiles minimal work-session/v4 provenance", (t) => {
+test("authoritative WorldHead compiles minimal work-session/v5 provenance", (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { claims: ["repo-owned"], hypotheses: ["opaque"] });
   installDecision(root, initial.head.headDigest);
   const compiled = compileRepoDecisionWork(root);
   assert.equal(compiled.type, "DISPATCH");
-  assert.equal(compiled.session.schemaVersion, "work-session/v4");
+  assert.equal(compiled.session.schemaVersion, "work-session/v5");
   assert.equal(compiled.session.base.commit, git(root, ["rev-parse", "HEAD"]));
   assert.deepEqual(compiled.session.origin, { type: "REPO_DECISION", decisionDigest: compiled.decisionDigest });
   assert.equal(compiled.session.origin.worldDigest, undefined);
@@ -541,15 +567,14 @@ test("BANK completed before Decision closure recovers as COMPLETED and cannot be
       boundary: after,
       materializedPaths: ["src/result.txt"],
     });
-    const validations = runValidation(prepared.workspace.workspacePath, compiled.session.validation, workerEnv());
-    assert.equal(validations.length, 1);
-    assert.equal(validations[0].passed, true);
+    const candidateAcceptance = acceptedCandidate(compiled.session, seal);
     banked = deliverValidatedChanges({
       repositoryRoot: root,
       workspacePath: prepared.workspace.workspacePath,
       session: compiled.session,
       workspaceCustody: prepared.workspace.custody,
       candidateSeal: seal,
+      candidateAcceptance,
       stateDirectory: prepared.permitStateDirectory,
       delivery: { commit: true, push: false },
       productResult: compiled.session.productResult,

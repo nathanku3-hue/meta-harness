@@ -1,10 +1,8 @@
 # Work Session v4
 
-`work-session/v4` is the canonical bridge from owner product direction plus an accepted product result into coding execution.
+**Retired.** Active coding sessions use `work-session/v5`; see `templates/contracts/work-session-v5.md`. v4 remains here only for archive readability and has no supported compatibility parser on the v5 execution path.
 
-The v4 schema break makes trusted Git base authority explicit. A NEW session never infers its base from the source checkout's current `HEAD`. Base resolution happens once before sealing; downstream execution consumes the sealed exact `base.commit`.
-
-There is no supported compatibility parser for `work-session/v1`, `work-session/v2`, or `work-session/v3`.
+The historical v4 break made trusted Git base authority explicit. A NEW session did not infer its base from the source checkout's current `HEAD`; downstream execution consumed the sealed exact `base.commit`.
 
 ## Product flow
 

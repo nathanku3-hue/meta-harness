@@ -1,6 +1,6 @@
 # Work Session v2 (retired)
 
-**Retired.** Active coding sessions use `work-session/v4`. See `templates/contracts/work-session-v4.md`. The v2 material below is retained only for archive readability.
+**Retired.** Active coding sessions use `work-session/v5`. See `templates/contracts/work-session-v5.md`. The v2 material below is retained only for archive readability and has no supported compatibility parser.
 
 It replaces conversational planning memory, recursive planner packets, and routine approval prompts for reversible in-scope work. It does not replace owner authority for scope expansion, credentials, publication, destructive action, product-direction changes, or material risk.
 
