@@ -2,7 +2,7 @@
 
 `work-session/v5` is the canonical bridge from owner product direction plus one accepted product result into Meta-Harness's transactional execution kernel.
 
-v5 is an incompatible cut. It replaces v4 execution semantics with typed worker mutation, an immutable candidate tree, Linux namespace verification, controller-owned acceptance, and acceptance-gated BANK. There is no supported v4 compatibility parser on the v5 execution path.
+v5 is an incompatible cut. It replaces v4 execution semantics with typed worker mutation, an immutable candidate tree, Linux namespace verification, controller-owned BANK acceptance, and optional base-owned product proof. There is no supported v4 compatibility parser on the v5 execution path.
 
 ## Product flow
 
@@ -17,13 +17,17 @@ owner-authored PRODUCT.md
 → typed WRITE / DELETE / MOVE proposal
 → controller materialization
 → immutable candidateTreeOid
-→ isolated verifier
-→ controller acceptance
+→ isolated regression verifier
+→ controller BANK acceptance
+→ base-owned product proof when available
+   ├─ FAILED → bounded repair
+   ├─ UNAVAILABLE → BANKED_UNPROVEN
+   └─ PROVEN → DONE
 → BANK
 → optional authorized publication
 ```
 
-Worker reasoning and worker `status` are advisory. They do not authorize or veto completion. The controller accepts only the exact sealed candidate whose sealed validation contract passed inside the required verifier isolation profile.
+Worker reasoning and worker `status` are advisory. They do not authorize or veto completion. Candidate acceptance authorizes only BANK of the exact sealed candidate whose regression contract passed inside the required verifier isolation profile. `DONE` additionally requires independent product proof.
 
 ## Required JSON shape
 
@@ -115,22 +119,44 @@ The acceptance value is bound to `sessionDigest`, candidate seal digest, candida
 
 Acceptance is deliberately not a registry or persistent policy subsystem. A crash before BANK may simply re-verify the sealed candidate.
 
+## Product proof
+
+Product proof is repository/domain-owned semantic evidence, not another model or reviewer. If `.meta-harness/product-proof.json` exists in the sealed `base.commit`, it must use `product-proof-policy/v1` and name one regular base-owned proof-program blob, one runtime executable, and a timeout. The controller constructs exactly `runtime + /base-proof/<program>`. The session need not widen: `base.commit` transitively pins both the policy and program.
+
+The controller binds at least `sessionDigest`, candidate seal digest, `candidateTreeOid`, `base.commit`, policy blob OID, proof-program blob OID, command/result evidence, isolation profile, and `productProofDigest` into durable `product-proof/v1` before BANK.
+
+Execution reuses the same Linux namespace/chroot verifier. It mounts `/base-proof`, `/candidate`, and `/session` read-only and exposes no source checkout, controller state, credentials, or external network route. Root dependency directories may be mounted read-only for proof execution.
+
+The three evidence states are deliberately not workspace lifecycle states:
+
+```text
+PROVEN       independent proof passed      → eligible for DONE
+FAILED       proof exists and rejected it  → bounded repair
+UNAVAILABLE  no sealed proof policy exists → BANKED_UNPROVEN
+```
+
+`BANKED_UNPROVEN` leaves workspace custody as `TERMINAL_COMMITTED` and execution closure as non-complete. It is a truthful product outcome, not a new custody state. Only `DONE` is coding product success.
+
 ## Completion authority
 
 The worker's `done`, `partial`, or `blocked` label is advisory. `blocked` with no operations can stop an attempt because there is no candidate to verify. Once a candidate exists, completion is controller-owned:
 
 ```text
 sealed candidate
-+ isolated verification of the sealed validation contract
++ isolated regression verification
 + current controller acceptance
 = eligible to BANK
+
+eligible to BANK
++ product-proof/v1 PROVEN
+= DONE
 ```
 
-A worker cannot self-attest completion and cannot veto controller acceptance by returning `partial` after the acceptance contract passes.
+A worker cannot self-attest completion and cannot veto controller acceptance by returning `partial` after the BANK-safety contract passes. Regression-green bytes without independent product proof may still be retained locally, but they cannot become `DONE`.
 
 ## Continuity measurement
 
-The persisted work result carries controller-observed `work-metrics/v1` measurements rather than a new telemetry subsystem: NEW vs RESUME, proposal latency, worker output/event volume, operation mix, verifier latency, validation-command time, and repair count. Verification and acceptance digests are retained as result evidence while normal human output stays product-facing.
+The persisted work result carries controller-observed `work-metrics/v1` measurements rather than a new telemetry subsystem: NEW vs RESUME, proposal latency, worker output/event volume, operation mix, verifier latency, validation-command time, and repair count. Regression verification, candidate acceptance, and durable product-proof evidence are retained while normal human output stays product-facing.
 
 These metrics exist to measure whether cold repair/resume materially repeats work. They do not authorize execution and do not contain model reasoning.
 

@@ -8,6 +8,7 @@ const test = require("node:test");
 
 const { ROOT, runRaw, tempDir } = require("./helpers/cli");
 const { writeProductMd } = require("./helpers/product-direction");
+const { writePassingProductProof } = require("./helpers/product-proof");
 const { persistWorkSession, prepareWorkspace } = require("../lib/work-git");
 const { createGoalWorkSession } = require("../lib/work-session");
 const { renderHuman } = require("../lib/commands/work");
@@ -20,7 +21,7 @@ function git(cwd, args) {
   return String(result.stdout || "").trim();
 }
 
-function repo(t, { withValidation = true, withOrigin = true } = {}) {
+function repo(t, { withValidation = true, withOrigin = true, withProductProof = true } = {}) {
   const parent = tempDir("cli-work-");
   const root = path.join(parent, "repo");
   const origin = path.join(parent, "origin.git");
@@ -32,6 +33,7 @@ function repo(t, { withValidation = true, withOrigin = true } = {}) {
   fs.writeFileSync(path.join(root, ".gitignore"), ".worktrees/\n", "utf8");
   fs.writeFileSync(path.join(root, "README.md"), "baseline\n", "utf8");
   writeProductMd(root);
+  if (withProductProof) writePassingProductProof(root);
   if (withValidation) {
     fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({
       scripts: { test: "node verify.js" },
@@ -82,12 +84,23 @@ test("primary work command executes in a fresh workspace and reports product fie
   assert.equal(parsed.attempts, 2);
   assert.equal(parsed.validation.length, 1);
   assert.equal(parsed.validation[0].passed, true);
+  assert.equal(parsed.productProof.state, "PROVEN");
   assert.deepEqual(parsed.changedPaths, ["src/result.txt"]);
   assert.equal(parsed.delivery.commit.status, "committed");
   assert.deepEqual(parsed.delivery.commit.paths, ["src/result.txt"]);
   assert.deepEqual(parsed.delivery.push, { status: "not_authorized" });
   assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
   assert.equal(fs.readFileSync(path.join(parsed.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
+});
+
+test("banked work without independent product proof is a truthful non-success", (t) => {
+  const root = repo(t, { withProductProof: false });
+  const result = runRaw(root, ["Create the delivered result file."], { env: env() });
+  assert.equal(result.status, 1, result.stderr || result.stdout);
+  assert.match(result.stdout, /^Banked — repository validation passed, but independent product proof is unavailable\.$/m);
+  const latest = JSON.parse(fs.readFileSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json"), "utf8"));
+  assert.notEqual(git(latest.workspace.path, ["rev-parse", "HEAD"]), git(root, ["rev-parse", "HEAD"]));
+  assert.equal(git(latest.workspace.path, ["status", "--short"]), "");
 });
 
 test("duplicate normalized allow paths fail before workspace or worker activity", (t) => {

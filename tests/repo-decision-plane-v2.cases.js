@@ -40,6 +40,8 @@ const {
   validateWorldTransition,
 } = require("../lib/world-transition");
 const { captureBoundary, runWork } = require("../lib/work-loop");
+const { persistProductProof, resolveProductProof } = require("../lib/work-product-proof");
+const { verifyProductProof } = require("../lib/work-verifier");
 const {
   acceptCandidate,
   deliverValidatedChanges,
@@ -56,6 +58,7 @@ const {
 } = require("../lib/workspace-custody");
 const { runRaw, tempDir } = require("./helpers/cli");
 const { writeProductMd } = require("./helpers/product-direction");
+const { writePassingProductProof } = require("./helpers/product-proof");
 
 const FAKE_WORKER = path.join(__dirname, "fixtures", "fake-coding-worker.js");
 const AUTHORITY_RACE = path.join(__dirname, "fixtures", "world-authority-race.js");
@@ -223,9 +226,10 @@ function repository(t) {
   fs.mkdirSync(path.join(root, "tests"));
   fs.writeFileSync(path.join(root, "src", "baseline.txt"), "baseline\n", "utf8");
   writeProductMd(root);
+  writePassingProductProof(root);
   git(root, ["add", "."]);
   git(root, ["commit", "-m", "baseline"]);
-  fs.mkdirSync(path.join(root, ".meta-harness"));
+  fs.mkdirSync(path.join(root, ".meta-harness"), { recursive: true });
   writeJson(root, ".meta-harness/repo-charter.json", {
     ownerPolicy: "opaque-to-kernel",
     arbitraryRepoSemantics: { claims: ["repo-owned"] },
@@ -567,6 +571,14 @@ test("BANK completed before Decision closure recovers as COMPLETED and cannot be
       boundary: after,
       materializedPaths: ["src/result.txt"],
     });
+    const productProof = verifyProductProof({
+      workspacePath: prepared.workspace.workspacePath,
+      session: compiled.session,
+      candidateSeal: seal,
+      resolution: resolveProductProof(root, compiled.session.base.commit),
+    });
+    assert.equal(productProof.state, "PROVEN");
+    persistProductProof(prepared.permitStateDirectory, productProof);
     const candidateAcceptance = acceptedCandidate(compiled.session, seal);
     banked = deliverValidatedChanges({
       repositoryRoot: root,

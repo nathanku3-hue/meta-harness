@@ -12,6 +12,7 @@ const { runWork } = require("../lib/work-loop");
 const { sealWorkSession } = require("../lib/work-session");
 const { ROOT, tempDir } = require("./helpers/cli");
 const { directionFromContent } = require("./helpers/product-direction");
+const { writePassingProductProof } = require("./helpers/product-proof");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
 
@@ -21,7 +22,7 @@ function git(cwd, args) {
   return String(result.stdout || "").trim();
 }
 
-function repository(t) {
+function repository(t, { withProductProof = true } = {}) {
   const parent = tempDir("work-loop-");
   const root = path.join(parent, "repository");
   fs.mkdirSync(root);
@@ -32,7 +33,8 @@ function repository(t) {
   fs.writeFileSync(path.join(root, "README.md"), "baseline\n", "utf8");
   const { writeProductMd } = require("./helpers/product-direction");
   writeProductMd(root);
-  git(root, ["add", ".gitignore", "README.md", "PRODUCT.md"]);
+  if (withProductProof) writePassingProductProof(root);
+  git(root, ["add", "."]);
   git(root, ["commit", "-m", "baseline"]);
   t.after(() => fs.rmSync(parent, { recursive: true, force: true }));
   return root;
@@ -165,6 +167,9 @@ test("work loop carries a product brief into a fresh isolated generation and exa
   assert.equal(result.verification.schemaVersion, "candidate-verification/v1");
   assert.equal(result.verification.isolation, "linux-user-mount-net-pid-chroot/v1");
   assert.match(result.verification.verificationDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.equal(result.productProof.schemaVersion, "product-proof/v1");
+  assert.equal(result.productProof.state, "PROVEN");
+  assert.match(result.productProof.productProofDigest, /^sha256:[a-f0-9]{64}$/u);
   assert.equal(result.acceptance.schemaVersion, "candidate-acceptance/v1");
   assert.equal(result.acceptance.verificationDigest, result.verification.verificationDigest);
   assert.match(result.acceptance.acceptanceDigest, /^sha256:[a-f0-9]{64}$/u);
@@ -541,8 +546,79 @@ test("validation that changes Git file-mode representation invalidates the seale
   );
 });
 
-test("a no-change validated candidate closes without manufacturing an empty commit", async (t) => {
+test("failed product proof enters the existing bounded repair loop", async (t) => {
   const root = repository(t);
+  fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.js"), [
+    '"use strict";',
+    'const fs = require("node:fs");',
+    'const path = require("node:path");',
+    'const target = path.join(process.env.META_HARNESS_CANDIDATE_ROOT, "src", "result.txt");',
+    'if (!fs.existsSync(target) || fs.readFileSync(target, "utf8") !== "delivered\\n") { console.error("product result is not delivered"); process.exit(61); }',
+    "",
+  ].join("\n"), "utf8");
+  git(root, ["add", ".meta-harness/product-proof.js"]);
+  git(root, ["commit", "-m", "discriminating product proof fixture"]);
+  const workSession = session(root, {
+    maxAttempts: 2,
+    validation: [{ argv: [process.execPath, "-e", "process.exit(0)"], cwd: ".", timeoutSeconds: 30 }],
+  });
+  const result = await runWork({
+    repositoryPath: root,
+    session: workSession,
+    runner: async ({ attempt }) => workerResult([{ type: "WRITE", path: "src/result.txt", content: attempt === 1 ? "wrong\n" : "delivered\n" }]),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.attempts, 2);
+  assert.equal(result.metrics.repairAttempts, 1);
+  assert.equal(result.productProof.state, "PROVEN");
+  assert.equal(fs.readFileSync(path.join(result.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
+});
+
+test("candidate replacement of the apparent proof program cannot replace base-owned proof authority", async (t) => {
+  const root = repository(t);
+  fs.mkdirSync(path.join(root, "proof"));
+  fs.writeFileSync(path.join(root, "proof", "product-proof.js"), [
+    '"use strict";',
+    'const fs = require("node:fs");',
+    'const path = require("node:path");',
+    'const target = path.join(process.env.META_HARNESS_CANDIDATE_ROOT, "src", "result.txt");',
+    'if (!fs.existsSync(target) || fs.readFileSync(target, "utf8") !== "delivered\\n") { console.error("trusted base proof rejected candidate"); process.exit(71); }',
+    "",
+  ].join("\n"), "utf8");
+  fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.json"), `${JSON.stringify({
+    schemaVersion: "product-proof-policy/v1",
+    programPath: "proof/product-proof.js",
+    runtime: process.execPath,
+    timeoutSeconds: 30,
+  }, null, 2)}\n`, "utf8");
+  git(root, ["add", ".meta-harness/product-proof.json", "proof/product-proof.js"]);
+  git(root, ["commit", "-m", "movable proof program fixture"]);
+  const trustedProgramOid = git(root, ["rev-parse", "HEAD:proof/product-proof.js"]);
+  const workSession = session(root, {
+    allowedPaths: ["."],
+    maxAttempts: 1,
+    validation: [{ argv: [process.execPath, "-e", "process.exit(0)"], cwd: ".", timeoutSeconds: 30 }],
+  });
+  const result = await runWork({
+    repositoryPath: root,
+    session: workSession,
+    runner: async () => workerResult([
+      { type: "WRITE", path: "src/result.txt", content: "wrong\n" },
+      { type: "WRITE", path: "proof/product-proof.js", content: "process.exit(0);\n" },
+    ]),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "PARTIAL");
+  assert.equal(result.productProof.state, "FAILED");
+  assert.equal(result.productProof.program.blobOid, trustedProgramOid);
+  assert.equal(result.acceptance, null);
+  assert.equal(result.delivery.commit.status, "not_attempted");
+  assert.equal(fs.readFileSync(path.join(result.workspace.path, "proof", "product-proof.js"), "utf8"), "process.exit(0);\n");
+});
+
+test("trivial green validation without product proof banks honestly without claiming DONE", async (t) => {
+  const root = repository(t, { withProductProof: false });
   const workSession = session(root, {
     allowedPaths: ["README.md"],
     validation: [{ argv: [process.execPath, "-e", "process.exit(0)"], cwd: ".", timeoutSeconds: 30 }],
@@ -553,7 +629,8 @@ test("a no-change validated candidate closes without manufacturing an empty comm
     runner: async () => workerResult([{ type: "WRITE", path: "README.md", content: "baseline\n" }]),
     timeoutSeconds: 30,
   });
-  assert.equal(result.outcome, "DONE");
+  assert.equal(result.outcome, "BANKED_UNPROVEN");
+  assert.equal(result.productProof.state, "UNAVAILABLE");
   assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
   assert.equal(result.delivery.commit.status, "no_changes");
   assert.deepEqual(result.delivery.commit.paths, []);

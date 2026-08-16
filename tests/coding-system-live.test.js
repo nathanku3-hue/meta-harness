@@ -47,6 +47,21 @@ test("live coding system carries one result through Codex and exact validation",
   fs.writeFileSync(path.join(root, "README.md"), "Implement the smallest code required by the existing test.\n", "utf8");
   const { writeProductMd } = require("./helpers/product-direction");
   const productDirection = writeProductMd(root);
+  fs.mkdirSync(path.join(root, ".meta-harness"));
+  fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.js"), [
+    '"use strict";',
+    'const path = require("node:path");',
+    'const candidate = process.env.META_HARNESS_CANDIDATE_ROOT;',
+    'const { sum } = require(path.join(candidate, "src", "sum.js"));',
+    'if (sum(2, 3) !== 5) process.exit(31);',
+    "",
+  ].join("\n"), "utf8");
+  fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.json"), `${JSON.stringify({
+    schemaVersion: "product-proof-policy/v1",
+    programPath: ".meta-harness/product-proof.js",
+    runtime: process.execPath,
+    timeoutSeconds: 60,
+  }, null, 2)}\n`, "utf8");
   git(root, ["add", "."]);
   git(root, ["commit", "-m", "failing product fixture"]);
   git(root, ["remote", "add", "origin", origin]);
@@ -103,12 +118,16 @@ test("live coding system carries one result through Codex and exact validation",
   assert.equal(parsed.delivery.commit.status, "committed");
   assert.equal(parsed.delivery.push.status, "remote_equal");
   assert.notEqual(parsed.delivery.commit.sha, head);
-  assert.equal(git(root, ["rev-parse", "HEAD"]), parsed.delivery.commit.sha);
+  assert.equal(parsed.productProof.state, "PROVEN");
+  assert.equal(git(root, ["branch", "--show-current"]), branch);
+  assert.equal(git(root, ["rev-parse", "HEAD"]), head);
+  assert.equal(git(parsed.workspace.path, ["rev-parse", "HEAD"]), parsed.delivery.commit.sha);
   assert.equal(
-    git(root, ["ls-remote", "--heads", "origin", `refs/heads/${branch}`]).split(/\s+/)[0],
+    git(root, ["ls-remote", "--heads", "origin", `refs/heads/${parsed.workspace.branch}`]).split(/\s+/)[0],
     parsed.delivery.commit.sha,
   );
   assert.equal(git(root, ["diff", "--cached", "--name-only"]), "");
   assert.deepEqual(parsed.changedPaths, ["src/sum.js"]);
-  assert.match(fs.readFileSync(path.join(root, "src", "sum.js"), "utf8"), /function|=>|exports/);
+  assert.equal(fs.existsSync(path.join(root, "src", "sum.js")), false);
+  assert.match(fs.readFileSync(path.join(parsed.workspace.path, "src", "sum.js"), "utf8"), /function|=>|exports/);
 });

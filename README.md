@@ -37,7 +37,7 @@ A normal successful run may surface only coarse liveness plus closure:
 Working…
 Validating…
 Repairing validation…
-Done — CSV export works. Validation passed and the result is banked locally.
+Done — CSV export works. Validation and product proof passed; the result is banked locally.
 ```
 
 Automatic internal transitions do not become decision requests. Liveness is deliberately coarse: no workspace UUIDs, generations, custody digests, actor handoffs, session digests, or commit hashes appear in normal output.
@@ -83,7 +83,7 @@ different result while work is ACTIVE   → owner input
 
 The reducer does not own product semantics. Product direction, scope authority, Git custody, validation evidence, repo decision authority, and publication authority remain in their existing bounded contracts.
 
-`work-session/v5` is the complete internal coding brief. It pins exact `PRODUCT.md` bytes, provenance, immutable base, result, scope, validation, repair budget, and publication authority. v5 is an incompatible transaction cut: typed worker mutation, an immutable candidate tree, isolated verification, controller-owned acceptance, and acceptance-gated BANK. Normal users neither author nor select it, and v4 is not accepted on the v5 execution path.
+`work-session/v5` is the complete internal coding brief. It pins exact `PRODUCT.md` bytes, provenance, immutable base, result, scope, validation, repair budget, and publication authority. v5 is an incompatible transaction cut: typed worker mutation, an immutable candidate tree, isolated verification, controller-owned BANK acceptance, and optional base-owned product proof. Normal users neither author nor select it, and v4 is not accepted on the v5 execution path.
 
 ## Automatic base and scope
 
@@ -115,9 +115,17 @@ Supported adapters include:
 
 Each adapter resolves the scope-nearest project from immutable tree facts and fails closed when allowed paths imply multiple projects or otherwise ambiguous validation. If no deterministic adapter matches, work blocks before workspace creation or worker launch.
 
-The coding worker is read-only and returns only typed `WRITE`, `DELETE`, or `MOVE` operations. The controller materializes them, seals one Git-authoritative `candidateTreeOid`, verifies that exact tree inside the Linux namespace/chroot verifier, and derives acceptance from the sealed validation evidence. Worker `done`/`partial` status is advisory and cannot authorize or veto BANK. Validation failures return to the same bounded result for repair.
+The coding worker is read-only and returns only typed `WRITE`, `DELETE`, or `MOVE` operations. The controller materializes them, seals one Git-authoritative `candidateTreeOid`, and verifies that exact tree inside the Linux namespace/chroot verifier. Candidate acceptance answers only whether those exact bytes may BANK safely. Worker `done`/`partial` status is advisory and cannot authorize or veto BANK. Regression failures return to the same bounded result for repair.
 
-Machine work results retain verification/acceptance digests plus controller-observed `work-metrics/v1` timing and repair facts (NEW/RESUME, proposal latency, verifier time, operation mix, output/event volume, repair count). Normal human output does not expose those internals. Meta-Harness does not persist execution memory unless measured repair/resume reconstruction loss later proves it necessary.
+## Product proof
+
+`DONE` requires independent repository/domain evidence that the requested behavior became true. A repository may provide a sealed-base `.meta-harness/product-proof.json` using `product-proof-policy/v1`. The policy names one base-owned proof program, one safe-system runtime executable, and a timeout. Meta-Harness constructs exactly `runtime + /base-proof/<program>` and binds the policy blob OID, proof-program blob OID, `base.commit`, `sessionDigest`, candidate seal, and `candidateTreeOid` into `product-proof/v1`.
+
+The same Linux namespace/chroot verifier executes product proof with three separated read-only inputs: `/base-proof` for the trusted base tree, `/candidate` for the exact candidate tree, and `/session/work-session.json` for the sealed product contract. Root dependency directories such as `node_modules`, `.venv`, or `venv` may be mounted read-only from the source repository for proof execution.
+
+Product proof has three evidence states: `PROVEN`, `FAILED`, and `UNAVAILABLE`. `FAILED` is actionable repair evidence and re-enters the existing bounded repair loop. `UNAVAILABLE` is not repairable evidence; Meta-Harness banks the regression-validated candidate as `BANKED_UNPROVEN`, keeps workspace truth as `TERMINAL_COMMITTED`, and returns a non-success CLI exit. Only `PROVEN` can produce `DONE`.
+
+Machine work results retain regression verification, candidate-acceptance, and product-proof evidence plus controller-observed `work-metrics/v1` timing and repair facts (NEW/RESUME, proposal latency, verifier time, operation mix, output/event volume, repair count). Normal human output does not expose those internals. Meta-Harness does not persist execution memory unless measured repair/resume reconstruction loss later proves it necessary.
 
 ## Automatic local banking
 
