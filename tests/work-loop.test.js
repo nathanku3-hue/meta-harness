@@ -7,8 +7,26 @@ const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const { attemptEntriesRoot } = require("../lib/world-authority");
-const { loadLatestWorkSession, persistWorkSession, prepareWorkspace } = require("../lib/work-git");
-const { runWork } = require("../lib/work-loop");
+const {
+  assertEnteredPermitCapability,
+  enterExecutionAttempt,
+  issueExecutionPermit,
+} = require("../lib/execution-permit");
+const { materializeWorkerOperations } = require("../lib/work-materializer");
+const {
+  loadLatestWorkSession,
+  persistWorkSession,
+  prepareWorkspace,
+  sealCandidate,
+  workspaceRegistryDirectory,
+} = require("../lib/work-git");
+const { captureBoundary, runWork } = require("../lib/work-loop");
+const {
+  acquireWorkspaceExecutionLease,
+  advanceWorkspaceGeneration,
+  readWorkspaceCustody,
+  releaseWorkspaceExecutionLease,
+} = require("../lib/workspace-custody");
 const { sealWorkSession } = require("../lib/work-session");
 const { ROOT, tempDir } = require("./helpers/cli");
 const { directionFromContent } = require("./helpers/product-direction");
@@ -104,6 +122,55 @@ function workerResult(operations, status = "done") {
   };
 }
 
+function enterDurableAttempt(root, workSession) {
+  const workspace = prepareWorkspace(root, workSession);
+  const state = persistWorkSession(root, workSession, workspace);
+  const registryDir = workspaceRegistryDirectory(root);
+  const lease = acquireWorkspaceExecutionLease({ registryDir, workspaceId: workspace.workspaceId });
+  const boundary = captureBoundary(workspace.workspacePath, workSession.allowedPaths);
+  const permit = issueExecutionPermit({
+    repositoryRoot: workspace.repositoryRoot,
+    workspacePath: workspace.workspacePath,
+    session: workSession,
+    attempt: workspace.generation,
+    boundary,
+    workspaceCustody: workspace.custody,
+    workspaceLease: lease,
+    workspaceRegistryDir: registryDir,
+    stateDirectory: state.directory,
+  });
+  const attemptEntry = enterExecutionAttempt({ stateDirectory: state.directory, permit, session: workSession });
+  return { workspace, state, registryDir, lease, permit, attemptEntry };
+}
+
+function sealInterruptedCandidate(root, workSession, operations) {
+  const checkpoint = enterDurableAttempt(root, workSession);
+  try {
+    assertEnteredPermitCapability({
+      stateDirectory: checkpoint.state.directory,
+      permit: checkpoint.permit,
+      attemptEntry: checkpoint.attemptEntry,
+      capability: "CONTROLLER_MATERIALIZE",
+    });
+    const materializedPaths = materializeWorkerOperations(
+      checkpoint.workspace.workspacePath,
+      operations,
+      workSession.allowedPaths,
+    );
+    const boundary = captureBoundary(checkpoint.workspace.workspacePath, workSession.allowedPaths);
+    const seal = sealCandidate({
+      stateDirectory: checkpoint.state.directory,
+      session: workSession,
+      workspace: checkpoint.workspace,
+      boundary,
+      materializedPaths,
+    });
+    return { ...checkpoint, seal };
+  } finally {
+    releaseWorkspaceExecutionLease({ registryDir: checkpoint.registryDir, lease: checkpoint.lease });
+  }
+}
+
 test("zero validation blocks before workspace creation or worker launch", async (t) => {
   const root = repository(t);
   let workerCalls = 0;
@@ -154,6 +221,125 @@ test("durable AttemptEntry exists before worker execution", async (t) => {
     /worker exploded after attempt entry/,
   );
   assert.equal(runnerCalls, 1);
+});
+
+test("sealed candidate interruption resumes verification without invoking the coding worker again", async (t) => {
+  const root = repository(t);
+  const workSession = session(root);
+  const checkpoint = sealInterruptedCandidate(root, workSession, [
+    { type: "WRITE", path: "src/result.txt", content: "delivered\n" },
+  ]);
+  const sourceHead = git(root, ["rev-parse", "HEAD"]);
+  const resumedSession = loadLatestWorkSession(root);
+  let workerCalls = 0;
+  const result = await runWork({
+    repositoryPath: root,
+    session: resumedSession,
+    runner: async () => {
+      workerCalls += 1;
+      throw new Error("sealed-candidate recovery must not re-run coding");
+    },
+    timeoutSeconds: 30,
+  });
+
+  assert.equal(workerCalls, 0);
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.attempts, 1);
+  assert.equal(result.workspace.generation, 1);
+  assert.equal(result.metrics.continuation, "RESUME");
+  assert.equal(result.metrics.repairAttempts, 0);
+  assert.equal(result.metrics.attempts[0].worker, "recovered-sealed-candidate");
+  assert.deepEqual(result.executionPermits.map((permit) => permit.generation), [1]);
+  assert.equal(result.productProof.state, "PROVEN");
+  assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
+  assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
+  assert.equal(git(checkpoint.workspace.workspacePath, ["status", "--short"]), "");
+});
+
+test("same-status byte tampering after a durable candidate seal is rejected on resume", (t) => {
+  const root = repository(t);
+  const workSession = session(root);
+  const checkpoint = sealInterruptedCandidate(root, workSession, [
+    { type: "WRITE", path: "src/result.txt", content: "delivered\n" },
+  ]);
+  const statusBefore = git(checkpoint.workspace.workspacePath, ["status", "--short"]);
+  assert.notEqual(statusBefore, "");
+  fs.writeFileSync(path.join(checkpoint.workspace.workspacePath, "src", "result.txt"), "tampered\n", "utf8");
+  assert.equal(git(checkpoint.workspace.workspacePath, ["status", "--short"]), statusBefore);
+
+  assert.throws(
+    () => loadLatestWorkSession(root),
+    (error) => error.code === "MH_WORKSPACE_CUSTODY_MISMATCH",
+  );
+});
+
+test("restart after repair generation advance derives provenance from the preceding seal", async (t) => {
+  const root = repository(t);
+  const workSession = session(root, { maxAttempts: 2 });
+  const checkpoint = sealInterruptedCandidate(root, workSession, [
+    { type: "WRITE", path: "src/result.txt", content: "wrong\n" },
+  ]);
+  const lease = acquireWorkspaceExecutionLease({
+    registryDir: checkpoint.registryDir,
+    workspaceId: checkpoint.workspace.workspaceId,
+  });
+  try {
+    const current = readWorkspaceCustody(checkpoint.registryDir, checkpoint.workspace.workspaceId);
+    const advanced = advanceWorkspaceGeneration({
+      registryDir: checkpoint.registryDir,
+      custody: current,
+      workspaceLease: lease,
+      expectedDirtyManifestDigest: checkpoint.seal.dirtyManifestDigest,
+    });
+    assert.equal(advanced.generation, 2);
+  } finally {
+    releaseWorkspaceExecutionLease({ registryDir: checkpoint.registryDir, lease });
+  }
+
+  const resumedSession = loadLatestWorkSession(root);
+  let workerCalls = 0;
+  const result = await runWork({
+    repositoryPath: root,
+    session: resumedSession,
+    runner: async ({ attempt, priorFailure }) => {
+      workerCalls += 1;
+      assert.equal(attempt, 2);
+      assert.match(priorFailure, /previous sealed candidate failed controller validation/i);
+      return workerResult([{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }]);
+    },
+    timeoutSeconds: 30,
+  });
+
+  assert.equal(workerCalls, 1);
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.attempts, 2);
+  assert.equal(result.metrics.repairAttempts, 1);
+  assert.deepEqual(result.executionPermits.map((permit) => permit.generation), [1, 2]);
+  assert.equal(fs.readFileSync(path.join(result.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
+});
+
+test("entered generation without a durable seal is never replayed after interruption", async (t) => {
+  const root = repository(t);
+  const workSession = session(root, { maxAttempts: 2 });
+  const checkpoint = enterDurableAttempt(root, workSession);
+  releaseWorkspaceExecutionLease({ registryDir: checkpoint.registryDir, lease: checkpoint.lease });
+  const resumedSession = loadLatestWorkSession(root);
+  let workerCalls = 0;
+  const result = await runWork({
+    repositoryPath: root,
+    session: resumedSession,
+    runner: async () => {
+      workerCalls += 1;
+      throw new Error("entered generation must not be replayed");
+    },
+  });
+
+  assert.equal(workerCalls, 0);
+  assert.equal(result.outcome, "BLOCKED");
+  assert.equal(result.attempts, 1);
+  assert.equal(result.workspace.generation, 1);
+  assert.equal(result.workspace.state, "TERMINAL_BLOCKED");
+  assert.match(result.blocker, /produced no durable candidate seal; replay is refused/i);
 });
 
 test("work loop carries a product brief into a fresh isolated generation and exact validation", async (t) => {

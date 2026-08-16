@@ -176,6 +176,23 @@ test("ExecutionPermit generation baseline fails closed before material execution
   );
 });
 
+test("dead controller execution lease is recoverable immediately", (t) => {
+  const root = repository(t);
+  const workSession = session(root);
+  const workspace = prepareWorkspace(root, workSession);
+  const registryDir = workspaceRegistryDirectory(root);
+  const modulePath = require.resolve("../lib/workspace-custody");
+  const child = spawnSync(process.execPath, [
+    "-e",
+    `require(${JSON.stringify(modulePath)}).acquireWorkspaceExecutionLease(${JSON.stringify({ registryDir, workspaceId: workspace.workspaceId })})`,
+  ], { cwd: root, encoding: "utf8", windowsHide: true });
+  assert.equal(child.status, 0, child.stderr || child.stdout);
+
+  const recovered = acquireWorkspaceExecutionLease({ registryDir, workspaceId: workspace.workspaceId });
+  t.after(() => releaseWorkspaceExecutionLease({ registryDir, lease: recovered }));
+  assert.equal(recovered.workspaceId, workspace.workspaceId);
+});
+
 test("workspace execution lease prevents two controllers from executing the same ACTIVE generation", (t) => {
   const root = repository(t);
   const workSession = session(root);

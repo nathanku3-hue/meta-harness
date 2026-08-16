@@ -213,9 +213,13 @@ The source checkout is never a coding execution workspace. Source mutable bytes 
 
 RESUME is selected automatically from persisted state; the owner does not say `--resume` or name a session.
 
-Reuse requires exact still-ACTIVE custody with matching repository root, workspace identity, physical path, Git administrative marker, branch, sealed base, current HEAD, generation, live product direction, and expected dirty-manifest digest. The controller also requires the exclusive execution lease.
+Reuse requires exact still-ACTIVE custody with matching repository root, workspace identity, physical path, Git administrative marker, branch, sealed base, current HEAD, generation, and live product direction. The controller also requires the exclusive execution lease.
 
-A mismatch fails closed. Terminal workspace authority never returns, even when bytes are manually cleaned or restored.
+Byte continuity is seal-first, not dirty-status-first. For generation 1, an unsealed baseline must be the exact clean sealed base. For repair generation N > 1, an unsealed baseline must exactly match durable candidate seal N-1. If candidate seal N already exists, that seal must exactly prove the live tree, index, and path set before continuation. The dirty-manifest digest remains a cheap custody consistency check but is not proof of file contents.
+
+A current-generation sealed candidate resumes controller work in the same generation: reacquire the controller lease, re-prove the seal, then continue validation, product proof, and BANK without invoking the coding worker again. Process restart does not advance generation. If an AttemptEntry exists but no candidate seal was durably created, that coding generation is not replayed; closure remains bounded rather than silently resetting the attempt budget.
+
+A mismatch fails closed. Terminal workspace authority never returns, even when bytes are manually cleaned or restored. A lease left by a controller process that is no longer live may be recovered immediately after its exact lock bytes are rechecked; a live controller lease still excludes concurrent execution.
 
 ### Terminalization
 
@@ -282,10 +286,13 @@ After worker return, the controller re-proves live product direction, session id
 
 After controller materialization:
 
-1. run exact external validation;
-2. if validation passes and the worker result is complete, proceed to banking;
-3. if validation fails and attempts remain, emit optional coarse `Repairing validation…`, advance custody to the next generation, compile a fresh permit, and return the failure to the same accepted result;
-4. do not ask the owner to choose the repair actor, session, validation command, or generation.
+1. durably seal the exact candidate before validation;
+2. run exact external validation;
+3. if validation passes, run or reuse product proof and proceed toward banking;
+4. if validation or product proof fails and attempts remain, emit optional coarse `Repairing validation…`, advance custody to the next coding generation, compile a fresh permit, and return the failure to the same accepted result;
+5. do not ask the owner to choose the repair actor, session, validation command, or generation.
+
+Candidate seals are the durable provenance chain across repair generations. Generation N+1 must begin from exact seal N bytes; the next seal admits only paths already owned by seal N plus paths changed by the new typed controller operations. Cross-generation provenance is not reconstructed from an in-memory path accumulator.
 
 The product result, product-direction snapshot, scope, and stop conditions do not change between bounded repair attempts.
 
@@ -395,7 +402,7 @@ After interruption:
 meta-harness
 ```
 
-must mechanically continue the exact ACTIVE work or stop without the owner saying resume, selecting an actor, supplying a session, choosing validation, or deciding whether successful validated bytes deserve a local commit.
+must mechanically continue the exact ACTIVE work or stop without the owner saying resume, selecting an actor, supplying a session, choosing validation, or deciding whether successful validated bytes deserve a local commit. If the controller died after durable candidate sealing, continuation starts at verification from that same seal and same coding generation; the coding worker is not replayed merely because the process restarted.
 
 The black-box suite must also prove that normal help and direct human invocation cannot encounter the historical lifecycle controls, while `meta-harness inspect` remains identifier-free.
 
