@@ -43,7 +43,7 @@ The human-facing product remains small. Internal continuity may become richer, b
 
 ## Current stabilization boundary
 
-`PRODUCT_DIRECTION_CONTINUITY_1` / `work-session/v6` / product-proof stabilization is banked locally at `22fe09c`. The active architectural slice is `OUTCOME_CLAIM_AUTHORITY_1`; it intentionally hard-cuts repo-owned execution to `work-session/v7` while leaving the proven owner-goal transaction, workspace custody, verification, BANK, and closure machinery in place.
+`PRODUCT_DIRECTION_CONTINUITY_1` / `work-session/v6` / product-proof stabilization is banked locally at `22fe09c`. `OUTCOME_CLAIM_AUTHORITY_1` is implemented, validated, and banked locally at `45eec13`; it hard-cuts repo-owned execution to `work-session/v7` while leaving the proven owner-goal transaction, workspace custody, verification, BANK, and closure machinery in place.
 
 A new external score campaign is not a prerequisite for this architecture work. The purpose of the current slices is to remove demonstrated serial and human-routing bottlenecks, not to create another evidence ceremony.
 
@@ -69,7 +69,7 @@ Hard cuts:
 
 **Done when:** two disjoint repo-owned outcomes can be claimed independently from the same WorldHead and bind separate execution sessions/workspaces; duplicate or conflicting claims fail closed; no owner routing is required.
 
-Immediate audited slice: `OUTCOME_CLAIM_AUTHORITY_1` (see repository-root `implementation_plan.md`). The architecture audit is accepted: Claim remains separate from workspace lease, Outcome starts minimal, and generic conflict keys are deferred.
+Banked audited slice: `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13` (see repository-root `implementation_plan.md`). Claim remains separate from workspace lease, Outcome starts minimal, and generic conflict keys are deferred.
 
 ### Phase 2 — Automatic parallel disposable execution
 
