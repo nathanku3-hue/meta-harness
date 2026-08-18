@@ -28,6 +28,8 @@ const {
   releaseWorkspaceExecutionLease,
 } = require("../lib/workspace-custody");
 const { sealWorkSession } = require("../lib/work-session");
+const { compileProductProofSpec } = require("../lib/work-proof-compiler");
+const { productProofContract, sealProductProofSpec } = require("../lib/work-product-proof-spec");
 const { ROOT, tempDir } = require("./helpers/cli");
 const { directionFromContent } = require("./helpers/product-direction");
 const { writePassingProductProof } = require("./helpers/product-proof");
@@ -80,16 +82,31 @@ function session(root, {
   const resolvedValidation = validation === undefined
     ? [{ argv: check, cwd: ".", timeoutSeconds: 30 }]
     : validation;
+  const productDirection = directionFromContent();
+  const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
+  const productResult = "Create the delivered result file.";
+  const newlyTrueBehavior = "src/result.txt contains delivered.";
+  const doneWhen = "The exact file exists and validation passes.";
+  const productProofSpec = compileProductProofSpec({
+    repositoryPath: root,
+    productDirection,
+    base,
+    productResult,
+    newlyTrueBehavior,
+    doneWhen,
+    allowModel: false,
+  });
   return sealWorkSession({
-    schemaVersion: "work-session/v5",
-    productDirection: directionFromContent(),
+    schemaVersion: "work-session/v6",
+    productDirection,
     origin: { type: "OWNER_GOAL" },
-    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
-    productResult: "Create the delivered result file.",
+    base,
+    productResult,
     journeyState: "The coding task is accepted.",
     doNow: "Create src/result.txt.",
-    newlyTrueBehavior: "src/result.txt contains delivered.",
-    doneWhen: "The exact file exists and validation passes.",
+    newlyTrueBehavior,
+    doneWhen,
+    productProofSpec,
     stopOnlyIf: ["The allowed path is insufficient."],
     authorizedReversibleActions: ["Edit src.", "Run validation."],
     ownerOnlyActions: ["Publish the repository."],
@@ -353,7 +370,7 @@ test("work loop carries a product brief into a fresh isolated generation and exa
   assert.equal(result.verification.schemaVersion, "candidate-verification/v1");
   assert.equal(result.verification.isolation, "linux-user-mount-net-pid-chroot/v1");
   assert.match(result.verification.verificationDigest, /^sha256:[a-f0-9]{64}$/u);
-  assert.equal(result.productProof.schemaVersion, "product-proof/v1");
+  assert.equal(result.productProof.schemaVersion, "product-proof/v2");
   assert.equal(result.productProof.state, "PROVEN");
   assert.match(result.productProof.productProofDigest, /^sha256:[a-f0-9]{64}$/u);
   assert.equal(result.acceptance.schemaVersion, "candidate-acceptance/v1");
@@ -548,12 +565,35 @@ test("candidate identity uses actual Git delta when a previously materialized pa
   assert.equal(fs.readFileSync(path.join(result.workspace.path, "README.md"), "utf8"), "baseline\n");
 });
 
-test("v5 transaction banks DELETE and MOVE through the same sealed candidate", async (t) => {
+test("v6 transaction banks DELETE and MOVE through the same sealed candidate", async (t) => {
   const root = repository(t);
   fs.mkdirSync(path.join(root, "src"));
   fs.writeFileSync(path.join(root, "src", "old.txt"), "move-me\n", "utf8");
   fs.writeFileSync(path.join(root, "src", "delete.txt"), "delete-me\n", "utf8");
-  git(root, ["add", "src"]);
+  fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.js"), [
+    '"use strict";',
+    'const fs = require("node:fs");',
+    'const path = require("node:path");',
+    'if (process.env.META_HARNESS_PROOF_CLAIM_ID !== "typed-mutation") process.exit(51);',
+    'const root = process.env.META_HARNESS_CANDIDATE_ROOT;',
+    'if (fs.existsSync(path.join(root, "src", "old.txt"))) process.exit(52);',
+    'if (fs.existsSync(path.join(root, "src", "delete.txt"))) process.exit(53);',
+    'if (!fs.existsSync(path.join(root, "src", "new.txt")) || fs.readFileSync(path.join(root, "src", "new.txt"), "utf8") !== "move-me\\n") process.exit(54);',
+    "",
+  ].join("\n"), "utf8");
+  fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.json"), `${JSON.stringify({
+    schemaVersion: "product-proof-policy/v2",
+    programPath: ".meta-harness/product-proof.js",
+    runtime: process.execPath,
+    timeoutSeconds: 30,
+    claims: [{
+      id: "typed-mutation",
+      statement: "The requested move and delete operations are observable in the product tree.",
+      baselineExpectation: "FAIL",
+      covers: ["productResult", "newlyTrueBehavior", "doneWhen"],
+    }],
+  }, null, 2)}\n`, "utf8");
+  git(root, ["add", "src", ".meta-harness/product-proof.js", ".meta-harness/product-proof.json"]);
   git(root, ["commit", "-m", "typed mutation fixture"]);
   const workSession = session(root, {
     validation: [{
@@ -732,6 +772,76 @@ test("validation that changes Git file-mode representation invalidates the seale
   );
 });
 
+test("forged imported compiled proof calibration is rejected before worker execution", async (t) => {
+  const root = repository(t, { withProductProof: false });
+  const productDirection = directionFromContent();
+  const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
+  const productResult = "Create the delivered result file.";
+  const newlyTrueBehavior = "src/result.txt contains delivered.";
+  const doneWhen = "The exact file exists and validation passes.";
+  const contract = productProofContract({ productDirection, base, productResult, newlyTrueBehavior, doneWhen });
+  const productProofSpec = sealProductProofSpec({
+    source: { type: "COMPILED", compiler: "forged-session-fixture" },
+    contract,
+    claims: [{
+      id: "forged-delivered-result",
+      statement: "The delivered result file contains delivered.",
+      disposition: "EXECUTABLE",
+      baselineExpectation: "PASS",
+      covers: ["productResult", "newlyTrueBehavior", "doneWhen"],
+      reason: "This fixture lies about the base calibration and must be rejected before coding.",
+    }],
+    program: {
+      runtime: process.execPath,
+      timeoutSeconds: 30,
+      content: [
+        '"use strict";',
+        'const fs = require("node:fs");',
+        'const path = require("node:path");',
+        'if (process.env.META_HARNESS_PROOF_CLAIM_ID !== "forged-delivered-result") process.exit(81);',
+        'const target = path.join(process.env.META_HARNESS_CANDIDATE_ROOT, "src", "result.txt");',
+        'if (!fs.existsSync(target) || fs.readFileSync(target, "utf8") !== "delivered\\n") process.exit(82);',
+        "",
+      ].join("\n"),
+    },
+    calibration: [{ claimId: "forged-delivered-result", expected: "PASS", observed: "PASS" }],
+  });
+  const workSession = sealWorkSession({
+    schemaVersion: "work-session/v6",
+    productDirection,
+    origin: { type: "OWNER_GOAL" },
+    base,
+    productResult,
+    journeyState: "The coding task is accepted.",
+    doNow: "Create src/result.txt.",
+    newlyTrueBehavior,
+    doneWhen,
+    productProofSpec,
+    stopOnlyIf: ["The allowed path is insufficient."],
+    authorizedReversibleActions: ["Edit src.", "Run validation."],
+    ownerOnlyActions: ["Publish the repository."],
+    allowedPaths: ["src"],
+    validation: [{ argv: [process.execPath, "-e", "process.exit(0)"], cwd: ".", timeoutSeconds: 30 }],
+    maxAttempts: 1,
+    delivery: { commit: false, push: false },
+  });
+  let workerCalls = 0;
+  await assert.rejects(
+    runWork({
+      repositoryPath: root,
+      session: workSession,
+      runner: async () => {
+        workerCalls += 1;
+        return workerResult([{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }]);
+      },
+      timeoutSeconds: 30,
+    }),
+    (error) => error.code === "MH_WORK_PRODUCT_PROOF_SPEC_AUTHORITY" && /base calibration/u.test(error.message),
+  );
+  assert.equal(workerCalls, 0);
+  assert.equal(fs.existsSync(path.join(root, ".worktrees")), false);
+});
+
 test("failed product proof enters the existing bounded repair loop", async (t) => {
   const root = repository(t);
   fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.js"), [
@@ -773,10 +883,16 @@ test("candidate replacement of the apparent proof program cannot replace base-ow
     "",
   ].join("\n"), "utf8");
   fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.json"), `${JSON.stringify({
-    schemaVersion: "product-proof-policy/v1",
+    schemaVersion: "product-proof-policy/v2",
     programPath: "proof/product-proof.js",
     runtime: process.execPath,
     timeoutSeconds: 30,
+    claims: [{
+      id: "delivered-result",
+      statement: "The requested delivered result exists with the expected contents.",
+      baselineExpectation: "FAIL",
+      covers: ["productResult", "newlyTrueBehavior", "doneWhen"],
+    }],
   }, null, 2)}\n`, "utf8");
   git(root, ["add", ".meta-harness/product-proof.json", "proof/product-proof.js"]);
   git(root, ["commit", "-m", "movable proof program fixture"]);
@@ -797,13 +913,14 @@ test("candidate replacement of the apparent proof program cannot replace base-ow
   });
   assert.equal(result.outcome, "PARTIAL");
   assert.equal(result.productProof.state, "FAILED");
-  assert.equal(result.productProof.program.blobOid, trustedProgramOid);
+  assert.equal(workSession.productProofSpec.source.programBlobOid, trustedProgramOid);
+  assert.equal(result.productProof.specDigest, workSession.productProofSpec.specDigest);
   assert.equal(result.acceptance, null);
   assert.equal(result.delivery.commit.status, "not_attempted");
   assert.equal(fs.readFileSync(path.join(result.workspace.path, "proof", "product-proof.js"), "utf8"), "process.exit(0);\n");
 });
 
-test("trivial green validation without product proof banks honestly without claiming DONE", async (t) => {
+test("trivial green validation with explicit material proof gaps banks honestly without claiming DONE", async (t) => {
   const root = repository(t, { withProductProof: false });
   const workSession = session(root, {
     allowedPaths: ["README.md"],
@@ -816,7 +933,8 @@ test("trivial green validation without product proof banks honestly without clai
     timeoutSeconds: 30,
   });
   assert.equal(result.outcome, "BANKED_UNPROVEN");
-  assert.equal(result.productProof.state, "UNAVAILABLE");
+  assert.equal(result.productProof.state, "GAP");
+  assert.equal(result.productProof.claims.every((claim) => claim.state === "UNRESOLVED"), true);
   assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
   assert.equal(result.delivery.commit.status, "no_changes");
   assert.deepEqual(result.delivery.commit.paths, []);

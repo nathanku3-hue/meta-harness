@@ -152,7 +152,7 @@ async function main() {
   const results = [];
 
   if (platformSkipped.length > 0) {
-    console.error(`# platform-skipped execution test files: ${platformSkipped.length} (v5 work requires Linux namespaces)`);
+    console.error(`# platform-skipped execution test files: ${platformSkipped.length} (v6 work requires Linux namespaces)`);
   }
   if (parallelTests.length > 0) {
     console.error(`# parallel test files: ${parallelTests.length} (concurrency ${PARALLEL_CONCURRENCY})`);

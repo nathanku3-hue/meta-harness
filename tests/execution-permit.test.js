@@ -27,6 +27,7 @@ const {
 } = require("../lib/workspace-custody");
 const { tempDir } = require("./helpers/cli");
 const { directionFromContent, writeProductMd } = require("./helpers/product-direction");
+const { gapProofSpec } = require("./helpers/product-proof");
 
 function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
@@ -51,16 +52,22 @@ function repository(t) {
 }
 
 function session(root) {
+  const productDirection = directionFromContent();
+  const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
+  const productResult = "Create one visible result.";
+  const newlyTrueBehavior = "The result file exists.";
+  const doneWhen = "The result file exists and validation passes.";
   return sealWorkSession({
-    schemaVersion: "work-session/v5",
-    productDirection: directionFromContent(),
+    schemaVersion: "work-session/v6",
+    productDirection,
     origin: { type: "OWNER_GOAL" },
-    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
-    productResult: "Create one visible result.",
+    base,
+    productResult,
     journeyState: "The result is accepted and not yet delivered.",
     doNow: "Create src/result.txt.",
-    newlyTrueBehavior: "The result file exists.",
-    doneWhen: "The result file exists and validation passes.",
+    newlyTrueBehavior,
+    doneWhen,
+    productProofSpec: gapProofSpec({ productDirection, base, productResult, newlyTrueBehavior, doneWhen }),
     stopOnlyIf: ["The allowed path is insufficient."],
     authorizedReversibleActions: ["Edit src.", "Run validation."],
     ownerOnlyActions: ["Publish the repository."],

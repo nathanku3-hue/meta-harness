@@ -130,7 +130,7 @@ The reducer does not own product taste, allowed-path semantics, Git custody, val
 
 ## Internal work-session contract
 
-`work-session/v4` remains the complete digest-bound coding brief. Users do not author or select it in the normal journey.
+`work-session/v6` is the complete digest-bound coding brief. Users do not author or select it in the normal journey. v6 is an incompatible cut; v5 is not accepted on the active execution path.
 
 Required fields remain:
 
@@ -144,6 +144,7 @@ journeyState
 doNow
 newlyTrueBehavior
 doneWhen
+productProofSpec.*
 stopOnlyIf[]
 authorizedReversibleActions[]
 ownerOnlyActions[]
@@ -155,7 +156,7 @@ delivery.push
 sessionDigest
 ```
 
-`delivery.commit` remains in v4 bytes for schema stability but is no longer task-time owner authority: successful validated results are always locally banked by the controller. `delivery.push` remains publication authority and is never inferred from successful validation.
+`delivery.commit` remains in v6 bytes but is no longer task-time owner authority: successful validated results are always locally banked by the controller. `delivery.push` remains publication authority and is never inferred from successful validation.
 
 The session digest is domain-separated SHA-256 over canonical session content excluding `sessionDigest`. Product-direction digest is SHA-256 over exact `PRODUCT.md` bytes.
 
@@ -253,7 +254,29 @@ Supported adapters:
 5. Go adapter from `go.mod` → `go test ./...`;
 6. .NET adapter from one scope-nearest `.sln` or `.csproj` → `dotnet test`.
 
-If multiple allowed paths imply different project roots, or a project root is otherwise ambiguous, validation fails closed. If no deterministic adapter matches, work blocks before workspace creation or worker launch. The product does not fall back to asking the owner to author `work-session/v4`.
+If multiple allowed paths imply different project roots, or a project root is otherwise ambiguous, validation fails closed. If no deterministic adapter matches, work blocks before workspace creation or worker launch. The product does not fall back to asking the owner to author an internal work-session contract.
+
+## Pre-worker product-proof compiler
+
+Every `work-session/v6` pins exactly one canonical `product-proof-spec/v1` before the coding worker can produce a candidate. Proof absence is not a second execution branch.
+
+The proof contract binds exact:
+
+```text
+productDirection.digest
+base.commit
+productResult
+newlyTrueBehavior
+doneWhen
+```
+
+Every material semantic clause must map to at least one atomic claim. Claims are `EXECUTABLE`, `UNVERIFIABLE`, `TASTE`, or `EXTERNAL`; non-executable material claims remain explicit gaps and cannot disappear under an overall success label.
+
+A repository may provide sealed-base `.meta-harness/product-proof.json` using `product-proof-policy/v2`. The policy and program are read from exact base Git blobs and normalized into the same product-proof spec used everywhere else. On the normal owner-goal path, absence of that policy may invoke a read-only pre-worker compiler against only owner direction, the sealed product contract, and a clean exact-base snapshot. The compiler never sees a coding candidate.
+
+Each executable claim declares whether the sealed base is expected to `PASS` or `FAIL`. Meta-Harness calibrates the exact proof program before coding. A generated claim whose observed baseline disagrees with its declaration is downgraded to an explicit proof gap. A base-owned policy whose declared baseline is false fails closed.
+
+Meta-Harness owns the trust envelope—inputs, temporal separation, exact bytes, calibration, isolation, claim coverage, and result derivation—not a generic product-testing DSL. Repository-native executable code expresses domain semantics.
 
 ## Coding worker
 
@@ -288,9 +311,11 @@ After controller materialization:
 
 1. durably seal the exact candidate before validation;
 2. run exact external validation;
-3. if validation passes, run or reuse product proof and proceed toward banking;
-4. if validation or product proof fails and attempts remain, emit optional coarse `Repairing validation…`, advance custody to the next coding generation, compile a fresh permit, and return the failure to the same accepted result;
-5. do not ask the owner to choose the repair actor, session, validation command, or generation.
+3. if validation passes, execute the exact sealed `product-proof-spec/v1` and derive `product-proof/v2` claim results;
+4. if validation fails, or product proof is `FAILED`, and attempts remain, emit optional coarse `Repairing validation…`, advance custody to the next coding generation, compile a fresh permit, and return the failure to the same accepted result;
+5. if product proof is `GAP`, do not invent a repair failure: retain the regression-validated candidate as `BANKED_UNPROVEN` with unresolved material claims visible in evidence;
+6. if product proof is `PROVEN`, the candidate is eligible for `DONE`;
+7. do not ask the owner to choose the repair actor, session, validation command, or generation.
 
 Candidate seals are the durable provenance chain across repair generations. Generation N+1 must begin from exact seal N bytes; the next seal admits only paths already owned by seal N plus paths changed by the new typed controller operations. Cross-generation provenance is not reconstructed from an in-memory path accumulator.
 
@@ -300,7 +325,7 @@ The product result, product-direction snapshot, scope, and stop conditions do no
 
 A local commit is immutable closure, not publication.
 
-After `DONE` plus passed validation, Meta-Harness:
+After passed regression validation and controller candidate acceptance, Meta-Harness banks the exact candidate locally whether semantic proof is `PROVEN` (`DONE`) or `GAP` (`BANKED_UNPROVEN`). It does not bank a `FAILED` proof candidate. For an eligible candidate, Meta-Harness:
 
 1. hashes exact accepted paths;
 2. requires the exact ACTIVE controller-owned managed worktree and custody;
@@ -310,7 +335,7 @@ After `DONE` plus passed validation, Meta-Harness:
 6. commits the accepted paths on the managed branch;
 7. terminalizes the workspace as `TERMINAL_COMMITTED`.
 
-This happens even when an older `work-session/v4` contains `delivery.commit=false`.
+This happens even when `work-session/v6` contains `delivery.commit=false`; that field cannot disable controller-owned local BANK.
 
 If controller death occurs after the exact BANK commit but before operational result/closure persistence, restart must re-prove the durable candidate seal against the managed workspace Git state, recover `TERMINAL_COMMITTED`, and reconstruct a durable `COMPLETED` Repo Decision closure. That recovered execution requires `ATTEMPT_LEARNING` and cannot be banked as `ATTEMPT_ABORTED`.
 
@@ -318,7 +343,7 @@ Push remains explicit publication authority. When `delivery.push=true`, the exis
 
 The source checkout's branch, HEAD, index, and dirty bytes are never the delivery target and remain unchanged.
 
-A `PARTIAL` or `BLOCKED` result is never delivered.
+A `PARTIAL` or `BLOCKED` result is never delivered. `BANKED_UNPROVEN` is deliberately banked local work with non-complete product closure, not a `PARTIAL` workspace state.
 
 ## Repository decision authority
 
@@ -332,7 +357,7 @@ immutable repo-world + attestation
 → repo-decision/v3 = DISPATCH | NO_DISPATCH
 ```
 
-DISPATCH compiles an internal `work-session/v4`. NO_DISPATCH creates no workspace or material attempt. Attempt admission remains Decision-keyed and generation-bound, and authoritative World transitions remain compare-and-swap protected.
+DISPATCH compiles an internal `work-session/v6`. It deterministically normalizes a sealed base-owned product-proof policy when present and otherwise pins explicit material proof gaps rather than introducing model-generated Decision authority. NO_DISPATCH creates no workspace or material attempt. Attempt admission remains Decision-keyed and generation-bound, and authoritative World transitions remain compare-and-swap protected.
 
 The JourneyState reducer consumes only the generic DISPATCH/NO_DISPATCH disposition; it does not absorb repo-domain interpretation, evidence meaning, claim validity, ranking, resurrection semantics, or allocation.
 

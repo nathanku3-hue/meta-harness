@@ -19,6 +19,7 @@ const {
 const { loadLatestWorkSession, persistWorkSession, prepareWorkspace } = require("../lib/work-git");
 const { ROOT, run, runRaw, tempDir } = require("./helpers/cli");
 const { SAMPLE_PRODUCT_MD, writeProductMd } = require("./helpers/product-direction");
+const { gapProofSpec } = require("./helpers/product-proof");
 
 function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
@@ -46,11 +47,31 @@ function npmRepo(t) {
   return root;
 }
 
+function goalSession(root, goal = "Add a visible result.") {
+  const productDirection = pinProductDirection(root);
+  const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
+  const productProofSpec = gapProofSpec({
+    productDirection,
+    base,
+    productResult: goal,
+    newlyTrueBehavior: goal,
+    doneWhen: "The requested behavior works in the repository and relevant validation passes.",
+  });
+  return createGoalWorkSession({
+    goal,
+    repositoryPath: root,
+    productDirection,
+    base,
+    allowedPaths: ["src"],
+    validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
+    productProofSpec,
+  });
+}
+
 function sealedSession(root, overrides = {}) {
-  const direction = pinProductDirection(root);
-  return sealWorkSession({
-    schemaVersion: "work-session/v5",
-    productDirection: direction,
+  const body = {
+    schemaVersion: "work-session/v6",
+    productDirection: pinProductDirection(root),
     origin: { type: "OWNER_GOAL" },
     base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
     productResult: "Create src/result.txt with delivered content.",
@@ -66,7 +87,9 @@ function sealedSession(root, overrides = {}) {
     maxAttempts: 2,
     delivery: { commit: false, push: false },
     ...overrides,
-  });
+  };
+  if (!body.productProofSpec) body.productProofSpec = gapProofSpec(body);
+  return sealWorkSession(body);
 }
 
 test("--goal rejects missing PRODUCT.md before workspace or worker activity", (t) => {
@@ -86,17 +109,12 @@ test("--goal rejects malformed PRODUCT.md before workspace activity", (t) => {
   assert.match(String(result.stderr || result.stdout || ""), /heading|PRODUCT\.md|section/i);
 });
 
-test("created v5 session contains exact PRODUCT.md bytes, base, and matching digest", (t) => {
+test("created v6 session contains exact PRODUCT.md bytes, base, proof spec, and matching digest", (t) => {
   const root = npmRepo(t);
   const live = pinProductDirection(root);
-  const session = createGoalWorkSession({
-    goal: "Add a visible result.",
-    repositoryPath: root,
-    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
-    allowedPaths: ["src"],
-    validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
-  });
-  assert.equal(session.schemaVersion, "work-session/v5");
+  const session = goalSession(root);
+  assert.equal(session.schemaVersion, "work-session/v6");
+  assert.equal(session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.equal(session.productDirection.content, live.content);
   assert.equal(session.productDirection.digest, live.digest);
@@ -105,13 +123,7 @@ test("created v5 session contains exact PRODUCT.md bytes, base, and matching dig
 
 test("fake-worker prompt receives exact direction bytes before result and context", (t) => {
   const root = npmRepo(t);
-  const session = createGoalWorkSession({
-    goal: "Add a visible result.",
-    repositoryPath: root,
-    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
-    allowedPaths: ["src"],
-    validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
-  });
+  const session = goalSession(root);
   const prompt = buildCodingPrompt(session, {
     attempt: 1,
     priorFailure: "previous validation failed",
@@ -127,13 +139,7 @@ test("fake-worker prompt receives exact direction bytes before result and contex
 
 test("validation repair prompt reuses unchanged product-direction snapshot bytes", (t) => {
   const root = npmRepo(t);
-  const session = createGoalWorkSession({
-    goal: "Add a visible result.",
-    repositoryPath: root,
-    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
-    allowedPaths: ["src"],
-    validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
-  });
+  const session = goalSession(root);
   const first = buildCodingPrompt(session, { attempt: 1, priorFailure: "", workspaceMode: "current" });
   const second = buildCodingPrompt(session, {
     attempt: 2,

@@ -83,7 +83,7 @@ different result while work is ACTIVE   → owner input
 
 The reducer does not own product semantics. Product direction, scope authority, Git custody, validation evidence, repo decision authority, and publication authority remain in their existing bounded contracts.
 
-`work-session/v5` is the complete internal coding brief. It pins exact `PRODUCT.md` bytes, provenance, immutable base, result, scope, validation, repair budget, and publication authority. v5 is an incompatible transaction cut: typed worker mutation, an immutable candidate tree, isolated verification, controller-owned BANK acceptance, and optional base-owned product proof. Normal users neither author nor select it, and v4 is not accepted on the v5 execution path.
+`work-session/v6` is the complete internal coding brief. It pins exact `PRODUCT.md` bytes, provenance, immutable base, result, scope, validation, repair budget, publication authority, and one canonical pre-worker `product-proof-spec/v1`. v6 is an incompatible cut: v5 sessions are not accepted on the v6 execution path. Normal users neither author nor select this contract.
 
 ## Automatic base and scope
 
@@ -119,11 +119,15 @@ The coding worker is read-only and returns only typed `WRITE`, `DELETE`, or `MOV
 
 ## Product proof
 
-`DONE` requires independent repository/domain evidence that the requested behavior became true. A repository may provide a sealed-base `.meta-harness/product-proof.json` using `product-proof-policy/v1`. The policy names one base-owned proof program, one safe-system runtime executable, and a timeout. Meta-Harness constructs exactly `runtime + /base-proof/<program>` and binds the policy blob OID, proof-program blob OID, `base.commit`, `sessionDigest`, candidate seal, and `candidateTreeOid` into `product-proof/v1`.
+`DONE` requires candidate-independent, discriminating, materially complete evidence that the requested behavior became true. Before the coding worker sees the task, Meta-Harness compiles exactly one `product-proof-spec/v1` from owner direction, the sealed product contract, and the exact base. Every material semantic clause in `productResult`, `newlyTrueBehavior`, and `doneWhen` must map to at least one atomic proof claim or remain an explicit proof gap.
 
-The same Linux namespace/chroot verifier executes product proof with three separated read-only inputs: `/base-proof` for the trusted base tree, `/candidate` for the exact candidate tree, and `/session/work-session.json` for the sealed product contract. Root dependency directories such as `node_modules`, `.venv`, or `venv` may be mounted read-only from the source repository for proof execution.
+A repository may supply stronger pre-existing proof input through sealed-base `.meta-harness/product-proof.json` using `product-proof-policy/v2`. Meta-Harness reads the policy and program from exact `base.commit`, binds their Git blob OIDs, calibrates the declared claims against the base, and normalizes them into the same canonical proof spec. When no base-owned policy exists on the normal owner-goal path, a read-only pre-worker compiler may synthesize repository-native executable proof. It cannot see the future candidate. Meta-Harness owns the trust envelope, not a generic testing DSL.
 
-Product proof has three evidence states: `PROVEN`, `FAILED`, and `UNAVAILABLE`. `FAILED` is actionable repair evidence and re-enters the existing bounded repair loop. `UNAVAILABLE` is not repairable evidence; Meta-Harness banks the regression-validated candidate as `BANKED_UNPROVEN`, keeps workspace truth as `TERMINAL_COMMITTED`, and returns a non-success CLI exit. Only `PROVEN` can produce `DONE`.
+Executable claims must declare whether the sealed base should `PASS` or `FAIL`. Generated proof that disagrees with its declared baseline is downgraded to an explicit `UNVERIFIABLE` gap; a false base-owned calibration fails closed. The exact proof program is then sealed into `work-session/v6` before coding begins.
+
+The same Linux namespace/chroot verifier later executes the sealed proof program per executable claim with read-only `/candidate`, `/base`, `/proof-spec/program`, and `/session/product-contract.json` inputs. Non-executable material claims remain unresolved rather than being judged by another model.
+
+`product-proof/v2` derives its overall state mechanically from claim results: any failed executable claim gives `FAILED`, any remaining material unresolved claim gives `GAP`, otherwise the result is `PROVEN`. `FAILED` re-enters bounded repair. `GAP` banks regression-validated bytes as `BANKED_UNPROVEN` with a non-success product outcome. Only `PROVEN` can produce `DONE`.
 
 Machine work results retain regression verification, candidate-acceptance, and product-proof evidence plus controller-observed `work-metrics/v1` timing and repair facts (NEW/RESUME, proposal latency, verifier time, operation mix, output/event volume, repair count). Normal human output does not expose those internals. Meta-Harness does not persist execution memory unless measured repair/resume reconstruction loss later proves it necessary.
 
@@ -149,7 +153,7 @@ The source checkout's HEAD, index, branch, and existing dirty bytes are not rewr
 
 Complex repositories may opt into repo-owned decision authority through `.meta-harness/repo-charter.json`. Repository intelligence owns domain meaning; Meta-Harness owns generic identity, attestation checks it can mechanically prove, single-entry execution authority, workspace custody, operational closure, and immutable World lineage.
 
-A current `repo-decision/v3` is either `DISPATCH` or inert `NO_DISPATCH`. DISPATCH compiles an internal `work-session/v5`; NO_DISPATCH creates no workspace or attempt. The normal owner still does not route planners, coders, auditors, sessions, or generations.
+A current `repo-decision/v3` is either `DISPATCH` or inert `NO_DISPATCH`. DISPATCH compiles an internal `work-session/v6` with one canonical product-proof spec; NO_DISPATCH creates no workspace or attempt. The normal owner still does not route planners, coders, auditors, sessions, or generations.
 
 ## Installation
 
@@ -166,7 +170,7 @@ Requirements:
 - validation tools required by the target repository;
 - for `meta-harness work`, Linux with unprivileged user, mount, network, and PID namespaces plus `chroot`/`setpriv` (WSL is the supported Windows execution route).
 
-Native Windows never silently falls back to unisolated v5 validation. Portable/package surfaces may still run natively on Windows, but authority-bearing `work` execution must use the Linux/WSL verifier boundary.
+Native Windows never silently falls back to unisolated v6 validation or product proof. Portable/package surfaces may still run natively on Windows, but authority-bearing `work` execution must use the Linux/WSL verifier boundary.
 
 ## Development
 

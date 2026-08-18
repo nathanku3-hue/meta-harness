@@ -17,11 +17,12 @@ const {
 } = require("../lib/work-session");
 const { tempDir } = require("./helpers/cli");
 const { directionFromContent, SAMPLE_PRODUCT_MD, writeProductMd } = require("./helpers/product-direction");
+const { gapProofSpec } = require("./helpers/product-proof");
 
 const TEST_BASE = Object.freeze({ type: "EXACT_COMMIT", commit: "1".repeat(40) });
 
 function explicitSession(overrides = {}) {
-  return sealWorkSession({
+  const body = {
     schemaVersion: WORK_SESSION_SCHEMA,
     productDirection: directionFromContent(),
     origin: { type: "OWNER_GOAL" },
@@ -39,7 +40,9 @@ function explicitSession(overrides = {}) {
     maxAttempts: 2,
     delivery: { commit: true, push: false },
     ...overrides,
-  });
+  };
+  if (!body.productProofSpec) body.productProofSpec = gapProofSpec(body);
+  return sealWorkSession(body);
 }
 
 test("journey reducer keeps automatic continuation mechanically bounded", () => {
@@ -51,9 +54,10 @@ test("journey reducer keeps automatic continuation mechanically bounded", () => 
   assert.equal(reduceJourneyState({ compiledDecision: { type: "NO_DISPATCH", reason: "USE_PRODUCT" } }).next.operation, "STOP");
 });
 
-test("work-session/v5 seals product direction, provenance, trusted base, and exact path/validation scope", () => {
+test("work-session/v6 seals product direction, product-proof spec, provenance, trusted base, and exact path/validation scope", () => {
   const session = explicitSession();
-  assert.equal(session.schemaVersion, "work-session/v5");
+  assert.equal(session.schemaVersion, "work-session/v6");
+  assert.equal(session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.deepEqual(session.base, TEST_BASE);
   assert.equal(session.sessionDigest, computeWorkSessionDigest(session));
@@ -72,12 +76,20 @@ test("goal shorthand pins live PRODUCT.md into a complete low-friction brief", (
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const direction = writeProductMd(root);
   const validation = [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 300 }];
+  const productProofSpec = gapProofSpec({
+    productDirection: direction,
+    base: TEST_BASE,
+    productResult: "Add a visible result.",
+    newlyTrueBehavior: "Add a visible result.",
+    doneWhen: "The requested behavior works in the repository and relevant validation passes.",
+  });
   const session = createGoalWorkSession({
     goal: "Add a visible result.",
     repositoryPath: root,
     base: TEST_BASE,
     allowedPaths: ["src"],
     validation,
+    productProofSpec,
   });
   assert.equal(session.productResult, "Add a visible result.");
   assert.equal(session.doNow, "Add a visible result.");
@@ -94,6 +106,7 @@ test("goal shorthand pins live PRODUCT.md into a complete low-friction brief", (
     base: TEST_BASE,
     allowedPaths: ["src"],
     validation: [{ argv: ["node", "--test"], cwd: ".", timeoutSeconds: 300 }],
+    productProofSpec,
   });
   assert.notEqual(changedValidation.sessionDigest, session.sessionDigest);
 });
@@ -120,12 +133,12 @@ test("coding prompt carries product direction before result and engineering cont
 test("work session rejects digest drift, traversal, extra fields, and invalid attempts", () => {
   const session = explicitSession();
   assert.throws(
-    () => validateWorkSession({ ...session, schemaVersion: "work-session/v4" }),
+    () => validateWorkSession({ ...session, schemaVersion: "work-session/v5" }),
     (error) => error.code === "MH_WORK_SESSION_SCHEMA",
   );
   assert.throws(
     () => validateWorkSession({ ...session, productResult: "drifted" }),
-    (error) => error.code === "MH_WORK_SESSION_DIGEST",
+    (error) => error.code === "MH_WORK_PRODUCT_PROOF_SPEC" && /sealed product contract/u.test(error.message),
   );
   assert.throws(
     () => sealWorkSession({ ...session, allowedPaths: ["../outside"] }),

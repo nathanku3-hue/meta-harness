@@ -1,6 +1,6 @@
 # Repo Decision Authority — hard-cut contract
 
-This file documents the current repo decision authority substrate. The repository retains this packaged filename, but the protocol objects are `repo-world/v2`, `repo-decision/v3`, `work-session/v5`, and the transactional primitives named below. There is no compatibility parser for retired Decision Plane or work-session schemas.
+This file documents the current repo decision authority substrate. The repository retains this packaged filename, but the protocol objects are `repo-world/v2`, `repo-decision/v3`, `work-session/v6`, and the transactional primitives named below. There is no compatibility parser for retired Decision Plane or work-session schemas.
 
 ## Boundary
 
@@ -23,7 +23,7 @@ repo-decision/v3
         ├── NO_DISPATCH → inert
         └── DISPATCH
               ↓
-         work-session/v5
+         work-session/v6
               ↓
          execution-permit/v1
               ↓
@@ -278,7 +278,7 @@ same transition
 
 ## `repo-decision/v3`
 
-Decision identity is the digest of the exact validated Decision bytes, which are persisted immutably before execution. This makes `work-session/v5 → decisionDigest` dereferenceable even if the mutable repo-side Decision file later changes.
+Decision identity is the digest of the exact validated Decision bytes, which are persisted immutably before execution. This makes `work-session/v6 → decisionDigest` dereferenceable even if the mutable repo-side Decision file later changes.
 
 Common authority fields:
 
@@ -340,9 +340,9 @@ OWNER_DECISION_REQUIRED
 
 `NO_DISPATCH` creates no work session, workspace, ExecutionPermit, or AttemptEntry.
 
-## `work-session/v5`
+## `work-session/v6`
 
-The schema break is intentional. Repo-directed work carries one minimal provenance edge while execution uses the v5 typed-mutation, isolated-verification, controller-acceptance transaction:
+Repo-directed work carries one minimal provenance edge while execution uses the v6 typed-mutation, isolated-verification, controller-acceptance transaction and pins one canonical `product-proof-spec/v1`. Repository Decision compilation remains deterministic: a sealed base-owned `product-proof-policy/v2` is normalized when present; otherwise the session records explicit material proof gaps rather than inventing model-authored Decision authority:
 
 ```json
 {
@@ -366,13 +366,13 @@ Direct owner work carries:
 No World digest or attestation digest is duplicated in the session. The authority chain is:
 
 ```text
-work-session/v5
+work-session/v6
 → decisionDigest
 → worldHeadDigest
 → worldDigest + attestationDigest + lastTransitionDigest
 ```
 
-The Repo Decision DISPATCH action also carries the exact resolved `base`; compilation copies that authority into `work-session/v5`. Base refs are not re-resolved during compilation or execution. Decision identity is not encoded in `stopOnlyIf` prose and no regex provenance recovery exists.
+The Repo Decision DISPATCH action also carries the exact resolved `base`; compilation copies that authority into `work-session/v6`. Base refs are not re-resolved during compilation or execution. The session proof spec is bound to the exact product result, newly-true behavior, done condition, product-direction digest, and base commit. Decision identity is not encoded in `stopOnlyIf` prose and no regex provenance recovery exists.
 
 ## `attempt-entry/v1`
 

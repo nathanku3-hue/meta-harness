@@ -40,7 +40,7 @@ const {
   validateWorldTransition,
 } = require("../lib/world-transition");
 const { captureBoundary, runWork } = require("../lib/work-loop");
-const { persistProductProof, resolveProductProof } = require("../lib/work-product-proof");
+const { persistProductProof } = require("../lib/work-product-proof");
 const { verifyProductProof } = require("../lib/work-verifier");
 const {
   acceptCandidate,
@@ -372,13 +372,14 @@ function realityTransition(predecessorHeadDigest, successor) {
   return validateWorldTransition({ ...body, transitionDigest: computeWorldTransitionDigest(body) });
 }
 
-test("authoritative WorldHead compiles minimal work-session/v5 provenance", (t) => {
+test("authoritative WorldHead compiles minimal work-session/v6 provenance with sealed product proof", (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { claims: ["repo-owned"], hypotheses: ["opaque"] });
   installDecision(root, initial.head.headDigest);
   const compiled = compileRepoDecisionWork(root);
   assert.equal(compiled.type, "DISPATCH");
-  assert.equal(compiled.session.schemaVersion, "work-session/v5");
+  assert.equal(compiled.session.schemaVersion, "work-session/v6");
+  assert.equal(compiled.session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.equal(compiled.session.base.commit, git(root, ["rev-parse", "HEAD"]));
   assert.deepEqual(compiled.session.origin, { type: "REPO_DECISION", decisionDigest: compiled.decisionDigest });
   assert.equal(compiled.session.origin.worldDigest, undefined);
@@ -575,7 +576,6 @@ test("BANK completed before Decision closure recovers as COMPLETED and cannot be
       workspacePath: prepared.workspace.workspacePath,
       session: compiled.session,
       candidateSeal: seal,
-      resolution: resolveProductProof(root, compiled.session.base.commit),
     });
     assert.equal(productProof.state, "PROVEN");
     persistProductProof(prepared.permitStateDirectory, productProof);

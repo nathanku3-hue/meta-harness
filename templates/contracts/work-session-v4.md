@@ -1,6 +1,6 @@
 # Work Session v4
 
-**Retired.** Active coding sessions use `work-session/v5`; see `templates/contracts/work-session-v5.md`. v4 remains here only for archive readability and has no supported compatibility parser on the v5 execution path.
+**Retired.** Active coding sessions use `work-session/v6`; see `templates/contracts/work-session-v6.md`. v4 remains here only for archive readability and has no supported compatibility parser on the v6 execution path.
 
 The historical v4 break made trusted Git base authority explicit. A NEW session did not infer its base from the source checkout's current `HEAD`; downstream execution consumed the sealed exact `base.commit`.
 

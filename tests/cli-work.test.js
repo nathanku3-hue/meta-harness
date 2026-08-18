@@ -11,6 +11,7 @@ const { writeProductMd } = require("./helpers/product-direction");
 const { writePassingProductProof } = require("./helpers/product-proof");
 const { persistWorkSession, prepareWorkspace } = require("../lib/work-git");
 const { createGoalWorkSession } = require("../lib/work-session");
+const { compileProductProofSpec } = require("../lib/work-proof-compiler");
 const { renderHuman } = require("../lib/commands/work");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
@@ -19,6 +20,12 @@ function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
   assert.equal(result.status, 0, result.stderr || result.stdout);
   return String(result.stdout || "").trim();
+}
+
+function persistedSession(root) {
+  const directory = path.join(root, ".git", "meta-harness", "work-sessions");
+  const pointer = JSON.parse(fs.readFileSync(path.join(directory, "latest.json"), "utf8"));
+  return JSON.parse(fs.readFileSync(path.join(directory, pointer.sessionFile), "utf8"));
 }
 
 function repo(t, { withValidation = true, withOrigin = true, withProductProof = true } = {}) {
@@ -93,14 +100,52 @@ test("primary work command executes in a fresh workspace and reports product fie
   assert.equal(fs.readFileSync(path.join(parsed.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
 });
 
-test("banked work without independent product proof is a truthful non-success", (t) => {
+test("pre-worker compiled proof can establish DONE without a pre-existing repository verifier", (t) => {
   const root = repo(t, { withProductProof: false });
-  const result = runRaw(root, ["Create the delivered result file."], { env: env() });
+  const result = runRaw(ROOT, [
+    "work", root,
+    "--goal", "Create the delivered result file.",
+    "--allow", "src",
+    "--json",
+  ], { env: env() });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.outcome, "DONE");
+  assert.equal(parsed.productProof.state, "PROVEN");
+  assert.equal(parsed.productProof.claims[0].state, "PASSED");
+  const session = persistedSession(root);
+  assert.equal(session.productProofSpec.source.type, "COMPILED");
+  assert.deepEqual(session.productProofSpec.calibration, [{ claimId: "delivered-result", expected: "FAIL", observed: "FAIL" }]);
+  assert.deepEqual(session.productProofSpec.claims[0].covers, ["productResult", "newlyTrueBehavior", "doneWhen"]);
+});
+
+test("banked work with unresolved material product-proof claims is a truthful non-success", (t) => {
+  const root = repo(t, { withProductProof: false });
+  const result = runRaw(root, ["Create the delivered result file."], { env: env({ FAKE_PROOF_COMPILER_GAP: "1" }) });
   assert.equal(result.status, 1, result.stderr || result.stdout);
-  assert.match(result.stdout, /^Banked — repository validation passed, but independent product proof is unavailable\.$/m);
+  assert.match(result.stdout, /^Banked — repository validation passed, but material product-proof claims remain unresolved\.$/m);
   const latest = JSON.parse(fs.readFileSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json"), "utf8"));
   assert.notEqual(git(latest.workspace.path, ["rev-parse", "HEAD"]), git(root, ["rev-parse", "HEAD"]));
   assert.equal(git(latest.workspace.path, ["status", "--short"]), "");
+});
+
+test("miscalibrated generated proof is downgraded to a visible GAP instead of authorizing DONE", (t) => {
+  const root = repo(t, { withProductProof: false });
+  const result = runRaw(ROOT, [
+    "work", root,
+    "--goal", "Create the delivered result file.",
+    "--allow", "src",
+    "--json",
+  ], { env: env({ FAKE_PROOF_COMPILER_BAD_CALIBRATION: "1" }) });
+  assert.equal(result.status, 1, result.stderr || result.stdout);
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.outcome, "BANKED_UNPROVEN");
+  assert.equal(parsed.productProof.state, "GAP");
+  const session = persistedSession(root);
+  assert.equal(session.productProofSpec.source.type, "COMPILED");
+  assert.equal(session.productProofSpec.program, null);
+  assert.equal(session.productProofSpec.claims[0].disposition, "UNVERIFIABLE");
+  assert.match(session.productProofSpec.claims[0].reason, /calibration/i);
 });
 
 test("duplicate normalized allow paths fail before workspace or worker activity", (t) => {
@@ -356,10 +401,22 @@ test("ghost journey accepts one result, shows coarse liveness, validates, and ba
 
 test("bare meta-harness resumes the exact active generation without an owner resume decision", (t) => {
   const root = repo(t);
+  const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
+  const productDirection = require("../lib/product-direction").pinProductDirection(root);
+  const productProofSpec = compileProductProofSpec({
+    repositoryPath: root,
+    productDirection,
+    base,
+    productResult: "Create the delivered result file.",
+    newlyTrueBehavior: "Create the delivered result file.",
+    doneWhen: "The requested behavior works in the repository and relevant validation passes.",
+    allowModel: false,
+  });
   const session = createGoalWorkSession({
     goal: "Create the delivered result file.",
     repositoryPath: root,
-    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
+    productDirection,
+    base,
     allowedPaths: ["."],
     validation: [{
       argv: [process.execPath, "-e", "const fs=require('fs'); if(fs.readFileSync('src/result.txt','utf8')!=='delivered\\n') process.exit(7)"],
@@ -367,6 +424,7 @@ test("bare meta-harness resumes the exact active generation without an owner res
       timeoutSeconds: 30,
     }],
     delivery: { commit: true, push: false },
+    productProofSpec,
   });
   const workspace = prepareWorkspace(root, session);
   persistWorkSession(root, session, workspace);
