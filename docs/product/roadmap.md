@@ -69,43 +69,56 @@ Hard cuts:
 
 **Done when:** two disjoint repo-owned outcomes can be claimed independently from the same WorldHead and bind separate execution sessions/workspaces; duplicate or conflicting claims fail closed; no owner routing is required.
 
-Banked audited slice: `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13` (see repository-root `implementation_plan.md`). Claim remains separate from workspace lease, Outcome starts minimal, and generic conflict keys are deferred.
+Banked audited slice: `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`. Claim remains separate from workspace lease, Outcome starts minimal, and generic conflict keys are deferred. The repository-root `implementation_plan.md` now describes the next Phase-2 audit candidate rather than rewriting the banked Phase-1 record.
 
-### Phase 2 — Automatic parallel disposable execution
+### Phase 2 — Parallel outcome progress
 
-**Product result:** available execution capacity automatically becomes useful coding throughput.
+**Product result:** repo-owned execution opportunities become concurrent, recoverable product progress without owner routing or stranded successful Closures.
 
-Implement the smallest deterministic allocator:
+Implemented and validated working-tree slice: `PARALLEL_OUTCOME_PROGRESS_1` (see repository-root `implementation_plan.md`). The architecture audit is incorporated; the repository wrapper passes 116 test files / 865 tests with zero failures. The slice is not yet Git-banked because no commit was requested. Phase 1 proved that independent Claims may coexist. Phase 2 hard-cuts the remaining serial semantics together:
+
+```text
+durable active Claims
+→ recover commitments before mutable proposals
+
+current World
++ repo-proposal-set/v1
+→ fill remaining capacity with NEW compatible Claims
+   (new Claim must still originate from current H)
+
+recovered + new Claim sessions
+→ bounded concurrent runWork()
+→ independent Closures
+→ fixed repository-owned interpreter against CURRENT World
+→ ATTEMPT_LEARNING when durable work evidence exists
+→ ATTEMPT_ABORTED when it does not
+→ serialized World CAS / Claim release
+```
+
+The active mutable `repo-decision/v3` concept is replaced by `repo-proposal-set/v1`; proposals are possibilities, Claims are commitments. New Claim visibility must imply durable session recovery, so a mutable proposal disappearing cannot strand or cancel admitted work. Active model-authored `NO_DISPATCH` terminal inactivity is removed; an empty proposal set means replan/reconcile rather than `USE_PRODUCT`.
+
+The slice does **not** pretend that the existing `preconditionDigest` is a fact snapshot: it hashes declared precondition text. Sibling Closure landing therefore requires fresh repository interpretation against current World, bound mechanically to the exact Outcome, Claim, Closure, current Head, and ordinary World CAS. Repository interpretation is part of the Phase-2 execution transaction, not an external handoff. The fixed `.meta-harness/closure-interpreter.js` seam runs read-only inside the verifier-grade Linux namespace/chroot envelope; Meta-Harness validates outputs and owns persistence/CAS. Semantic work and product-proof compilation stay outside the World lock; that lock contains only short mechanical authority operations. Use greedy deterministic admission first. No CP-SAT, fairness subsystem, reservation state machine, daemon, worker-to-worker messaging, provider framework, or corporate-agent topology.
+
+**Done when:** active Claims survive proposal replacement; stale-Head new Claim races fail closed; several compatible Outcomes execute concurrently; one worker failure does not cancel siblings; successful sibling Closures can serialize into current World (or be deterministically invalidated/replanned) without whole-origin-Head staleness; and every terminal Claim has a durable resolution path—learning with durable work evidence, abort without it.
+
+### Phase 3 — Continuous reconciliation + capacity refill
+
+**Product result:** useful execution capacity stays filled as Claims land, release, block, or become newly eligible, without turning Phase 2 into a queue/scheduler product.
+
+After every authoritative landing or material reality change:
 
 ```text
 current World
-+ executable outcomes
-+ live claims
-→ remove blocked/ineligible
-→ remove claim conflicts
-→ deterministic preference
-→ claim a maximal compatible set
-→ provision isolated workers
++ active Claims
++ fresh proposal snapshot
+→ recover commitments
+→ recompute currently claimable proposals
+→ fill newly free local execution capacity
 ```
 
-Use greedy deterministic selection first. No CP-SAT, fairness subsystem, reservation state machine, daemon, worker-to-worker messaging, or corporate-agent topology.
+No persistent queue, reservation state, fairness model, or worker conversation topology is required. Reconciliation is event-driven recomputation from durable truth, not a daemon-owned scheduling database.
 
-**Done when:** several fresh disposable workers automatically execute different compatible outcomes concurrently and each has one workspace, one execution authority chain, and one closure.
-
-### Phase 3 — Scoped freshness + linear World commit
-
-**Product result:** concurrently executing outcomes can finish in arbitrary order without unrelated World transitions invalidating them.
-
-Hard rule:
-
-```text
-origin WorldHead = provenance
-scoped precondition/invariant digest = execution validity
-```
-
-At closure, revalidate only declared outcome-relevant facts/capabilities/conflicts against current World. An unrelated committed outcome must not stale another execution. A relevant changed precondition must invalidate/replan it.
-
-**Done when:** A and B may both start from World H; A may commit H→H+1; B may still commit from current H+1 when its scoped basis remains true, or deterministically replan when A changed something B actually depended on.
+**Done when:** after one parallel Outcome lands and releases capacity, newly legal compatible work can start without owner action or restarting the organizational plan, while active Claims retain continuity and World remains linear.
 
 ### Phase 4 — Forward-motion / escalation proof
 

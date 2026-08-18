@@ -98,11 +98,12 @@ Controller materialization rejects any worker proposal targeting `PRODUCT.md` re
 
 The reducer is deliberately narrow. It does not become a semantic control-plane monolith.
 
-Inputs are already-established facts such as:
+Inputs are already-established owner-work facts such as:
 
 - an owner-supplied product result;
-- exact ACTIVE persisted work-session custody when one exists;
-- an authoritative repo DISPATCH/NO_DISPATCH result when that repository uses decision authority.
+- exact ACTIVE persisted owner work-session custody when one exists.
+
+Repo-owned proposal/Claim work is no longer collapsed into this single-result reducer. When a repository charter enables repo control and no owner result is active, the command path enters the Claim-recovery/proposal wave directly.
 
 It produces only the mechanically next disposition:
 
@@ -121,9 +122,8 @@ Rules:
 new owner result + no ACTIVE result      → NEW, automatic
 same owner result + ACTIVE result        → RESUME, automatic
 no owner result + ACTIVE result          → RESUME, automatic
-repo DISPATCH + no ACTIVE owner result   → NEW, automatic
-repo NO_DISPATCH / no selected work      → STOP, automatic
 different owner result while ACTIVE      → OWNER_INPUT
+no owner result + no ACTIVE owner result → STOP, automatic unless repo control routes to a Claim wave first
 ```
 
 The reducer does not own product taste, allowed-path semantics, Git custody, validation interpretation, repo-domain claims, publication authority, credentials, or material-risk decisions.
@@ -345,21 +345,57 @@ The source checkout's branch, HEAD, index, and dirty bytes are never the deliver
 
 A `PARTIAL` or `BLOCKED` result is never delivered. `BANKED_UNPROVEN` is deliberately banked local work with non-complete product closure, not a `PARTIAL` workspace state.
 
-## Repository decision authority
+## Repository proposal / Claim authority
 
-Repositories may opt into repo-owned decision authority. Domain semantics remain opaque to the generic kernel.
+Repositories may opt into repo-owned progress authority with `.meta-harness/repo-charter.json`. Domain semantics remain opaque to the generic kernel.
 
-The authoritative path remains:
+The active mutable input is:
 
 ```text
 immutable repo-world + attestation
-→ immutable WorldHead
-→ repo-decision/v3 = DISPATCH | NO_DISPATCH
+→ immutable WorldHead H
+→ .meta-harness/repo-proposals.json / repo-proposal-set/v1 bound to H
+→ ordered possibilities
 ```
 
-DISPATCH persists its Decision as upstream selection evidence, compiles a minimal immutable `outcome/v1`, acquires or reuses one compatible `outcome-claim/v1`, and seals an internal `work-session/v7`. New repo-owned AttemptEntry admission is Claim-keyed and generation-bound, not singleton-Decision-keyed. Claims with disjoint concrete write boundaries may originate from the same WorldHead; duplicate Outcomes and overlapping boundaries fail closed. Repo-owned work-session continuation is claim-addressed rather than selected by one repository-global `latest.json`. Unsupported `OWNER_DECISION_REQUIRED` is rejected as unevidenced authority instead of becoming durable owner input. Authoritative World transitions remain compare-and-swap protected; scoped commit freshness after unrelated World movement is a later slice.
+`repo-decision/v3` remains readable only as historical immutable evidence. It is not accepted as the active mutable repository-work input. `repo-proposal-set/v1` has no `NO_DISPATCH` branch: an empty set means reconciliation/replanning is required and cannot manufacture terminal `USE_PRODUCT` authority.
 
-The JourneyState reducer consumes only the generic DISPATCH/NO_DISPATCH disposition; it does not absorb repo-domain interpretation, evidence meaning, claim validity, ranking, resurrection semantics, or allocation.
+The normal repo-owned transaction is:
+
+```text
+recover active Claims before proposals
+→ read current World + current proposal set
+→ greedily fill unused local capacity with compatible NEW Claims
+→ bounded concurrent runWork() per Claim/session/workspace
+→ durable independent ExecutionClosures
+→ deterministic serialized current-World landing
+```
+
+A proposal is disposable possibility; an Outcome is durable work identity; a Claim is durable temporary commitment. New Claims require `proposal.worldHeadDigest` to still equal the authoritative current WorldHead while the World authority lock is held. Existing Claims deliberately do not gain whole-World equality: unrelated World advancement cannot cancel admitted responsibility.
+
+New-format Claim visibility implies durable pre-workspace session recovery. Meta-Harness constructs the prospective Claim, seals the exact `work-session/v7` with its Claim digest, writes the immutable session, writes `outcome-claim-session/v1`, then writes the Claim last. The later `outcome-claim-binding/v1` still binds Claim→Session→Workspace custody. A mutable proposal disappearing therefore cannot strand or cancel an active Claim.
+
+Repo-owned continuation is Claim-addressed rather than selected by repository-global `latest.json`. Claims with disjoint concrete write boundaries may coexist; duplicate Outcomes and overlapping boundaries fail closed. Controller-local fan-out is a bounded operational limit only and is never persisted as queue, priority, reservation, or World state.
+
+### Current-World Closure landing
+
+Worker success is not repo-level product success until current authoritative truth accepts it. For every terminal Claim with durable work evidence, Meta-Harness supplies the exact current World+attestation, Outcome, Claim, ExecutionClosure, and work result to the repository-owned fixed interpreter at `.meta-harness/closure-interpreter.js`.
+
+The interpreter is a self-contained Node program executed read-only inside the same Linux user/mount/network/PID namespace + chroot trust envelope used by verification. It receives the complete landing packet only through stdin and returns exactly:
+
+```text
+repo-closure-interpretation/v1
+interpretation
+successor repo-world/v2
+successor world-attestation/v1
+APPLIED | INVALIDATED_REPLAN
+```
+
+Meta-Harness validates and persists those immutable semantic objects outside the World authority lock, then commits an `ATTEMPT_LEARNING` transition whose predecessor is the World that was actually interpreted. `Claim.originWorldHeadDigest` is provenance only. If CAS loses, the stale semantic candidate is discarded and repository interpretation reruns against the newer current Head; stale successors are never mechanically rebased by rewriting only the predecessor.
+
+A durable `PARTIAL`/`BLOCKED` work result still lands through `ATTEMPT_LEARNING` so failure/replan learning can close the Claim. A terminal ExecutionClosure with no work result resolves through `ATTEMPT_ABORTED` against the current Head and releases its Claim without invoking semantic interpretation. Thus every terminal Claim has a deterministic durable release path.
+
+The World authority lock protects only short authority operations: current-Head admission checks, compatibility checks, session/Claim visibility ordering, transition CAS, and Claim release. Product-proof compilation and repository semantic interpretation execute outside that lock.
 
 ## Human diagnostic boundary
 

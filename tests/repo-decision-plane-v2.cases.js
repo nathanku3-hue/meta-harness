@@ -16,7 +16,7 @@ const {
   compileRepoDecisionWork,
   loadRepoCharter,
   prepareAuthoritativeWorld,
-} = require("../lib/repo-decision-plane");
+} = require("../lib/repo-decision-plane-v2");
 const {
   attemptEntriesRoot,
   attemptEntryPath,
@@ -428,13 +428,13 @@ test("local source drift blocks dispatch from authoritative attestation", (t) =>
   assert.throws(() => compileRepoDecisionWork(root), (error) => error.code === "MH_WORLD_ATTESTATION_DRIFT");
 });
 
-test("NO_DISPATCH is inert", (t) => {
+test("legacy NO_DISPATCH remains historical evidence and is not active mutable work authority", (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { observations: ["current"] });
   installDecision(root, initial.head.headDigest, { type: "NO_DISPATCH", reason: "NO_VALUABLE_ACTION" });
   const result = runRaw(root, ["work", root, "--json"]);
-  assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.equal(JSON.parse(result.stdout).outcome, "NO_DISPATCH");
+  assert.equal(result.status, 1, result.stderr || result.stdout);
+  assert.equal(JSON.parse(result.stdout).outcome, "REPLAN_REQUIRED");
   assert.equal(fs.existsSync(path.join(root, ".worktrees")), false);
   assert.deepEqual(fs.readdirSync(attemptEntriesRoot(root)), []);
 });
@@ -555,7 +555,7 @@ test("ATTEMPT_LEARNING banks the admitted execution once and rejects wrong-prede
 
   const duplicateSuccessor = persistProjectionObjects(root, { observations: ["double-bank"] });
   const doubleBank = learningTransition(root, applied.head.headDigest, run.closure, duplicateSuccessor);
-  assert.throws(() => commitTransition(root, doubleBank), (error) => error.code === "MH_WORLD_TRANSITION_PREDECESSOR");
+  assert.throws(() => commitTransition(root, doubleBank), (error) => error.code === "MH_OUTCOME_CLAIM_RELEASED");
 });
 
 test("ATTEMPT_LEARNING fails closed when the referenced immutable work result is missing", async (t) => {

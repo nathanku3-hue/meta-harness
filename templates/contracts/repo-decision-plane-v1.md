@@ -1,10 +1,10 @@
-# Repo Decision Authority — hard-cut contract
+# Repository Progress Authority — hard-cut contract
 
-This file documents the current repo decision authority substrate. The repository retains this packaged filename, but autonomous execution identity now uses `outcome/v1`, `outcome-claim/v1`, and `work-session/v7`; `repo-decision/v3` remains upstream selection evidence. There is no compatibility parser for retired active-path work-session schemas.
+This packaged filename is retained for distribution compatibility, but the active repository-work protocol is no longer a mutable Repo Decision. Active repo-owned progress uses `repo-proposal-set/v1`, `outcome/v1`, `outcome-claim/v1`, `outcome-claim-session/v1`, and `work-session/v7`. Historical immutable `repo-decision/v3` evidence remains readable only where old AttemptEntry / ExecutionClosure provenance requires it.
 
 ## Boundary
 
-Meta-Harness is not a domain planner or epistemic oracle. Repository intelligence owns interpretation, applicability, ranking, claims, hypotheses, negative knowledge, terminal semantics, resurrection rules, and allocation policy. The kernel owns only identities and properties it can mechanically enforce.
+Meta-Harness is not a domain planner or epistemic oracle. Repository intelligence owns proposal content and current-World semantic interpretation. The kernel owns only identities, exact bytes, authority bindings, bounded execution containment, compatibility checks, durable closure, and linear World compare-and-swap.
 
 ```text
 repo-native sources / external observations
@@ -19,29 +19,31 @@ immutable world-head/v1
         ↓
 current-world-pointer/v1
         ↓
-repo-decision/v3
-        ├── NO_DISPATCH → inert
-        └── DISPATCH
-              ↓
-         immutable outcome/v1
-              ↓
-         compatible outcome-claim/v1
-              ↓
-         work-session/v7 (REPO_OUTCOME)
-              ↓
-         execution-permit/v1
-              ↓
-         attempt-entry/v1
-              ↓
-         bounded worker / validation
-              ↓
-         execution-closure/v1
-              ↓
-         repo interpretation
-              ↓
-         world-transition/v1
-              ↓
-         successor world-head/v1
+.meta-harness/repo-proposals.json / repo-proposal-set/v1
+        ↓ ordered possibilities
+immutable outcome/v1
+        ↓
+current-Head-compatible outcome-claim/v1
+        ↓
+immutable outcome-claim-session/v1
+        ↓
+work-session/v7 (REPO_OUTCOME)
+        ↓
+execution-permit/v1
+        ↓
+attempt-entry/v1
+        ↓
+bounded worker / validation / BANK
+        ↓
+execution-closure/v1
+        ↓
+CURRENT World + fixed repository closure interpreter
+        ↓
+ATTEMPT_LEARNING or ATTEMPT_ABORTED
+        ↓
+serialized world-transition/v1
+        ↓
+successor world-head/v1 + Claim release
 ```
 
 The kernel understands:
@@ -51,20 +53,21 @@ identity
 sha256 digests
 authority bindings
 attestation facts it can actually recompute
-DISPATCH / NO_DISPATCH
+proposal-set bindings
+Outcome / Claim compatibility
 AttemptEntry
 operational closure
 WorldHead lineage
 exclusive lock + compare-and-swap
 ```
 
-The kernel does not understand domain-specific evidence meaning.
+The kernel does not understand domain-specific evidence meaning or applicability.
 
 ## Opt-in and protected control paths
 
-A regular non-symlink `.meta-harness/repo-charter.json` opts the repository into repo decision authority. The charter is opaque policy bytes; Meta-Harness binds its digest but does not validate a generic policy ontology.
+A regular non-symlink `.meta-harness/repo-charter.json` opts the repository into repo-owned progress authority. The charter is opaque policy bytes; Meta-Harness binds its digest but does not validate a generic policy ontology.
 
-While opted in, direct material bypass through `--goal`, `--session`, `--allow`, or `--base` is rejected. The Repo Decision itself carries the resolved work-base authority. Coding workers may not mutate these repo authority inputs:
+While opted in, direct material bypass through internal `--goal`, `--session`, `--allow`, or `--base` controls is rejected. Coding workers may not mutate these repository authority inputs:
 
 ```text
 .meta-harness/repo-charter.json
@@ -72,7 +75,9 @@ While opted in, direct material bypass through `--goal`, `--session`, `--allow`,
 .meta-harness/world-attestation.json
 .meta-harness/world-transition.json
 .meta-harness/repo-interpretation.json
-.meta-harness/repo-decision.json
+.meta-harness/repo-proposals.json
+.meta-harness/closure-interpreter.js
+.meta-harness/repo-decision.json        # legacy evidence source only
 .meta-harness/owner-directive.md
 ```
 
@@ -80,18 +85,20 @@ While opted in, direct material bypass through `--goal`, `--session`, `--allow`,
 
 ## Immutable protocol objects and mutable pointer
 
-Protocol objects are stored by digest under the repository Git common directory. At minimum the authority chain retains immutable objects for:
+Protocol objects are stored by digest under the repository Git common directory. The authority chain retains immutable objects for at least:
 
 ```text
 worlds/<worldDigest>.json
 attestations/<attestationDigest>.json
-decisions/<decisionDigest>.json
 transitions/<transitionDigest>.json
 heads/<headDigest>.json
 interpretations/<interpretationDigest>.json
+outcomes/<outcomeDigest>.json
 work-results/<workResultDigest>.json
 execution-closures/<closureDigest>.json
 ```
+
+Legacy `decisions/<decisionDigest>.json` objects remain readable for historical execution provenance.
 
 The sole mutable World authority is:
 
@@ -117,7 +124,7 @@ A `world-head/v1` is immutable:
 
 Old Head identities therefore remain dereferenceable after the current pointer advances.
 
-## `repo-world/v2`
+## `repo-world/v2` and `world-attestation/v1`
 
 World payload is intentionally opaque to the kernel:
 
@@ -131,10 +138,6 @@ World payload is intentionally opaque to the kernel:
 }
 ```
 
-A repository may change payload terminology from claims/hypotheses/routes to missions/observations/constraints without changing Meta-Harness source.
-
-## `world-attestation/v1`
-
 Attestation binds a World to projector identity and source observations:
 
 ```json
@@ -143,209 +146,66 @@ Attestation binds a World to projector identity and source observations:
   "worldDigest": "sha256:...",
   "projectorDigest": "sha256:...",
   "sources": [],
-  "generatedAt": "2026-08-13T00:00:00.000Z",
+  "generatedAt": "2026-08-18T00:00:00.000Z",
   "attestationDigest": "sha256:..."
 }
 ```
 
-The kernel verifies only properties it can actually verify.
+The kernel verifies only properties it can actually verify: local-file digests, Git-ref identities, opaque observation bindings, declared validity windows, and exact World binding.
 
-### Local file source
+## `repo-proposal-set/v1`
 
-```json
-{
-  "type": "LOCAL_FILE",
-  "sourceId": "canonical-input",
-  "path": "state/current.json",
-  "digest": "sha256:...",
-  "observedAt": "2026-08-13T00:00:00.000Z",
-  "validUntil": null
-}
-```
-
-Meta-Harness resolves the repository path, rejects traversal/symlinks, reads current bytes, and recomputes the digest.
-
-### Git ref source
-
-```json
-{
-  "type": "GIT_REF",
-  "sourceId": "committed-base",
-  "ref": "HEAD",
-  "objectId": "0123456789abcdef...",
-  "observedAt": "2026-08-13T00:00:00.000Z",
-  "validUntil": null
-}
-```
-
-Meta-Harness resolves the ref through its bounded Git helper and compares current object identity.
-
-### Opaque observation
-
-```json
-{
-  "type": "OPAQUE",
-  "sourceId": "market-feed",
-  "identity": "repo-adapter-observation:...",
-  "observationDigest": "sha256:...",
-  "observedAt": "2026-08-13T00:00:00.000Z",
-  "validUntil": "2026-08-13T00:10:00.000Z"
-}
-```
-
-For opaque external reality, Meta-Harness validates binding and declared time validity. It does not claim to have independently verified Bloomberg, Jira, a market feed, or another remote system. Repo intelligence owns that observation unless a generic live identity mechanism exists and the kernel actually uses it.
-
-## `world-transition/v1`
-
-There is one substrate for making another World authoritative:
-
-```json
-{
-  "schemaVersion": "world-transition/v1",
-  "predecessorHeadDigest": "sha256:...",
-  "cause": {},
-  "successorWorldDigest": "sha256:...",
-  "successorAttestationDigest": "sha256:...",
-  "transitionDigest": "sha256:..."
-}
-```
-
-Allowed causes are deliberately generic.
-
-### Reality refresh
-
-```json
-{
-  "type": "REALITY_REFRESH",
-  "projectionDigest": "sha256:..."
-}
-```
-
-### Attempt learning
-
-```json
-{
-  "type": "ATTEMPT_LEARNING",
-  "executionClosureDigest": "sha256:...",
-  "interpretationDigest": "sha256:..."
-}
-```
-
-### Attempt aborted
-
-```json
-{
-  "type": "ATTEMPT_ABORTED",
-  "executionClosureDigest": "sha256:..."
-}
-```
-
-`ATTEMPT_ABORTED` carries no fake interpretation. A semantic no-change result may keep the same World payload while still producing a successor Head generation, so the execution is durably banked exactly once.
-
-## Shared World-authority lock and CAS
-
-Repo Decision admission and WorldTransition commit use the same short-lived exclusive repository authority lock.
-
-Decision generation-1 entry:
+The active mutable repository-work input is:
 
 ```text
-acquire world-authority lock
-→ read current pointer / Head
-→ require Decision.worldHeadDigest == current Head
-→ require no existing first admission for that Head
-→ create + fsync AttemptEntry
-→ release lock
+.meta-harness/repo-proposals.json
 ```
 
-WorldTransition:
-
-```text
-acquire same lock
-→ read current pointer / Head
-→ require predecessorHeadDigest == current Head
-→ validate admitted-execution constraints
-→ persist immutable transition + successor Head
-→ atomically replace current-world pointer
-→ release lock
-```
-
-Atomic rename alone is not treated as concurrent CAS; the exclusive lock supplies the mutual exclusion.
-
-An exact transition retry after a crash is idempotent:
-
-```text
-same transition
-+ current Head already equals its deterministic successor Head
-→ ALREADY_APPLIED
-→ no new generation
-```
-
-## `repo-decision/v3`
-
-Decision identity is the digest of the exact validated Decision bytes, which are persisted immutably before execution. Decision remains dereferenceable selection evidence even if the mutable repo-side Decision file later changes, but Decision digest is no longer the identity carried by new repo-owned work sessions.
-
-Common authority fields:
+Shape:
 
 ```json
 {
-  "schemaVersion": "repo-decision/v3",
+  "schemaVersion": "repo-proposal-set/v1",
   "productDirectionDigest": "sha256:...",
   "charterDigest": "sha256:...",
   "worldHeadDigest": "sha256:...",
   "ownerDirectiveDigest": null,
-  "decision": {}
+  "proposals": [
+    {
+      "id": "bounded-result",
+      "productResult": "Observable product result",
+      "journeyState": "Current user journey state",
+      "doNow": "Nearest coding action",
+      "newlyTrueBehavior": "Behavior that becomes true",
+      "doneWhen": "Observable completion condition",
+      "stopOnlyIf": ["Material stop condition"],
+      "allowedPaths": ["src", "tests"],
+      "base": { "type": "EXACT_COMMIT", "commit": "<exact Git commit oid>" },
+      "validation": [
+        { "argv": ["node", "--test"], "cwd": ".", "timeoutSeconds": 300 }
+      ],
+      "maxAttempts": 2,
+      "delivery": { "commit": false, "push": false }
+    }
+  ]
 }
 ```
 
-The decision is a true sum type.
+Rules:
 
-### DISPATCH
+- the common product-direction, charter, current WorldHead, and owner-directive bindings are exact;
+- `proposals[]` is ordered repository preference;
+- proposal IDs are unique inside one snapshot;
+- overlapping proposals are legal possibilities; Claim admission decides which may coexist;
+- proposal bytes and their digest are not Outcome, Claim, session, permit, or World authority;
+- `proposals: []` means `REPLAN_REQUIRED`, not terminal `USE_PRODUCT`;
+- there is no active `NO_DISPATCH`, priority number, queue position, reservation state, fairness, preemption, or generic conflict resource.
 
-```json
-{
-  "type": "DISPATCH",
-  "action": {
-    "id": "bounded-action",
-    "productResult": "Observable product result",
-    "journeyState": "Current user journey state",
-    "doNow": "Nearest coding action",
-    "newlyTrueBehavior": "Behavior that becomes true",
-    "doneWhen": "Observable completion condition",
-    "stopOnlyIf": ["Material stop condition"],
-    "allowedPaths": ["src", "tests"],
-    "base": { "type": "EXACT_COMMIT", "commit": "<exact Git commit oid>" },
-    "validation": [
-      { "argv": ["node", "--test"], "cwd": ".", "timeoutSeconds": 300 }
-    ],
-    "maxAttempts": 2,
-    "delivery": { "commit": false, "push": false }
-  }
-}
-```
+Proposals are possibilities. Claims are commitments.
 
-### NO_DISPATCH
+## Outcome / Claim admission
 
-```json
-{
-  "type": "NO_DISPATCH",
-  "reason": "NO_VALUABLE_ACTION"
-}
-```
-
-Generic reasons are:
-
-```text
-WAIT_EXTERNAL
-WAIT_MATURITY
-USE_PRODUCT
-NO_VALUABLE_ACTION
-```
-
-`NO_DISPATCH` creates no work session, workspace, ExecutionPermit, or AttemptEntry. The active schema deliberately rejects `OWNER_DECISION_REQUIRED`: until an evidence-bearing authority/resource proof exists, a model assertion is not sufficient to manufacture owner authority.
-
-## `outcome/v1`, `outcome-claim/v1`, and `work-session/v7`
-
-Repo-directed DISPATCH first compiles a deliberately small immutable Outcome:
+A proposal compiles to a deliberately small immutable Outcome:
 
 ```text
 id
@@ -354,72 +214,87 @@ preconditions[]
 evidenceRequirement
 ```
 
-It then atomically acquires or reuses a Claim whose execution boundary is derived from the concrete allowed write paths. Same-Outcome claims and overlapping write boundaries fail closed; disjoint Claims may coexist from one origin WorldHead. No generic planner-authored `conflictKeys` exist in this slice.
+Compatibility is derived from concrete write paths. Same-Outcome claims and overlapping write boundaries fail closed; disjoint Claims may coexist.
 
-Repo-owned v7 work carries Outcome + Claim provenance:
-
-```json
-{
-  "origin": {
-    "type": "REPO_OUTCOME",
-    "outcomeDigest": "sha256:...",
-    "claimDigest": "sha256:..."
-  }
-}
-```
-
-Direct owner work carries:
-
-```json
-{
-  "origin": {
-    "type": "OWNER_GOAL"
-  }
-}
-```
-
-The authority chain is:
+For every **new** Claim, the short World-authority critical section requires:
 
 ```text
-work-session/v7
-→ outcomeDigest + claimDigest
-→ Claim.originWorldHeadDigest
-→ worldDigest + attestationDigest + lastTransitionDigest
+currentWorldHeadDigest == proposal.worldHeadDigest
 ```
 
-The Repo Decision DISPATCH action also carries the exact resolved `base`; compilation copies that authority into `work-session/v7`. Base refs are not re-resolved during compilation or execution. The session proof spec is bound to the exact product result, newly-true behavior, done condition, product-direction digest, and base commit.
+An existing Claim does not gain that continuing equality requirement. `Claim.originWorldHeadDigest` remains provenance after admission; unrelated World advancement does not cancel durable responsibility.
 
-## `attempt-entry/v1`
+## `outcome-claim-session/v1` and crash-safe visibility
 
-AttemptEntry is the permit-consumption event itself. There is no separate execution-permit-consumption receipt and no separate repo-decision-consumption callback.
+A new-format Claim must never become externally visible before its exact sealed execution brief is durable.
 
-A new repo-owned generation-1 entry is stored at a Claim-scoped collision point. Bounded repairs may create ordinals 2 and 3 only as continuations of the same claimed session/workspace authority. Legacy Decision-scoped AttemptEntry objects remain readable as historical evidence.
+Admission ordering under the same World-authority lock is:
 
-```json
-{
-  "schemaVersion": "attempt-entry/v1",
-  "permitId": "uuid",
-  "permitDigest": "sha256:...",
-  "sessionDigest": "sha256:...",
-  "attemptId": "uuid",
-  "generation": 1,
-  "ordinal": 1,
-  "workspaceId": "uuid",
-  "origin": {
-    "type": "REPO_OUTCOME",
-    "outcomeDigest": "sha256:...",
-    "claimDigest": "sha256:..."
-  },
-  "enteredAt": "...",
-  "entryDigest": "sha256:..."
-}
+```text
+1. re-read current WorldHead
+2. require requested origin Head is still current
+3. verify duplicate / write-boundary compatibility
+4. choose Claim identity and construct prospective Claim digest
+5. seal exact work-session/v7 using that claimDigest
+6. persist exact immutable session bytes
+7. persist immutable outcome-claim-session/v1
+8. persist Claim LAST
+9. release lock
 ```
 
-After generation-1 entry exists, that material attempt is forever non-replayable.
+`outcome-claim-session/v1` contains:
+
+```text
+claimDigest
+sessionDigest
+boundAt
+bindingDigest
+```
+
+Crash semantics:
+
+```text
+crash before Claim write
+→ orphan session/relation bytes are inert
+
+Claim visible
+→ exact session identity is already recoverable
+→ mutable proposals are no longer required for continuation
+```
+
+The later `outcome-claim-binding/v1` remains Claim→Session→Workspace custody. Workspace custody is not collapsed into Claim authority.
+
+## Claim-first recovery and bounded parallel execution
+
+Normal repo-owned work begins by enumerating active Claims before reading the proposal snapshot.
+
+An active Claim may be:
+
+```text
+session durable, no workspace yet        → provision and execute exact session
+ACTIVE workspace, no competing lease     → resume exact session
+ACTIVE workspace, live foreign lease     → RUNNING_ELSEWHERE; never duplicate
+terminal workspace / durable Closure      → land Closure; never rerun worker
+released Claim                            → not active
+```
+
+Legacy active Claims without recoverable session identity fail closed rather than silently consulting mutable proposals for continuity.
+
+Only remaining local capacity is filled from the current proposal snapshot. Admission is greedy in stable proposal order. Conflict or duplicate races skip that proposal and continue scanning. A stale-Head race stops admission from that stale snapshot.
+
+Each executable session still uses exactly one `runWork(session)` transaction in its own managed worktree. A small orchestration layer runs those independent transactions concurrently with `Promise.allSettled`-style failure isolation. One worker failure cannot cancel siblings.
+
+Controller-local fan-out is an operational safety limit only. It is not durable scheduler state.
+
+## Concurrent artifact isolation
+
+Shared execution artifacts must be session/workspace addressed. In particular, worker result schema/output identities are no longer one repository-global filename. Existing permit, AttemptEntry, custody, lease, candidate-seal, product-proof, and Claim bindings remain identity-addressed.
+
+No generic storage framework is introduced.
 
 ## Aggregate `execution-closure/v1`
 
-Closure describes observable execution facts for the whole bounded run, not epistemic meaning for one attempt:
+Closure describes observable execution facts for the whole bounded run, not domain meaning:
 
 ```json
 {
@@ -438,58 +313,182 @@ Closure describes observable execution facts for the whole bounded run, not epis
 }
 ```
 
-Operational dispositions include completed, partial, blocked, controller-rejected, and interrupted-after-entry. `INCONCLUSIVE`, `SUPPORTS`, claim validity, or scientific failure are not kernel dispositions.
+Operational dispositions include completed, partial, blocked, controller-rejected, and interrupted-after-entry. A durable work result is persisted before/with closure identity. Recovery reconstructs the strongest controller-supported operational disposition and never replays consumed material authority.
 
-A durable work result is persisted before/with closure identity. Recovery therefore follows this law:
+## Fixed repository closure interpreter
 
-> Record the strongest operational disposition supported by durable controller evidence. If no later durable evidence exists after AttemptEntry, close as `INTERRUPTED_AFTER_ENTRY`. A mechanically recovered exact BANK is later durable evidence and must not be downgraded to interruption.
+Repository interpretation is part of the execution transaction, not an external handoff.
 
-Recovery reconstructs controller knowledge; it never reruns consumed material authority. When durable candidate-seal plus managed-workspace Git proof establishes the exact BANK, recovery persists a durable operational result before reconstructing `COMPLETED` closure.
-
-## Parallel execution, linear World
-
-Outcome Claim admission does not freeze its origin WorldHead. Multiple disjoint Claims may originate from Head H, and an unrelated `REALITY_REFRESH` may advance H while those executions continue.
+A repo-controlled repository supplies one fixed self-contained Node program at:
 
 ```text
-Head H
-├─ Claim A → execution A
-└─ Claim B → execution B
-
-REALITY_REFRESH H → H1     permitted
-B may continue execution   permitted
+.meta-harness/closure-interpreter.js
 ```
 
-World commit remains linear. An `ATTEMPT_LEARNING` / `ATTEMPT_ABORTED` transition for a claimed Outcome must reference the unique aggregate Outcome ExecutionClosure and use the Claim's `originWorldHeadDigest` as predecessor. If current World has already advanced, normal CAS rejects the stale transition rather than committing blindly. Scoped revalidation/rebase after unrelated World changes is intentionally deferred.
-
-## Recovery outcomes
-
-If controller death leaves:
+For every Closure with durable work evidence, Meta-Harness provides exactly:
 
 ```text
-AttemptEntry
-+ no durable work result
-+ no mechanically proven exact BANK
-+ no closure
+current World + attestation
+exact Outcome
+exact Claim + preconditionDigest
+exact ExecutionClosure
+exact durable work result
 ```
 
-recovery creates an aggregate `INTERRUPTED_AFTER_ENTRY` closure and banks an `ATTEMPT_ABORTED` transition without replaying the worker.
+The interpreter executes read-only in the verifier-grade Linux user/mount/network/PID namespace + chroot envelope. It sees its own script plus the exact JSON landing packet on stdin, has no writable repository checkout and no network, and returns one bounded JSON object:
 
-If controller death occurs after exact BANK but before the operational work result or closure is persisted, recovery must re-prove the durable candidate seal against the managed workspace HEAD/tree/index/status, terminalize the workspace as `TERMINAL_COMMITTED`, persist a durable recovered work result, and reconstruct `COMPLETED` closure. That closure requires `ATTEMPT_LEARNING`; `ATTEMPT_ABORTED` is forbidden.
+```json
+{
+  "schemaVersion": "repo-closure-interpretation/v1",
+  "disposition": "APPLIED",
+  "interpretation": {},
+  "successorWorld": {},
+  "successorAttestation": {}
+}
+```
 
-If durable work-result evidence exists but closure is missing, recovery must reconstruct closure from that stronger evidence rather than downgrade completion to interruption.
+`disposition` is `APPLIED` or `INVALIDATED_REPLAN`.
 
-If a Claim closure has a work result, repo intelligence may supply the matching `ATTEMPT_LEARNING` interpretation/successor transition. That transition must still win normal World CAS; the execution itself does not freeze unrelated World refresh.
+Meta-Harness validates the exact output shape and bindings, computes/persists immutable interpretation, World, and attestation objects, and constructs a fresh current-Head-bound `ATTEMPT_LEARNING` transition.
+
+`preconditionDigest` proves only the declared precondition text. It is not a snapshot of observed facts and is never used as fake scoped-freshness evidence.
+
+## Current-World landing and CAS regeneration
+
+World commits remain linear even when execution overlaps.
+
+For every ready Closure, deterministic landing order is derived from:
+
+```text
+Claim.acquiredAt
+then claimDigest
+```
+
+Every landing re-reads current World before semantic interpretation.
+
+```text
+Claim.originWorldHeadDigest = provenance only
+transition.predecessorHeadDigest = World actually interpreted
+```
+
+If another transition wins after interpretation but before commit:
+
+```text
+MH_WORLD_CONFLICT
+→ discard stale interpretation + successor candidate
+→ re-read current World
+→ rerun repository interpretation
+→ retry with bounded attempts
+```
+
+A stale successor is never rebased by merely rewriting its predecessor digest.
+
+A successful worker result that repository intelligence judges no longer applicable returns `INVALIDATED_REPLAN`. It still commits durable learning/replan disposition and releases the Claim, but it is not reported as product-complete.
+
+A durable `PARTIAL` or `BLOCKED` result may likewise produce learning/replan semantics and release responsibility through `ATTEMPT_LEARNING`.
+
+## No-result closure: `ATTEMPT_ABORTED`
+
+A terminal ExecutionClosure with `workResultDigest = null` does not invoke the interpreter.
+
+```text
+current World
++ exact no-result Closure
+→ ATTEMPT_ABORTED
+→ successor World/attestation may remain semantically unchanged
+→ World CAS
+→ Claim release
+```
+
+`ATTEMPT_LEARNING` is forbidden without durable work evidence. `ATTEMPT_ABORTED` is forbidden when durable work evidence exists.
+
+Thus every terminal Claim has a deterministic durable resolution path:
+
+```text
+durable work evidence → ATTEMPT_LEARNING
+no durable work evidence → ATTEMPT_ABORTED
+```
+
+## Short World-authority lock
+
+The global World-authority lock protects short mechanical authority operations only:
+
+```text
+new Claim current-Head proof
+Claim duplicate/write-boundary compatibility
+session/relation/Claim visibility ordering
+transition predecessor CAS
+Claim release
+```
+
+Semantic work, product-proof compilation, repository interpretation, and worker execution happen outside the lock. The lock is not a throughput mutex for intelligence work.
+
+## `world-transition/v1`
+
+There is one substrate for authoritative World movement:
+
+```json
+{
+  "schemaVersion": "world-transition/v1",
+  "predecessorHeadDigest": "sha256:...",
+  "cause": {},
+  "successorWorldDigest": "sha256:...",
+  "successorAttestationDigest": "sha256:...",
+  "transitionDigest": "sha256:..."
+}
+```
+
+Allowed causes remain:
+
+```text
+REALITY_REFRESH
+ATTEMPT_LEARNING
+ATTEMPT_ABORTED
+```
+
+An exact transition retry after a crash is idempotent. The shared authority lock plus pointer comparison supplies CAS semantics; atomic rename alone is not treated as concurrent CAS.
+
+## Legacy `repo-decision/v3`
+
+`repo-decision/v3` is not an active mutable repository-work input after this hard cut. Historical immutable Decision objects, Decision-origin AttemptEntries, work results, and ExecutionClosures remain readable for recovery and audit.
+
+Historical `NO_DISPATCH` evidence remains inert. It cannot cause the active CLI to emit terminal `USE_PRODUCT` or create/cancel new Claims.
+
+No migration framework or compatibility alias is added for retired active Decision semantics.
+
+## Aggregate truth law
+
+Worker-level `DONE` is not enough for repo-level completion.
+
+An Outcome is `LANDED` only after:
+
+```text
+worker/controller proof passed
++ durable ExecutionClosure exists
++ fresh current-World landing committed
+```
+
+Other derived aggregate states include:
+
+```text
+BLOCKED
+INVALIDATED_REPLAN
+RUNNING_ELSEWHERE
+```
+
+The aggregate result is not authority. Recovery comes from Claims, durable sessions/bindings, workspace custody, Closures, and World transitions.
 
 ## Non-goals
 
 This substrate does not implement:
 
-- a generic allocator;
-- scientific validity or evidence-applicability semantics;
-- hypothesis similarity or alias detection;
-- Quant D1-D9 semantics;
-- automatic knowledge interpretation;
-- a generic provenance DAG;
-- a provider/plugin framework, daemon, queue, or scheduler.
+- a generic allocator or resource ontology;
+- a queue, daemon, scheduler, fairness, reservation, or preemption subsystem;
+- continuous refill while the current wave is still running;
+- a planner runtime or automatic proposal generator;
+- scientific validity or generic evidence-applicability semantics;
+- a generic fact/MVCC precondition language;
+- a provider/plugin framework;
+- worker-to-worker messaging or persistent agent organization.
 
-Those remain repository intelligence or future work justified by an observed product defect.
+Those remain future work only when demonstrated product friction justifies them.
