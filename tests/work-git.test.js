@@ -89,7 +89,7 @@ function isolatedSession(root, base = { type: "EXACT_COMMIT", commit: git(root, 
   const newlyTrueBehavior = "A repository-local managed worktree is ready.";
   const doneWhen = "The physical path is repo-local and registered by Git.";
   return sealWorkSession({
-    schemaVersion: "work-session/v6",
+    schemaVersion: "work-session/v7",
     productDirection,
     origin: { type: "OWNER_GOAL" },
     base,

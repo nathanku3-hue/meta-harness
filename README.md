@@ -83,7 +83,7 @@ different result while work is ACTIVE   → owner input
 
 The reducer does not own product semantics. Product direction, scope authority, Git custody, validation evidence, repo decision authority, and publication authority remain in their existing bounded contracts.
 
-`work-session/v6` is the complete internal coding brief. It pins exact `PRODUCT.md` bytes, provenance, immutable base, result, scope, validation, repair budget, publication authority, and one canonical pre-worker `product-proof-spec/v1`. v6 is an incompatible cut: v5 sessions are not accepted on the v6 execution path. Normal users neither author nor select this contract.
+`work-session/v7` is the complete internal coding brief. It pins exact `PRODUCT.md` bytes, provenance, immutable base, result, scope, validation, repair budget, publication authority, and one canonical pre-worker `product-proof-spec/v1`. v7 is an incompatible cut: repo-owned work uses Outcome + Claim provenance rather than Repo Decision identity, and v6 sessions are not accepted on the v7 execution path. Normal users neither author nor select this contract.
 
 ## Automatic base and scope
 
@@ -123,7 +123,7 @@ The coding worker is read-only and returns only typed `WRITE`, `DELETE`, or `MOV
 
 A repository may supply stronger pre-existing proof input through sealed-base `.meta-harness/product-proof.json` using `product-proof-policy/v2`. Meta-Harness reads the policy and program from exact `base.commit`, binds their Git blob OIDs, calibrates the declared claims against the base, and normalizes them into the same canonical proof spec. When no base-owned policy exists on the normal owner-goal path, a read-only pre-worker compiler may synthesize repository-native executable proof. It cannot see the future candidate. Meta-Harness owns the trust envelope, not a generic testing DSL.
 
-Executable claims must declare whether the sealed base should `PASS` or `FAIL`. Generated proof that disagrees with its declared baseline is downgraded to an explicit `UNVERIFIABLE` gap; a false base-owned calibration fails closed. The exact proof program is then sealed into `work-session/v6` before coding begins.
+Executable claims must declare whether the sealed base should `PASS` or `FAIL`. Generated proof that disagrees with its declared baseline is downgraded to an explicit `UNVERIFIABLE` gap; a false base-owned calibration fails closed. The exact proof program is then sealed into `work-session/v7` before coding begins.
 
 The same Linux namespace/chroot verifier later executes the sealed proof program per executable claim with read-only `/candidate`, `/base`, `/proof-spec/program`, and `/session/product-contract.json` inputs. Non-executable material claims remain unresolved rather than being judged by another model.
 
@@ -151,9 +151,9 @@ The source checkout's HEAD, index, branch, and existing dirty bytes are not rewr
 
 ## Optional repository decision authority
 
-Complex repositories may opt into repo-owned decision authority through `.meta-harness/repo-charter.json`. Repository intelligence owns domain meaning; Meta-Harness owns generic identity, attestation checks it can mechanically prove, single-entry execution authority, workspace custody, operational closure, and immutable World lineage.
+Complex repositories may opt into repo-owned decision authority through `.meta-harness/repo-charter.json`. Repository intelligence owns domain meaning; Meta-Harness owns generic Outcome identity, Claim compatibility, attestation checks it can mechanically prove, workspace custody, operational closure, and immutable World lineage.
 
-A current `repo-decision/v3` is either `DISPATCH` or inert `NO_DISPATCH`. DISPATCH compiles an internal `work-session/v6` with one canonical product-proof spec; NO_DISPATCH creates no workspace or attempt. The normal owner still does not route planners, coders, auditors, sessions, or generations.
+A current `repo-decision/v3` is either `DISPATCH` or inert `NO_DISPATCH`. DISPATCH may remain upstream selection evidence, but it compiles a minimal immutable Outcome, acquires/reuses one compatible Claim, and seals an internal `work-session/v7` whose repo-owned origin is `REPO_OUTCOME`. Multiple disjoint Claims may originate from one WorldHead, and repo-owned sessions are claim-addressed rather than selected by one global `latest.json`. Unsupported `OWNER_DECISION_REQUIRED` assertions are rejected because models cannot manufacture authority by assertion. NO_DISPATCH creates no workspace or attempt.
 
 ## Installation
 

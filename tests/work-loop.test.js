@@ -97,7 +97,7 @@ function session(root, {
     allowModel: false,
   });
   return sealWorkSession({
-    schemaVersion: "work-session/v6",
+    schemaVersion: "work-session/v7",
     productDirection,
     origin: { type: "OWNER_GOAL" },
     base,
@@ -565,7 +565,7 @@ test("candidate identity uses actual Git delta when a previously materialized pa
   assert.equal(fs.readFileSync(path.join(result.workspace.path, "README.md"), "utf8"), "baseline\n");
 });
 
-test("v6 transaction banks DELETE and MOVE through the same sealed candidate", async (t) => {
+test("v7 transaction banks DELETE and MOVE through the same sealed candidate", async (t) => {
   const root = repository(t);
   fs.mkdirSync(path.join(root, "src"));
   fs.writeFileSync(path.join(root, "src", "old.txt"), "move-me\n", "utf8");
@@ -807,7 +807,7 @@ test("forged imported compiled proof calibration is rejected before worker execu
     calibration: [{ claimId: "forged-delivered-result", expected: "PASS", observed: "PASS" }],
   });
   const workSession = sealWorkSession({
-    schemaVersion: "work-session/v6",
+    schemaVersion: "work-session/v7",
     productDirection,
     origin: { type: "OWNER_GOAL" },
     base,

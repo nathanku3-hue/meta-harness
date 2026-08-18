@@ -58,7 +58,7 @@ function session(root) {
   const newlyTrueBehavior = "The result file exists.";
   const doneWhen = "The result file exists and validation passes.";
   return sealWorkSession({
-    schemaVersion: "work-session/v6",
+    schemaVersion: "work-session/v7",
     productDirection,
     origin: { type: "OWNER_GOAL" },
     base,

@@ -5,7 +5,7 @@ const test = require("node:test");
 
 const { verifyCandidate } = require("../lib/work-verifier");
 
-test("v6 work verifier fails closed when Linux namespace isolation is unavailable", {
+test("v7 work verifier fails closed when Linux namespace isolation is unavailable", {
   skip: process.platform === "linux",
 }, () => {
   assert.throws(

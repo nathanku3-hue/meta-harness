@@ -1,152 +1,254 @@
 # Meta-Harness Coding-System Roadmap
 
+Status: execution roadmap; subordinate to owner-authored `PRODUCT.md`.
+
 ## Endgame
 
-One solo developer states the desired software result once:
+One solo developer supplies product intent and judgment. Meta-Harness carries that intent through a logical planner into parallel disposable execution without making the owner route tasks, scopes, sessions, workers, reviews, or resumes.
 
 ```text
-accepted product result
-→ immediate coding action
-→ working code
-→ exact validation
-→ bounded repair
-→ observable result
+OWNER
+  ↕ product intent / taste / material authority only
+LOGICAL PLANNER
+  ↓ proposes executable outcomes
+OUTCOMES
+  ↓
+META-HARNESS AUTHORITY KERNEL
+  ↓ atomic claims + bounded capabilities
+DISPOSABLE WORKERS IN ISOLATED WORKSPACES
+  ↓
+EXECUTION CLOSURES
+  ↓ scoped revalidation + authoritative commit
+LINEAR WORLD
+  └──────────────► reconcile / replan only when needed
 ```
 
-Meta-Harness owns continuity, workspace selection, worker execution, validation, and concise product closure. The owner intervenes only for taste, scope expansion, credentials, protected access, publication, destructive action, or material risk.
+The human-facing product remains small. Internal continuity may become richer, but conversations, model sessions, workspaces, planners, workers, reviewers, and execution runtimes are replaceable implementation details.
 
-## Roadmap correction
+## Constitutional product laws
 
-The previous roadmap required operating another repository journey before building the missing coding seam. That order is superseded.
+1. **Human judgment is scarce.** The owner is contacted only for product/taste decisions, real credentials or protected access, irreversible/destructive action, publication, material risk, or another genuinely owner-exclusive decision.
+2. **Outcome is work identity.** A path, directory, lifecycle phase, chat, session, or agent is not the identity of work. Path and resource scope are derived capability/safety boundaries.
+3. **Outcomes are stable; means are disposable.** Failure of one API, library, runtime, data source, architecture route, or implementation tactic is not evidence that the outcome is blocked.
+4. **Escalation requires proof.** Before durable `BLOCKED` or owner escalation, the system must distinguish a hard outcome constraint from failure of the currently preferred means and exhaust permissible forward motion or replan.
+5. **Planner is out of the execution hot path.** The planner proposes enough executable outcomes to saturate useful capacity and then disappears. It does not babysit workers or relay their reports.
+6. **One worker, one claim, one outcome, one closure.** A worker may discover future work but may not silently turn discoveries into roadmap commitment.
+7. **Execution may be parallel; authoritative truth remains linear.** Expensive work can overlap. World transitions remain validated and serial.
+8. **WorldHead is provenance, not global freshness.** Continued validity of an executing outcome is determined by its declared preconditions, invariants, capabilities, resources, and conflict domains rather than by equality with an unchanged whole-World digest.
+9. **Durable artifacts carry continuity.** If correct continuation requires an old conversation, that is a harness defect.
+10. **Research is evidence, not authority.** Raw expert chats remain source material. Only promoted, attributable findings may inform planner/outcome context.
+11. **Quality is mechanically defended first.** Structural SAW runs cheap executable checks continuously; semantic architecture/security/product review is risk-triggered rather than universal ceremony.
+12. **Replaceable does not mean framework-first.** Add narrow ports when needed; do not build dynamic plugin/provider infrastructure until at least two real implementations prove the interface valuable.
+13. **Harness machinery must justify its continued existence.** Every nonessential rule, prompt, reviewer, context layer, retry, role, or adapter needs a demonstrated failure class, measurable benefit, cost, and deletion test.
 
-Quant is no longer the forward Meta-Harness milestone. Repository custody, prevention-pilot closure, and external product operations remain historical evidence and advanced substrate. They do not substitute for the coding product.
+## Current stabilization boundary
 
-The missing high-frequency capability was structural:
+`PRODUCT_DIRECTION_CONTINUITY_1` / `work-session/v6` / product-proof stabilization is banked locally at `22fe09c`. The active architectural slice is `OUTCOME_CLAIM_AUTHORITY_1`; it intentionally hard-cuts repo-owned execution to `work-session/v7` while leaving the proven owner-goal transaction, workspace custody, verification, BANK, and closure machinery in place.
+
+A new external score campaign is not a prerequisite for this architecture work. The purpose of the current slices is to remove demonstrated serial and human-routing bottlenecks, not to create another evidence ceremony.
+
+`PRODUCT.md` remains owner-authored and is not changed by this roadmap. Roadmap architecture cannot silently rewrite owner product direction.
+
+## Critical path to the endgame
+
+### Phase 1 — Outcome identity + atomic claim authority
+
+**Product result:** repository-owned work can represent multiple independent outcomes against one authoritative World and atomically assign temporary responsibility without a repository-global single-work singleton.
+
+Hard cuts:
+
+- replace work identity based on one `repo-decision` / one selected action with minimal immutable Outcome identity;
+- add atomic Claim authority keyed to one Outcome;
+- derive initial compatibility from concrete execution write boundaries rather than generic `conflictKeys`;
+- allow multiple non-conflicting Claims to originate from one WorldHead;
+- keep duplicate/conflicting responsibility fail-closed;
+- remove repository-global `latest active work` as repo-owned execution authority;
+- reject unsupported owner-authority assertions instead of propagating fictional authority into durable `OWNER_INPUT`;
+- preserve existing workspace execution leases underneath each claimed execution;
+- do not yet build a queue, general scheduler, planner runtime, full EscalationProof, or plugin host.
+
+**Done when:** two disjoint repo-owned outcomes can be claimed independently from the same WorldHead and bind separate execution sessions/workspaces; duplicate or conflicting claims fail closed; no owner routing is required.
+
+Immediate audited slice: `OUTCOME_CLAIM_AUTHORITY_1` (see repository-root `implementation_plan.md`). The architecture audit is accepted: Claim remains separate from workspace lease, Outcome starts minimal, and generic conflict keys are deferred.
+
+### Phase 2 — Automatic parallel disposable execution
+
+**Product result:** available execution capacity automatically becomes useful coding throughput.
+
+Implement the smallest deterministic allocator:
 
 ```text
-rich accepted plan
-→ weak conversational carryover
-→ no active coding worker
+current World
++ executable outcomes
++ live claims
+→ remove blocked/ineligible
+→ remove claim conflicts
+→ deterministic preference
+→ claim a maximal compatible set
+→ provision isolated workers
 ```
 
-The corrected product is built directly around one primary interaction:
+Use greedy deterministic selection first. No CP-SAT, fairness subsystem, reservation state machine, daemon, worker-to-worker messaging, or corporate-agent topology.
+
+**Done when:** several fresh disposable workers automatically execute different compatible outcomes concurrently and each has one workspace, one execution authority chain, and one closure.
+
+### Phase 3 — Scoped freshness + linear World commit
+
+**Product result:** concurrently executing outcomes can finish in arbitrary order without unrelated World transitions invalidating them.
+
+Hard rule:
 
 ```text
-meta-harness work <repository>
+origin WorldHead = provenance
+scoped precondition/invariant digest = execution validity
 ```
 
-## Coding-system slice
+At closure, revalidate only declared outcome-relevant facts/capabilities/conflicts against current World. An unrelated committed outcome must not stale another execution. A relevant changed precondition must invalidate/replan it.
 
-### 1. Product-facing mental model
+**Done when:** A and B may both start from World H; A may commit H→H+1; B may still commit from current H+1 when its scoped basis remains true, or deterministically replan when A changed something B actually depended on.
 
-Default help and normal output expose only:
+### Phase 4 — Forward-motion / escalation proof
+
+**Product result:** an unavailable preferred route cannot prematurely consume human authority or become a false durable blocker.
+
+Slice 1 already rejects unsupported/fabricated owner-authority assertions at the authority boundary. Phase 4 adds the stronger forward-motion rule: before `BLOCKED` / `OWNER_DECISION`, require a mechanically structured proof that distinguishes:
 
 ```text
-Outcome
-Product result
-Current state
-Observable result
-Workspace
-Validation
-Commit
-Push
-Blocker
-Next
+desired outcome
+required facts/capabilities
+failed means
+alternatives considered
+hard-constraint evidence
+real owner-exclusive authority requested
 ```
 
-Gate IDs, candidate names, custody, governance, hashes, review verdicts, and publication evidence remain available through `help --advanced` and machine-readable artifacts. They are not the default user model.
+Core law:
 
-Exactly one command is public: `work`. Existing commands are internal advanced tools, not compatibility aliases.
+> A failed implementation route is not a blocked outcome.
 
-### 2. Planning-to-working continuity
+Persist disproven constraints/misconceptions so fresh sessions cannot resurrect a false blocker without new evidence.
 
-`work-session/v4` is the mandatory execution brief. It binds:
+**Done when:** a fresh-session regression with a partial source and a previously disproven fictional authority requirement selects/researches viable alternative means instead of asking the owner.
 
-- exact product-direction bytes, version, and raw-byte digest from repository-root `PRODUCT.md`;
-- explicit origin provenance (`OWNER_GOAL` or immutable Repo Decision digest);
-- exact trusted Git work base and resolved commit;
-- product result;
-- journey state;
-- immediate action;
-- newly true behavior;
-- done definition;
-- stop conditions;
-- reversible worker authority;
-- owner-only actions;
-- exact path boundary;
-- fresh-workspace identity and resumable custody rules;
-- validation commands;
-- bounded retry count;
-- explicit commit and optional push authority.
+### Phase 5 — Logical planner as sole human ingress
 
-The coding worker consumes this object directly. Product direction is injected before local engineering context. The worker does not reconstruct taste or philosophy from status files and does not reopen planning. Only `work-session/v4` is active; v1, v2, and v3 are retired.
+**Product result:** the owner talks only to one logical planner role; no worker or operational lifecycle reaches the human directly.
 
-### 3. Workspace custody behavior
+Planner behavior:
+
+- read owner intent, current World, outcomes, claims, closures, research findings, and relevant repository evidence;
+- ask only unresolved product/taste/owner-authority questions;
+- produce enough independently valuable Outcomes to saturate useful current execution capacity plus expose the next meaningful dependency boundary;
+- stop planning and leave execution to Meta-Harness;
+- wake only for changed intent, material discoveries, repeated worker failure, exhausted useful outcomes, failed escalation proof, or a risk-triggered challenge requiring planning.
+
+Planner checkpoint is a reconstructable cache, never authoritative truth.
+
+**Done when:** after minimal top-level alignment the owner can leave; planner sessions may die; workers execute/close/reconcile automatically; only genuine owner judgment returns to the human.
+
+### Phase 6 — Research promotion + minimum sufficient context
+
+**Product result:** research-driven coding uses accumulated expert knowledge without turning raw chats into worker memory or authority.
 
 ```text
-NEW session
-→ resolve or accept exact sealed work base commit
-→ create a fresh UUID-backed ignored `.worktrees/` worktree from that base
-→ activate generation-1 workspace custody
-
-RESUME
-→ reuse only the exact still-ACTIVE session/workspace generation
-→ require matching Git identity, dirty manifest, product direction, and exclusive execution lease
+raw /chat or docs/chats source
+→ ResearchFinding / ConstraintRecord
+→ planner adjudication
+→ Outcome/context selector
+→ smallest sufficient worker boot
 ```
 
-The source checkout is never the coding execution workspace, regardless of cleanliness. Meta-Harness never resets, cleans, stashes, or reverts owner work automatically. Terminal workspace authority never returns. The worker cannot stage, commit, push, tag, publish, change branches, or mutate worktree topology.
+Persist both positive findings and disproven assumptions. Workers normally receive only the findings relevant to their claimed outcome.
 
-### 4. Real coding execution
+**Done when:** fresh planner/worker sessions use promoted research without rereading chat history, and rejected misconceptions do not silently reappear as blockers.
 
-Meta-Harness launches an authenticated local Codex CLI session in read-only mode with no interactive approval prompts. The worker receives the complete product brief, repository instructions, exact path boundary, and explicit prohibitions. It returns complete bounded file contents; Meta-Harness validates their paths and sizes, rejects symlink traversal, and materializes them through the controller.
+### Phase 7 — Structural SAW + adaptive review + meaningful `Next`
 
-After every worker attempt:
+**Product result:** repository/module quality remains GitHub-ready and modular without a human repeatedly policing code structure.
 
-- the read-only worker must leave HEAD, branch, index, and working-tree bytes unchanged;
-- proposed file contents must remain inside allowed paths;
-- the controller materializes only validated regular-file writes;
-- HEAD and branch must remain unchanged after materialization;
-- the Git index must remain byte-identical;
-- exact validation commands run outside the model;
-- a failed validation is returned to the same work session for bounded repair.
+Always-on mechanical SAW should cover the cheapest enforceable structure: line/module budgets, dependency direction, cycles/forbidden imports, protected paths, package/public surface, root-artifact hygiene, validation, and other repository-owned architectural invariants.
 
-### 5. Durable learning
+Semantic review is triggered only by risk signals such as a constitutional authority change, security boundary, large cross-cutting diff, new abstraction, material dependency-graph change, or unresolved semantic acceptance.
 
-`E:\Code\post_phase_reflection.md` records only cross-repository lessons that change Meta-Harness, prompting, worker-auditor behavior, or tool boundaries. Repository logs, test transcripts, temporary blockers, and duplicate roadmap state remain local to the affected repository.
+Post-round output law:
 
-## Score path
+```text
+no meaningful follow-up       → concise Done only
+autonomous useful follow-up   → execute it
+planner-only follow-up        → planner handles it
+risk-triggered review         → run it automatically
+owner judgment required       → surface one concise Need you / Next
+```
 
-The historical accepted score was `62/100`: strong authority and custody, weak coding execution and user continuity.
+**Done when:** a major authority/architecture change automatically triggers the appropriate review, while ordinary clean changes create no review ceremony and no task-list noise.
 
-| Evidence | Defensible score |
-|---|---:|
-| One public product command, sealed work session, real worker materialization, dirty isolation, resume, and bounded delivery | 78 |
-| Standalone `--goal` seals external validation, retries failure, and blocks before mutation when validation is unavailable; complete closure verification remains green | 82 |
-| One real SOTA-assimilation episode closes an observed validation-discovery gap, removes displaced legacy paths, and delivers a validated external-repository result | 84 |
-| One real external repository low-friction `--goal` journey automatically carries exact product direction and reaches `DONE` without explicit-session or status-finalizer repair; fresh resume keeps the same direction | 85 |
-| Demonstrated multi-repository speed/reliability advantage over direct unmanaged coding | 88+ |
+### Phase 8 — DRAIN / WAKE disposable-session proof
 
-`84/100` remains the banked working product score after `SOTA_ASSIMILATION_EPISODE_1` until the revised `85/100` journey is demonstrated on a real external repository. Active slice `PRODUCT_DIRECTION_CONTINUITY_1` makes owner taste a pinned, replayable input to every coding round. Implementation-only completion does not raise the score.
+**Product result:** all model sessions can die safely and the organization still knows exactly what exists.
 
-The repository-wide quality ratchet still reports inherited baseline debt from older control-plane files. That debt is not evidence against the validated-goal journey: the new coding modules and tests remain within their line budgets, and the public product surface remains one command. Reopening unrelated module cleanup would be roadmap drift, so the debt remains visible and non-blocking until real product use demonstrates impact.
+`DRAIN` must stop admission, close or checkpoint active work, park recoverable claims, release/abort irrecoverable claims, snapshot retained workspaces, and prove zero live executor leases. `WAKE` revalidates parked work and resumes or releases it using only durable artifacts.
+
+**Done when:** kill every planner, worker, and reviewer session; start entirely fresh sessions; continuation needs no narration or old transcript.
+
+### Phase 9 — Narrow ports + Harness Darwinism
+
+**Product result:** planners, executors, context strategies, validators, research providers, and workspace substrates may change without changing authority semantics.
+
+Introduce narrow ports only where a real second implementation exists or a demonstrated defect requires replacement. Dynamic plugin discovery is not a prerequisite.
+
+Every retained harness mechanism declares:
+
+```text
+failure class
+regression/eval proving it
+latency/token/complexity cost
+sunset experiment
+```
+
+Periodically remove mechanisms and rerun the historical regression corpus. If outcomes do not degrade, delete the mechanism.
+
+## Permanent regression corpus
+
+Architecture changes should be tested against real failure classes rather than architecture taste alone. Retain at least these scenarios:
+
+- one blocked outcome while unrelated outcomes are runnable;
+- two controllers race the same outcome;
+- multiple compatible outcomes claim from one WorldHead;
+- unrelated World commit during another execution;
+- relevant World commit invalidates another execution;
+- worker discovers tempting scope creep;
+- preferred external means unavailable but substitutes exist;
+- fictional/unsupported authority requirement is proposed;
+- planner dies at context limit;
+- worker/workspace process crashes;
+- kill-all / DRAIN / WAKE with active work;
+- raw expert chat contradicts promoted durable finding;
+- stale documentation misleads an agent;
+- bad evaluator approves broken product behavior;
+- a large change grows a monolith or violates repository shape.
+
+Measure product success, owner interventions, wall time, duplicate work, invalid commits, replans, false blocks, recovery success, and added harness complexity.
 
 ## Explicit non-roadmap
 
-Do not build:
+Do not build ahead of evidence:
 
-- RunSpec/v3;
-- a queue, daemon, scheduler, or swarm;
-- a generic provider framework;
-- recursive planner packets;
-- compatibility aliases or old public mental models;
-- automatic staging, committing, pushing, tagging, publication, or cleanup;
-- another repository-governance campaign;
-- a dashboard for the harness.
+- corporate personas, departments, meetings, or persistent manager-agent topology;
+- worker-to-worker or planner-to-worker conversational organization;
+- a generic queue/daemon/scheduler control product;
+- CP-SAT/fair-share/preemption machinery before resource allocation actually requires it;
+- generic provider/plugin framework before multiple real implementations exist;
+- OpenFGA/OPA/A2A as internal organizational backbone;
+- automatic publication or destructive cleanup;
+- raw-chat memory as authoritative context;
+- universal semantic review on every change;
+- a dashboard as the primary user surface.
 
-## After 84
+## Research anchors
 
-Active slice: `PRODUCT_DIRECTION_CONTINUITY_1`.
+The roadmap is consistent with the repository's retained conclusions in:
 
-Owner states product direction once in `PRODUCT.md`; every coding session, repair, resume, and fresh-worker continuation must carry the exact same direction until the owner changes the file. Do not build product graphs, automated taste mining, candidate registries, dashboards, daily alignment crons, or a full multi-system product-control rewrite in this slice.
+- `docs/research/sota-round-2026-08-product-is-continuity-not-process.md` — continuity is the durable product; stronger internal state should support a thinner owner workflow;
+- `docs/research/sota-round-2026-08-alignment-thick-execution-thin.md` — alignment instruments are conditional; implementation ceremony should remain thin; persistent agent organizations are not justified by default.
 
-Episode 1 already closed nested npm-package validation discovery, repository-local isolation, WSL-to-Windows Codex argument transport, and contradictory partial-status handling. Do not convert that episode into a generic assimilation schema, crawler, registry, daemon, ranking engine, or another audit cycle.
+The accepted 2026-08 architecture audits further sharpen those conclusions into outcome identity, disposable execution, planner-out-of-hot-path, scoped parallel validity, research-as-evidence, adaptive SAW, and the forward-motion law that failure of a means is not failure of the outcome.

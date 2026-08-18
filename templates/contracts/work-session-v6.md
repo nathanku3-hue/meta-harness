@@ -1,8 +1,8 @@
-# Work Session v6
+# Work Session v6 (retired)
 
-`work-session/v6` is the canonical bridge from owner product direction plus one accepted product result into Meta-Harness's transactional execution kernel.
+**Retired.** Active coding sessions use `work-session/v7`; see `templates/contracts/work-session-v7.md`. There is no supported v6 compatibility parser on the v7 execution path.
 
-v6 is an incompatible cut. It keeps v5's typed worker mutation, immutable candidate tree, Linux namespace verification, controller-owned BANK acceptance, and bounded repair, but replaces base-owned-only semantic proof with one pre-worker canonical `product-proof-spec/v1`. There is no supported v5 compatibility parser on the v6 execution path.
+The historical v6 contract below is retained for archive readability. v6 kept v5's typed worker mutation, immutable candidate tree, Linux namespace verification, controller-owned BANK acceptance, and bounded repair, but replaced base-owned-only semantic proof with one pre-worker canonical `product-proof-spec/v1`.
 
 ## Product flow
 

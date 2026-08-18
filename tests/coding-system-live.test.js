@@ -94,7 +94,7 @@ test("live coding system carries one result through Codex and exact validation",
     allowModel: false,
   });
   const session = sealWorkSession({
-    schemaVersion: "work-session/v6",
+    schemaVersion: "work-session/v7",
     productDirection,
     origin: { type: "OWNER_GOAL" },
     base,

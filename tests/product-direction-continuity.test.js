@@ -70,7 +70,7 @@ function goalSession(root, goal = "Add a visible result.") {
 
 function sealedSession(root, overrides = {}) {
   const body = {
-    schemaVersion: "work-session/v6",
+    schemaVersion: "work-session/v7",
     productDirection: pinProductDirection(root),
     origin: { type: "OWNER_GOAL" },
     base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
@@ -109,11 +109,11 @@ test("--goal rejects malformed PRODUCT.md before workspace activity", (t) => {
   assert.match(String(result.stderr || result.stdout || ""), /heading|PRODUCT\.md|section/i);
 });
 
-test("created v6 session contains exact PRODUCT.md bytes, base, proof spec, and matching digest", (t) => {
+test("created v7 session contains exact PRODUCT.md bytes, base, proof spec, and matching digest", (t) => {
   const root = npmRepo(t);
   const live = pinProductDirection(root);
   const session = goalSession(root);
-  assert.equal(session.schemaVersion, "work-session/v6");
+  assert.equal(session.schemaVersion, "work-session/v7");
   assert.equal(session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.equal(session.productDirection.content, live.content);

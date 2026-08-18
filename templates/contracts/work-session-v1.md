@@ -1,6 +1,6 @@
 # Work Session v1 (retired)
 
-**Retired.** Active coding sessions use `work-session/v6` with explicit origin provenance, exact product-direction snapshots, a sealed pre-worker product-proof spec, typed mutation, isolated verification, and controller acceptance. See `templates/contracts/work-session-v6.md`. v1 has no supported compatibility parser.
+**Retired.** Active coding sessions use `work-session/v7` with Outcome/Claim provenance for repo-owned work, exact product-direction snapshots, a sealed pre-worker product-proof spec, typed mutation, isolated verification, and controller acceptance. See `templates/contracts/work-session-v7.md`. v1 has no supported compatibility parser.
 
 ---
 

@@ -54,9 +54,9 @@ test("journey reducer keeps automatic continuation mechanically bounded", () => 
   assert.equal(reduceJourneyState({ compiledDecision: { type: "NO_DISPATCH", reason: "USE_PRODUCT" } }).next.operation, "STOP");
 });
 
-test("work-session/v6 seals product direction, product-proof spec, provenance, trusted base, and exact path/validation scope", () => {
+test("work-session/v7 seals product direction, product-proof spec, provenance, trusted base, and exact path/validation scope", () => {
   const session = explicitSession();
-  assert.equal(session.schemaVersion, "work-session/v6");
+  assert.equal(session.schemaVersion, "work-session/v7");
   assert.equal(session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.deepEqual(session.base, TEST_BASE);

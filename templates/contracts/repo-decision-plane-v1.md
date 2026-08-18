@@ -1,6 +1,6 @@
 # Repo Decision Authority — hard-cut contract
 
-This file documents the current repo decision authority substrate. The repository retains this packaged filename, but the protocol objects are `repo-world/v2`, `repo-decision/v3`, `work-session/v6`, and the transactional primitives named below. There is no compatibility parser for retired Decision Plane or work-session schemas.
+This file documents the current repo decision authority substrate. The repository retains this packaged filename, but autonomous execution identity now uses `outcome/v1`, `outcome-claim/v1`, and `work-session/v7`; `repo-decision/v3` remains upstream selection evidence. There is no compatibility parser for retired active-path work-session schemas.
 
 ## Boundary
 
@@ -23,7 +23,11 @@ repo-decision/v3
         ├── NO_DISPATCH → inert
         └── DISPATCH
               ↓
-         work-session/v6
+         immutable outcome/v1
+              ↓
+         compatible outcome-claim/v1
+              ↓
+         work-session/v7 (REPO_OUTCOME)
               ↓
          execution-permit/v1
               ↓
@@ -278,7 +282,7 @@ same transition
 
 ## `repo-decision/v3`
 
-Decision identity is the digest of the exact validated Decision bytes, which are persisted immutably before execution. This makes `work-session/v6 → decisionDigest` dereferenceable even if the mutable repo-side Decision file later changes.
+Decision identity is the digest of the exact validated Decision bytes, which are persisted immutably before execution. Decision remains dereferenceable selection evidence even if the mutable repo-side Decision file later changes, but Decision digest is no longer the identity carried by new repo-owned work sessions.
 
 Common authority fields:
 
@@ -335,20 +339,31 @@ WAIT_EXTERNAL
 WAIT_MATURITY
 USE_PRODUCT
 NO_VALUABLE_ACTION
-OWNER_DECISION_REQUIRED
 ```
 
-`NO_DISPATCH` creates no work session, workspace, ExecutionPermit, or AttemptEntry.
+`NO_DISPATCH` creates no work session, workspace, ExecutionPermit, or AttemptEntry. The active schema deliberately rejects `OWNER_DECISION_REQUIRED`: until an evidence-bearing authority/resource proof exists, a model assertion is not sufficient to manufacture owner authority.
 
-## `work-session/v6`
+## `outcome/v1`, `outcome-claim/v1`, and `work-session/v7`
 
-Repo-directed work carries one minimal provenance edge while execution uses the v6 typed-mutation, isolated-verification, controller-acceptance transaction and pins one canonical `product-proof-spec/v1`. Repository Decision compilation remains deterministic: a sealed base-owned `product-proof-policy/v2` is normalized when present; otherwise the session records explicit material proof gaps rather than inventing model-authored Decision authority:
+Repo-directed DISPATCH first compiles a deliberately small immutable Outcome:
+
+```text
+id
+desiredState
+preconditions[]
+evidenceRequirement
+```
+
+It then atomically acquires or reuses a Claim whose execution boundary is derived from the concrete allowed write paths. Same-Outcome claims and overlapping write boundaries fail closed; disjoint Claims may coexist from one origin WorldHead. No generic planner-authored `conflictKeys` exist in this slice.
+
+Repo-owned v7 work carries Outcome + Claim provenance:
 
 ```json
 {
   "origin": {
-    "type": "REPO_DECISION",
-    "decisionDigest": "sha256:..."
+    "type": "REPO_OUTCOME",
+    "outcomeDigest": "sha256:...",
+    "claimDigest": "sha256:..."
   }
 }
 ```
@@ -363,22 +378,22 @@ Direct owner work carries:
 }
 ```
 
-No World digest or attestation digest is duplicated in the session. The authority chain is:
+The authority chain is:
 
 ```text
-work-session/v6
-→ decisionDigest
-→ worldHeadDigest
+work-session/v7
+→ outcomeDigest + claimDigest
+→ Claim.originWorldHeadDigest
 → worldDigest + attestationDigest + lastTransitionDigest
 ```
 
-The Repo Decision DISPATCH action also carries the exact resolved `base`; compilation copies that authority into `work-session/v6`. Base refs are not re-resolved during compilation or execution. The session proof spec is bound to the exact product result, newly-true behavior, done condition, product-direction digest, and base commit. Decision identity is not encoded in `stopOnlyIf` prose and no regex provenance recovery exists.
+The Repo Decision DISPATCH action also carries the exact resolved `base`; compilation copies that authority into `work-session/v7`. Base refs are not re-resolved during compilation or execution. The session proof spec is bound to the exact product result, newly-true behavior, done condition, product-direction digest, and base commit.
 
 ## `attempt-entry/v1`
 
 AttemptEntry is the permit-consumption event itself. There is no separate execution-permit-consumption receipt and no separate repo-decision-consumption callback.
 
-A Repo Decision generation-1 entry is stored at a Decision-scoped collision point. Bounded repairs may create ordinals 2 and 3 only as continuations of the same admitted session/workspace authority.
+A new repo-owned generation-1 entry is stored at a Claim-scoped collision point. Bounded repairs may create ordinals 2 and 3 only as continuations of the same claimed session/workspace authority. Legacy Decision-scoped AttemptEntry objects remain readable as historical evidence.
 
 ```json
 {
@@ -391,8 +406,9 @@ A Repo Decision generation-1 entry is stored at a Decision-scoped collision poin
   "ordinal": 1,
   "workspaceId": "uuid",
   "origin": {
-    "type": "REPO_DECISION",
-    "decisionDigest": "sha256:..."
+    "type": "REPO_OUTCOME",
+    "outcomeDigest": "sha256:...",
+    "claimDigest": "sha256:..."
   },
   "enteredAt": "...",
   "entryDigest": "sha256:..."
@@ -410,8 +426,9 @@ Closure describes observable execution facts for the whole bounded run, not epis
   "schemaVersion": "execution-closure/v1",
   "sessionDigest": "sha256:...",
   "origin": {
-    "type": "REPO_DECISION",
-    "decisionDigest": "sha256:..."
+    "type": "REPO_OUTCOME",
+    "outcomeDigest": "sha256:...",
+    "claimDigest": "sha256:..."
   },
   "attemptEntries": ["sha256:E1", "sha256:E2"],
   "disposition": "COMPLETED",
@@ -429,29 +446,20 @@ A durable work result is persisted before/with closure identity. Recovery theref
 
 Recovery reconstructs controller knowledge; it never reruns consumed material authority. When durable candidate-seal plus managed-workspace Git proof establishes the exact BANK, recovery persists a durable operational result before reconstructing `COMPLETED` closure.
 
-## Head-freeze law after admission
+## Parallel execution, linear World
 
-Once a Repo Decision has an AttemptEntry against Head H, H may not advance for any unrelated reason until that execution is closed and banked.
+Outcome Claim admission does not freeze its origin WorldHead. Multiple disjoint Claims may originate from Head H, and an unrelated `REALITY_REFRESH` may advance H while those executions continue.
 
 ```text
 Head H
-→ Decision D
-→ generation-1 AttemptEntry
+├─ Claim A → execution A
+└─ Claim B → execution B
 
-REALITY_REFRESH on H       forbidden
-another Decision on H      forbidden
-second generation-1 D      forbidden
+REALITY_REFRESH H → H1     permitted
+B may continue execution   permitted
 ```
 
-The allowed successor transition is the closure of D, optionally with repo interpretation and freshly projected/attested successor reality.
-
-For any ATTEMPT_* transition for D:
-
-```text
-predecessorHeadDigest == D.worldHeadDigest
-```
-
-This prevents wrong-predecessor learning, duplicate banking, and an external refresh overtaking a durable result.
+World commit remains linear. An `ATTEMPT_LEARNING` / `ATTEMPT_ABORTED` transition for a claimed Outcome must reference the unique aggregate Outcome ExecutionClosure and use the Claim's `originWorldHeadDigest` as predecessor. If current World has already advanced, normal CAS rejects the stale transition rather than committing blindly. Scoped revalidation/rebase after unrelated World changes is intentionally deferred.
 
 ## Recovery outcomes
 
@@ -470,7 +478,7 @@ If controller death occurs after exact BANK but before the operational work resu
 
 If durable work-result evidence exists but closure is missing, recovery must reconstruct closure from that stronger evidence rather than downgrade completion to interruption.
 
-If a closure has a work result, the Head remains frozen until repo intelligence supplies the matching `ATTEMPT_LEARNING` interpretation/successor transition.
+If a Claim closure has a work result, repo intelligence may supply the matching `ATTEMPT_LEARNING` interpretation/successor transition. That transition must still win normal World CAS; the execution itself does not freeze unrelated World refresh.
 
 ## Non-goals
 

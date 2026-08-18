@@ -130,7 +130,7 @@ The reducer does not own product taste, allowed-path semantics, Git custody, val
 
 ## Internal work-session contract
 
-`work-session/v6` is the complete digest-bound coding brief. Users do not author or select it in the normal journey. v6 is an incompatible cut; v5 is not accepted on the active execution path.
+`work-session/v7` is the complete digest-bound coding brief. Users do not author or select it in the normal journey. v7 is an incompatible cut; v6 is not accepted on the active execution path. Owner-goal provenance remains `OWNER_GOAL`; repo-owned provenance is `REPO_OUTCOME` bound to one immutable Outcome and active Claim.
 
 Required fields remain:
 
@@ -258,7 +258,7 @@ If multiple allowed paths imply different project roots, or a project root is ot
 
 ## Pre-worker product-proof compiler
 
-Every `work-session/v6` pins exactly one canonical `product-proof-spec/v1` before the coding worker can produce a candidate. Proof absence is not a second execution branch.
+Every `work-session/v7` pins exactly one canonical `product-proof-spec/v1` before the coding worker can produce a candidate. Proof absence is not a second execution branch.
 
 The proof contract binds exact:
 
@@ -335,9 +335,9 @@ After passed regression validation and controller candidate acceptance, Meta-Har
 6. commits the accepted paths on the managed branch;
 7. terminalizes the workspace as `TERMINAL_COMMITTED`.
 
-This happens even when `work-session/v6` contains `delivery.commit=false`; that field cannot disable controller-owned local BANK.
+This happens even when `work-session/v7` contains `delivery.commit=false`; that field cannot disable controller-owned local BANK.
 
-If controller death occurs after the exact BANK commit but before operational result/closure persistence, restart must re-prove the durable candidate seal against the managed workspace Git state, recover `TERMINAL_COMMITTED`, and reconstruct a durable `COMPLETED` Repo Decision closure. That recovered execution requires `ATTEMPT_LEARNING` and cannot be banked as `ATTEMPT_ABORTED`.
+If controller death occurs after the exact BANK commit but before operational result/closure persistence, restart must re-prove the durable candidate seal against the managed workspace Git state, recover `TERMINAL_COMMITTED`, and reconstruct durable operational closure from the exact execution origin. New repo-owned closure uses Outcome + Claim provenance; legacy Decision-origin closure remains readable for retained recovery evidence.
 
 Push remains explicit publication authority. When `delivery.push=true`, the existing controller push path may publish the managed branch and must verify remote equality. Normal owner-result routing does not infer push authority.
 
@@ -357,7 +357,7 @@ immutable repo-world + attestation
 → repo-decision/v3 = DISPATCH | NO_DISPATCH
 ```
 
-DISPATCH compiles an internal `work-session/v6`. It deterministically normalizes a sealed base-owned product-proof policy when present and otherwise pins explicit material proof gaps rather than introducing model-generated Decision authority. NO_DISPATCH creates no workspace or material attempt. Attempt admission remains Decision-keyed and generation-bound, and authoritative World transitions remain compare-and-swap protected.
+DISPATCH persists its Decision as upstream selection evidence, compiles a minimal immutable `outcome/v1`, acquires or reuses one compatible `outcome-claim/v1`, and seals an internal `work-session/v7`. New repo-owned AttemptEntry admission is Claim-keyed and generation-bound, not singleton-Decision-keyed. Claims with disjoint concrete write boundaries may originate from the same WorldHead; duplicate Outcomes and overlapping boundaries fail closed. Repo-owned work-session continuation is claim-addressed rather than selected by one repository-global `latest.json`. Unsupported `OWNER_DECISION_REQUIRED` is rejected as unevidenced authority instead of becoming durable owner input. Authoritative World transitions remain compare-and-swap protected; scoped commit freshness after unrelated World movement is a later slice.
 
 The JourneyState reducer consumes only the generic DISPATCH/NO_DISPATCH disposition; it does not absorb repo-domain interpretation, evidence meaning, claim validity, ranking, resurrection semantics, or allocation.
 

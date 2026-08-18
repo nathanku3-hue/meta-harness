@@ -7,8 +7,7 @@ const { spawn, spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const {
-  findExecutionClosureForDecision,
-  findExecutionWorkResultForDecision,
+  findExecutionClosureForOrigin,
 } = require("../lib/execution-closure");
 const { domainDigest } = require("../lib/contracts/digest");
 const { enterExecutionAttempt, issueExecutionPermit } = require("../lib/execution-permit");
@@ -372,16 +371,21 @@ function realityTransition(predecessorHeadDigest, successor) {
   return validateWorldTransition({ ...body, transitionDigest: computeWorldTransitionDigest(body) });
 }
 
-test("authoritative WorldHead compiles minimal work-session/v6 provenance with sealed product proof", (t) => {
+test("authoritative WorldHead compiles minimal work-session/v7 with Outcome claim provenance and sealed product proof", (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { claims: ["repo-owned"], hypotheses: ["opaque"] });
   installDecision(root, initial.head.headDigest);
   const compiled = compileRepoDecisionWork(root);
   assert.equal(compiled.type, "DISPATCH");
-  assert.equal(compiled.session.schemaVersion, "work-session/v6");
+  assert.equal(compiled.session.schemaVersion, "work-session/v7");
   assert.equal(compiled.session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.equal(compiled.session.base.commit, git(root, ["rev-parse", "HEAD"]));
-  assert.deepEqual(compiled.session.origin, { type: "REPO_DECISION", decisionDigest: compiled.decisionDigest });
+  assert.deepEqual(compiled.session.origin, {
+    type: "REPO_OUTCOME",
+    outcomeDigest: compiled.outcomeDigest,
+    claimDigest: compiled.claimDigest,
+  });
+  assert.equal(compiled.session.origin.decisionDigest, undefined);
   assert.equal(compiled.session.origin.worldDigest, undefined);
 });
 
@@ -489,241 +493,10 @@ test("aggregate ExecutionClosure covers every bounded repair AttemptEntry", asyn
   });
   assert.equal(result.outcome, "DONE");
   assert.equal(result.attempts, 2);
-  const closure = findExecutionClosureForDecision(root, compiled.decisionDigest);
+  const closure = findExecutionClosureForOrigin(root, compiled.session.origin);
   assert.equal(closure.disposition, "COMPLETED");
   assert.equal(closure.attemptEntries.length, 2);
   assert.match(closure.workResultDigest, /^sha256:[a-f0-9]{64}$/u);
-});
-
-function prepareEntryWithoutWorker(root, session) {
-  const workspace = prepareWorkspace(root, session);
-  const registryDir = workspaceRegistryDirectory(root);
-  const lease = acquireWorkspaceExecutionLease({ registryDir, workspaceId: workspace.workspaceId });
-  const boundary = captureBoundary(workspace.workspacePath, session.allowedPaths);
-  const permitStateDirectory = stateDirectory(root);
-  const permit = issueExecutionPermit({
-    repositoryRoot: workspace.repositoryRoot,
-    workspacePath: workspace.workspacePath,
-    session,
-    attempt: 1,
-    boundary,
-    workspaceCustody: workspace.custody,
-    workspaceLease: lease,
-    workspaceRegistryDir: registryDir,
-    stateDirectory: permitStateDirectory,
-  });
-  return { workspace, registryDir, lease, permitStateDirectory, permit };
-}
-
-function enterWithoutWorker(root, session) {
-  const prepared = prepareEntryWithoutWorker(root, session);
-  try {
-    return enterExecutionAttempt({
-      stateDirectory: prepared.permitStateDirectory,
-      permit: prepared.permit,
-      session,
-    });
-  } finally {
-    releaseWorkspaceExecutionLease({ registryDir: prepared.registryDir, lease: prepared.lease });
-  }
-}
-
-test("orphan first AttemptEntry recovers as interruption without replay", (t) => {
-  const root = repository(t);
-  const initial = persistWorld(root, { observations: ["ready"] });
-  installDecision(root, initial.head.headDigest);
-  const compiled = compileRepoDecisionWork(root);
-  const entry = enterWithoutWorker(root, compiled.session);
-  const entryDir = path.dirname(attemptEntryPath(root, { type: "REPO_DECISION", decisionDigest: compiled.decisionDigest }, 1));
-  assert.deepEqual(fs.readdirSync(entryDir), ["1.json"]);
-
-  const recovered = prepareAuthoritativeWorld(root);
-  const closure = findExecutionClosureForDecision(root, compiled.decisionDigest);
-  assert.equal(closure.disposition, "INTERRUPTED_AFTER_ENTRY");
-  assert.equal(closure.attemptEntries[0], entry.entryDigest);
-  assert.equal(recovered.head.generation, initial.head.generation + 1);
-  assert.deepEqual(fs.readdirSync(entryDir), ["1.json"]);
-
-  installDecision(root, recovered.head.headDigest);
-  assert.equal(compileRepoDecisionWork(root).type, "DISPATCH");
-});
-
-test("BANK completed before Decision closure recovers as COMPLETED and cannot become ATTEMPT_ABORTED", (t) => {
-  const root = repository(t);
-  const initial = persistWorld(root, { observations: ["ready"] });
-  installDecision(root, initial.head.headDigest);
-  const compiled = compileRepoDecisionWork(root);
-  const prepared = prepareEntryWithoutWorker(root, compiled.session);
-  persistWorkSession(root, compiled.session, prepared.workspace);
-  let entry;
-  let banked;
-  try {
-    entry = enterExecutionAttempt({
-      stateDirectory: prepared.permitStateDirectory,
-      permit: prepared.permit,
-      session: compiled.session,
-    });
-    fs.writeFileSync(path.join(prepared.workspace.workspacePath, "src", "result.txt"), "delivered\n", "utf8");
-    const after = captureBoundary(prepared.workspace.workspacePath, compiled.session.allowedPaths);
-    const seal = sealCandidate({
-      stateDirectory: prepared.permitStateDirectory,
-      session: compiled.session,
-      workspace: prepared.workspace,
-      boundary: after,
-      materializedPaths: ["src/result.txt"],
-    });
-    const productProof = verifyProductProof({
-      workspacePath: prepared.workspace.workspacePath,
-      session: compiled.session,
-      candidateSeal: seal,
-    });
-    assert.equal(productProof.state, "PROVEN");
-    persistProductProof(prepared.permitStateDirectory, productProof);
-    const candidateAcceptance = acceptedCandidate(compiled.session, seal);
-    banked = deliverValidatedChanges({
-      repositoryRoot: root,
-      workspacePath: prepared.workspace.workspacePath,
-      session: compiled.session,
-      workspaceCustody: prepared.workspace.custody,
-      candidateSeal: seal,
-      candidateAcceptance,
-      stateDirectory: prepared.permitStateDirectory,
-      delivery: { commit: true, push: false },
-      productResult: compiled.session.productResult,
-    });
-  } finally {
-    releaseWorkspaceExecutionLease({ registryDir: prepared.registryDir, lease: prepared.lease });
-  }
-
-  assert.equal(banked.commit.status, "committed");
-  assert.equal(git(prepared.workspace.workspacePath, ["status", "--short"]), "");
-  assert.equal(findExecutionClosureForDecision(root, compiled.decisionDigest), null);
-  assert.equal(findExecutionWorkResultForDecision(root, compiled.decisionDigest), null);
-
-  assert.throws(
-    () => prepareAuthoritativeWorld(root),
-    (error) => error.code === "MH_WORLD_HEAD_FROZEN",
-  );
-
-  const custody = readWorkspaceCustody(prepared.registryDir, prepared.workspace.workspaceId);
-  assert.equal(custody.state, "TERMINAL_COMMITTED");
-  assert.equal(custody.terminal.commitSha, banked.commit.sha);
-  assert.equal(git(prepared.workspace.workspacePath, ["status", "--short"]), "");
-
-  const closure = findExecutionClosureForDecision(root, compiled.decisionDigest);
-  assert.equal(closure.disposition, "COMPLETED");
-  assert.deepEqual(closure.attemptEntries, [entry.entryDigest]);
-  assert.match(closure.workResultDigest, /^sha256:[a-f0-9]{64}$/u);
-  const workResult = findExecutionWorkResultForDecision(root, compiled.decisionDigest);
-  assert.equal(workResult.result.schemaVersion, "work-bank-recovery-result/v1");
-  assert.equal(workResult.result.outcome, "DONE");
-  assert.equal(workResult.result.workspace.state, "TERMINAL_COMMITTED");
-  assert.equal(workResult.result.workspace.commitSha, banked.commit.sha);
-  assert.match(workResult.result.bankEvidence.candidateSealDigest, /^sha256:[a-f0-9]{64}$/u);
-  assert.match(workResult.result.bankEvidence.custodyValidationDigest, /^sha256:[a-f0-9]{64}$/u);
-
-  const abortedBody = {
-    schemaVersion: "world-transition/v1",
-    predecessorHeadDigest: initial.head.headDigest,
-    cause: { type: "ATTEMPT_ABORTED", executionClosureDigest: closure.closureDigest },
-    successorWorldDigest: initial.worldDigest,
-    successorAttestationDigest: initial.attestation.attestationDigest,
-  };
-  const aborted = validateWorldTransition({
-    ...abortedBody,
-    transitionDigest: computeWorldTransitionDigest(abortedBody),
-  });
-  assert.throws(
-    () => commitTransition(root, aborted),
-    (error) => error.code === "MH_WORLD_TRANSITION_CLOSURE",
-  );
-
-  const successor = persistProjectionObjects(root, { observations: ["learned-from-recovered-bank"] });
-  const learned = commitTransition(root, learningTransition(root, initial.head.headDigest, closure, successor));
-  assert.equal(learned.status, "APPLIED");
-  assert.equal(learned.head.worldDigest, successor.worldDigest);
-});
-
-test("AttemptEntry admission freezes its predecessor WorldHead against reality refresh", (t) => {
-  const root = repository(t);
-  const first = persistWorld(root, { observations: ["H"] });
-  installDecision(root, first.head.headDigest);
-  const compiled = compileRepoDecisionWork(root);
-  enterWithoutWorker(root, compiled.session);
-  assert.throws(
-    () => persistWorld(root, { observations: ["H1"] }, { predecessorHeadDigest: first.head.headDigest }),
-    (error) => error.code === "MH_WORLD_HEAD_FROZEN",
-  );
-  assert.equal(readCurrentWorldHead(root).head.headDigest, first.head.headDigest);
-});
-
-test("missing immutable admitted Decision fails closed instead of permitting reality refresh", (t) => {
-  const root = repository(t);
-  const first = persistWorld(root, { observations: ["H"] });
-  installDecision(root, first.head.headDigest);
-  const compiled = compileRepoDecisionWork(root);
-  enterWithoutWorker(root, compiled.session);
-  fs.unlinkSync(objectPath(root, "decisions", compiled.decisionDigest));
-
-  const successor = persistProjectionObjects(root, { observations: ["must-not-apply"] });
-  assert.throws(
-    () => commitTransition(root, realityTransition(first.head.headDigest, successor)),
-    (error) => error.code === "MH_WORLD_AUTHORITY_MISSING",
-  );
-  assert.equal(readCurrentWorldHead(root).head.headDigest, first.head.headDigest);
-});
-
-test("missing generation-1 AttemptEntry cannot erase durable admission evidence", async (t) => {
-  const root = repository(t);
-  const run = await completedDecisionRun(root);
-  const entryPath = attemptEntryPath(root, { type: "REPO_DECISION", decisionDigest: run.compiled.decisionDigest }, 1);
-  fs.unlinkSync(entryPath);
-  const successor = persistProjectionObjects(root, { observations: ["must-not-refresh"] });
-
-  assert.throws(
-    () => commitTransition(root, realityTransition(run.initial.head.headDigest, successor)),
-    (error) => error.code === "MH_WORLD_AUTHORITY_MISSING",
-  );
-  assert.equal(readCurrentWorldHead(root).head.headDigest, run.initial.head.headDigest);
-});
-
-test("WorldTransition winning first makes stale Decision unable to enter", (t) => {
-  const root = repository(t);
-  const first = persistWorld(root, { observations: ["H"] });
-  installDecision(root, first.head.headDigest);
-  const stale = compileRepoDecisionWork(root);
-  const second = persistWorld(root, { observations: ["H1"] }, { predecessorHeadDigest: first.head.headDigest });
-  assert.equal(readCurrentWorldHead(root).head.headDigest, second.head.headDigest);
-  assert.throws(
-    () => enterWithoutWorker(root, stale.session),
-    (error) => error.code === "MH_REPO_DECISION_STALE",
-  );
-});
-
-test("same Repo Decision has exactly one generation-1 admission collision point", (t) => {
-  const root = repository(t);
-  const initial = persistWorld(root, { observations: ["ready"] });
-  installDecision(root, initial.head.headDigest);
-  const compiled = compileRepoDecisionWork(root);
-  const first = enterWithoutWorker(root, compiled.session);
-  assert.equal(first.ordinal, 1);
-  assert.throws(
-    () => enterWithoutWorker(root, compiled.session),
-    (error) => error.code === "MH_REPO_DECISION_CONSUMED",
-  );
-  const entryDir = path.dirname(attemptEntryPath(root, { type: "REPO_DECISION", decisionDigest: compiled.decisionDigest }, 1));
-  assert.deepEqual(fs.readdirSync(entryDir), ["1.json"]);
-});
-
-test("concurrent admission and WorldTransition interleaving has one authority winner", async (t) => {
-  const root = repository(t);
-  const first = persistWorld(root, { observations: ["H"] });
-  installDecision(root, first.head.headDigest);
-  const compiled = compileRepoDecisionWork(root);
-  const prepared = prepareEntryWithoutWorker(root, compiled.session);
-  const successor = persistProjectionObjects(root, { observations: ["H1"] });
-  const transition = realityTransition(first.head.headDigest, successor);
-  await runAuthorityRace(root, first, compiled, prepared, successor, transition);
 });
 
 function learningTransition(root, predecessorHeadDigest, closure, successor) {
@@ -745,16 +518,22 @@ async function completedDecisionRun(root) {
   installDecision(root, initial.head.headDigest);
   const compiled = compileRepoDecisionWork(root);
   const result = await runWork({ repositoryPath: root, session: compiled.session, env: workerEnv(), timeoutSeconds: 30 });
-  const closure = findExecutionClosureForDecision(root, compiled.decisionDigest);
+  const closure = findExecutionClosureForOrigin(root, compiled.session.origin);
   return { initial, compiled, result, closure };
 }
 
-test("durable result freezes dispatch until it is banked", async (t) => {
+test("completed Outcome execution does not freeze World refresh, but stale learning cannot commit blindly", async (t) => {
   const root = repository(t);
   const run = await completedDecisionRun(root);
   assert.equal(run.result.outcome, "DONE");
   assert.match(run.closure.workResultDigest, /^sha256:[a-f0-9]{64}$/u);
-  assert.throws(() => compileRepoDecisionWork(root), (error) => error.code === "MH_WORLD_HEAD_FROZEN");
+  const refreshed = persistWorld(root, { observations: ["independent-refresh"] }, {
+    predecessorHeadDigest: run.initial.head.headDigest,
+  });
+  assert.equal(readCurrentWorldHead(root).head.headDigest, refreshed.head.headDigest);
+  const learnedWorld = persistProjectionObjects(root, { observations: ["stale-learning"] });
+  const staleLearning = learningTransition(root, run.initial.head.headDigest, run.closure, learnedWorld);
+  assert.throws(() => commitTransition(root, staleLearning), (error) => error.code === "MH_WORLD_CONFLICT");
 });
 
 test("ATTEMPT_LEARNING banks the admitted execution once and rejects wrong-predecessor or double banking", async (t) => {
@@ -767,6 +546,7 @@ test("ATTEMPT_LEARNING banks the admitted execution once and rejects wrong-prede
   assert.equal(applied.status, "APPLIED");
   assert.equal(applied.head.worldDigest, successor.worldDigest);
   assert.equal(applied.head.generation, run.initial.head.generation + 1);
+  assert.equal(require("../lib/outcome-claim").findActiveOutcomeClaimForOutcome(root, run.compiled.outcomeDigest), null);
   assert.equal(commitTransition(root, transition).status, "ALREADY_APPLIED");
 
   const wrongSuccessor = persistProjectionObjects(root, { observations: ["wrong-predecessor"] });
@@ -775,7 +555,7 @@ test("ATTEMPT_LEARNING banks the admitted execution once and rejects wrong-prede
 
   const duplicateSuccessor = persistProjectionObjects(root, { observations: ["double-bank"] });
   const doubleBank = learningTransition(root, applied.head.headDigest, run.closure, duplicateSuccessor);
-  assert.throws(() => commitTransition(root, doubleBank), (error) => error.code === "MH_WORLD_TRANSITION_CAUSE");
+  assert.throws(() => commitTransition(root, doubleBank), (error) => error.code === "MH_WORLD_TRANSITION_PREDECESSOR");
 });
 
 test("ATTEMPT_LEARNING fails closed when the referenced immutable work result is missing", async (t) => {
@@ -792,14 +572,14 @@ test("ATTEMPT_LEARNING fails closed when the referenced immutable work result is
 test("ATTEMPT_LEARNING fails closed when a referenced AttemptEntry is corrupted", async (t) => {
   const root = repository(t);
   const run = await completedDecisionRun(root);
-  const entryPath = attemptEntryPath(root, { type: "REPO_DECISION", decisionDigest: run.compiled.decisionDigest }, 1);
+  const entryPath = attemptEntryPath(root, run.compiled.session.origin, 1);
   const entry = JSON.parse(fs.readFileSync(entryPath, "utf8"));
   entry.enteredAt = new Date(Date.parse(entry.enteredAt) + 1000).toISOString();
   fs.writeFileSync(entryPath, `${JSON.stringify(entry, null, 2)}\n`, "utf8");
   const successor = persistProjectionObjects(root, { observations: ["must-not-bank"] });
   const transition = learningTransition(root, run.initial.head.headDigest, run.closure, successor);
 
-  assert.throws(() => commitTransition(root, transition), (error) => error.code === "MH_ATTEMPT_ENTRY_READ");
+  assert.throws(() => commitTransition(root, transition), (error) => error.code === "MH_ATTEMPT_ENTRY_DIGEST");
   assert.equal(readCurrentWorldHead(root).head.headDigest, run.initial.head.headDigest);
 });
 
