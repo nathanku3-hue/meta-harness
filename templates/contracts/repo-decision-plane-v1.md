@@ -1,6 +1,6 @@
 # Repository Progress Authority — hard-cut contract
 
-This packaged filename is retained for distribution compatibility, but the active repository-work protocol is no longer a mutable Repo Decision. Active repo-owned progress uses `repo-proposal-set/v2`, `world-transition/v2`, `world-head/v2`, `outcome/v1`, `outcome-claim/v1`, `outcome-claim-session/v1`, `work-session/v7`, and `product-integration/v1`. Historical v1 Head/Transition/Proposal and immutable `repo-decision/v3` evidence remain readable only for bounded migration/recovery.
+This packaged filename is retained for distribution compatibility, but the active repository-work protocol is no longer a mutable Repo Decision or proposal-file ingress. Active repo-owned progress uses fresh logical planning over `world-head/v2`, `outcome/v1`, `outcome-claim/v1`, `outcome-claim-session/v1`, `work-session/v7`, `execution-closure/v1`, `product-integration/v1`, and `world-transition/v2`. Historical proposal and immutable `repo-decision/v3` evidence remain readable only for bounded migration/regression/recovery.
 
 ## Boundary
 
@@ -19,11 +19,13 @@ immutable world-head/v2 (semantic World + productCommit)
         ↓
 current-world-pointer/v1
         ↓
-.meta-harness/repo-proposals.json / repo-proposal-set/v2
-        ↓ ordered possibilities
-immutable outcome/v1
+active Claims + unresolved authoritative handoffs
         ↓
-current-Head-compatible outcome-claim/v1
+fresh read-only logical planner
+        ↓ disposable semantic candidates
+prospective outcome/v1 bytes + exact execution boundary
+        ↓ current-Head/compatibility authority check
+immutable outcome/v1 + outcome-claim/v1
         ↓
 immutable outcome-claim-session/v1
         ↓
@@ -161,15 +163,11 @@ Attestation binds a World to projector identity and source observations:
 
 The kernel verifies only properties it can actually verify: local-file digests, Git-ref identities, opaque observation bindings, declared validity windows, and exact World binding.
 
-## `repo-proposal-set/v2`
+## Historical `repo-proposal-set/v2`
 
-The active mutable repository-work input is:
+`.meta-harness/repo-proposals.json` is retained only for migration/regression readability. Fresh repository work does not read it as active ingress; the logical planner reconstructs disposable candidates from current durable truth.
 
-```text
-.meta-harness/repo-proposals.json
-```
-
-Shape:
+Historical shape:
 
 ```json
 {
@@ -198,22 +196,13 @@ Shape:
 }
 ```
 
-Rules:
+Historical proposal bytes and their digest are not Outcome, Claim, session, permit, World, product-base, or continuity authority. Active logical-planner candidates likewise remain disposable possibilities: `expectedWritePaths[]` predicts an exact execution footprint, while Claim admission alone decides compatibility. New repo-owned sessions derive `base.commit` from the current `world-head/v2.productCommit`. An empty fresh planner result means controller quiescence/replanning, not terminal `USE_PRODUCT`; there is no active `NO_DISPATCH`, priority number, queue position, reservation state, fairness, preemption, or generic conflict resource.
 
-- the common product-direction, charter, current WorldHead, and owner-directive bindings are exact;
-- `proposals[]` is ordered repository preference;
-- proposal IDs are unique inside one snapshot;
-- overlapping proposals are legal possibilities; Claim admission decides which may coexist;
-- proposal bytes and their digest are not Outcome, Claim, session, permit, World, or product-base authority;
-- proposal items do not carry `base`; new repo-owned sessions derive `base.commit` from the bound current `world-head/v2.productCommit`;
-- `proposals: []` means `REPLAN_REQUIRED`, not terminal `USE_PRODUCT`;
-- there is no active `NO_DISPATCH`, priority number, queue position, reservation state, fairness, preemption, or generic conflict resource.
-
-Proposals are possibilities. Claims are commitments.
+Planner candidates are possibilities. Claims are commitments.
 
 ## Outcome / Claim admission
 
-A proposal compiles to a deliberately small immutable Outcome:
+A planner candidate constructs a deliberately small prospective immutable Outcome in memory:
 
 ```text
 id
@@ -224,11 +213,7 @@ evidenceRequirement
 
 Compatibility is derived from concrete write paths. Same-Outcome claims and overlapping write boundaries fail closed; disjoint Claims may coexist.
 
-For every **new** Claim, the short World-authority critical section requires:
-
-```text
-currentWorldHeadDigest == proposal.worldHeadDigest
-```
+For every **new** Claim, the short World-authority critical section requires the planner candidate's captured origin Head to still equal the authoritative current Head. A stale candidate batch is discarded rather than rebound to newer truth.
 
 An existing Claim does not gain that continuing equality requirement. `Claim.originWorldHeadDigest` remains provenance after admission; unrelated World advancement does not cancel durable responsibility.
 
@@ -242,13 +227,16 @@ Admission ordering under the same World-authority lock is:
 1. re-read current WorldHead
 2. require requested origin Head is still current
 3. verify duplicate / write-boundary compatibility
-4. choose Claim identity and construct prospective Claim digest
-5. seal exact work-session/v7 using that claimDigest
-6. persist exact immutable session bytes
-7. persist immutable outcome-claim-session/v1
-8. persist Claim LAST
-9. release lock
+4. persist the already-validated prospective immutable Outcome prerequisite
+5. choose Claim identity and construct prospective Claim digest
+6. seal exact work-session/v7 using that claimDigest
+7. persist exact immutable session bytes
+8. persist immutable outcome-claim-session/v1
+9. persist Claim LAST
+10. release lock
 ```
+
+Ordinary stale/conflicting rejection happens before step 4 and therefore leaves no Outcome object. A crash after prerequisites but before Claim visibility may leave inert create-only residue; no garbage collector or second admission protocol is introduced.
 
 `outcome-claim-session/v1` contains:
 
@@ -263,18 +251,18 @@ Crash semantics:
 
 ```text
 crash before Claim write
-→ orphan session/relation bytes are inert
+→ orphan Outcome/session/relation prerequisites are inert
 
 Claim visible
 → exact session identity is already recoverable
-→ mutable proposals are no longer required for continuation
+→ planner output is no longer required for continuation
 ```
 
 The later `outcome-claim-binding/v1` remains Claim→Session→Workspace custody. Workspace custody is not collapsed into Claim authority.
 
-## Claim-first recovery and bounded parallel execution
+## Claim-first recovery and event-driven reconciliation
 
-Normal repo-owned work begins by enumerating active Claims before reading the proposal snapshot.
+Normal repo-owned work begins by enumerating active Claims and draining any landing-ready terminal Closures before a fresh planner boot.
 
 An active Claim may be:
 
@@ -286,13 +274,11 @@ terminal workspace / durable Closure      → land Closure; never rerun worker
 released Claim                            → not active
 ```
 
-Legacy active Claims without recoverable session identity fail closed rather than silently consulting mutable proposals for continuity.
+Legacy active Claims without recoverable session identity fail closed rather than silently consulting mutable possibilities for continuity.
 
-Only remaining local capacity is filled from the current proposal snapshot. Admission is greedy in stable proposal order. Conflict or duplicate races skip that proposal and continue scanning. A stale-Head race stops admission from that stale snapshot.
+Recovered executable commitments fill local slots before fresh planning. If capacity remains, the controller boots the fresh logical planner at most once for the unchanged current Head, greedily admits compatible candidates until capacity is full, and discards unused candidates if the Head changes. Each executable session still uses exactly one `runWork(session)` transaction in its own managed worktree.
 
-Each executable session still uses exactly one `runWork(session)` transaction in its own managed worktree. A small orchestration layer runs those independent transactions concurrently with `Promise.allSettled`-style failure isolation. One worker failure cannot cancel siblings.
-
-Controller-local fan-out is an operational safety limit only. It is not durable scheduler state.
+The orchestration layer keeps only an ephemeral controller-local running set and waits for the next worker settlement with `Promise.race` semantics. A settlement is only a wake signal: the controller rereads durable Claims/Closures/Head, lands ready Closures immediately, and refills authoritative released capacity while slower siblings keep running. One worker failure cannot cancel siblings. Controller-local fan-out and per-Head quiescence marks are operational memory only; they are never durable queue, scheduler, or event authority.
 
 ## Concurrent artifact isolation
 

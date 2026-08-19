@@ -353,36 +353,39 @@ A `REPLAN_REQUIRED`, `BLOCKED`, or `OWNER_REQUIRED` result is never delivered. `
 
 Repositories may opt into repo-owned progress authority with `.meta-harness/repo-charter.json`. Domain semantics remain opaque to the generic kernel.
 
-The active mutable input is:
+Fresh repo-owned possibilities are reconstructed from durable truth rather than read from mutable proposal state:
 
 ```text
 immutable repo-world + attestation
 → immutable world-head/v2 H(productCommit=P)
-→ .meta-harness/repo-proposals.json / repo-proposal-set/v2 bound to H
-→ ordered possibilities
+→ active Claims + unresolved authoritative handoffs
+→ fresh read-only logical planner
+→ disposable semantic candidates
 ```
 
-`repo-decision/v3`, `repo-proposal-set/v1`, `world-transition/v1`, and `world-head/v1` remain readable only as retained historical/migration evidence. Active repo-owned work hard-cuts to proposal/head/transition v2. `repo-proposal-set/v2` has no proposal-authored `base` and no `NO_DISPATCH`: an empty set means reconciliation/replanning is required and cannot manufacture terminal `USE_PRODUCT` authority. New repo-owned session base is mechanically `EXACT_COMMIT(current WorldHead.productCommit)`.
+`repo-decision/v3`, `repo-proposal-set/v1`, `repo-proposal-set/v2`, `world-transition/v1`, and `world-head/v1` remain readable only as retained historical/migration/regression evidence where applicable. `.meta-harness/repo-proposals.json` is not active fresh-work ingress. New repo-owned session base is mechanically `EXACT_COMMIT(current WorldHead.productCommit)`.
 
-The normal repo-owned transaction is:
+The normal repo-owned reconciliation transaction is:
 
 ```text
-recover active Claims before proposals
-→ read current World + current proposal set
-→ greedily fill unused local capacity with compatible NEW Claims
-→ bounded concurrent runWork() per Claim/session/workspace
-→ durable independent ExecutionClosures
-→ current-World interpretation
+drain landing-ready terminal Closures
+→ recover active Claims from durable session/workspace custody
+→ start recoverable executable Claims up to local capacity
+→ if capacity remains, plan the current Head at most once in this controller epoch
+→ admit compatible candidates as NEW Claims
+→ run independent runWork() transactions concurrently
+→ wake on the next local settlement only
+→ reread durable truth and land the resulting Closure against CURRENT World
 → controller-owned cumulative code integration + retained proof
-→ world-transition/v2 CAS
-→ successor world-head/v2(World, productCommit)
+→ world-transition/v2 CAS + Claim release
+→ refill released capacity from the successor Head while slower siblings continue
 ```
 
-A proposal is disposable possibility; an Outcome is durable work identity; a Claim is durable temporary commitment. New Claims require `proposal.worldHeadDigest` to still equal the authoritative current WorldHead while the World authority lock is held. Existing Claims deliberately do not gain whole-World equality: unrelated World advancement cannot cancel admitted responsibility.
+A planner candidate is disposable possibility; an Outcome is immutable work identity materialized as part of successful Claim admission; a Claim is durable temporary commitment. Candidate preparation constructs the prospective Outcome bytes/digest in memory. Under the World/Claim authority lock, the controller proves current-Head and boundary availability before persisting that Outcome prerequisite, exact session, `outcome-claim-session/v1`, and finally the Claim. Ordinary stale/conflicting rejection therefore leaves no Outcome object; crash residue before Claim visibility remains inert.
 
-New-format Claim visibility implies durable pre-workspace session recovery. Meta-Harness constructs the prospective Claim, seals the exact `work-session/v7` with its Claim digest, writes the immutable session, writes `outcome-claim-session/v1`, then writes the Claim last. The later `outcome-claim-binding/v1` still binds Claim→Session→Workspace custody. A mutable proposal disappearing therefore cannot strand or cancel an active Claim.
+Existing Claims deliberately do not gain whole-World equality: unrelated World advancement cannot cancel admitted responsibility. Once Claim visibility exists, the exact Claim/session owns continuity even if the planner batch disappears. The later `outcome-claim-binding/v1` still binds Claim→Session→Workspace custody.
 
-Repo-owned continuation is Claim-addressed rather than selected by repository-global `latest.json`. Claims with disjoint concrete write boundaries may coexist; duplicate Outcomes and overlapping boundaries fail closed. Controller-local fan-out is a bounded operational limit only and is never persisted as queue, priority, reservation, or World state.
+Repo-owned continuation is Claim-addressed rather than selected by repository-global `latest.json`. Claims with disjoint concrete write boundaries may coexist; duplicate Outcomes and overlapping boundaries fail closed. Controller-local fan-out is a bounded operational limit only and is never persisted as queue, priority, reservation, event history, or World state. Terminal Closures are always drained before a fresh planner boot, planner completion is never authority, and an unchanged Head receives at most one planner boot per active controller epoch.
 
 ### Current-World Closure landing
 

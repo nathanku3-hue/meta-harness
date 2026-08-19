@@ -7,12 +7,15 @@ const test = require("node:test");
 
 const { renderHuman } = require("../lib/commands/work");
 const { listActiveOutcomeClaims } = require("../lib/outcome-claim");
+const { createOutcome } = require("../lib/outcome");
 const { createPlannerSnapshot, removePlannerSnapshot } = require("../lib/repo-logical-planner");
 const {
   admitPreparedPlannerCandidate,
   preparePlannerCandidate,
 } = require("../lib/repo-planner-admission");
 const { runRepoWorkWave } = require("../lib/repo-work-wave");
+const { protocolRoot } = require("../lib/world-authority");
+const { runWork } = require("../lib/work-loop");
 const { commitTransition, readCurrentWorldState } = require("../lib/world-transition");
 const {
   git,
@@ -45,7 +48,11 @@ function planner(values, onCall = () => {}) {
   const run = async (args) => {
     calls += 1;
     onCall({ ...args, calls });
-    return { batch: { schemaVersion: "planner-candidate-batch/v1", proposals: values } };
+    const learned = new Set(args.plannerInput?.currentWorld?.payload?.learned || []);
+    const active = new Set((args.plannerInput?.activeCommitments || []).map((entry) => entry.outcome.id));
+    const unresolved = new Set((args.plannerInput?.unresolvedHandoffs || []).map((entry) => entry.outcome.id));
+    const proposals = values.filter((entry) => !learned.has(entry.id) && !active.has(entry.id) && !unresolved.has(entry.id));
+    return { batch: { schemaVersion: "planner-candidate-batch/v1", proposals } };
   };
   run.calls = () => calls;
   return run;
@@ -64,7 +71,7 @@ test("stale repo-proposals.json is inert fresh-work history", async (t) => {
     now: monotonicNow(),
   });
   assert.equal(result.admitted, 1);
-  assert.equal(plannerRunner.calls(), 1);
+  assert.equal(plannerRunner.calls(), 2);
   assert.deepEqual(readCurrentWorldState(root).world.payload.learned, ["b"]);
   assert.equal(fs.existsSync(path.join(root, ".meta-harness", "repo-proposals.json")), true);
   let humanOutput = "";
@@ -73,25 +80,89 @@ test("stale repo-proposals.json is inert fresh-work history", async (t) => {
   assert.doesNotMatch(humanOutput, /planner prompt|worker prompt|claimDigest|workspaceId|run stream|sha256:/iu);
 });
 
-test("recovered executable capacity is committed before possibilities and can skip planner entirely", async (t) => {
+test("recovered executable commitments start before fresh planning on every reconciliation pass", async (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   const current = readCurrentWorldState(root);
   const prepared = preparePlannerCandidate(root, current, candidate("a"));
   admitPreparedPlannerCandidate(root, current, prepared);
+  let workerStarted = false;
   let plannerCalls = 0;
+  const baseRunner = runner();
   const result = await runRepoWorkWave({
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "1" },
-    plannerRunner: async () => { plannerCalls += 1; throw new Error("planner must not run"); },
+    plannerRunner: async ({ plannerInput }) => {
+      plannerCalls += 1;
+      assert.equal(workerStarted, true);
+      assert.deepEqual(plannerInput.currentWorld.payload.learned, ["a"]);
+      return { batch: { schemaVersion: "planner-candidate-batch/v1", proposals: [] } };
+    },
+    runner: async (args) => {
+      workerStarted = true;
+      return baseRunner(args);
+    },
+    interpret: require("./helpers/linear-product-head").fakeInterpretation,
+    now: monotonicNow(),
+  });
+  assert.equal(plannerCalls, 1);
+  assert.equal(result.plannerInvoked, true);
+  assert.equal(result.recovered, 1);
+  assert.deepEqual(readCurrentWorldState(root).world.payload.learned, ["a"]);
+});
+
+test("terminal Closure lands before a fresh planner boot", async (t) => {
+  const { root } = repository(t);
+  const initial = persistInitial(root, "world-transition/v2");
+  const current = readCurrentWorldState(root);
+  const prepared = preparePlannerCandidate(root, current, candidate("a"));
+  const admitted = admitPreparedPlannerCandidate(root, current, prepared);
+  await runWork({ repositoryPath: root, session: admitted.session, runner: runner() });
+
+  let plannerInput = null;
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    plannerRunner: async (args) => {
+      plannerInput = args.plannerInput;
+      return { batch: { schemaVersion: "planner-candidate-batch/v1", proposals: [] } };
+    },
     runner: runner(),
     interpret: require("./helpers/linear-product-head").fakeInterpretation,
     now: monotonicNow(),
   });
-  assert.equal(plannerCalls, 0);
-  assert.equal(result.plannerInvoked, false);
-  assert.equal(result.recovered, 1);
-  assert.deepEqual(readCurrentWorldState(root).world.payload.learned, ["a"]);
+
+  assert.ok(plannerInput);
+  assert.deepEqual(plannerInput.currentWorld.payload.learned, ["a"]);
+  assert.notEqual(plannerInput.head.productCommit, initial.head.productCommit);
+  assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 1);
+  assert.equal(listActiveOutcomeClaims(root).length, 0);
+});
+
+test("ordinary conflicting planner rejection leaves no orphan Outcome", (t) => {
+  const { root } = repository(t);
+  persistInitial(root, "world-transition/v2");
+  const current = readCurrentWorldState(root);
+  const admittedA = preparePlannerCandidate(root, current, candidate("a", ["src/a"]));
+  admitPreparedPlannerCandidate(root, current, admittedA);
+
+  const rejected = candidate("b", ["src/a/nested"]);
+  const prospective = createOutcome({
+    id: rejected.id,
+    desiredState: rejected.productResult,
+    preconditions: [rejected.journeyState],
+    evidenceRequirement: rejected.doneWhen,
+  });
+  const preparedB = preparePlannerCandidate(root, current, rejected);
+  assert.throws(
+    () => admitPreparedPlannerCandidate(root, current, preparedB),
+    (error) => error.code === "MH_OUTCOME_CLAIM_CONFLICT",
+  );
+  const outcomePath = path.join(
+    protocolRoot(root),
+    "outcomes",
+    `${prospective.outcomeDigest.slice("sha256:".length)}.json`,
+  );
+  assert.equal(fs.existsSync(outcomePath), false);
 });
 
 test("conflict rejects the whole exact candidate rather than silently shrinking it", async (t) => {
@@ -109,14 +180,14 @@ test("conflict rejects the whole exact candidate rather than silently shrinking 
     interpret: require("./helpers/linear-product-head").fakeInterpretation,
     now: monotonicNow(),
   });
-  assert.equal(result.admitted, 2);
-  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "c"]);
+  assert.equal(result.admitted, 3);
+  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b", "c"]);
   assert.ok(result.orchestrationTelemetry.candidateRejections.some((entry) => (
     entry.candidateId === "b" && entry.code === "MH_OUTCOME_CLAIM_CONFLICT"
   )));
 });
 
-test("stale planner output retries exactly once when no Claim became visible", async (t) => {
+test("stale planner output is discarded and a changed Head gets a fresh planning epoch", async (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   let advanced = false;
@@ -134,13 +205,13 @@ test("stale planner output retries exactly once when no Claim became visible", a
     now: monotonicNow(),
   });
   assert.equal(advanced, true);
-  assert.equal(plannerRunner.calls(), 2);
-  assert.equal(result.plannerRetryCount, 1);
+  assert.equal(plannerRunner.calls(), 3);
+  assert.equal(result.plannerRetryCount, 0);
   assert.equal(result.admitted, 1);
-  assert.equal(result.stalePlanner, false);
+  assert.equal(result.stalePlanner, true);
 });
 
-test("stale planner output never recursively replans after one new Claim is visible", async (t) => {
+test("partial stale admission preserves admitted Claims and replans only from the new Head", async (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   const clock = monotonicNow();
@@ -165,11 +236,16 @@ test("stale planner output never recursively replans after one new Claim is visi
     now,
   });
   assert.equal(advanced, true);
-  assert.equal(plannerRunner.calls(), 1);
+  assert.equal(plannerRunner.calls(), result.orchestrationTelemetry.plannerBootCount);
+  assert.ok(plannerRunner.calls() >= 3);
+  assert.equal(
+    new Set(result.orchestrationTelemetry.plannerBoots.map((entry) => entry.headDigest)).size,
+    result.orchestrationTelemetry.plannerBootCount,
+  );
   assert.equal(result.plannerRetryCount, 0);
-  assert.equal(result.admitted, 1);
+  assert.equal(result.admitted, 2);
   assert.equal(result.stalePlanner, true);
-  assert.deepEqual(readCurrentWorldState(root).world.payload.learned, ["a"]);
+  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b"]);
 });
 
 test("planner failure before Claim leaves no execution authority and a fresh invocation can recompute", async (t) => {

@@ -250,9 +250,17 @@ function plannerCandidate(id, expectedWritePath = `src/${id}`) {
 }
 
 function plannerRunner(proposals) {
-  return async () => ({
-    batch: { schemaVersion: "planner-candidate-batch/v1", proposals },
-  });
+  return async ({ plannerInput }) => {
+    const learned = new Set(plannerInput?.currentWorld?.payload?.learned || []);
+    const active = new Set((plannerInput?.activeCommitments || []).map((entry) => entry.outcome.id));
+    const unresolved = new Set((plannerInput?.unresolvedHandoffs || []).map((entry) => entry.outcome.id));
+    return {
+      batch: {
+        schemaVersion: "planner-candidate-batch/v1",
+        proposals: proposals.filter((entry) => !learned.has(entry.id) && !active.has(entry.id) && !unresolved.has(entry.id)),
+      },
+    };
+  };
 }
 
 function monotonicNow() {
@@ -418,53 +426,76 @@ test("one proposal set executes compatible Claims concurrently and lands sibling
   assert.notEqual(heads[2].head, heads[1].head);
   assert.equal(readCurrentWorldState(root).head.generation, initial.head.generation + 3);
   assert.equal(listActiveOutcomeClaims(root).length, 0);
+  assert.equal(result.orchestrationTelemetry.executions.length, 3);
+  assert.equal(result.orchestrationTelemetry.landings.length, 3);
+  assert.ok(result.orchestrationTelemetry.landings.every((entry) => Number.isFinite(entry.completionToLandingMs)));
   const workerSchemaNames = paths.map((entry) => path.basename(entry.schemaPath));
   assert.ok(workerSchemaNames.every((name) => name.includes(".worker-result.schema.json")));
 });
 
-test("static wave durably records barrier effort and frozen structural refill opportunity without redispatch", async (t) => {
+test("freed capacity refills from the post-landing Head before a slow sibling can finish", async (t) => {
   const { root, initial } = repository(t);
   writeProposalSet(root, initial.head.headDigest, [proposal(root, "a"), proposal(root, "b"), proposal(root, "c")]);
+  let releaseB;
+  const bGate = new Promise((resolve) => { releaseB = resolve; });
+  const baseRunner = resultRunner();
+  let cStarted = false;
+  let cBaseCommit = null;
+  let worldAtCStart = null;
   const result = await runRepoWorkWave({
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
-    runner: resultRunner({ delayById: { a: 10, b: 80 } }),
+    runner: async (args) => {
+      const id = /^Deliver ([a-z0-9-]+)\.$/iu.exec(args.session.productResult)?.[1];
+      if (id === "b") await bGate;
+      if (id === "c") {
+        cStarted = true;
+        cBaseCommit = args.session.base.commit;
+        worldAtCStart = readCurrentWorldState(root);
+        releaseB();
+      }
+      return baseRunner(args);
+    },
     plannerRunner: plannerRunner([plannerCandidate("a"), plannerCandidate("b"), plannerCandidate("c")]),
     interpret: fakeInterpretation,
     now: monotonicNow(),
     telemetryClock: monotonicTelemetryClock(),
   });
 
+  assert.equal(cStarted, true, "C must start while B is still held inside its worker runner");
+  assert.deepEqual(worldAtCStart.world.payload.learned, ["a"]);
+  assert.equal(cBaseCommit, worldAtCStart.head.productCommit);
+  assert.notEqual(cBaseCommit, initial.head.productCommit);
   assert.equal(result.outcome, "DONE");
-  assert.equal(result.admitted, 2);
-  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b"]);
+  assert.equal(result.admitted, 3);
+  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b", "c"]);
 
   const telemetry = result.orchestrationTelemetry;
   assert.equal(telemetry.schemaVersion, "repo-work-wave-telemetry/v1");
   assert.equal(telemetry.authority, "NON_AUTHORITATIVE_OBSERVATION");
-  assert.equal(telemetry.schedulerPolicy, "ONE_SHOT_INITIAL_FRONTIER");
+  assert.equal(telemetry.schedulerPolicy, "EVENT_DRIVEN_RECONCILIATION");
   assert.equal(telemetry.executionBound, 2);
+  assert.equal(telemetry.maxLocalConcurrency, 2);
   assert.equal(telemetry.plannerInvoked, true);
-  assert.equal(telemetry.plannerCandidateCount, 3);
-  assert.equal(telemetry.executions.length, 2);
-  assert.deepEqual(telemetry.executions.map((entry) => entry.proposalId).sort(), ["a", "b"]);
+  assert.ok(telemetry.plannerBootCount >= 3);
+  assert.equal(new Set(telemetry.plannerBoots.map((entry) => entry.headDigest)).size, telemetry.plannerBootCount);
+  assert.equal(telemetry.executions.length, 3);
+  assert.deepEqual(telemetry.executions.map((entry) => entry.proposalId).sort(), ["a", "b", "c"]);
   assert.ok(telemetry.executions.every((entry) => entry.effort?.schemaVersion === "work-metrics/v1"));
   assert.ok(telemetry.executions.every((entry) => entry.effort.workerMs >= 0));
   assert.ok(telemetry.executions.every((entry) => entry.effort.attemptCount === 1));
   assert.ok(telemetry.executions.every((entry) => entry.effort.operationCount === 1));
-  assert.ok(telemetry.synchronousBarrier.completionSpreadMs > 0);
-  assert.ok(telemetry.synchronousBarrier.cumulativePostCompletionBarrierMs > 0);
-
-  assert.equal(telemetry.frozenCandidateStructuralRefill.length, 2);
-  const firstRefill = telemetry.frozenCandidateStructuralRefill[0];
-  assert.deepEqual(firstRefill.structurallyCompatibleFrozenCandidateIds, ["c"]);
-  assert.equal(firstRefill.structurallyCompatibleFrozenCandidateCount, 1);
-  assert.equal(firstRefill.counterfactualReleasedLocalClaimCount, 1);
-  assert.equal(firstRefill.counterfactualFillableSlotCount, 1);
-  assert.equal(firstRefill.semanticEligibilityAsserted, false);
-  assert.equal(firstRefill.counterfactualOnly, true);
-  assert.equal(telemetry.landings.length, 2);
-  assert.ok(telemetry.landings.every((entry) => entry.waitAfterLocalCompletionMs >= 0));
+  assert.equal(Object.hasOwn(telemetry, "synchronousBarrier"), false);
+  assert.equal(Object.hasOwn(telemetry, "frozenCandidateStructuralRefill"), false);
+  assert.equal(telemetry.landings.length, 3);
+  assert.ok(telemetry.landings.every((entry) => entry.completionToLandingMs >= 0));
+  const cExecution = telemetry.executions.find((entry) => entry.proposalId === "c");
+  assert.ok(cExecution);
+  assert.ok(telemetry.refills.some((entry) => (
+    entry.redispatchedClaimDigest === cExecution.claimDigest
+      && entry.releasedSlotToRedispatchMs >= 0
+  )));
+  assert.equal(telemetry.quiescentHeadDigest, readCurrentWorldState(root).head.headDigest);
 
   assert.deepEqual(result.orchestrationTelemetryPersistence, { status: "PERSISTED", errorCode: null });
   assert.match(telemetry.telemetryDigest, /^sha256:[a-f0-9]{64}$/u);
@@ -478,25 +509,38 @@ test("static wave durably records barrier effort and frozen structural refill op
   assert.deepEqual(JSON.parse(fs.readFileSync(telemetryPath, "utf8")), telemetry);
 });
 
-test("proposal overlap skips the conflicting possibility and keeps scanning in stable order", async (t) => {
+test("proposal overlap rejects the conflicting current-Head candidate without poisoning later refill", async (t) => {
   const { root, initial } = repository(t);
   writeProposalSet(root, initial.head.headDigest, [
     proposal(root, "a", "src/a"),
     proposal(root, "b", "src/a/nested"),
     proposal(root, "c", "src/c"),
   ]);
+  let plannerCalls = 0;
+  const firstHeadCandidates = [
+    plannerCandidate("a", "src/a"),
+    plannerCandidate("b", "src/a/nested"),
+    plannerCandidate("c", "src/c"),
+  ];
   const result = await runRepoWorkWave({
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "3" },
     runner: resultRunner(),
-    plannerRunner: plannerRunner([
-      plannerCandidate("a", "src/a"),
-      plannerCandidate("b", "src/a/nested"),
-      plannerCandidate("c", "src/c"),
-    ]),
+    plannerRunner: async () => {
+      plannerCalls += 1;
+      return {
+        batch: {
+          schemaVersion: "planner-candidate-batch/v1",
+          proposals: plannerCalls === 1 ? firstHeadCandidates : [],
+        },
+      };
+    },
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });
+  assert.ok(result.orchestrationTelemetry.candidateRejections.some((entry) => (
+    entry.candidateId === "b" && entry.code === "MH_OUTCOME_CLAIM_CONFLICT"
+  )));
   assert.equal(result.admitted, 2);
   assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 2);
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "c"]);

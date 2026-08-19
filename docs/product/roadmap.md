@@ -43,7 +43,7 @@ The human-facing product remains small. Internal continuity may become richer, b
 
 ## Current stabilization boundary
 
-`PRODUCT_DIRECTION_CONTINUITY_1` is banked locally at `22fe09c`; `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`; `PARALLEL_OUTCOME_PROGRESS_1` at `9616bd4`; `LINEAR_PRODUCT_HEAD_1` at `e2172bc`; and `FORWARD_MOTION_PROOF_1` at `a63e82c`. The live active path now has Outcome/Claim identity, parallel disposable workers, current-World Closure interpretation, one cumulative authoritative product commit, retained cross-wave proof continuity, proposal bases derived from `world-head/v2.productCommit`, and a typed forward-motion boundary that prevents failed means or fictional authority from becoming owner escalation.
+`PRODUCT_DIRECTION_CONTINUITY_1` is banked locally at `22fe09c`; `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`; `PARALLEL_OUTCOME_PROGRESS_1` at `9616bd4`; `LINEAR_PRODUCT_HEAD_1` at `e2172bc`; `FORWARD_MOTION_PROOF_1` at `a63e82c`; and `LOGICAL_PLANNER_AUTODISPATCH_1` at `234b5b1`. The live active path now has Outcome/Claim identity, parallel disposable workers, current-World Closure interpretation, one cumulative authoritative product commit, retained cross-wave proof continuity, a typed forward-motion boundary, fresh durable-handoff planning, exact-or-reject capability compilation, and automatic initial planner→Claim→worker dispatch without human prompt routing.
 
 A new external score campaign is not a prerequisite for this architecture work. The purpose of the current slices is to remove demonstrated serial and human-routing bottlenecks, not to create another evidence ceremony.
 
@@ -178,7 +178,7 @@ Core law:
 
 **Product result:** durable repository truth turns directly into one fresh logical planning frontier and automatic worker launch without the owner transporting handoff, proposal text, streams, or prompts.
 
-Implemented local slice: `LOGICAL_PLANNER_AUTODISPATCH_1` (see repository-root `implementation_plan.md`). The required audit/re-audit cuts are incorporated. This first cut is deliberately one-shot rather than continuous scheduling:
+Banked audited slice: `LOGICAL_PLANNER_AUTODISPATCH_1` at `234b5b1`. The required audit/re-audit cuts are incorporated. This first cut is deliberately one-shot rather than continuous reconciliation:
 
 ```text
 recover active Claims first
@@ -210,29 +210,49 @@ Hard cuts:
 
 Planner context/output is reconstructable, disposable, and non-authoritative. `expectedWritePaths[]` is a footprint prediction rather than capability, and boundary compilation is exact-or-reject: no silent widening or shrinking. Claims remain the durable commitment boundary; planner death before Claim creation is harmless, and planner output disappearing after Claim creation cannot cancel work.
 
-**Implemented/validated locally:** fresh planner input reconstructs unresolved durable Closure/work-result/forward-motion handoff with attribution digests and no chat/custody internals; two compatible semantic candidates auto-admit and overlap; exact-or-reject boundaries reject whole conflicting candidates; stale planner output gets at most one pre-Claim retry; stale `.meta-harness/repo-proposals.json` is inert; recovered full capacity skips planning; planner snapshots exclude owner-checkout dirt; normal human rendering exposes no prompts/Claim/workspace identifiers; and Phase-4 remains the sole owner-escalation membrane. The slice is uncommitted and unpushed.
+**Implemented/validated:** fresh planner input reconstructs unresolved durable Closure/work-result/forward-motion handoff with attribution digests and no chat/custody internals; two compatible semantic candidates auto-admit and overlap; exact-or-reject boundaries reject whole conflicting candidates; stale planner output gets at most one pre-Claim retry; stale `.meta-harness/repo-proposals.json` is inert; recovered full capacity skips planning; planner snapshots exclude owner-checkout dirt; normal human rendering exposes no prompts/Claim/workspace identifiers; and Phase-4 remains the sole owner-escalation membrane. The post-bank self-audit identified the Phase-6 defects: terminal Closures could sit behind a fresh planner boot after restart, local workers still passed through a whole-wave `Promise.all()` barrier, and ordinary rejected planner candidates could leave inert Outcome debris.
 
 ### Phase 6 — Event-driven reconciliation + capacity refill
 
-**Product result:** useful execution capacity stays filled as Claims land, release, block, or become newly eligible, without a persistent queue/scheduler database.
+**Product result:** remove the remaining whole-wave barrier so terminal Closures land as soon as they are ready, authoritative releases immediately free local capacity, and fresh current-Head planning refills that capacity while slower siblings continue.
 
-This phase consumes **fresh semantic candidates** from Phase 5; it must not poll or reinterpret a stale mutable proposal file.
-
-After every authoritative product/World landing or material reality change:
+**Implemented/validated in the working tree:** `EVENT_DRIVEN_RECONCILIATION_1` (see repository-root `implementation_plan.md`). Phase 5's synchronous-barrier/counterfactual-refill telemetry established the defect; Phase 6 replaces that counterfactual with actual event-driven landing/refill telemetry. The slice is not yet banked.
 
 ```text
-current WorldHead + productCommit
-+ active Claims
+command entry
+→ land already-terminal Closures before planning
 → recover commitments
-→ obtain fresh current-Head-bound proposals
-→ greedily fill newly free local execution capacity
-→ execute / integrate / land
-→ reconcile again while useful work remains
+→ fill local capacity
+→ workers run concurrently
+
+first worker settles
+→ durable Closure lands immediately
+→ World/product Head advances
+→ Claim releases
+→ recompute from current durable truth
+→ recover admitted work first
+→ fresh planner only if a slot still needs possibilities
+→ new compatible worker starts
+
+slower siblings keep running throughout
 ```
 
-No persistent queue, reservation state, fairness model, or worker conversation topology is required. Reconciliation is event-driven recomputation from durable truth, not a daemon-owned scheduling database.
+Hard cuts:
 
-**Done when:** after one parallel Outcome lands and releases capacity, newly legal compatible work starts without owner action or restarting the organizational plan, while Claims retain continuity and both World and product code remain linear.
+- replace the active static-wave/`Promise.all()` settlement barrier with an ephemeral controller-local running set and next-completion wakeups;
+- always drain landing-ready durable Closures before a planner boot, including Closures left by a crashed/foreign controller;
+- treat worker completion only as a wake signal: every action is re-derived from current Head, Claims, Closures, and workspace custody;
+- invoke planner at most once for one unchanged authoritative Head in a controller quiescence epoch; a Head advance creates a fresh planning epoch;
+- discard every unused planner candidate on Head change; admitted Claims survive as commitments;
+- recover/start already-admitted executable Claims before spending a free slot on fresh planning;
+- move ordinary planner Outcome persistence behind Claim availability so rejected/conflicting candidates do not leave deterministic durable Outcome debris;
+- derive quiescence from durable truth and current planner result rather than persisting queue/event/scheduler state;
+- keep `runWork()` as the one-worker transaction and current-World/product CAS landing as the only authoritative linearization mechanism;
+- evolve orchestration telemetry only as non-authoritative measurement of completion→landing and released-slot→redispatch latency.
+
+“Event-driven” here means events inside one active `meta-harness work` command plus exact reconstruction on the next command after interruption. It does **not** mean a daemon, filesystem watcher, cron loop, event bus, job queue, or persistent scheduler service.
+
+**Validated:** with local bound 2, A and B start together; A lands while B is deliberately held inside its worker; the released slot admits/starts C from the post-A authoritative `productCommit` before B is released; B later reinterprets against the current World/product Head; command-entry terminal Closures land before planner input is compiled; recovered Claims start before fresh planning; stale candidates are discarded per Head; ordinary conflict rejection leaves no orphan Outcome; and normal owner interaction contains no rerun/continue/stream-routing step merely to refill useful capacity.
 
 ### Phase 7 — Research promotion + minimum sufficient context
 

@@ -54,9 +54,17 @@ function plannerCandidate(value) {
 }
 
 function plannerRunner(values) {
-  return async () => ({
-    batch: { schemaVersion: "planner-candidate-batch/v1", proposals: values.map(plannerCandidate) },
-  });
+  return async ({ plannerInput }) => {
+    const learned = new Set(plannerInput?.currentWorld?.payload?.learned || []);
+    const active = new Set((plannerInput?.activeCommitments || []).map((entry) => entry.outcome.id));
+    const unresolved = new Set((plannerInput?.unresolvedHandoffs || []).map((entry) => entry.outcome.id));
+    return {
+      batch: {
+        schemaVersion: "planner-candidate-batch/v1",
+        proposals: values.map(plannerCandidate).filter((entry) => !learned.has(entry.id) && !active.has(entry.id) && !unresolved.has(entry.id)),
+      },
+    };
+  };
 }
 
 test("world-transition/v2 product commit participates in transition and Head identity", (t) => {

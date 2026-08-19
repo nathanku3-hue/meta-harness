@@ -1,820 +1,925 @@
-# LOGICAL_PLANNER_AUTODISPATCH_1
+# EVENT_DRIVEN_RECONCILIATION_1
 
-Status: **IMPLEMENTED LOCALLY — ARCHITECTURE RE-AUDIT PASS — VALIDATED — UNCOMMITTED**
+Status: **IMPLEMENTED / VALIDATED IN WORKING TREE — NOT YET BANKED**
 
-## Owner-authority prerequisite — satisfied
+Execution result: terminal Closures now drain before planner boots; local work wakes reconciliation one settlement at a time; authoritative Claim release immediately permits current-Head refill; stale planner batches die on Head change; rejected planner candidates leave no ordinary orphan Outcome; and orchestration telemetry records actual completion→landing and release→redispatch behavior without becoming authority.
 
-This slice changes the human/product journey, not merely an internal implementation detail. The owner explicitly authorized execution after the re-audit and supplied the new journey/execution law. `PRODUCT.md` is now `product-direction-v2` and defines:
+## Self-audit of banked Phase 5
 
-```text
-owner-authored product direction
-→ high-level intent
-→ planner decomposition
-→ multiple Outcomes
-→ automatic dispatch
-→ exact validation
-→ bounded repair
-→ observable result
-```
+`LOGICAL_PLANNER_AUTODISPATCH_1` is banked at `234b5b1` (`Implement logical planner autodispatch`). Git, not the earlier working-tree summary, is the authority for that status.
 
-with:
+Architecture self-audit:
 
 ```text
-Planner proposes meaning.
-Kernel grants exact capability.
-Claim makes commitment durable.
-Worker executes.
-World learns.
+Direction       99/100
+Aggressiveness  94/100
+Elegance        95/100
 ```
 
-The former owner-direction implementation gate is therefore satisfied. Publication/push authority remains unchanged and was not granted.
+What Phase 5 got right:
+
+- planner is fresh, read-only, disposable, and non-authoritative;
+- planner output is semantic-only and exact-or-reject at the capability membrane;
+- current `WorldHead.productCommit` mechanically supplies Git ancestry;
+- Claim/session visibility remains the durable commitment boundary;
+- recovered commitments precede fresh planning;
+- durable Closure/forward-motion handoff is reconstructed without chat;
+- planner cannot create owner authority;
+- compatible planner candidates become Claims/workers without owner routing;
+- `.meta-harness/repo-proposals.json` is no longer active ingress;
+- worker/planner prompts remain internal;
+- the normal owner/source checkout remains outside execution.
+
+Three cuts remain:
+
+### A. Known terminal Closures are not reconciled before planner boot
+
+Current `runRepoWorkWave()` recovers active Claims, reads current World, and may invoke the planner while some recovered Claims are already `CLOSURE` / `closure_awaiting_landing`.
+
+That means the planner can reason from a World that is known to be behind already-durable terminal execution evidence.
+
+The active Claim still protects its write boundary, but semantic planning is unnecessarily stale.
+
+Required law:
+
+> **Before any fresh planner boot, reconcile every terminal durable Closure that can already be authoritatively landed.**
+
+### B. `Promise.all()` creates a whole-wave authority barrier
+
+Current local workers execute concurrently, but the controller waits for every selected `runWork()` promise to settle before landing any Closure.
+
+The repository already records non-authoritative evidence for this defect:
+
+```text
+synchronousBarrier.completionSpreadMs
+synchronousBarrier.cumulativePostCompletionBarrierMs
+frozenCandidateStructuralRefill[]
+```
+
+A fast worker may be completely done while:
+
+```text
+its Claim remains unreleased
+its World learning is not committed
+its product integration is not attempted
+its local slot cannot be refilled
+```
+
+until the slowest sibling returns.
+
+Parallel execution therefore still contains a synchronous post-worker barrier.
+
+### C. Rejected planner candidates can leave inert Outcomes
+
+`preparePlannerCandidate()` currently persists the immutable Outcome before atomic Claim admission.
+
+A candidate later rejected because of an active-Claim conflict/stale admission can therefore leave a durable Outcome object even though Phase 5's intended law is:
+
+```text
+planner candidate = disposable possibility
+Claim = durable commitment boundary
+```
+
+This is not authority corruption—the orphan Outcome is inert—but it is avoidable durable slop and weakens the Phase-5 boundary.
+
+Fold the cleanup into Phase 6. Do not create a separate hygiene slice.
 
 ## Product result
 
-`FORWARD_MOTION_PROOF_1` is banked at `a63e82c`. The live substrate now prevents failed means and fictional authority from consuming owner attention, so the next bottleneck is the remaining human transport layer between durable repository truth, logical planning, and initial execution.
-
-Eliminate that transport layer.
-
-The two observed Quant friction cases are the acceptance reference:
+Turn the Phase-5 one-shot initial frontier into continuous **within-command** autonomous reconciliation:
 
 ```text
-worker/research slice finishes
-→ durable handoff exists
-→ owner currently has to paste it into planner with "explain to me:"
+current durable truth
+→ reconcile terminal Closures first
+→ recover active commitments
+→ fill unused local capacity
+→ workers run concurrently
+→ first worker settles
+→ land that Closure immediately
+→ current World/product Head advances
+→ freed capacity is recomputed from durable truth
+→ fresh planner wakes only if new possibilities are needed
+→ admit/boot newly compatible work
+→ repeat until current execution becomes quiescent
 ```
 
-and:
+The owner no longer has to rerun Meta-Harness merely because one worker landed and freed capacity while useful autonomous work remains.
 
-```text
-planner determines two useful independent streams
-→ says "run two streams"
-→ owner currently has to boot/route workers or relay worker prompts
-```
+This is **not** a background daemon. The reconciliation loop lives only inside one active `meta-harness work` process. If no controller process is alive, durable Claims/Closures/World remain sufficient for the next invocation to reconstruct the exact continuation.
 
-After this slice, one normal repo-owned invocation performs:
+Core law:
 
-```text
-recover existing Claims first
-        ↓
-current WorldHead(World, productCommit)
-+ owner-authored product direction / directive
-+ active commitments
-+ unresolved durable Closure / forward-motion handoff
-        ↓
-fresh disposable logical planner
-        ↓
-bounded ordered semantic candidates
-        ↓
-controller validates each candidate + compiles bounded capability
-        ↓
-existing atomic Claim + session admission
-        ↓
-bounded concurrent runWork()
-        ↓
-existing Closure / integration / World landing
-```
-
-The owner does not:
-
-```text
-type "explain to me:"
-copy/paste worker handoff
-copy/paste planner output
-say "run these two streams"
-start worker A / worker B
-see or relay worker prompts
-choose Claim/session/workspace identifiers
-```
-
-The logical planner is still **out of the execution hot path**. It runs only when the command has useful capacity and needs fresh proposal possibilities. Once the initial frontier is produced/admitted, it disappears.
-
-This slice deliberately stops before continuous refill/reconciliation. Phase 6 owns repeated planner wake/refill after landings free capacity or change World.
+> **Events wake reconciliation; events do not carry authority. Reconciliation always re-derives action from current durable truth.**
 
 ## Constitutional slice laws
 
 ```text
-planner proposes possibilities
-kernel grants commitments
-workers execute commitments
+no queue
+no job database
+no event log as authority
+no scheduler service
+no planner session persistence
 
-planner output is not authority
-planner output has no durable identity
-Claim is authority
+Closure before planner
+current World before proposal
+Claim before execution
 
-planner never chooses Git base
-planner never issues ExecutionPermits
-planner never boots workers directly
-planner never writes repository bytes
-planner never creates owner authority
+worker completion is a wake signal
+not a command
+not durable scheduling state
 
-owner never transports handoff between agents
-owner never transports worker prompts
+one authoritative World remains linear
+productCommit remains linear
+execution remains parallel
 
-active Claims recover before planner invocation
-mutable/planner possibilities may not cancel commitments
+planner may wake many times across different authoritative Heads
+but at most once for the same unchanged Head in one quiescence epoch
 
-planner runs only when fresh possibilities are useful
-no capacity need → no planner call
+recovered commitments always beat new possibilities
 
-one initial planning frontier
-not a queue
-not a daemon
-not continuous refill
+unused planner output dies on Head change
 
-fresh planner context comes from durable truth
-not previous planner/worker conversation
+local capacity is controller-local
+active Claims remain repository-global conflict authority
+
+quiescence is derived
+not persisted
 ```
 
-## Hard cut 1 — delete `.meta-harness/repo-proposals.json` as active work ingress
+## Hard cut 1 — delete the active synchronous `wave` control model
 
-`repo-proposal-set/v2` is currently read from:
+The active orchestrator is still named and structured as one wave:
 
 ```text
-.meta-harness/repo-proposals.json
+plan initial frontier
+→ Promise.all(all workers)
+→ land all closures
+→ stop
 ```
 
-Once the planner is internal, keeping that mutable file as active work ingress preserves exactly the manual routing surface Phase 5 is meant to remove.
-
-Hard cut:
+Hard-cut the active path to a reconciliation controller, conceptually:
 
 ```text
-active mutable .meta-harness/repo-proposals.json
-→ no longer accepted as new active repo-work input
+lib/repo-reconciler.js
 ```
 
-Historical `repo-proposal-set/v2` bytes remain readable where Phase-2/3 migration/tests require them. The file may remain protected so workers cannot mutate historical/control material, but it is not consulted for fresh active admission after this cut.
-
-Do **not** replace it with another mutable `current-planner-output.json` pointer.
-
-Planner proposal candidates are disposable. If the process dies before a Claim is visible, no commitment exists and a fresh planner may recompute from current truth. Once a Claim is visible, existing Claim/session recovery owns continuity and planner output is no longer needed.
-
-## Hard cut 2 — delete the active Proposal Set abstraction; planner emits disposable semantic candidates
-
-The audit cut is stronger than removing `.meta-harness/repo-proposals.json`: **do not introduce `repo-proposal-set/v3` on the new active path.**
-
-Historical `repo-proposal-set/v2` parsing may remain explicitly legacy-only for migration/regression evidence. It is not compiled, persisted, or used as active Phase-5 work identity.
-
-The fresh planner returns only:
+The primary repo-owned command path should call:
 
 ```text
-planner-candidate-batch/v1
-proposals[]
+runRepoReconciliation()
 ```
 
-Each candidate contains exactly:
+rather than treating one static wave as the organizational primitive.
+
+`runWork()` remains unchanged as the one-Claim execution transaction.
+
+Do not make `repo-reconciler.js` a monolith. Extract/reuse narrow existing helpers for:
 
 ```text
-id
-productResult
-journeyState
-doNow
-newlyTrueBehavior
-doneWhen
-stopOnlyIf[]
-expectedWritePaths[]
+Claim recovery
+planner input/admission
+execution settlement
+Closure landing
+telemetry
 ```
 
-`expectedWritePaths[]` is a **non-authoritative footprint prediction**, not a capability grant. The planner is saying where it expects the Outcome to touch; it is not choosing `Claim.executionBoundary` or `ExecutionPermit.ownedPathSet`.
+Historical tests may still inspect retained `repo-work-wave-telemetry/v1`; do not preserve a fake active “wave” abstraction solely for naming compatibility.
 
-The candidate batch has:
+## Hard cut 2 — terminal Closure drain precedes planning
+
+At command entry and before every planner boot:
 
 ```text
-no authority binding
-no recovery responsibility
-no durable identity
-no required persistence
+read active Claims
+→ recover exact Claim/session/workspace state
+→ identify durable Closures
+→ land every landing-ready Closure one at a time against CURRENT World
+→ reread current Head after each committed transition
+→ only then compile planner input
 ```
 
-If the planner dies before Claim creation, recompute from current durable truth. If it dies after Claim creation, the Claim/session already owns continuity.
+This applies equally to:
 
-The planner does **not** author:
+- a Closure created by this controller milliseconds ago;
+- a Closure left by a previous crashed controller;
+- a Closure created by another controller for another Claim.
+
+If another controller already released/resolved the Claim before this controller lands it:
 
 ```text
-productDirectionDigest
-charterDigest
-worldHeadDigest
-ownerDirectiveDigest
-base
-validation
-maxAttempts
-delivery
-Claim execution boundary
-Claim identity
-session identity
-worker prompt
-owner request
+observe Claim release/current Head
+→ treat it as externally reconciled
+→ do not fail the whole command
 ```
 
-For each semantic candidate the controller performs one direct, exact-or-reject boundary compilation:
+The controller must never invoke a fresh planner while knowingly carrying an unlanded terminal Closure that could change planner-relevant World truth.
+
+Landing order is the order closures become reconciliable/observed by the controller. World CAS records the actual linearization. Do not impose an artificial acquiredAt barrier that forces a completed sibling to wait behind a still-running sibling.
+
+Every Closure is still reinterpreted against the current World at its actual landing point, so completion-order concurrency cannot bypass semantic invalidation.
+
+## Hard cut 3 — replace `Promise.all` with an ephemeral running-set
+
+Use an in-memory controller-local set:
 
 ```text
-normalize expectedWritePaths
-        ↓
-constitutional safety validation
-        ├─ valid   → exact normalized Claim.executionBoundary
-        └─ invalid → reject whole candidate
+running: Map<claimDigest, Promise<execution settlement>>
 ```
 
-Boundary compilation is **non-widening and non-shrinking**. It may normalize equivalent path syntax or reject the candidate; it may never silently change the semantic write footprint.
+This is not durable state.
+
+Dispatch up to local bound, then wait only for the **next** local execution settlement:
 
 ```text
-NEVER:
-planner asks for A
-→ controller grants A+B
-
-NEVER:
-planner asks for A+B
-→ B is unsafe/conflicting
-→ controller grants only A
+Promise.race(running settlements)
 ```
 
-At minimum, compilation must reject path escape, `.git`, `PRODUCT.md`, protected `.meta-harness` authority/control material, invalid/duplicate paths, and anything outside the controller's existing reversible coding envelope before Claim visibility. A requested `"."` footprint may be legal only when its exact normalized boundary remains representable under those protected-path exclusions; otherwise reject the whole candidate rather than silently narrowing it.
-
-Concurrency/compatibility is a separate authority operation after exact boundary compilation:
+When one settles:
 
 ```text
-candidate
-→ exact safe requested boundary
-→ atomic Claim admission
-    ├─ compatible  → Claim
-    └─ conflicting → skip/reject whole candidate
+remove from local running set
+→ recover its exact durable Closure/work result
+→ reconcile/land it immediately
+→ reread authoritative Head / active Claims
+→ refill capacity
 ```
 
-A Claim is never minted for a semantically smaller or larger footprint than the candidate proposed.
+Other workers continue in their own isolated workspaces throughout landing/planning/refill.
 
-The controller then derives mechanics from exact current authority:
+Worker failure must still not cancel siblings.
+
+A locally rejected `runWork()` promise is not automatically equivalent to a hard block. Recover whatever durable Closure the work loop produced and route it through the existing Phase-4/landing semantics. Controller exceptions without recoverable execution evidence remain fail-closed errors.
+
+## Hard cut 4 — reconciliation is a pure recomputation boundary, not persisted trigger state
+
+Do **not** add:
 
 ```text
-base = EXACT_COMMIT(currentHead.productCommit)
-validation = existing deterministic resolver(base, Claim.executionBoundary.writePaths)
-maxAttempts = controller bounded policy
-local delivery = BANK only; push false unless separately authorized
-productProofSpec = existing pre-worker compiler against exact derived base
+reconciliation-trigger/v1
+event queue
+work queue
+pending-refill records
+scheduler cursor
+planner wake records
+reservation state
 ```
 
-This keeps the logical planner responsible for **what outcome is worth attempting** while the kernel alone decides **what capability it actually receives**.
-
-## Hard cut 3 — one fresh read-only logical planner runtime
-
-Add one narrow planner runner using the already-supported model/Codex execution substrate directly.
-
-Extract exactly one concrete structured-model process helper so the third model invocation shape does not duplicate Codex child-process mechanics:
+The wake causes are ordinary in-process observations:
 
 ```text
-runEphemeralStructuredModel({
-  cwd,
-  prompt,
-  outputSchema,
-  timeoutSeconds,
-  model
-})
+command entry
+local worker settlement
+successful/aborted Closure landing
+World CAS conflict resolved to a newer Head
+foreign Claim/Closure state observed during recomputation
 ```
 
-The coding worker, forward-motion challenger, and logical planner continue to own their own prompts/contracts. This helper is **read-only by construction** and owns only executable resolution, ephemeral read-only Codex invocation, timeout/output-cap handling, and structured-output parsing. There is no dormant writable mode. It is not a provider, port, plugin host, or agent framework.
+On every wake:
+
+```text
+read current Head
+read/recover current active Claims
+land ready Closures
+compute local running occupancy
+compute recoverable executable commitments
+compute unused local slots
+planner only if slots remain and fresh possibilities are needed
+```
+
+If the process dies, all wake history may disappear. Correct continuation must still derive from durable authority objects alone.
+
+## Hard cut 5 — recovered executable commitments fill slots before planner
+
+For each reconciliation pass:
+
+```text
+1. drain terminal Closures
+2. recover active Claims
+3. identify local workers already running in this controller
+4. identify RUNNING_ELSEWHERE commitments
+5. start recoverable EXECUTABLE commitments until local bound
+6. only then consider fresh planner invocation
+```
+
+Do not invoke planner merely because a slot appears free while a previously admitted recoverable Claim is waiting.
+
+`RUNNING_ELSEWHERE` remains a repository commitment and a conflict boundary, but does not consume this controller's local execution bound.
+
+## Hard cut 6 — planner wake is keyed to current authoritative Head, not elapsed time
+
+Planner wake condition:
+
+```text
+unused local capacity > 0
+AND
+no recoverable executable commitment can fill it
+AND
+current Head has not already been planned to quiescence in this controller epoch
+```
+
+Planner input is freshly compiled from the current reconciled World/product Head and current active commitments.
+
+No timer/polling cadence is needed.
+
+After a landing advances:
+
+```text
+H → H1
+```
+
+H1 is a new planning epoch. If capacity exists, planner may run once against H1.
+
+If planner returns zero proposals or all candidates are invalid/conflicting and Head remains H1:
+
+```text
+mark H1 planned-to-quiescence in memory
+→ do not repeatedly call planner on unchanged truth
+```
+
+If another transition later advances H1→H2, the in-memory H1 quiescence mark is irrelevant; H2 may be planned.
+
+The mark is disposable. Restart may call the planner again against H1, which is safe because no Claim existed and planner output is non-authoritative.
+
+## Hard cut 7 — stale planner batches are always discarded on Head change
+
+Phase 5 had a special one-retry pre-Claim rule because planning was one-shot.
+
+Phase 6 replaces that special case with ordinary reconciliation:
+
+```text
+planner boot against H
+→ H changes before candidate admission
+→ discard every remaining candidate from H
+→ reread durable truth
+→ drain Closures
+→ H1 may receive one fresh planner boot if capacity still exists
+```
+
+If candidate A from H already became a Claim before H changed:
+
+```text
+A remains commitment
+remaining unclaimed H candidates die
+reconcile H1 around A
+```
+
+Never rewrite stale planner candidates onto a newer Head.
+
+## Hard cut 8 — Outcome persistence moves behind admission availability
+
+Fix the Phase-5 durable-slop defect.
+
+Change planner preparation from:
+
+```text
+validate candidate
+→ persist Outcome
+→ compile mechanics
+→ attempt Claim
+```
+
+to:
+
+```text
+validate candidate
+→ construct prospective immutable Outcome bytes/digest in memory
+→ compile mechanics outside authority lock
+→ enter Claim authority boundary
+→ prove current Head + duplicate/conflict availability
+→ persist immutable Outcome prerequisite
+→ persist exact session
+→ persist Claim→Session relation
+→ persist Claim LAST
+```
+
+Ordinary rejected/conflicting/stale candidates should leave **no Outcome object**.
+
+A crash after immutable prerequisites are written but before Claim visibility may still leave inert create-only debris; that is acceptable crash residue and cannot become active work.
+
+Do not add garbage collection in this slice.
+
+Prefer extending the existing `acquireOutcomeClaimSession()` path to accept a prospective validated Outcome rather than creating a second planner-only Claim protocol.
+
+## Hard cut 9 — refill immediately after authoritative release
+
+The key acceptance behavior:
+
+```text
+local bound = 2
+A + B running
+A finishes first
+B still running
+
+A Closure lands:
+H(P0) → H1(P1)
+Claim A released
+
+current local occupancy = 1
+→ fresh planner against H1
+→ candidate C admitted
+→ worker C starts
+
+B never had to finish first
+```
+
+C must start from:
+
+```text
+session.base.commit = H1.productCommit
+```
+
+not P0 and not A's worker BANK branch.
+
+When B later finishes, it is reinterpreted/integrated against whatever current World/product Head exists at that moment.
+
+If A/C changed reality such that B is invalid, B becomes `INVALIDATED_REPLAN` rather than corrupting canonical code.
+
+## Hard cut 10 — quiescence is derived and ends the command
+
+The active reconciliation command stops when all are true:
+
+```text
+no local execution is running
+no recoverable executable Claim remains
+no landing-ready Closure remains
+current Head has already received its allowed planner boot
+no candidate from that boot was admissible
+```
+
+That is **controller quiescence**, not model-authored product terminality.
+
+Do not infer:
+
+```text
+USE_PRODUCT
+NO_DISPATCH
+product complete
+```
+
+merely because one planner boot returned no candidate.
+
+Internal result may use a narrow state such as:
+
+```text
+QUIESCENT
+```
+
+or retain `REPLAN_REQUIRED` if product compatibility requires it, but normal human output must not instruct the owner to rerun the same command merely to perform the reconciliation that just completed.
+
+A validated Phase-4 `OWNER_REQUIRED` remains the only human authority request.
+
+If useful autonomous work continues producing authoritative Head changes, the same command may continue reconciling. No arbitrary fixed “number of waves” should force owner reinvocation.
+
+## Hard cut 11 — event-driven means active-command events, not a daemon
+
+Clarify the roadmap language.
+
+This slice guarantees automatic refill while `meta-harness work` is active and guarantees correct recovery on the next command entry after a crash/process exit.
+
+It does **not** watch external reality forever after the command reaches quiescence.
 
 Do not add:
 
 ```text
-provider interface
-planner plugin API
-manager-agent framework
-long-lived planner process
-planner conversation store
-planner-to-worker messaging
+background daemon
+filesystem watcher
+cron loop
+OS service
+message broker
+remote scheduler
 ```
 
-The planner is:
+If a future real-use defect proves that external facts changing after quiescence must wake Meta-Harness without invocation, that is a separate observed need.
+
+## Hard cut 12 — telemetry measures the removed barrier, never controls behavior
+
+Keep orchestration telemetry explicitly non-authoritative.
+
+Evolve it to record actual reconciliation behavior, conceptually:
 
 ```text
-fresh model context
-read-only repository snapshot
-no ExecutionPermit
-no filesystem/Git mutation authority
-no Claim authority
-no publication authority
-no owner authority
-bounded output schema
+schedulerPolicy: EVENT_DRIVEN_RECONCILIATION
+plannerBoots[]
+executionSettlements[]
+closureLandings[]
+refills[]
+completionToLandingMs
+releasedSlotToRedispatchMs
+maxLocalConcurrency
+quiescentHeadDigest
 ```
 
-Use a fresh isolated read-only snapshot of exact `currentHead.productCommit`, not the owner/source checkout's mutable bytes.
+The existing Phase-5 telemetry remains historical evidence for the synchronous baseline.
 
-Conceptual modules:
+Acceptance should prove that the old counterfactual opportunity becomes actual behavior:
 
 ```text
-lib/ephemeral-structured-model.js    # one concrete Codex process helper
-lib/repo-logical-planner.js          # planner prompt/schema + snapshot invocation
+Phase 5:
+first A completion
+→ c structurally fillable only in telemetry
+→ no redispatch
+
+Phase 6:
+first A completion
+→ A lands
+→ fresh planner on new Head
+→ C actually dispatches before slow B completes
 ```
 
-The planner may inspect repository files inside that exact product commit through its read-only working directory. Meta-Harness injects durable authority/context artifacts separately; it does not copy the Git-common authority store into the snapshot.
+Telemetry persistence failure must never block execution authority, just as today.
 
-## Hard cut 4 — compile one exact planner boot context from durable truth
+## Control-flow target
 
-Do not give the planner old chat transcripts or human-written handoff summaries.
-
-Build a narrow derived, non-authoritative:
+Conceptually:
 
 ```text
-repo-planner-input/v1
-```
+async function runRepoReconciliation() {
+  ensureLinearProductHead()
 
-The planner input is an **attributable deterministic projection**, not a bag of full authority objects:
+  const running = new Map()
+  const plannedQuiescentHeads = new Set()
 
-```text
-PlannerInput {
-  schemaVersion: repo-planner-input/v1
-  productDirection
+  while (true) {
+    await drainLandingReadyClosures()
 
-  head {
-    headDigest
-    productCommit
+    const current = readCurrentWorldState()
+    const commitments = recoverActiveClaims()
+
+    startRecoverableCommitments(running, commitments, localBound)
+
+    if (running.size < localBound) {
+      const head = readCurrentWorldState().head
+      if (!plannedQuiescentHeads.has(head.headDigest)) {
+        const admitted = await planAndAdmitFreshCurrentHeadWork()
+        if (admitted === 0) plannedQuiescentHeads.add(head.headDigest)
+        startNewlyAdmittedWork(running)
+        continue
+      }
+    }
+
+    if (running.size === 0) {
+      if (noReadyClosure() && noRecoverableExecutableClaim()) return QUIESCENT
+      continue
+    }
+
+    await Promise.race(running.values())
+    // settlement is only a wake; loop re-reads durable truth
   }
-
-  currentWorld        // only domain truth needed for frontier reasoning
-  repoCharterDigest
-  ownerDirective { content, digest } | null
-
-  capacity {
-    localBound
-    occupiedSlots
-    availableSlots
-  }
-
-  activeCommitments[]
-  unresolvedHandoffs[]
 }
 ```
 
-Do not feed full World attestation envelopes, Claim/session structures, ExecutionPermit internals, AttemptEntry internals, validation timing, custody records, candidate seals, or raw worker output merely because they exist.
+Do not trust in-memory result objects as continuity. The loop wakes and then re-reads durable state.
 
-### `activeCommitments[]`
+## Concurrency / linearization law
 
-Mechanically project active Claims before planning:
+Execution order may be nondeterministic. Authority order is whatever current-World CAS commits.
 
-```text
-{
-  outcomeDigest
-  claimDigest
-  outcome {
-    id
-    desiredState
-    preconditions
-    evidenceRequirement
-  }
-  grantedWritePaths[]
-  state: pending | executable | running_elsewhere | closure_awaiting_landing
-  relevantPreconditions[]
-}
-```
-
-The digests preserve exact attribution; the planner receives the semantic commitment and granted boundary, not workspace IDs, execution permits, worker prompts, or recovery internals.
-
-### `unresolvedHandoffs[]`
-
-This is the concrete fix for the `explain to me:` friction.
-
-Derive only the latest authoritative unresolved learning for each Outcome:
+This is intentional:
 
 ```text
-{
-  outcomeDigest
-  outcome semantics
-  disposition
-  observableResult | unsatisfiedRequirement
-  failedMeans[]
-  viableAlternatives[]
-  disprovedAssertions[]
-  validatedOwnerRequiredFact | null
-  closureDigest | null
-  workResultDigest | null
-  forwardMotionProofDigest | null
-  transitionDigest
-}
+A and B run concurrently
+B completes first
+B may land first
+A later reinterprets against World-after-B
 ```
 
-The projection may include concise semantic fields already carried by those authoritative objects, but not their whole operational envelopes. A validated Phase-4 owner-required fact may be represented; planner output still has no owner-escalation field.
+Do not retain acquiredAt ordering if it means a completed safe Closure must wait for a still-running sibling solely for deterministic aesthetics.
 
-If a later authoritative transition for the same Outcome superseded the unresolved state with accepted success, omit the older handoff.
+Linear truth plus current-World reinterpretation is the correctness mechanism.
 
-This is a narrow Phase-5 compiler, not the future generic `ContextCompiler` from Phase 7. Its only job is reconstructing the planning frontier without human narration while preserving exact digest attribution.
+If product semantics require an ordering dependency, it belongs in Outcome preconditions/World interpretation, not in a generic global landing queue.
 
-No raw worker/planner chat is input.
+## Failure handling
 
-## Hard cut 5 — planner prompt is product/frontier reasoning only
+### Planner failure
 
-The planner receives laws such as:
+If no Claim became visible and planner process fails:
 
-```text
-- Propose independently valuable executable Outcomes, not lifecycle tasks.
-- Outcome identity is product result, not path/phase/agent identity.
-- Prefer enough useful possibilities to fill current available capacity plus expose the nearest dependency boundary.
-- Existing Claims are commitments; do not cancel, rewrite, or duplicate them.
-- A failed means is not a failed outcome; consume durable forward-motion evidence.
-- Do not manufacture owner authority. Only an already-validated constitutional owner request may be treated as owner-required state.
-- Do not produce worker prompts.
-- Do not tell the owner to run streams/workers.
-- Do not choose base commits, validation commands, attempt counts, delivery policy, workers, sessions, or workspaces.
-- Do not create integration/review/docs/evidence-refresh lifecycle slices.
-- Empty proposal output is not terminal product authority.
-```
+- no work authority exists from that boot;
+- current command may surface a controller/model availability failure rather than fabricate quiescence;
+- existing running/recoverable Claims remain unaffected.
 
-The planner returns only structured proposal candidates.
+Do not cancel siblings.
 
-It may return zero proposals. Zero proposals means **no new planner proposal from this current boot**, not `USE_PRODUCT`, not `NO_DISPATCH`, and not an owner escalation.
+### Worker process failure
 
-## Hard cut 6 — planner output flows directly into existing Claim/session compiler
+Use the existing work-loop/Closure recovery semantics.
 
-Do not create a separate planner dispatch engine.
+If a durable terminal Closure exists, reconcile it.
+If no valid durable Closure can be reconstructed, preserve the fail-closed controller error for that Claim; do not convert it into a planner opinion.
 
-The control path should reuse the already-proven Phase-1/2/3 admission machinery:
+### Landing CAS loss
 
-```text
-planner candidate
-→ validatePlannerCandidate()
-→ compileExecutionBoundary(expectedWritePaths)
-→ create/persist Outcome
-→ derive base + validation + attempts + local delivery + product proof
-→ acquireOutcomeClaimSession()
-→ runWork()
-```
+Existing `landOutcomeClosure()` already rebuilds semantic/integration candidates against current Head.
 
-Do **not** synthesize a Proposal Set between planner output and Outcome admission.
+After it returns/observes the winning current Head, normal reconciliation recomputes capacity and planner need.
 
-Keep `loadRepoProposalSet()` / `repo-proposal-set/v2` validation only behind an explicitly legacy path for migrations and historical regressions. Active Phase-5 admission should use a small direct compiler, conceptually:
+### Foreign controller activity
 
-```text
-validatePlannerCandidate()
-compileExecutionBoundary()
-preparePlannerCandidate()
-admitPreparedPlannerCandidate()
-```
+If another controller lands/releases a Claim while this controller is active:
 
-These helpers may live in a narrow `repo-planner-admission.js` module or another existing authority module if that stays smaller; do not repurpose `repo-proposal-set.js` into a v3 active abstraction.
-
-Planner candidate bytes are not required telemetry. If non-authoritative diagnostics retain a digest, that digest is observation only and never work identity or recovery authority.
-
-## Hard cut 7 — planner is invoked only for unused initial capacity
-
-At repo-work command entry:
-
-```text
-1. ensure authoritative linear product Head
-2. recover/classify all active Claims
-3. select recoverable executable commitments up to local bound
-4. read current WorldHead
-5. compute unused local slots
-6. if unused slots > 0:
-      run ONE fresh planner against current H
-      validate/compile candidates one by one
-      greedily Claim compatible possibilities
-7. run selected sessions concurrently
-8. land Closures serially through existing integration/World path
-9. stop
-```
-
-Planner invocation is skipped when recovered executable work already fills local capacity.
-
-A live Claim running under another controller remains a commitment and is supplied to planner context so duplicate/conflicting proposals can be avoided, while the kernel remains the final compatibility authority.
-
-The planner is not awakened after the first landing in the same invocation merely because capacity becomes free. That is Phase 6.
-
-## Hard cut 8 — stale planner output is disposable
-
-Planner output is bound by the controller to one exact `worldHeadDigest`.
-
-If World changes before new Claim acquisition:
-
-```text
-MH_OUTCOME_CLAIM_STALE_HEAD
-→ discard remaining planner proposal candidates
-```
-
-Do not rewrite their Head binding.
-
-For this slice, allow at most **one bounded fresh replan retry** against the new current Head when no new Claim from the stale planner output became visible. If any new Claim was already admitted, recover commitments and stop after the current initial wave; do not recursively planner-loop.
-
-This prevents a concurrent landing from turning initial dispatch into an owner-visible false stop while still avoiding continuous reconciliation semantics.
-
-## Hard cut 9 — worker boot and prompts stay internal
-
-The planner never outputs worker prompts.
-
-Worker boot remains exactly:
-
-```text
-validated proposal
-→ Outcome
-→ Claim
-→ sealed work-session/v7
-→ ExecutionPermit
-→ coding-worker prompt compiled internally
-→ disposable coding worker
-```
-
-Normal human output may show coarse liveness only.
-
-It must not show or ask the owner to relay:
-
-```text
-planner prompt
-planner candidate JSON
-worker prompt
-session JSON
-Claim IDs
-workspace IDs
-"run stream A"
-"run stream B"
-```
-
-This is a black-box product requirement, not merely documentation style.
-
-## Hard cut 10 — planner has no owner-escalation channel
-
-Phase 4 already owns owner-authority admission through `forward-motion-proof/v1`.
-
-The logical planner must not introduce another owner-question path.
-
-Planner candidate schema contains no `ownerRequest`, `question`, `blocked`, or arbitrary authority field.
-
-If current durable state contains a validated `OWNER_REQUIRED` proof, the planner may treat that Outcome as unresolved and avoid proposing duplicate work. Human routing continues through the already-validated Phase-4 owner request.
-
-If planner reasoning believes new owner judgment might be useful but no validated owner proof exists, it may simply omit that proposal or propose autonomous evidence-gathering work. It may not manufacture `Need you`.
-
-## Product-path effect
-
-Before Phase 5:
-
-```text
-human/repository process writes repo-proposals.json
-→ meta-harness reads it
-→ Claims / workers execute
-```
-
-After Phase 5:
-
-```text
-meta-harness work
-→ recover commitments
-→ compile durable planning handoff automatically
-→ fresh logical planner
-→ proposal candidates
-→ Claim/session admission
-→ workers boot automatically
-```
-
-The owner-facing absence is the product improvement:
-
-```text
-no "explain to me:"
-no "what next?"
-no "run two streams"
-no prompt relay
-```
-
-## Quant reference regression A — automatic handoff consumption
-
-Starting state:
-
-```text
-E5/source qualification Outcome has authoritative durable completion
-World says source/semantic uncertainty is resolved
-implementation/economic validity remains unproven
-scientific freeze remains unchanged
-no old planner/worker chat is available
-```
-
-Kill all previous model context.
-
-Run normal Meta-Harness repo work.
-
-Expected:
-
-```text
-planner input automatically contains the durable relevant handoff
-planner independently derives the next bounded implementation/research opportunity
-owner does NOT paste:
-  "explain to me: <handover>"
-```
-
-The exact next proposal is planner/domain judgment; the acceptance requirement is that the durable facts are present and the human transport step is absent.
-
-## Quant reference regression B — two streams become workers automatically
-
-Starting durable state supports two useful independent possibilities, e.g. conceptually:
-
-```text
-A = system-level causal replay work
-B = tiny read-only CRV1 existing-bytes mechanism eligibility work
-```
-
-Planner returns ordered candidates A and B with disjoint `expectedWritePaths[]`; the controller independently compiles compatible execution boundaries.
-
-Expected:
-
-```text
-controller compiles both
-Claim A + Claim B
-session A + session B
-workers A + B execute concurrently within local bound
-```
-
-Owner output must not contain:
-
-```text
-"Run two useful parallel streams"
-worker A prompt
-worker B prompt
-instructions to open/route agents
-```
-
-If A/B conflict mechanically, Claim admission decides; planner does not force concurrency.
+- next reconciliation read observes current authority;
+- stale local planner candidates die;
+- released Claim is not landed twice;
+- no queue ownership transfer is needed.
 
 ## Acceptance suite
 
-### 1. Mutable proposal file is no longer active ingress
+### 1. Terminal Closure drains before planner
 
-A repo contains stale `.meta-harness/repo-proposals.json`. Fresh Phase-5 work does not dispatch from it. Planner/current truth owns new possibilities; historical file remains inert evidence only.
+Start command with an active Claim whose durable Closure exists but whose World transition was never committed.
 
-### 2. Planner candidate cannot author authority bindings
-
-Candidate output has only semantic fields plus non-authoritative `expectedWritePaths[]`. Attempts to include base, World digest, validation, delivery, maxAttempts, owner request, Claim/session identity, `allowedPaths`, execution boundary, worker prompt, or unexpected fields fail schema validation.
-
-### 3. Controller compiles scope and mechanics
-
-For planner candidate A:
+Expected:
 
 ```text
-candidate.expectedWritePaths == planner footprint prediction
-claim.executionBoundary == exact normalized safe requested footprint
-session.allowedPaths == claim.executionBoundary.writePaths
-session.base.commit == currentHead.productCommit
-validation == deterministic resolver result over granted paths
-maxAttempts == controller bounded policy
-delivery.push == false without explicit publication authority
+Closure lands first
+planner sees successor World/product Head
+planner never sees pre-Closure currentWorld as its boot truth
 ```
 
-A candidate requesting `PRODUCT.md`, `.git`, protected `.meta-harness` control material, traversal, invalid/duplicate paths, or scope outside the reversible coding ceiling is rejected before Claim visibility. Compilation may normalize equivalent path syntax but may neither widen nor shrink the requested semantic footprint. Planner cannot alter any derived mechanic.
+### 2. Fast sibling lands before slow sibling finishes
 
-### 4. Existing Claims recover before planner
+Run A+B concurrently with B deliberately slow.
 
-Delete/change all previous proposal/planner outputs. Fresh invocation resumes active Claim sessions first. Planner receives those commitments as context and cannot cancel them.
+A completes.
 
-### 5. Full recovered capacity skips planner
-
-When recoverable sessions already fill local execution bound, planner invocation count is zero.
-
-### 6. Automatic durable handoff
-
-Fresh planner receives exact unresolved latest Closure/work-result/forward-motion learning from durable authority without old transcript or owner paste.
-
-### 7. Superseded handoff is omitted
-
-An Outcome with older REPLAN_REQUIRED followed by later authoritative LANDED success does not present the obsolete replan handoff as current planner input.
-
-### 8. Two compatible planner candidates auto-dispatch
-
-One planner boot returns A+B with disjoint expected footprints. The controller compiles both into non-overlapping Claim boundaries; both pass existing Claim/session admission and workers overlap. No human routing step occurs.
-
-### 9. Planner cannot force conflicting streams or partial Claims
-
-Planner returns overlapping expected footprints A/B plus disjoint C. Boundary compilation preserves each candidate's exact normalized footprint. Atomic Claim admission admits A, rejects/skips the **whole** B candidate on conflict, and admits C. It never shrinks B to a non-conflicting subset. No owner question and no planner retry for ordinary compatibility conflict.
-
-### 10. Planner output stale before any Claim
-
-Planner plans on H; concurrent transition advances H→H1 before Claim acquisition. No stale Claim is created. Controller may run one fresh planner retry against H1.
-
-### 11. Planner output stale after one Claim admitted
-
-A from H becomes a durable Claim, then H advances before B admission. A remains commitment; B is not admitted from stale H. No recursive planner loop occurs in this slice.
-
-### 12. Planner death before Claim is harmless
-
-Planner process/output disappears before any Claim. Fresh invocation recomputes. No orphan work authority exists.
-
-### 13. Controller death after Claim is harmless
-
-Planner output disappears after Claim/session visibility. Fresh invocation recovers the Claim/session without rerunning planner for continuity.
-
-### 14. Worker prompts never reach normal output
-
-Normal CLI output contains no planner prompt, worker prompt, candidate JSON, Claim/session/workspace identifiers, or copy/paste instructions.
-
-### 15. Planner cannot manufacture owner authority
-
-Planner candidate schema has no owner-routing field. A model attempting to ask owner/manager/librarian is rejected/ignored as invalid candidate output; only existing validated Phase-4 `OWNER_REQUIRED` evidence may reach `Need you`.
-
-### 16. Zero planner proposals is nonterminal
-
-Planner returns `proposals: []`. Result is a nonterminal no-new-proposal/replan state, not `USE_PRODUCT`, not `NO_DISPATCH`, and not automatic owner escalation.
-
-### 17. Owner/source checkout remains untouched
-
-Planner snapshot, proposal compilation, Claim admission, worker execution, and integration do not mutate owner checkout branch/HEAD/index/dirty/untracked bytes.
-
-### 18. Phase-4 behavior remains intact
-
-Worker STOP → forward-motion challenger → same-session alternative / REPLAN_REQUIRED / HARD_BLOCKED / OWNER_REQUIRED continues to work unchanged after planner introduction.
-
-## Implemented surface
-
-New narrow modules:
+Expected before B completion:
 
 ```text
-lib/ephemeral-structured-model.js    # one concrete read-only Codex process helper
-lib/repo-logical-planner.js          # planner prompt/schema + exact-commit snapshot invocation
-lib/repo-planner-input.js            # slim attributable current-frontier projection
-lib/repo-planner-admission.js        # candidate validation + exact boundary/mechanics compilation
-lib/repo-work-wave-telemetry.js      # non-authoritative wave observations extracted from orchestration
+A Closure landed
+World generation advanced
+productCommit includes A
+Claim A released
 ```
 
-Changed execution/product modules:
+No `Promise.all` barrier.
+
+### 3. Freed slot refills before slow sibling finishes
+
+Local bound 2.
+
+First planner boot admits A+B.
+A completes while B remains running.
+Fresh planner against post-A Head returns C.
+
+Expected:
 
 ```text
-lib/repo-work-wave.js                # recover → one planner boot → direct candidate admission → execute → land
-lib/commands/work.js                 # repo-owned normal path derives work from durable truth, not proposal file
-lib/coding-worker.js                 # reuses concrete read-only structured-model process helper
-lib/work-forward-motion.js           # reuses same helper without changing Phase-4 semantics
-lib/work-git.js                      # exposes existing managed-worktree helpers for exact planner snapshots
-PRODUCT.md                           # owner-authored product-direction-v2 journey and Phase-5 execution law
-AGENTS.md / README.md / package.json # product-facing contract/description alignment
+C Claim/session becomes visible
+C worker starts
+B still running
 ```
 
-Historical `lib/repo-proposal-set.js` remains unchanged and legacy-only. `.meta-harness/repo-proposals.json` remains protected historical/migration evidence; active Phase-5 work does not load it. No generic provider/runtime port was introduced.
+### 4. Refill uses current cumulative product commit
 
-Focused regression surface:
+C from scenario 3 must seal:
 
 ```text
-tests/logical-planner-autodispatch.test.js
-tests/repo-planner-input.test.js
-tests/repo-planner-admission.test.js
-tests/parallel-outcome-progress.test.js
-tests/forward-motion-repo-landing.test.js
-tests/linear-product-head.test.js
-tests/forward-motion-proof.test.js
-tests/outcome-claim-authority.test.js
-tests/execution-permit.test.js
-tests/work-git.test.js
-tests/work-loop.test.js
-tests/cli-work.test.js
+session.base.commit == post-A Head.productCommit
 ```
+
+not initial P0.
+
+### 5. Slow sibling revalidates against later truth
+
+A lands, C lands, then B finishes.
+
+B Closure is interpreted/integrated against current World/product Head after A/C.
+If B is no longer applicable, it becomes invalidated/replan and cannot enter canonical product code.
+
+### 6. Recovered Claims beat planner on every pass
+
+A recoverable admitted Claim is waiting while a slot is free.
+Reconciliation starts A before invoking planner for that slot.
+
+### 7. No planner spin on unchanged Head
+
+Planner returns zero candidates or only invalid/conflicting candidates for H while no transition occurs.
+
+Expected:
+
+```text
+planner invocation count for H == 1
+command reaches quiescence
+```
+
+### 8. Head advance permits fresh planner boot
+
+Planner already returned zero for H.
+A foreign or local authoritative transition advances H→H1.
+If capacity exists, planner may run once against H1.
+
+### 9. Stale planner candidates die naturally
+
+Planner boots on H; another landing advances H before admission.
+No candidate is rebound.
+Reconciliation recomputes from H1 and may plan again.
+
+### 10. Partial stale admission preserves admitted Claims
+
+Candidate A from H becomes Claim.
+Head advances before B from same batch.
+
+Expected:
+
+```text
+A remains commitment
+B dies as stale possibility
+reconciliation continues from current Head around A
+```
+
+### 11. Rejected candidate leaves no ordinary orphan Outcome
+
+Planner candidate B conflicts with active Claim A.
+
+Expected:
+
+```text
+no Claim B
+no persisted Outcome B from ordinary rejection
+```
+
+Crash-before-Claim inert prerequisites remain acceptable fail-safe debris.
+
+### 12. Restart with terminal Closures requires no event history
+
+Crash after worker Closure, before landing/refill.
+Delete all in-memory/controller event state by starting a fresh process.
+
+Expected:
+
+```text
+fresh command discovers Closure
+lands it
+recomputes capacity
+fresh planner may refill
+```
+
+No reconciliation-trigger record is required.
+
+### 13. Restart with active workers uses Claim/workspace custody only
+
+Fresh command sees live foreign workspace lease:
+
+```text
+RUNNING_ELSEWHERE
+```
+
+It does not duplicate execution and still plans around the active Claim when local capacity allows.
+
+### 14. One worker failure does not cancel running/refilled siblings
+
+A fails terminally while B and C are running.
+A resolves through existing Phase-4/current-World semantics.
+B/C continue.
+
+### 15. Owner-required work does not freeze unrelated capacity
+
+A resolves `OWNER_REQUIRED`.
+Unrelated capacity remains available.
+Planner may propose/dispatch independent B while the validated owner question is retained for human output.
+
+### 16. Hard-blocked work does not freeze unrelated capacity
+
+Same as above for `BLOCKED`, with no owner question.
+
+### 17. No queue/event authority artifacts
+
+After multiple refill rounds, assert no active persistent scheduling structure exists beyond existing Claims/sessions/Closures/World and non-authoritative telemetry.
+
+### 18. Human does not rerun merely for refill
+
+Black-box CLI test:
+
+```text
+one invocation
+→ initial A+B
+→ A lands
+→ C automatically starts
+→ subsequent progress lands
+```
+
+Normal output contains no:
+
+```text
+run again
+continue
+replan manually
+start stream C
+worker prompt
+planner prompt
+```
+
+### 19. Source checkout remains owner state
+
+Streaming landing/planning/refill does not change owner checkout HEAD/index/tracked dirt/untracked bytes.
+
+### 20. Existing Phase-1–5 regressions remain green
+
+Claim races, forward motion, linear product integration, planner exact-or-reject boundaries, fresh handoff reconstruction, and owner-authority membrane must remain unchanged.
+
+## Likely implementation surface
+
+Preferred new orchestration module:
+
+```text
+lib/repo-reconciler.js
+```
+
+Likely extracted/reused helpers:
+
+```text
+lib/repo-work-wave.js              # shrink/retire active wave orchestration
+lib/repo-work-wave-telemetry.js    # evolve non-authoritative observations
+lib/repo-planner-admission.js      # prospective Outcome; persist only on admission
+lib/outcome-claim.js               # prospective Outcome support in same Claim/session protocol
+lib/commands/work.js               # call reconciler on normal repo-owned path
+```
+
+Existing modules expected to remain conceptually unchanged:
+
+```text
+lib/work-loop.js                   # one worker / one Claim transaction
+lib/repo-outcome-landing.js        # current-World/product CAS landing
+lib/repo-logical-planner.js        # one disposable planner boot
+lib/repo-planner-input.js          # durable current-frontier projection
+lib/repo-product-integration.js    # cumulative canonical product integration
+```
+
+Do not grow `repo-work-wave.js` past its current budget. Prefer deleting/moving orchestration into the new reconciler and retaining only reusable primitives/telemetry where justified.
 
 ## Deliberately deferred
 
 ```text
-continuous planner wake/refill after each landing
-persistent planner session/checkpoint
-planner conversation memory
+background daemon / always-on watcher
+persistent queue / scheduler database
+priority / fairness / preemption
+multi-host capacity management
+planner conversation persistence
 planner-to-worker messaging
-owner-intent change/cancellation protocol beyond existing owner-authored direction/directive
-research promotion / ResearchFinding
-full minimum-sufficient ContextCompiler
-raw chat ingestion
-semantic retrieval/vector memory
-adaptive SAW reviewer triggering
+research promotion / general ContextCompiler
+adaptive SAW review
 DRAIN / WAKE
-provider/runtime ports
+runtime/provider ports
 plugin framework
-queue / daemon / fairness / preemption
 remote publication
+Outcome garbage collection for crash-only inert prerequisites
 ```
 
-Phase 6 owns event-driven repeated reconciliation/refill. Phase 7 owns richer research promotion and context minimization if planner input becomes too large or raw research must be promoted.
+Phase 7 remains research/context promotion after this execution loop is closed.
 
-## Architecture audit resolutions
+## Roadmap consequence
 
-The architecture audit is accepted with the required cuts incorporated here:
+Phase 6 should be described as **active-command event-driven reconciliation**, not as a background service.
 
-1. **Delete the entire active Proposal Set layer.** `.meta-harness/repo-proposals.json` and `repo-proposal-set/v2` remain historical/legacy only; there is no `repo-proposal-set/v3` on the fresh planner path.
-2. **Make planner path output explicitly non-authoritative and exact-or-reject.** `expectedWritePaths[]` is only a footprint prediction; `compileExecutionBoundary()` may normalize equivalent syntax or reject, but may never widen or shrink it. Constitutional safety is checked during compilation; active-Claim compatibility is decided separately by atomic Claim admission, which accepts or rejects the whole candidate.
-3. **Use a slim attributable planner projection.** Durable truth is deterministically projected into product/head, capacity, semantic active commitments, and latest unresolved handoffs with exact digests; operational envelopes and raw chats stay out.
+End-state after this slice:
 
-Additional accepted audit resolutions:
+```text
+OWNER INTENT
+   ↓
+CURRENT WORLD / PRODUCT HEAD
+   ↓
+PLANNER (only when capacity needs possibilities)
+   ↓
+CLAIMS
+   ↓
+PARALLEL WORKERS
+   ↓ completion wakes
+CLOSURE LANDING
+   ↓ authoritative Head changes
+RECONCILE / REFILL
+   └───────────────┐
+                   └→ PLANNER only when fresh possibilities are needed
+```
 
-- recover commitments first, then invoke one planner whenever unused initial capacity remains;
-- exactly one stale-Head replan is allowed only before any new Claim becomes visible;
-- planner candidates require no persistence; continuity begins at Claim;
-- no replacement owner-ingress artifact is introduced;
-- one concrete `runEphemeralStructuredModel()` helper may remove repeated Codex process mechanics; it is read-only by construction and exposes no writable mode, provider port, or plugin framework.
+Planner remains out of the worker hot path; it is a frontier producer invoked on authoritative state changes when capacity actually needs new work.
 
-## Validation evidence
+## Validation target after implementation
 
-Current local implementation evidence:
+Focused new behavior:
 
-- Phase-5 planner/admission/input + parallel/linear/landing integration suite: **30/30 passed**.
-- Worker runtime + Phase-4 forward-motion + Claim/permit authority + Git custody + work-loop + CLI regression suite: **81/81 passed**.
-- Repository wrapper topology: all **123/123 discovered `.test.js` files passed by file** under the wrapper's `META_HARNESS_INTERNAL_CLI=1` environment. Connector-safe replay used bounded 41/21/20/20/20/1-file chunks after DevSpace returned upstream 502 for the larger middle command; every bounded command returned an actual PASS verdict.
-- Monolithic `npm test` did not return a repository verdict because DevSpace returned an upstream 502. No monolithic-wrapper PASS is claimed; the discovered test topology itself is fully green.
-- `quality check` remains blocked by the repository's stale complexity/ratchet baseline across many pre-existing modules. After extracting wave telemetry, `lib/repo-work-wave.js` is 396 lines, and no quality finding message names any new Phase-5 module (`ephemeral-structured-model`, logical planner, planner input/admission, wave telemetry, or repo work wave).
-- All new Phase-5 implementation modules are below the 400-line source budget and all new Phase-5 test files are below the 300-line test budget; `lib/repo-work-wave.js` is 396 lines after telemetry extraction.
-- `npm pack --dry-run --json`: package assembly succeeded and includes all five new Phase-5 runtime modules.
-- Active-path invariant scan finds no `loadRepoProposalSet`, `.meta-harness/repo-proposals.json`, or `repo-proposal-set/v3` reference in the Phase-5 work/planner path, and the common structured-model helper exposes no writable/readOnly mode switch.
-- `git diff --check`: PASS.
+```text
+node --test tests/event-driven-reconciliation.test.js
+node --test tests/logical-planner-autodispatch.test.js
+node --test tests/parallel-outcome-progress.test.js
+node --test tests/linear-product-head.test.js
+```
+
+Authority/forward-motion regressions:
+
+```text
+node --test tests/repo-planner-input.test.js tests/repo-planner-admission.test.js
+node --test tests/outcome-claim-authority.test.js tests/execution-permit.test.js
+node --test tests/forward-motion-proof.test.js tests/forward-motion-repo-landing.test.js
+node --test tests/work-git.test.js tests/work-loop.test.js tests/cli-work.test.js
+```
+
+Then reproduce the repository wrapper topology, run `npm pack --dry-run --json`, module-load checks for changed modules, and `git diff --check`. Report any upstream DevSpace 502 separately from repository test verdicts exactly as in Phases 3–5.
 
 ## Stop boundary
 
-**`LOGICAL_PLANNER_AUTODISPATCH_1` is implemented and validated locally.**
+**Planning only. Stop for architecture audit.**
 
-The normal fresh repo-owned path now consumes durable truth, boots one disposable read-only planner only for unused initial capacity, compiles exact-or-reject semantic candidates directly into Outcome/Claim/session authority, runs compatible workers automatically, and lands through the existing linear World/product path. Active mutable proposal-file ingress is gone; continuity begins at Claim; worker/planner prompt relay is absent from normal human output.
+Do not implement event-driven reconciliation, Promise.race settlement, refill, or prospective Outcome admission in this round.
 
-Stop here. Phase 6 owns repeated event-driven refill/reconciliation after landings. Persistent planner sessions, queues/daemons, provider/plugin frameworks, richer generic context compilation, and publication expansion remain deliberately deferred.
-
-The implementation is **uncommitted and unpushed**. Publication/push remains explicit owner authority and was not requested.
+`PRODUCT.md` is already owner-authored `product-direction-v2` and is not changed by this planning slice.

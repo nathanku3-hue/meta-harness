@@ -75,6 +75,31 @@ function outcome(root) {
   }));
 }
 
+test("local running Claims are not double-counted while durable custody still looks executable", (t) => {
+  const { root } = repository(t);
+  const initial = persistInitial(root, "world-transition/v2");
+  const durableOutcome = outcome(root);
+  const admitted = legacySession(root, durableOutcome, initial.head.headDigest, "a");
+  const recovered = [{
+    type: "EXECUTABLE",
+    claim: admitted.claim,
+    session: admitted.session,
+    continuation: "PENDING_WORKSPACE",
+  }];
+  const current = readCurrentWorldState(root);
+  const input = compileRepoPlannerInput({
+    repositoryPath: root,
+    current,
+    recovered,
+    localBound: 3,
+    localRunningCount: 1,
+    localRunningClaimDigests: [admitted.claim.claimDigest],
+  });
+  assert.equal(input.capacity.occupiedSlots, 1);
+  assert.equal(input.capacity.availableSlots, 2);
+  assert.equal(input.activeCommitments.length, 1);
+});
+
 test("fresh planner input reconstructs unresolved durable handoff without chat or execution internals", async (t) => {
   const { root } = repository(t);
   const initial = persistInitial(root, "world-transition/v2");
