@@ -6,13 +6,15 @@ const path = require("node:path");
 const test = require("node:test");
 
 const { renderHuman } = require("../lib/commands/work");
+const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
 const { listActiveOutcomeClaims } = require("../lib/outcome-claim");
 const { createOutcome } = require("../lib/outcome");
-const { createPlannerSnapshot, removePlannerSnapshot } = require("../lib/repo-logical-planner");
+const { buildLogicalPlannerPrompt, createPlannerSnapshot, removePlannerSnapshot } = require("../lib/repo-logical-planner");
 const {
   admitPreparedPlannerCandidate,
   preparePlannerCandidate,
 } = require("../lib/repo-planner-admission");
+const { compileRepoPlannerInput } = require("../lib/repo-planner-input");
 const { runRepoWorkWave } = require("../lib/repo-work-wave");
 const { protocolRoot } = require("../lib/world-authority");
 const { runWork } = require("../lib/work-loop");
@@ -248,6 +250,60 @@ test("partial stale admission preserves admitted Claims and replans only from th
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b"]);
 });
 
+test("planner renders owner objective as instruction and repository workflow as data", (t) => {
+  const { root } = repository(t);
+  persistInitial(root, "world-transition/v2");
+  replaceOwnerObjectiveState(root, "fastest honest decision-changing evidence");
+  const current = readCurrentWorldState(root);
+  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [], localBound: 3 });
+  const prompt = buildLogicalPlannerPrompt(input);
+
+  assert.match(prompt, /^LOGICAL_PLANNER_AUTODISPATCH_V3/mu);
+  assert.ok(prompt.indexOf("OWNER / OPTIMIZATION") < prompt.indexOf("PLANNING LAWS"));
+  assert.ok(prompt.indexOf("PLANNING LAWS") < prompt.indexOf("FACTUAL / COMMITMENT DATA"));
+  assert.equal((prompt.match(/fastest honest decision-changing evidence/gu) || []).length, 1);
+  assert.doesNotMatch(prompt, /"ownerIntent"/u);
+  assert.match(prompt, /Capacity is a ceiling, not a quota/u);
+  assert.match(prompt, /AGENTS\.md.*repository material/u);
+  assert.match(prompt, /\.\.\/snapshot/u);
+});
+
+test("objective revision change kills unclaimed candidates but preserves admitted Claims and replans same Head", async (t) => {
+  const { root } = repository(t);
+  const initial = persistInitial(root, "world-transition/v2");
+  replaceOwnerObjectiveState(root, "objective revision one");
+  const clock = monotonicNow();
+  let objectiveChanged = false;
+  const now = () => {
+    const value = clock();
+    if (!objectiveChanged && listActiveOutcomeClaims(root).length === 1) {
+      replaceOwnerObjectiveState(root, "objective revision two");
+      objectiveChanged = true;
+    }
+    return value;
+  };
+
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
+    plannerRunner: planner([candidate("a"), candidate("b")]),
+    runner: runner(),
+    interpret: require("./helpers/linear-product-head").fakeInterpretation,
+    now,
+  });
+
+  assert.equal(objectiveChanged, true);
+  assert.equal(result.stalePlanner, true);
+  assert.ok(result.orchestrationTelemetry.candidateRejections.some((entry) => (
+    entry.code === "MH_OUTCOME_CLAIM_STALE_OBJECTIVE"
+  )));
+  const sameHeadBoots = result.orchestrationTelemetry.plannerBoots
+    .filter((entry) => entry.headDigest === initial.head.headDigest);
+  assert.ok(sameHeadBoots.some((entry) => entry.objectiveRevision === 1));
+  assert.ok(sameHeadBoots.some((entry) => entry.objectiveRevision === 2));
+  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b"]);
+});
+
 test("planner failure before Claim leaves no execution authority and a fresh invocation can recompute", async (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
@@ -276,6 +332,15 @@ test("planner snapshot is exact productCommit and does not transport owner-check
   try {
     assert.equal(git(snapshot.snapshotPath, ["rev-parse", "HEAD"]), initial.head.productCommit);
     assert.equal(fs.existsSync(path.join(snapshot.snapshotPath, "owner-only.tmp")), false);
+    assert.equal(path.dirname(snapshot.plannerPath), snapshot.parent);
+    assert.equal(path.dirname(snapshot.snapshotPath), snapshot.parent);
+    assert.notEqual(snapshot.plannerPath, snapshot.snapshotPath);
+    assert.equal(fs.existsSync(snapshot.plannerPath), true);
+    assert.equal(fs.existsSync(path.join(snapshot.plannerPath, ".git")), false);
+    const plannerRelative = path.relative(root, snapshot.plannerPath);
+    const snapshotRelative = path.relative(root, snapshot.snapshotPath);
+    assert.ok(path.isAbsolute(plannerRelative) || plannerRelative === ".." || plannerRelative.startsWith(`..${path.sep}`));
+    assert.ok(path.isAbsolute(snapshotRelative) || snapshotRelative === ".." || snapshotRelative.startsWith(`..${path.sep}`));
   } finally {
     removePlannerSnapshot(root, snapshot);
   }

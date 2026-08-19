@@ -399,7 +399,7 @@ test("ghost journey accepts one result, shows coarse liveness, validates, and ba
   assert.equal(after.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
 });
 
-test("bare meta-harness resumes the exact active generation without an owner resume decision", (t) => {
+test("bare meta-harness resumes the exact active generation even when repo planning has since been enabled", (t) => {
   const root = repo(t);
   const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
   const productDirection = require("../lib/product-direction").pinProductDirection(root);
@@ -428,6 +428,8 @@ test("bare meta-harness resumes the exact active generation without an owner res
   });
   const workspace = prepareWorkspace(root, session);
   persistWorkSession(root, session, workspace);
+  fs.mkdirSync(path.join(root, ".meta-harness"), { recursive: true });
+  fs.writeFileSync(path.join(root, ".meta-harness", "repo-charter.json"), "{}\n", "utf8");
 
   const result = runRaw(root, [], { env: env() });
   assert.equal(result.status, 0, result.stderr || result.stdout);

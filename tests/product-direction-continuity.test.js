@@ -10,6 +10,7 @@ const { buildCodingPrompt } = require("../lib/coding-worker");
 const {
   PRODUCT_DIRECTION_BLOCKED,
   pinProductDirection,
+  projectProductDirectionForPlanner,
 } = require("../lib/product-direction");
 const { materializeWorkerOperations } = require("../lib/work-materializer");
 const {
@@ -107,6 +108,21 @@ test("--goal rejects malformed PRODUCT.md before workspace activity", (t) => {
   const result = runRaw(root, ["work", root, "--goal", "Add a visible result.", "--dry-run", "--json"]);
   assert.notEqual(result.status, 0);
   assert.match(String(result.stderr || result.stdout || ""), /heading|PRODUCT\.md|section/i);
+});
+
+test("planner PRODUCT projection slices exact CRLF section text without normalization", (t) => {
+  const root = npmRepo(t);
+  const crlf = SAMPLE_PRODUCT_MD.replace(/\n/gu, "\r\n");
+  fs.writeFileSync(path.join(root, "PRODUCT.md"), crlf, "utf8");
+  const direction = pinProductDirection(root);
+  const frame = projectProductDirectionForPlanner(direction);
+  const endgameStart = crlf.indexOf("## Endgame\r\n") + "## Endgame\r\n".length;
+  const endgameEnd = crlf.indexOf("## Target user\r\n");
+  assert.equal(frame.endgame, crlf.slice(endgameStart, endgameEnd));
+  assert.match(frame.endgame, /\r\n/u);
+  assert.equal(frame.targetUser.includes("Solo developer using Meta-Harness work sessions."), true);
+  assert.equal(frame.productDirectionDigest, direction.digest);
+  assert.equal(frame.version, direction.version);
 });
 
 test("created v7 session contains exact PRODUCT.md bytes, base, proof spec, and matching digest", (t) => {

@@ -3,6 +3,8 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
+const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
+const { listActiveOutcomeClaims } = require("../lib/outcome-claim");
 const {
   CONTROLLER_MAX_ATTEMPTS,
   admitPreparedPlannerCandidate,
@@ -75,6 +77,21 @@ test("boundary compilation normalizes equivalent syntax but never widens or shri
       unsafe,
     );
   }
+});
+
+test("planner admission rejects stale objective revision before Claim visibility", (t) => {
+  const { root } = repository(t);
+  persistInitial(root, "world-transition/v2");
+  replaceOwnerObjectiveState(root, "objective one");
+  const current = readCurrentWorldState(root);
+  const prepared = preparePlannerCandidate(root, current, candidate("a"));
+  replaceOwnerObjectiveState(root, "objective two");
+
+  assert.throws(
+    () => admitPreparedPlannerCandidate(root, current, prepared, { objectiveRevision: 1 }),
+    (error) => error.code === "MH_OUTCOME_CLAIM_STALE_OBJECTIVE",
+  );
+  assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
 test("controller derives exact capability, base, validation, attempts, and local-only delivery", (t) => {

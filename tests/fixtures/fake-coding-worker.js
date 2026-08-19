@@ -59,7 +59,7 @@ if (prompt.includes("Compile independent product proof before any coding candida
   process.exit(0);
 }
 
-if (prompt.includes("LOGICAL_PLANNER_AUTODISPATCH_V2")) {
+if (/LOGICAL_PLANNER_AUTODISPATCH_V[23]/u.test(prompt)) {
   let proposals = [];
   if (process.env.FAKE_PLANNER_CANDIDATES_JSON) {
     try {

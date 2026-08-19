@@ -31,7 +31,7 @@ The human-facing product remains small. Internal continuity may become richer, b
 2. **Outcome is work identity.** A path, directory, lifecycle phase, chat, session, or agent is not the identity of work. Path and resource scope are derived capability/safety boundaries.
 3. **Outcomes are stable; means are disposable.** Failure of one API, library, runtime, data source, architecture route, or implementation tactic is not evidence that the outcome is blocked.
 4. **Escalation requires proof.** Before durable `BLOCKED` or owner escalation, the system must distinguish a hard outcome constraint from failure of the currently preferred means and exhaust permissible forward motion or replan.
-5. **Planner is out of the execution hot path.** The planner proposes enough executable outcomes to saturate useful capacity and then disappears. It does not babysit workers or relay their reports.
+5. **Planner is out of the execution hot path.** The planner proposes the positive-value frontier up to local capacity and then disappears. Capacity is a ceiling, not a quota; unused slots are correct when no additional positive-value Outcome exists. The planner does not babysit workers or relay their reports.
 6. **One worker, one claim, one outcome, one closure.** A worker may discover future work but may not silently turn discoveries into roadmap commitment.
 7. **Execution may be parallel; authoritative truth remains linear.** Expensive work can overlap. World transitions remain validated and serial.
 8. **WorldHead is provenance, not global freshness.** Continued validity of an executing outcome is determined by its declared preconditions, invariants, capabilities, resources, and conflict domains rather than by equality with an unchanged whole-World digest.
@@ -40,10 +40,11 @@ The human-facing product remains small. Internal continuity may become richer, b
 11. **Quality is mechanically defended first.** Structural SAW runs cheap executable checks continuously; semantic architecture/security/product review is risk-triggered rather than universal ceremony.
 12. **Replaceable does not mean framework-first.** Add narrow ports when needed; do not build dynamic plugin/provider infrastructure until at least two real implementations prove the interface valuable.
 13. **Harness machinery must justify its continued existence.** Every nonessential rule, prompt, reviewer, context layer, retry, role, or adapter needs a demonstrated failure class, measurable benefit, cost, and deletion test.
+14. **Objective, truth, commitment, and means are distinct.** Standing PRODUCT direction and the exact current owner directive define what to optimize; current World and authoritative execution evidence define what is factually true; Claims/controller capability define commitments and executable authority; repository-local workflow prose describes possible means or constraints and does not become the objective by being imperative.
 
 ## Current stabilization boundary
 
-`PRODUCT_DIRECTION_CONTINUITY_1` is banked locally at `22fe09c`; `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`; `PARALLEL_OUTCOME_PROGRESS_1` at `9616bd4`; `LINEAR_PRODUCT_HEAD_1` at `e2172bc`; `FORWARD_MOTION_PROOF_1` at `a63e82c`; `LOGICAL_PLANNER_AUTODISPATCH_1` at `234b5b1`; and `EVENT_DRIVEN_RECONCILIATION_1` at `39ab56a`. The live active path now has Outcome/Claim identity, parallel disposable workers, current-World Closure interpretation, one cumulative authoritative product commit, retained cross-wave proof continuity, a typed forward-motion boundary, fresh durable-handoff planning, exact-or-reject capability compilation, automatic planner→Claim→worker dispatch, and settlement-driven within-command refill without a queue or daemon.
+`PRODUCT_DIRECTION_CONTINUITY_1` is banked locally at `22fe09c`; `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`; `PARALLEL_OUTCOME_PROGRESS_1` at `9616bd4`; `LINEAR_PRODUCT_HEAD_1` at `e2172bc`; `FORWARD_MOTION_PROOF_1` at `a63e82c`; `LOGICAL_PLANNER_AUTODISPATCH_1` at `234b5b1`; `EVENT_DRIVEN_RECONCILIATION_1` at `39ab56a`; `PROMOTED_RESEARCH_FINDINGS_1` at `de0e828`; and `CURRENT_PRODUCT_STRUCTURAL_SAW_1` at `ddcfe0c`. The live active path now has Outcome/Claim identity, parallel disposable workers, current-World Closure interpretation, one cumulative authoritative product commit, retained cross-wave proof continuity, a typed forward-motion boundary, fresh durable-handoff planning, exact-or-reject capability compilation, settlement-driven refill without a queue/daemon, content-keyed attributable promoted research reconstructed into fresh planner boots without raw chat memory, and current-product structural SAW that rejects new/worsened structural debt without stale baseline refresh.
 
 A new external score campaign is not a prerequisite for this architecture work. The purpose of the current slices is to remove demonstrated serial and human-routing bottlenecks, not to create another evidence ceremony.
 
@@ -204,7 +205,7 @@ Hard cuts:
 - emit machine-consumable proposal candidates, never instructions such as `run two streams` for the owner to relay;
 - feed accepted candidates directly into existing Outcome/Claim/session admission so compatible workers boot automatically;
 - keep worker prompts internal; normal output never asks the owner to copy, paste, inspect, or route them;
-- skip planner invocation when recovered executable commitments already fill local capacity;
+- skip planner invocation when recovered executable commitments already occupy every local slot;
 - allow at most one bounded stale-Head replan before any new Claim becomes visible; repeated wake/refill remains Phase 6;
 - planner has no owner-escalation field. Only already-validated Phase-4 `OWNER_REQUIRED` proof may reach `Need you`.
 
@@ -222,7 +223,7 @@ Planner context/output is reconstructable, disposable, and non-authoritative. `e
 command entry
 → land already-terminal Closures before planning
 → recover commitments
-→ fill local capacity
+→ seek positive-value proposals only while capacity is available
 → workers run concurrently
 
 first worker settles
@@ -262,7 +263,7 @@ Phase 7 is deliberately split by evidence rather than implemented as one context
 
 #### Phase 7A — Promoted research findings
 
-**Implemented/validated in the working tree:** `PROMOTED_RESEARCH_FINDINGS_1` (see repository-root `implementation_plan.md`). The slice is not yet banked.
+**Banked validated slice:** `PROMOTED_RESEARCH_FINDINGS_1` at `de0e828`.
 
 ```text
 current WorldHead.productCommit
@@ -311,15 +312,63 @@ Then add the smallest selector/context binding necessary to carry only relevant 
 
 **Phase 7 complete when:** fresh planner and, where demonstrated necessary, worker sessions use promoted attributable research without rereading raw chat history; disproved assumptions remain visible across fresh sessions; contradictory evidence stays attributable; and research context remains bounded without becoming authority.
 
-### Phase 8 — Structural SAW + adaptive review + meaningful `Next`
+### Phase 8 — Structural SAW first; semantic review only on evidence
 
-**Product result:** repository/module quality remains GitHub-ready and modular without a human repeatedly policing code structure.
+**Product result:** repository/module quality remains structurally ratcheted as autonomous product code advances, without a human refreshing stale quality baselines or policing every change.
 
-Always-on mechanical SAW should cover the cheapest enforceable structure: line/module budgets, dependency direction, cycles/forbidden imports, protected paths, package/public surface, root-artifact hygiene, validation, and other repository-owned architectural invariants.
+Phase 8 is split by cost and evidence.
 
-Semantic review is triggered only by risk signals such as a constitutional authority change, security boundary, large cross-cutting diff, new abstraction, material dependency-graph change, or unresolved semantic acceptance.
+#### Phase 8A — Current-product structural SAW
 
-Post-round output law:
+Banked audited slice: `CURRENT_PRODUCT_STRUCTURAL_SAW_1` at `ddcfe0c` (`Implement current-product structural SAW`).
+
+The observed defect is concrete: the maintenance quality baseline is pinned to an old July source commit and now reports many already-banked modules as fresh debt. That mechanism cannot become always-on autonomous admission authority without repeated manual baseline refresh.
+
+Active SAW therefore uses the authoritative product lineage itself as the ratchet:
+
+```text
+current WorldHead.productCommit P
++ cumulative integration candidate tree T
+→ deterministic structural analysis P → T
+→ reject only newly introduced/worsened structural debt
+→ bind exact structural-saw/v1 PASS into product-integration/v2
+→ advance canonical product head
+```
+
+Hard cuts:
+
+- do not refresh a mutable quality baseline merely to make current work green; active SAW compares the candidate directly to current authoritative `productCommit`;
+- activate SAW only from a complete predecessor-owned structural-policy bundle; no policy means no repository-specific structural rules, while partial/malformed policy fails explicitly—Meta-Harness defaults are never silent target-repository authority;
+- reuse narrow deterministic scanning primitives, but compare only normalized tree-derived facts: the newer complexity module-budget system, exact structural ratchets, stable rule/source/target import violations, and a small enumerated set of stable structural BLOCK facts; runtime-global registries, compatibility signatures, legacy duplicate line budgets, and prose finding identities stay outside v1;
+- freeze exact predecessor policy bytes before applying the BANK delta, then evaluate both P and T under those same bytes; candidate policy/ownership self-modification is rejected before candidate policy can influence analysis;
+- grandfather structural debt already present in P, while blocking new overbudget modules, growth of grandfathered debt, budget crossings, increased structural ratchets, and newly introduced stable structural facts;
+- run SAW on the cumulative integration tree before expensive retained product-proof replay and before integration commit;
+- persist slim immutable `structural-saw/v1` controller evidence and hard-cut active canonical receipts to `product-integration/v2` with exact `structuralSawDigest`; the receipt reader dispatches across mixed historical `v1 → v2` lineage so retained obligations survive the cut;
+- SAW failure uses existing integration-failure → `INVALIDATED_REPLAN` semantics and never manufactures owner escalation;
+- stale CAS candidates discard their SAW result and recompute against the winning current product head;
+- legacy `.meta-harness/baseline/quality-baseline.json` may remain for old maintenance/release compatibility, but its freshness is no longer active canonical code-admission authority.
+
+Do not add dependency-graph/cycle infrastructure beyond existing analyzer semantics without an observed false-negative.
+
+**Done when:** already-accepted legacy structural debt no longer poisons unrelated autonomous integration, but any new/worsened structural debt is rejected before `productCommit` advances; the accepted integration receipt cryptographically binds the exact current-head SAW pass.
+
+**Stream closure:** no successor is activated. Phase 8B remains deferred until a retained semantic false-negative or repeated measurable manual-review burden provides a warrant; Phase 7B remains deferred for the same evidence-first reason.
+
+#### Phase 8B — Risk-triggered semantic review, only after a warrant
+
+Do not add a universal reviewer yet.
+
+A semantic-review slice is warranted only when retained evidence shows either:
+
+```text
+a material architecture/security/product defect passed structural SAW + validation/product proof
+OR
+repeated manual semantic audits consume meaningful owner attention on a mechanically detectable risk class
+```
+
+Then trigger one bounded read-only challenge only for those risk signals. Ordinary clean changes should pay zero model-review tax.
+
+The eventual post-round law remains:
 
 ```text
 no meaningful follow-up       → concise Done only
@@ -329,17 +378,66 @@ risk-triggered review         → run it automatically
 owner judgment required       → surface one concise Need you / Next
 ```
 
-**Done when:** a major authority/architecture change automatically triggers the appropriate review, while ordinary clean changes create no review ceremony and no task-list noise.
+**Phase 8 complete when:** cheap mechanical structure is continuously defended by current-product SAW, and any later semantic reviewer exists only for demonstrated high-information risk classes rather than as universal ceremony.
 
-### Phase 9 — DRAIN / WAKE disposable-session proof
+### Phase 9 — Owner-objective continuity under local governance
+
+**Product result:** the owner's exact current high-level objective enters controller-owned durable planner state through the normal product path, survives conversational death, participates in planning freshness, and remains the optimization target even when repository-local status, review, phase, and authorization prose is more repetitive or imperative.
+
+**Implemented in the working tree; deterministic validation green; real-planner behavioral closure still pending.** `OWNER_OBJECTIVE_CONTINUITY_1` incorporates the broader reaudit cuts in repository-root `implementation_plan.md`. The retained real-model A/B/C eval cannot currently execute because the installed local Codex fails before reading the prompt with an incompatible models-cache error; this is recorded as an external validation gap rather than converted into another harness layer.
+
+```text
+OWNER INPUT
+        ↓
+Git-common owner-objective-state/v1
+  revision + exact content + digest
+        ↓
+PlanningEpoch = WorldHead + objective revision
+        ↓
+NEUTRAL disposable logical planner
+  owner intent as instruction
+  factual/commitment projection as data
+  sibling exact read-only product snapshot
+        ↓
+positive-value candidates only
+        ↓
+atomic Claim admission checks
+  Head still current?
+  objective revision still current?
+  capability/conflicts valid?
+        ↓
+Claim = durable commitment
+```
+
+Hard cuts implemented:
+
+- active mutable objective state lives in the Git-common decision plane at `owner-objective.json`, not in the owner checkout; normal `meta-harness "<high-level intent>"` captures exact objective bytes and enters repo planning while leaving HEAD, index, tracked dirt, and untracked owner bytes unchanged;
+- objective state is deliberately tiny: `revision`, exact `content`, and `contentDigest`; every replacement increments revision, including ABA, with no goal database, history graph, lifecycle, or ObjectiveManager;
+- planner freshness is keyed by exact `WorldHead.headDigest + objectiveRevision`, so the same Head may replan after a real owner-objective change but cannot spin for the same epoch;
+- unclaimed planner possibilities are valid only for the exact Head + objective revision that produced them: planner-originated Claim admission checks both inside the existing authority mutex; already-visible Claims remain commitments when the objective changes;
+- fresh planner context is `repo-planner-input/v3` with compact exact-byte-attributable `ownerIntent`, including `Target user`; full PRODUCT prose is not duplicated into planner data, while workers keep full pinned `PRODUCT.md` through unchanged `work-session/v7`;
+- the logical planner cwd is a neutral non-Git temp directory outside the target repository, with the exact `productCommit` snapshot as a sibling read-only inspection surface; target `AGENTS.md`/status/review prose therefore enters as repository data rather than automatic target-project instruction hierarchy;
+- owner intent is rendered directly in an `OWNER / OPTIMIZATION` instruction section, while World/Claims/handoffs/research/capacity are serialized separately as factual/commitment data;
+- PRODUCT/current objective define optimization, World/execution evidence define factual truth, and Claims/controller capability define commitments/executable authority; these categories are not collapsed into one prose precedence list;
+- universal selection remains narrow: optimize the explicit owner objective, preserve real hard product/scientific/safety constraints, and require positive marginal value; cheaper/faster lawful means, irrecoverable evidence, and independent parallelism are only compatible tie-breakers;
+- `capacity is a ceiling, not a quota` is now consistent across planner prompt, roadmap, and Meta-Harness root `AGENTS.md`; target repositories' `AGENTS.md` are not rewritten;
+- repository-local `Next`, `Decision needed`, phase, review, SAW, gate, preflight, authorization, handoff, status, and legacy owner-directive prose remain inspectable means/constraints, not objective authority merely because they are imperative;
+- retained opt-in live eval has three mechanically graded fixtures with three fresh trials each: A requires OOS + prospective evidence and rejects process work, B preserves an untouched-validity freeze, and C requires exactly zero proposals when no positive-value action exists;
+- no production value reviewer, ROI/value score, priority field, governance ontology, automatic review court, second planner, or objective lifecycle was added.
+
+Deterministic evidence is green, including checkout-pure product-surface objective capture, ABA revision, stale-objective Claim rejection, same-Head/new-objective replanning, exact CRLF PRODUCT projection, neutral planner layering, and the retained Phase-1–8A authority/reconciliation replay (82/82). The required live semantic eval remains the only Phase-9 closure evidence not yet obtained.
+
+**Done when:** the existing opt-in real planner eval passes all three fresh trials for A, B, and C with zero bad trial, in addition to the already-green deterministic and retained regressions. Until then Phase 10 remains sequenced after Phase 9 rather than being activated as if objective continuity were behaviorally proven.
+
+### Phase 10 — DRAIN / WAKE disposable-session proof
 
 **Product result:** all model sessions can die safely and the organization still knows exactly what exists.
 
-`DRAIN` must stop admission, close or checkpoint active work, park recoverable claims, release/abort irrecoverable claims, snapshot retained workspaces, and prove zero live executor leases. `WAKE` revalidates parked work and resumes or releases it using only durable artifacts.
+`DRAIN` remains an internal controlled-shutdown concept rather than a required public lifecycle command. The eventual slice should stop new admission, quiesce/terminate ephemeral model work at safe boundaries, preserve recoverable active Claim/workspace custody, abort only work with no durable recoverable boundary, release live execution leases, and prove zero live executors. Ordinary `meta-harness work` is the WAKE path: it revalidates and resumes/releases using durable truth only.
 
-**Done when:** kill every planner, worker, and reviewer session; start entirely fresh sessions; continuation needs no narration or old transcript.
+**Done when:** kill every planner, worker, challenger, promoter, and controller session; start entirely fresh execution; continuation needs no narration or old transcript and no public drain/wake workflow controls.
 
-### Phase 10 — Narrow ports + Harness Darwinism
+### Phase 11 — Narrow ports + Harness Darwinism
 
 **Product result:** planners, executors, context strategies, validators, research providers, and workspace substrates may change without changing authority semantics.
 
@@ -371,6 +469,9 @@ Architecture changes should be tested against real failure classes rather than a
 - planner dies at context limit;
 - worker/workspace process crashes;
 - kill-all / DRAIN / WAKE with active work;
+- current owner objective survives conversational death and outranks imperative repository process prose while lawful positive-value evidence lanes remain available;
+- the same objective does not override a current authoritative scientific/safety constraint, and unused capacity remains legal;
+- when no positive-value action is currently lawful/useful, imperative review/status/cleanup/audit prose still yields exactly zero fresh planner proposals;
 - raw expert chat contradicts promoted durable finding;
 - stale documentation misleads an agent;
 - bad evaluator approves broken product behavior;

@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 
 const { findExecutionClosureForOrigin } = require("../lib/execution-closure");
+const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
 const { landOutcomeClosure } = require("../lib/repo-outcome-landing");
 const { compileRepoPlannerInput } = require("../lib/repo-planner-input");
 const { runWork } = require("../lib/work-loop");
@@ -74,6 +75,23 @@ function outcome(root) {
     evidenceRequirement: "src/a/result.txt exists and controller validation passes.",
   }));
 }
+
+test("planner input v3 puts exact owner intent first and excludes full PRODUCT prose", (t) => {
+  const { root } = repository(t);
+  persistInitial(root, "world-transition/v2");
+  replaceOwnerObjectiveState(root, "fastest honest decision-changing evidence");
+  const current = readCurrentWorldState(root);
+  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [], localBound: 3 });
+
+  assert.equal(input.schemaVersion, "repo-planner-input/v3");
+  assert.equal(Object.keys(input)[1], "ownerIntent");
+  assert.equal(input.ownerIntent.activeDirective.revision, 1);
+  assert.equal(input.ownerIntent.activeDirective.content, "fastest honest decision-changing evidence");
+  assert.match(input.ownerIntent.activeDirective.contentDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.equal(input.ownerIntent.productFrame.targetUser.includes("Solo developer"), true);
+  assert.equal(Object.hasOwn(input, "productDirection"), false);
+  assert.equal(Object.hasOwn(input, "ownerDirective"), false);
+});
 
 test("local running Claims are not double-counted while durable custody still looks executable", (t) => {
   const { root } = repository(t);

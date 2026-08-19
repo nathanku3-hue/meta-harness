@@ -336,7 +336,7 @@ test("repo work auto-promotes before fresh planner boot and transports compact a
   assert.equal(result.plannerInvoked, true);
   assert.equal(runner.calls(), 1);
   assert.ok(plannerInput);
-  assert.equal(plannerInput.schemaVersion, "repo-planner-input/v2");
+  assert.equal(plannerInput.schemaVersion, "repo-planner-input/v3");
   assert.equal(plannerInput.promotedResearch.length, 2);
   const serialized = JSON.stringify(plannerInput);
   assert.equal(serialized.includes(rawTail), false);
