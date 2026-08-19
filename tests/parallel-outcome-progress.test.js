@@ -164,9 +164,13 @@ function projectionObjects(root, payload, generatedAt = "2026-08-18T01:00:00.000
   return { world, worldDigest, attestation };
 }
 
-function realityTransition(predecessorHeadDigest, successor) {
+function realityTransition(root, predecessorHeadDigest, successor) {
+  const predecessor = predecessorHeadDigest
+    ? readImmutableJson(root, "heads", predecessorHeadDigest)
+    : null;
+  const productCommit = predecessor?.productCommit || git(root, ["rev-parse", "HEAD"]);
   const body = {
-    schemaVersion: "world-transition/v1",
+    schemaVersion: "world-transition/v2",
     predecessorHeadDigest,
     cause: {
       type: "REALITY_REFRESH",
@@ -174,13 +178,14 @@ function realityTransition(predecessorHeadDigest, successor) {
     },
     successorWorldDigest: successor.worldDigest,
     successorAttestationDigest: successor.attestation.attestationDigest,
+    successorProductCommit: productCommit,
   };
   return validateWorldTransition({ ...body, transitionDigest: computeWorldTransitionDigest(body) });
 }
 
 function persistWorld(root, payload, predecessorHeadDigest) {
   const successor = projectionObjects(root, payload);
-  const applied = commitTransition(root, realityTransition(predecessorHeadDigest, successor));
+  const applied = commitTransition(root, realityTransition(root, predecessorHeadDigest, successor));
   return { ...successor, head: applied.head };
 }
 
@@ -195,7 +200,6 @@ function proposal(root, id, allowedPath = `src/${id}`) {
     doneWhen: `${target} exists and controller validation passes.`,
     stopOnlyIf: ["The claimed write boundary is genuinely insufficient."],
     allowedPaths: [allowedPath],
-    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
     validation: [{
       argv: [
         process.execPath,
@@ -214,7 +218,7 @@ function writeProposalSet(root, headDigest, proposals) {
   const direction = pinProductDirection(root);
   const charter = loadRepoCharter(root);
   return writeJson(root, ".meta-harness/repo-proposals.json", {
-    schemaVersion: "repo-proposal-set/v1",
+    schemaVersion: "repo-proposal-set/v2",
     productDirectionDigest: direction.digest,
     charterDigest: charter.digest,
     worldHeadDigest: headDigest,
@@ -335,7 +339,7 @@ test("new Claim admission rejects a proposal snapshot whose origin Head stopped 
   const value = proposal(root, "a");
   const prepared = prepareOne(root, initial.head.headDigest, value);
   const advanced = projectionObjects(root, { learned: [], revision: 2 });
-  commitTransition(root, realityTransition(initial.head.headDigest, advanced));
+  commitTransition(root, realityTransition(root, initial.head.headDigest, advanced));
 
   assert.throws(
     () => admitPreparedRepoProposal(root, prepared.loaded, prepared.prepared),
@@ -442,7 +446,7 @@ test("landing CAS loss discards stale semantics and reinterprets against the new
       seenHeads.push(args.input.currentHead.headDigest);
       if (seenHeads.length === 1) {
         const race = projectionObjects(root, { learned: [], realityRace: true }, args.now.toISOString());
-        raceHead = commitTransition(root, realityTransition(args.input.currentHead.headDigest, race)).head.headDigest;
+        raceHead = commitTransition(root, realityTransition(root, args.input.currentHead.headDigest, race)).head.headDigest;
       }
       return fakeInterpretation(args);
     },

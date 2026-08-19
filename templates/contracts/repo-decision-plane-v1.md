@@ -1,6 +1,6 @@
 # Repository Progress Authority — hard-cut contract
 
-This packaged filename is retained for distribution compatibility, but the active repository-work protocol is no longer a mutable Repo Decision. Active repo-owned progress uses `repo-proposal-set/v1`, `outcome/v1`, `outcome-claim/v1`, `outcome-claim-session/v1`, and `work-session/v7`. Historical immutable `repo-decision/v3` evidence remains readable only where old AttemptEntry / ExecutionClosure provenance requires it.
+This packaged filename is retained for distribution compatibility, but the active repository-work protocol is no longer a mutable Repo Decision. Active repo-owned progress uses `repo-proposal-set/v2`, `world-transition/v2`, `world-head/v2`, `outcome/v1`, `outcome-claim/v1`, `outcome-claim-session/v1`, `work-session/v7`, and `product-integration/v1`. Historical v1 Head/Transition/Proposal and immutable `repo-decision/v3` evidence remain readable only for bounded migration/recovery.
 
 ## Boundary
 
@@ -13,13 +13,13 @@ repo projector / interpreter
         ↓
 immutable repo-world/v2 + world-attestation/v1
         ↓
-world-transition/v1
+world-transition/v2
         ↓
-immutable world-head/v1
+immutable world-head/v2 (semantic World + productCommit)
         ↓
 current-world-pointer/v1
         ↓
-.meta-harness/repo-proposals.json / repo-proposal-set/v1
+.meta-harness/repo-proposals.json / repo-proposal-set/v2
         ↓ ordered possibilities
 immutable outcome/v1
         ↓
@@ -39,11 +39,15 @@ execution-closure/v1
         ↓
 CURRENT World + fixed repository closure interpreter
         ↓
+DONE+APPLIED: cumulative product integration + retained proof
+        ↓
+product-integration/v1
+        ↓
 ATTEMPT_LEARNING or ATTEMPT_ABORTED
         ↓
-serialized world-transition/v1
+serialized world-transition/v2
         ↓
-successor world-head/v1 + Claim release
+successor world-head/v2 + Claim release
 ```
 
 The kernel understands:
@@ -96,6 +100,7 @@ interpretations/<interpretationDigest>.json
 outcomes/<outcomeDigest>.json
 work-results/<workResultDigest>.json
 execution-closures/<closureDigest>.json
+product-integrations/<integrationDigest>.json
 ```
 
 Legacy `decisions/<decisionDigest>.json` objects remain readable for historical execution provenance.
@@ -109,18 +114,21 @@ The sole mutable World authority is:
 }
 ```
 
-A `world-head/v1` is immutable:
+An active `world-head/v2` is immutable and binds semantic truth to the cumulative local product base:
 
 ```json
 {
-  "schemaVersion": "world-head/v1",
+  "schemaVersion": "world-head/v2",
   "generation": 12,
   "worldDigest": "sha256:...",
   "attestationDigest": "sha256:...",
+  "productCommit": "<git commit oid>",
   "lastTransitionDigest": "sha256:...",
   "headDigest": "sha256:..."
 }
 ```
+
+Legacy `world-head/v1` remains dereferenceable only for retained evidence and the one-time v1→v2 migration.
 
 Old Head identities therefore remain dereferenceable after the current pointer advances.
 
@@ -153,7 +161,7 @@ Attestation binds a World to projector identity and source observations:
 
 The kernel verifies only properties it can actually verify: local-file digests, Git-ref identities, opaque observation bindings, declared validity windows, and exact World binding.
 
-## `repo-proposal-set/v1`
+## `repo-proposal-set/v2`
 
 The active mutable repository-work input is:
 
@@ -165,7 +173,7 @@ Shape:
 
 ```json
 {
-  "schemaVersion": "repo-proposal-set/v1",
+  "schemaVersion": "repo-proposal-set/v2",
   "productDirectionDigest": "sha256:...",
   "charterDigest": "sha256:...",
   "worldHeadDigest": "sha256:...",
@@ -180,7 +188,6 @@ Shape:
       "doneWhen": "Observable completion condition",
       "stopOnlyIf": ["Material stop condition"],
       "allowedPaths": ["src", "tests"],
-      "base": { "type": "EXACT_COMMIT", "commit": "<exact Git commit oid>" },
       "validation": [
         { "argv": ["node", "--test"], "cwd": ".", "timeoutSeconds": 300 }
       ],
@@ -197,7 +204,8 @@ Rules:
 - `proposals[]` is ordered repository preference;
 - proposal IDs are unique inside one snapshot;
 - overlapping proposals are legal possibilities; Claim admission decides which may coexist;
-- proposal bytes and their digest are not Outcome, Claim, session, permit, or World authority;
+- proposal bytes and their digest are not Outcome, Claim, session, permit, World, or product-base authority;
+- proposal items do not carry `base`; new repo-owned sessions derive `base.commit` from the bound current `world-head/v2.productCommit`;
 - `proposals: []` means `REPLAN_REQUIRED`, not terminal `USE_PRODUCT`;
 - there is no active `NO_DISPATCH`, priority number, queue position, reservation state, fairness, preemption, or generic conflict resource.
 
@@ -421,32 +429,45 @@ transition predecessor CAS
 Claim release
 ```
 
-Semantic work, product-proof compilation, repository interpretation, and worker execution happen outside the lock. The lock is not a throughput mutex for intelligence work.
+Semantic work, product-proof compilation, repository interpretation, cumulative Git integration/retained proof, and worker execution happen outside the lock. The lock is not a throughput mutex for intelligence work.
 
-## `world-transition/v1`
+## `world-transition/v2` + `product-integration/v1`
 
-There is one substrate for authoritative World movement:
+Active authoritative movement is fully determined by the transition, including the successor product code identity:
 
 ```json
 {
-  "schemaVersion": "world-transition/v1",
+  "schemaVersion": "world-transition/v2",
   "predecessorHeadDigest": "sha256:...",
   "cause": {},
   "successorWorldDigest": "sha256:...",
   "successorAttestationDigest": "sha256:...",
+  "successorProductCommit": "<git commit oid>",
   "transitionDigest": "sha256:..."
 }
 ```
 
-Allowed causes remain:
+Active causes are `REALITY_REFRESH`, `ATTEMPT_LEARNING`, `ATTEMPT_ABORTED`, plus the one-time `PRODUCT_HEAD_MIGRATION`. `ATTEMPT_LEARNING` carries `integrationDigest` as a digest or `null`.
+
+For `DONE` + semantic `APPLIED`, `integrationDigest` is mandatory and resolves to immutable `product-integration/v1`. The receipt binds the exact worker BANK/Closure plus:
 
 ```text
-REALITY_REFRESH
-ATTEMPT_LEARNING
-ATTEMPT_ABORTED
+predecessorProductCommit
+integratedCommit
+integratedTreeOid
+retainedObligations[]
+retainedProofDigests[]
 ```
 
-An exact transition retry after a crash is idempotent. The shared authority lock plus pointer comparison supplies CAS semantics; atomic rename alone is not treated as concurrent CAS.
+The kernel requires `receipt.predecessorProductCommit == predecessorHead.productCommit` and `receipt.integratedCommit == transition.successorProductCommit`. For abort, invalidated/non-DONE learning, or reality refresh, `successorProductCommit` equals predecessor `productCommit`.
+
+Each accepted integration re-runs every retained executable validation/product-proof obligation against the same cumulative integrated tree. Obligations survive wave boundaries through immutable integration lineage; a later disjoint change that breaks an earlier accepted product behavior is rejected and does not advance productCommit.
+
+`WorldHead.productCommit` is authority. `refs/meta-harness/product-head` is only a Git GC root/inspectable mirror; missing or stale mirror state is repaired from the Head. Integration worktree/branch reachability remains until World CAS and the mirror ref retain the accepted commit.
+
+The v1→v2 migration follows authoritative legacy transition order, reconstructs every code-producing accepted Phase-2 learning from exact Closure/work-result/BANK evidence, cumulatively integrates and re-proves those effects, then creates the first v2 Head. If that cannot be proven, migration fails closed.
+
+An exact transition retry after a crash is idempotent. The shared authority lock plus pointer comparison supplies CAS semantics; atomic rename alone is not treated as concurrent CAS. Retained `world-transition/v1` is historical/migration evidence only.
 
 ## Legacy `repo-decision/v3`
 
@@ -465,7 +486,9 @@ An Outcome is `LANDED` only after:
 ```text
 worker/controller proof passed
 + durable ExecutionClosure exists
-+ fresh current-World landing committed
++ fresh current-World interpretation passed
++ cumulative code integration/retained proof passed when code-producing
++ world-transition/v2 committed
 ```
 
 Other derived aggregate states include:

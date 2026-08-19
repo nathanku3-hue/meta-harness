@@ -353,12 +353,12 @@ The active mutable input is:
 
 ```text
 immutable repo-world + attestation
-→ immutable WorldHead H
-→ .meta-harness/repo-proposals.json / repo-proposal-set/v1 bound to H
+→ immutable world-head/v2 H(productCommit=P)
+→ .meta-harness/repo-proposals.json / repo-proposal-set/v2 bound to H
 → ordered possibilities
 ```
 
-`repo-decision/v3` remains readable only as historical immutable evidence. It is not accepted as the active mutable repository-work input. `repo-proposal-set/v1` has no `NO_DISPATCH` branch: an empty set means reconciliation/replanning is required and cannot manufacture terminal `USE_PRODUCT` authority.
+`repo-decision/v3`, `repo-proposal-set/v1`, `world-transition/v1`, and `world-head/v1` remain readable only as retained historical/migration evidence. Active repo-owned work hard-cuts to proposal/head/transition v2. `repo-proposal-set/v2` has no proposal-authored `base` and no `NO_DISPATCH`: an empty set means reconciliation/replanning is required and cannot manufacture terminal `USE_PRODUCT` authority. New repo-owned session base is mechanically `EXACT_COMMIT(current WorldHead.productCommit)`.
 
 The normal repo-owned transaction is:
 
@@ -368,7 +368,10 @@ recover active Claims before proposals
 → greedily fill unused local capacity with compatible NEW Claims
 → bounded concurrent runWork() per Claim/session/workspace
 → durable independent ExecutionClosures
-→ deterministic serialized current-World landing
+→ current-World interpretation
+→ controller-owned cumulative code integration + retained proof
+→ world-transition/v2 CAS
+→ successor world-head/v2(World, productCommit)
 ```
 
 A proposal is disposable possibility; an Outcome is durable work identity; a Claim is durable temporary commitment. New Claims require `proposal.worldHeadDigest` to still equal the authoritative current WorldHead while the World authority lock is held. Existing Claims deliberately do not gain whole-World equality: unrelated World advancement cannot cancel admitted responsibility.
@@ -391,11 +394,19 @@ successor world-attestation/v1
 APPLIED | INVALIDATED_REPLAN
 ```
 
-Meta-Harness validates and persists those immutable semantic objects outside the World authority lock, then commits an `ATTEMPT_LEARNING` transition whose predecessor is the World that was actually interpreted. `Claim.originWorldHeadDigest` is provenance only. If CAS loses, the stale semantic candidate is discarded and repository interpretation reruns against the newer current Head; stale successors are never mechanically rebased by rewriting only the predecessor.
+Meta-Harness validates and persists those immutable semantic objects outside the World authority lock. A `DONE` + `APPLIED` Closure must then integrate its exact worker BANK commit onto current `WorldHead.productCommit` in a fresh controller-owned integration worktree. The controller replays every retained executable validation/product-proof obligation from the immutable `product-integration/v1` lineage against the same cumulative candidate tree. Git conflict, path mismatch, or any retained proof failure rejects the new integration and is returned to repository interpretation as `INVALIDATED_REPLAN`; authoritative `productCommit` does not move.
 
-A durable `PARTIAL`/`BLOCKED` work result still lands through `ATTEMPT_LEARNING` so failure/replan learning can close the Claim. A terminal ExecutionClosure with no work result resolves through `ATTEMPT_ABORTED` against the current Head and releases its Claim without invoking semantic interpretation. Thus every terminal Claim has a deterministic durable release path.
+Accepted code integration produces immutable `product-integration/v1`. Active `world-transition/v2` carries both `successorProductCommit` and the exact `integrationDigest`; the receipt must prove `receipt.predecessorProductCommit == predecessorHead.productCommit` and `receipt.integratedCommit == successorProductCommit`. Thus transition identity deterministically determines the complete successor Head. `ATTEMPT_ABORTED`, invalidated/non-code learning, and `REALITY_REFRESH` preserve predecessor productCommit exactly.
 
-The World authority lock protects only short authority operations: current-Head admission checks, compatibility checks, session/Claim visibility ordering, transition CAS, and Claim release. Product-proof compilation and repository semantic interpretation execute outside that lock.
+`Claim.originWorldHeadDigest` remains provenance only. If World CAS loses, both the stale semantic successor and stale integration candidate are discarded and reconstructed against the winning current World/product commit; stale code is never mechanically rebased by changing only its predecessor field.
+
+A durable `PARTIAL`/`BLOCKED` work result still lands through `ATTEMPT_LEARNING` so failure/replan learning can close the Claim. A terminal ExecutionClosure with no work result resolves through `ATTEMPT_ABORTED` and releases its Claim without semantic interpretation. `BANKED_UNPROVEN` never enters canonical product code.
+
+`WorldHead.productCommit` is the sole product-base authority. `refs/meta-harness/product-head` is non-authoritative Git reachability/inspection plumbing and is mechanically repaired from the current Head when absent or stale. The integration branch/worktree remains a GC root until World CAS and this mirror ref retain an accepted commit.
+
+The one-time v1→v2 migration traverses authoritative legacy World lineage. Every code-producing accepted Phase-2 learning is resolved to its exact Closure/work result/BANK commit and cumulatively integrated/re-proven in transition order before the first v2 Head is activated. If accepted semantic history cannot be reconstructed as code, migration fails closed rather than seed a semantically inconsistent product commit.
+
+The World authority lock protects only short authority operations: current-Head admission checks, compatibility checks, session/Claim visibility ordering, transition CAS, and Claim release. Product-proof compilation, repository semantic interpretation, Git integration, and cumulative retained-proof execution occur outside that lock.
 
 ## Human diagnostic boundary
 

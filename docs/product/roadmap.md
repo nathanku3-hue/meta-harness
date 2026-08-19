@@ -75,7 +75,7 @@ Banked audited slice: `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`. Claim remains se
 
 **Product result:** repo-owned execution opportunities become concurrent, recoverable product progress without owner routing or stranded successful Closures.
 
-Implemented and validated working-tree slice: `PARALLEL_OUTCOME_PROGRESS_1` (see repository-root `implementation_plan.md`). The architecture audit is incorporated; the repository wrapper passes 116 test files / 865 tests with zero failures. The slice is not yet Git-banked because no commit was requested. Phase 1 proved that independent Claims may coexist. Phase 2 hard-cuts the remaining serial semantics together:
+Banked audited slice: `PARALLEL_OUTCOME_PROGRESS_1` at `9616bd4`. The architecture audit is incorporated; the repository wrapper passes 116 test files / 865 tests with zero failures. Phase 1 proved that independent Claims may coexist. Phase 2 hard-cuts the remaining serial execution/landing semantics together:
 
 ```text
 durable active Claims
@@ -101,24 +101,26 @@ The slice does **not** pretend that the existing `preconditionDigest` is a fact 
 
 **Done when:** active Claims survive proposal replacement; stale-Head new Claim races fail closed; several compatible Outcomes execute concurrently; one worker failure does not cancel siblings; successful sibling Closures can serialize into current World (or be deterministically invalidated/replanned) without whole-origin-Head staleness; and every terminal Claim has a durable resolution path—learning with durable work evidence, abort without it.
 
-### Phase 3 — Continuous reconciliation + capacity refill
+### Phase 3 — Linear integrated product head
 
-**Product result:** useful execution capacity stays filled as Claims land, release, block, or become newly eligible, without turning Phase 2 into a queue/scheduler product.
+**Product result:** parallel worker BANK commits converge into one cumulative locally integrated code commit, and every later repo-owned Outcome is mechanically based on that commit.
 
-After every authoritative landing or material reality change:
+Implemented and validated working-tree slice: `LINEAR_PRODUCT_HEAD_1` (see repository-root `implementation_plan.md`). The exact repository test topology passes in bounded replay: 117 test files / 870 tests / 0 failures; the monolithic wrapper itself could not return through DevSpace because of an upstream 502, so no wrapper-pass claim is made. Phase 2 made World learning linear but left successful worker commits on separate managed branches. Phase 3 closes that code-continuity gap before automatic refill can amplify it.
 
 ```text
-current World
-+ active Claims
-+ fresh proposal snapshot
-→ recover commitments
-→ recompute currently claimable proposals
-→ fill newly free local execution capacity
+current Head H(product P)
++ APPLIED worker BANK commit W
+→ controller-owned isolated integration
+→ cumulative validation + product proof
+→ integrated commit P1
+→ successor Head H1(product P1)
 ```
 
-No persistent queue, reservation state, fairness model, or worker conversation topology is required. Reconciliation is event-driven recomputation from durable truth, not a daemon-owned scheduling database.
+Hard cuts: active `world-head/v2` carries the authoritative integrated `productCommit`; active `world-transition/v2` carries `successorProductCommit` so transition identity determines the full successor Head; code-producing accepted learning binds immutable `product-integration/v1`; active `repo-proposal-set/v2` removes proposal-authored base authority; new work-session base is derived from current Head; worker BANK remains immutable execution evidence distinct from integrated product state; owner checkout and publication remain untouched.
 
-**Done when:** after one parallel Outcome lands and releases capacity, newly legal compatible work can start without owner action or restarting the organizational plan, while active Claims retain continuity and World remains linear.
+Every integration replays all retained executable validation/product-proof obligations from prior accepted integration lineage against the cumulative tree, including across wave boundaries. Legacy Phase-2 accepted semantic history is migrated to v2 only after its exact BANK commits are cumulatively reconstructed/re-proven. `refs/meta-harness/product-head` is a repairable non-authoritative Git GC root; `WorldHead.productCommit` remains sole authority.
+
+**Done when:** A and B may execute concurrently from P0, BANK independently, and land into one linear P0→P1→P2 code history whose final tree contains both accepted effects; a later wave cannot break an earlier retained product obligation; legacy A+B semantic history cannot migrate without matching cumulative code; transition identity cannot choose a second product commit; and every next repo-owned session is mechanically based on current Head productCommit.
 
 ### Phase 4 — Forward-motion / escalation proof
 
@@ -143,23 +145,46 @@ Persist disproven constraints/misconceptions so fresh sessions cannot resurrect 
 
 **Done when:** a fresh-session regression with a partial source and a previously disproven fictional authority requirement selects/researches viable alternative means instead of asking the owner.
 
-### Phase 5 — Logical planner as sole human ingress
+### Phase 5 — Logical planner + fresh proposal production
 
-**Product result:** the owner talks only to one logical planner role; no worker or operational lifecycle reaches the human directly.
+**Product result:** the owner talks only to one logical planner role, and current authoritative product/world state can be turned into fresh current-Head-bound proposal snapshots without manual task routing.
 
 Planner behavior:
 
-- read owner intent, current World, outcomes, claims, closures, research findings, and relevant repository evidence;
+- read owner intent, current World, authoritative integrated product commit, Claims, Closures, research findings, and relevant repository evidence;
 - ask only unresolved product/taste/owner-authority questions;
-- produce enough independently valuable Outcomes to saturate useful current execution capacity plus expose the next meaningful dependency boundary;
+- produce enough independently valuable proposals to saturate useful current execution capacity plus expose the next meaningful dependency boundary;
+- bind proposals to current WorldHead; never choose work-session base independently of the Head;
 - stop planning and leave execution to Meta-Harness;
 - wake only for changed intent, material discoveries, repeated worker failure, exhausted useful outcomes, failed escalation proof, or a risk-triggered challenge requiring planning.
 
 Planner checkpoint is a reconstructable cache, never authoritative truth.
 
-**Done when:** after minimal top-level alignment the owner can leave; planner sessions may die; workers execute/close/reconcile automatically; only genuine owner judgment returns to the human.
+**Done when:** after minimal top-level alignment the owner can leave; planner sessions may die; a fresh planner can regenerate a proposal snapshot from durable state; only genuine owner judgment returns to the human.
 
-### Phase 6 — Research promotion + minimum sufficient context
+### Phase 6 — Event-driven reconciliation + capacity refill
+
+**Product result:** useful execution capacity stays filled as Claims land, release, block, or become newly eligible, without a persistent queue/scheduler database.
+
+This phase consumes **fresh** proposals from Phase 5; it must not poll or reinterpret a stale mutable proposal file.
+
+After every authoritative product/World landing or material reality change:
+
+```text
+current WorldHead + productCommit
++ active Claims
+→ recover commitments
+→ obtain fresh current-Head-bound proposals
+→ greedily fill newly free local execution capacity
+→ execute / integrate / land
+→ reconcile again while useful work remains
+```
+
+No persistent queue, reservation state, fairness model, or worker conversation topology is required. Reconciliation is event-driven recomputation from durable truth, not a daemon-owned scheduling database.
+
+**Done when:** after one parallel Outcome lands and releases capacity, newly legal compatible work starts without owner action or restarting the organizational plan, while Claims retain continuity and both World and product code remain linear.
+
+### Phase 7 — Research promotion + minimum sufficient context
 
 **Product result:** research-driven coding uses accumulated expert knowledge without turning raw chats into worker memory or authority.
 
@@ -175,7 +200,7 @@ Persist both positive findings and disproven assumptions. Workers normally recei
 
 **Done when:** fresh planner/worker sessions use promoted research without rereading chat history, and rejected misconceptions do not silently reappear as blockers.
 
-### Phase 7 — Structural SAW + adaptive review + meaningful `Next`
+### Phase 8 — Structural SAW + adaptive review + meaningful `Next`
 
 **Product result:** repository/module quality remains GitHub-ready and modular without a human repeatedly policing code structure.
 
@@ -195,7 +220,7 @@ owner judgment required       → surface one concise Need you / Next
 
 **Done when:** a major authority/architecture change automatically triggers the appropriate review, while ordinary clean changes create no review ceremony and no task-list noise.
 
-### Phase 8 — DRAIN / WAKE disposable-session proof
+### Phase 9 — DRAIN / WAKE disposable-session proof
 
 **Product result:** all model sessions can die safely and the organization still knows exactly what exists.
 
@@ -203,7 +228,7 @@ owner judgment required       → surface one concise Need you / Next
 
 **Done when:** kill every planner, worker, and reviewer session; start entirely fresh sessions; continuation needs no narration or old transcript.
 
-### Phase 9 — Narrow ports + Harness Darwinism
+### Phase 10 — Narrow ports + Harness Darwinism
 
 **Product result:** planners, executors, context strategies, validators, research providers, and workspace substrates may change without changing authority semantics.
 
