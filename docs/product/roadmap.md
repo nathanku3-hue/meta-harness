@@ -43,7 +43,7 @@ The human-facing product remains small. Internal continuity may become richer, b
 
 ## Current stabilization boundary
 
-`PRODUCT_DIRECTION_CONTINUITY_1` is banked locally at `22fe09c`; `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`; `PARALLEL_OUTCOME_PROGRESS_1` at `9616bd4`; `LINEAR_PRODUCT_HEAD_1` at `e2172bc`; `FORWARD_MOTION_PROOF_1` at `a63e82c`; and `LOGICAL_PLANNER_AUTODISPATCH_1` at `234b5b1`. The live active path now has Outcome/Claim identity, parallel disposable workers, current-World Closure interpretation, one cumulative authoritative product commit, retained cross-wave proof continuity, a typed forward-motion boundary, fresh durable-handoff planning, exact-or-reject capability compilation, and automatic initial planner→Claim→worker dispatch without human prompt routing.
+`PRODUCT_DIRECTION_CONTINUITY_1` is banked locally at `22fe09c`; `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`; `PARALLEL_OUTCOME_PROGRESS_1` at `9616bd4`; `LINEAR_PRODUCT_HEAD_1` at `e2172bc`; `FORWARD_MOTION_PROOF_1` at `a63e82c`; `LOGICAL_PLANNER_AUTODISPATCH_1` at `234b5b1`; and `EVENT_DRIVEN_RECONCILIATION_1` at `39ab56a`. The live active path now has Outcome/Claim identity, parallel disposable workers, current-World Closure interpretation, one cumulative authoritative product commit, retained cross-wave proof continuity, a typed forward-motion boundary, fresh durable-handoff planning, exact-or-reject capability compilation, automatic planner→Claim→worker dispatch, and settlement-driven within-command refill without a queue or daemon.
 
 A new external score campaign is not a prerequisite for this architecture work. The purpose of the current slices is to remove demonstrated serial and human-routing bottlenecks, not to create another evidence ceremony.
 
@@ -216,7 +216,7 @@ Planner context/output is reconstructable, disposable, and non-authoritative. `e
 
 **Product result:** remove the remaining whole-wave barrier so terminal Closures land as soon as they are ready, authoritative releases immediately free local capacity, and fresh current-Head planning refills that capacity while slower siblings continue.
 
-**Implemented/validated in the working tree:** `EVENT_DRIVEN_RECONCILIATION_1` (see repository-root `implementation_plan.md`). Phase 5's synchronous-barrier/counterfactual-refill telemetry established the defect; Phase 6 replaces that counterfactual with actual event-driven landing/refill telemetry. The slice is not yet banked.
+**Banked validated slice:** `EVENT_DRIVEN_RECONCILIATION_1` at `39ab56a`. Phase 5's synchronous-barrier/counterfactual-refill telemetry established the defect; Phase 6 replaced that counterfactual with actual event-driven landing/refill behavior and telemetry.
 
 ```text
 command entry
@@ -256,19 +256,60 @@ Hard cuts:
 
 ### Phase 7 — Research promotion + minimum sufficient context
 
-**Product result:** research-driven coding uses accumulated expert knowledge without turning raw chats into worker memory or authority.
+**Product result:** research-driven coding uses accumulated expert knowledge without turning raw chats into planner memory, worker memory, or authority.
+
+Phase 7 is deliberately split by evidence rather than implemented as one context framework.
+
+#### Phase 7A — Promoted research findings
+
+**Implemented/validated in the working tree:** `PROMOTED_RESEARCH_FINDINGS_1` (see repository-root `implementation_plan.md`). The slice is not yet banked.
 
 ```text
-raw /chat or docs/chats source
-→ ResearchFinding / ConstraintRecord
-→ planner adjudication
-→ Outcome/context selector
-→ smallest sufficient worker boot
+current WorldHead.productCommit
+→ exact tracked docs/research/** + docs/chats/** source occurrences
+→ sha256(exact committed source bytes)
+→ unseen content gets one fresh read-only content-only promotion pass
+→ mechanically verify exact unique UTF-8 quotation bytes + byte offsets
+→ one canonical immutable non-authoritative research-promotion/v1 with nested findings[]
+→ project current source occurrence provenance
+→ compact repo-planner-input/v2.promotedResearch[]
+→ fresh logical planner
 ```
 
-Persist both positive findings and disproven assumptions. Workers normally receive only the findings relevant to their claimed outcome.
+Hard cuts:
 
-**Done when:** fresh planner/worker sessions use promoted research without rereading chat history, and rejected misconceptions do not silently reappear as blockers.
+- raw research source bytes are source material only and never enter planner context directly;
+- source occurrences carry current path/blob provenance, but promotion cache identity is exact content digest, so a pure rename does not repromote unchanged bytes;
+- the promoter receives source content plus fixed extraction law, not path/World/product metadata, so the cached result is genuinely content-keyed;
+- promoted research lives in a separate immutable evidence store rather than World/Claim authority, with one durable promotion object per content digest and no independent finding lifecycle;
+- concurrent promotion is create-once at the content key; racing controllers may waste one duplicate model call, but only one canonical result survives and the loser rereads it;
+- every retained finding has mechanically reopenable exact source quote bytes with persisted `byteStart` / `byteEnd`; missing or ambiguous quotation attribution rejects that finding;
+- `FINDING`, `CONSTRAINT`, and `DISPROVED_ASSUMPTION` are advisory source-reported evidence. A promoted constraint is not an execution/constitutional restriction, and a disproved assumption is not a kernel prohibition;
+- PRODUCT/owner authority, current World + authoritative execution learning, and active Claims outrank promoted research;
+- only findings whose source content is currently present in authoritative `productCommit` enter planner context; historical promotions remain evidence without mutable supersession flags;
+- contradictory current findings coexist with separate attribution; the kernel does not silently adjudicate domain truth;
+- promotion runs before planner boot and unchanged content pays zero repeat model cost;
+- compact promoted context fails explicitly with `MH_RESEARCH_CONTEXT_BUDGET` rather than silently truncating;
+- do not reuse the historical scored context-gate/context-packet machinery;
+- no embeddings, vector store, research daemon, web/source provider framework, worker research packet, generic ContextCompiler, or research-driven World transition.
+
+**Validated for 7A:** after prior research/planner conversation state is absent, normal repo work can reconstruct compact attributable findings from current committed research automatically; dirty/untracked owner research stays invisible; same-content rename reuses promotion; edit/delete currentness is derived from `productCommit`; contradictory evidence remains separately attributable; zero-source repos pay zero promotion tax; concurrent promoters converge on one canonical receipt; and retained Phase-1–6 authority/event-driven reconciliation regressions remain green.
+
+#### Phase 7B — Minimum sufficient execution context, only on observed need
+
+Do not build a generic ContextCompiler yet. The current promoted corpus is small and there is no demonstrated retrieval-scale defect.
+
+A later Phase-7 slice is warranted only when real use proves either:
+
+```text
+promoted planner context exceeds a bounded safe budget
+OR
+planner synthesis loses research detail that a worker materially needs
+```
+
+Then add the smallest selector/context binding necessary to carry only relevant promoted findings into planner/worker boot. No semantic/vector retrieval system is justified before that regression exists.
+
+**Phase 7 complete when:** fresh planner and, where demonstrated necessary, worker sessions use promoted attributable research without rereading raw chat history; disproved assumptions remain visible across fresh sessions; contradictory evidence stays attributable; and research context remains bounded without becoming authority.
 
 ### Phase 8 — Structural SAW + adaptive review + meaningful `Next`
 
