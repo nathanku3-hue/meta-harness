@@ -115,7 +115,7 @@ Supported adapters include:
 
 Each adapter resolves the scope-nearest project from immutable tree facts and fails closed when allowed paths imply multiple projects or otherwise ambiguous validation. If no deterministic adapter matches, work blocks before workspace creation or worker launch.
 
-The coding worker is read-only and returns only typed `WRITE`, `DELETE`, or `MOVE` operations. The controller materializes them, seals one Git-authoritative `candidateTreeOid`, and verifies that exact tree inside the Linux namespace/chroot verifier. Candidate acceptance answers only whether those exact bytes may BANK safely. Worker `done`/`partial` status is advisory and cannot authorize or veto BANK. Regression failures return to the same bounded result for repair.
+The coding worker is read-only and emits incompatible `worker-result/v2`: advisory `DONE` / `PARTIAL`, or structured `STOP`, plus only typed `WRITE`, `DELETE`, or `MOVE` operations. `STOP` carries zero operations and cannot name an owner, manager, librarian, approver, approval gate, or human question. The controller materializes non-STOP operations, seals one Git-authoritative `candidateTreeOid`, and verifies that exact tree inside the Linux namespace/chroot verifier. Candidate acceptance answers only whether those exact bytes may BANK safely; worker status cannot authorize or veto BANK. Regression failures return to the same bounded result for repair.
 
 ## Product proof
 
@@ -129,7 +129,9 @@ The same Linux namespace/chroot verifier later executes the sealed proof program
 
 `product-proof/v2` derives its overall state mechanically from claim results: any failed executable claim gives `FAILED`, any remaining material unresolved claim gives `GAP`, otherwise the result is `PROVEN`. `FAILED` re-enters bounded repair. `GAP` banks regression-validated bytes as `BANKED_UNPROVEN` with a non-success product outcome. Only `PROVEN` can produce `DONE`.
 
-Machine work results retain regression verification, candidate-acceptance, and product-proof evidence plus controller-observed `work-metrics/v1` timing and repair facts (NEW/RESUME, proposal latency, verifier time, operation mix, output/event volume, repair count). Normal human output does not expose those internals. Meta-Harness does not persist execution memory unless measured repair/resume reconstruction loss later proves it necessary.
+A worker `STOP` is persisted first as `worker-stop/v1`, binding its consumed AttemptEntry and exact workspace HEAD/branch/index/dirty-manifest/Git-tree boundary. One fresh read-only challenger then tries to falsify the claim that autonomous progress is exhausted. Its slim `forward-motion-proof/v1` references the stop and may authorize `CONTINUE_WITH_ALTERNATIVE`, `REPLAN_REQUIRED`, `HARD_BLOCKED`, or one typed `OWNER_REQUIRED`. The proof is semantic judgment, not custody evidence. Successful work invokes no challenger. Only seven owner-exclusive kinds can reach `OWNER_REQUIRED`: `PRODUCT_TASTE`, `SCOPE_EXPANSION`, `CREDENTIALS`, `PROTECTED_ACCESS`, `DESTRUCTIVE_ACTION`, `PUBLICATION`, or `MATERIAL_RISK`; punctuation and arbitrary organizational roles have no authority.
+
+Machine `work-result/v2` values retain regression verification, candidate-acceptance, product-proof evidence, optional exact `forwardMotionProofDigest`, and controller-observed `work-metrics/v1` timing/repair facts. Normal human output exposes `Need you:` only for a proof-backed `OWNER_REQUIRED`. `REPLAN_REQUIRED` remains autonomous work; a failed preferred means is not silently upgraded to owner intervention.
 
 ## Automatic local banking
 
@@ -149,11 +151,13 @@ Legacy `delivery.commit=false` metadata cannot disable this local banking step. 
 
 The source checkout's HEAD, index, branch, and existing dirty bytes are not rewritten by local banking.
 
-## Optional repository decision authority
+## Optional repository progress authority
 
-Complex repositories may opt into repo-owned decision authority through `.meta-harness/repo-charter.json`. Repository intelligence owns domain meaning; Meta-Harness owns generic Outcome identity, Claim compatibility, attestation checks it can mechanically prove, workspace custody, operational closure, and immutable World lineage.
+Complex repositories may opt into repo-owned progress authority through `.meta-harness/repo-charter.json`. Repository intelligence owns domain meaning; Meta-Harness owns generic Outcome identity, atomic Claim compatibility, attestation checks it can mechanically prove, workspace custody, operational Closure, immutable World lineage, and one linear authoritative product commit.
 
-A current `repo-decision/v3` is either `DISPATCH` or inert `NO_DISPATCH`. DISPATCH may remain upstream selection evidence, but it compiles a minimal immutable Outcome, acquires/reuses one compatible Claim, and seals an internal `work-session/v7` whose repo-owned origin is `REPO_OUTCOME`. Multiple disjoint Claims may originate from one WorldHead, and repo-owned sessions are claim-addressed rather than selected by one global `latest.json`. Unsupported `OWNER_DECISION_REQUIRED` assertions are rejected because models cannot manufacture authority by assertion. NO_DISPATCH creates no workspace or attempt.
+The active mutable opportunity surface is `.meta-harness/repo-proposals.json` using `repo-proposal-set/v2`, bound to the current `world-head/v2`. Proposals are possibilities, not commitments. Compatible proposals become immutable Outcomes plus atomic Claims, and each admitted Claim seals its own `work-session/v7` with `REPO_OUTCOME` provenance and a base derived from `WorldHead.productCommit`. Multiple disjoint Claims may originate from one WorldHead and execute concurrently in disposable workspaces; Closures are interpreted against current World and landed through serialized World transitions. Successful worker BANK commits are integrated into one cumulative `productCommit` before authoritative learning advances.
+
+`repo-decision/v3` is historical-only on this path. Empty or stale proposal input means reconcile/replan, not model-authored terminal inactivity. Unsupported owner-authority assertions cannot manufacture human authority; proof-backed `OWNER_REQUIRED` is the only model-mediated owner-routing path.
 
 ## Installation
 

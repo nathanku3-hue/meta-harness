@@ -59,6 +59,37 @@ if (prompt.includes("Compile independent product proof before any coding candida
   process.exit(0);
 }
 
+if (prompt.includes("FORWARD_MOTION_CHALLENGE_V1")) {
+  const disposition = String(process.env.FAKE_FORWARD_MOTION_DISPOSITION || "REPLAN_REQUIRED").toUpperCase();
+  const failedMeans = [{ means: "preferred API/source", evidence: ["The worker observed that the preferred route was unavailable."] }];
+  const alternatives = disposition === "CONTINUE_WITH_ALTERNATIVE"
+    ? [{
+        means: process.env.FAKE_FORWARD_MOTION_ALTERNATIVE || "Use the in-repository substitute instead of the preferred external route.",
+        disposition: "AVAILABLE",
+        evidence: ["The substitute stays within the sealed product result."],
+        requiredPaths: [process.env.FAKE_FORWARD_MOTION_PATH || "src"],
+      }]
+    : [];
+  const ownerRequest = disposition === "OWNER_REQUIRED" ? {
+    kind: process.env.FAKE_FORWARD_MOTION_OWNER_KIND || "CREDENTIALS",
+    question: process.env.FAKE_FORWARD_MOTION_QUESTION || "Provide the credential required by the sealed Outcome?",
+    evidence: ["The required credential is not available to autonomous execution."],
+  } : null;
+  const result = {
+    disposition,
+    failedMeans,
+    alternatives,
+    hardConstraint: disposition === "HARD_BLOCKED" ? "A demonstrated Outcome-level constraint prevents every known autonomous route." : null,
+    ownerRequest,
+    disprovedAssertions: process.env.FAKE_FORWARD_MOTION_DISPROVE
+      ? [process.env.FAKE_FORWARD_MOTION_DISPROVE]
+      : [],
+  };
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, `${JSON.stringify(result)}\n`, "utf8");
+  process.exit(0);
+}
+
 const attempt = Number(prompt.match(/Attempt: (\d+) of/)?.[1] || "1");
 const relativePath = process.env.FAKE_WORKER_PATH || "src/result.txt";
 const content = process.env.FAKE_WORKER_RETRY === "1" && attempt === 1 ? "wrong\n" : "delivered\n";
@@ -73,15 +104,23 @@ if (process.env.FAKE_WORKER_DIRECT_WRITE === "1" || process.env.FAKE_WORKER_STAG
 }
 
 const status = process.env.FAKE_WORKER_PARTIAL_FIRST === "1" && attempt === 1
-  ? "partial"
-  : process.env.FAKE_WORKER_STATUS || "done";
+  ? "PARTIAL"
+  : String(process.env.FAKE_WORKER_STATUS || "DONE").toUpperCase();
 const result = {
+  schemaVersion: "worker-result/v2",
   status,
   observableResult: `Prepared ${relativePath} on attempt ${attempt}.`,
-  operations: status === "blocked" ? [] : [{ type: "WRITE", path: relativePath, content }],
+  operations: status === "STOP" ? [] : [{ type: "WRITE", path: relativePath, content }],
   validation: ["fake worker completed"],
-  blocker: process.env.FAKE_WORKER_BLOCKER || "",
-  nextAction: process.env.FAKE_WORKER_NEXT || "Review and bank the delivered change.",
+  stop: status === "STOP" ? {
+    unsatisfiedRequirement: process.env.FAKE_WORKER_STOP_REQUIREMENT || "The preferred execution means is unavailable.",
+    failedMeans: [{
+      means: process.env.FAKE_WORKER_STOP_MEANS || "preferred API/source",
+      evidence: [process.env.FAKE_WORKER_STOP_EVIDENCE || "The preferred route returned no usable result."],
+    }],
+    alternativesConsidered: [],
+    assertedConstraint: process.env.FAKE_WORKER_STOP_CONSTRAINT || "The worker observed a constraint on its preferred route.",
+  } : null,
 };
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, `${JSON.stringify(result)}\n`, "utf8");

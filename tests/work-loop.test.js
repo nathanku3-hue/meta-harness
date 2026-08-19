@@ -126,15 +126,21 @@ function workerEnv(extra = {}) {
   };
 }
 
-function workerResult(operations, status = "done") {
+function workerResult(operations, status = "DONE") {
+  const normalizedStatus = String(status).toUpperCase();
   return {
     result: {
-      status,
+      schemaVersion: "worker-result/v2",
+      status: normalizedStatus,
       observableResult: "Prepared the requested result.",
       operations,
       validation: [],
-      blocker: "",
-      nextAction: "Use the result.",
+      stop: normalizedStatus === "STOP" ? {
+        unsatisfiedRequirement: "The current means could not satisfy the sealed requirement.",
+        failedMeans: [{ means: "test route", evidence: ["Synthetic test evidence."] }],
+        alternativesConsidered: [],
+        assertedConstraint: "Synthetic observed constraint.",
+      } : null,
     },
   };
 }
@@ -356,7 +362,7 @@ test("entered generation without a durable seal is never replayed after interrup
   assert.equal(result.attempts, 1);
   assert.equal(result.workspace.generation, 1);
   assert.equal(result.workspace.state, "TERMINAL_BLOCKED");
-  assert.match(result.blocker, /produced no durable candidate seal; replay is refused/i);
+  assert.match(result.blocker, /produced neither a durable candidate seal nor a durable worker STOP; replay is refused/i);
 });
 
 test("work loop carries a product brief into a fresh isolated generation and exact validation", async (t) => {
@@ -911,7 +917,7 @@ test("candidate replacement of the apparent proof program cannot replace base-ow
     ]),
     timeoutSeconds: 30,
   });
-  assert.equal(result.outcome, "PARTIAL");
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
   assert.equal(result.productProof.state, "FAILED");
   assert.equal(workSession.productProofSpec.source.programBlobOid, trustedProgramOid);
   assert.equal(result.productProof.specDigest, workSession.productProofSpec.specDigest);
@@ -985,7 +991,7 @@ test("direct worker writes invalidate the attempt generation before controller m
       env: workerEnv({ FAKE_WORKER_DIRECT_WRITE: "1" }),
       timeoutSeconds: 30,
     }),
-    (error) => error.code === "MH_EXECUTION_PERMIT_STALE",
+    (error) => error.code === "MH_WORK_BOUNDARY_BYTES",
   );
 });
 
@@ -999,12 +1005,12 @@ test("live product-direction drift after permit consumption blocks before materi
     fs.writeFileSync(productPath, original.replace("product-direction-v1", "product-direction-v2"), "utf8");
     return {
       result: {
-        status: "done",
+        schemaVersion: "worker-result/v2",
+        status: "DONE",
         observableResult: "Prepared an in-scope change.",
         operations: [{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }],
         validation: [],
-        blocker: "",
-        nextAction: "Use the result.",
+        stop: null,
       },
     };
   };

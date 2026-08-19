@@ -31,7 +31,7 @@ const {
   computeWorldAttestationDigest,
   rawDigest,
 } = require("../lib/world-attestation");
-const { persistImmutableJson, readImmutableJson } = require("../lib/world-authority");
+const { persistImmutableJson, protocolRoot, readImmutableJson } = require("../lib/world-authority");
 const {
   commitTransition,
   computeWorldProjectionDigest,
@@ -236,6 +236,15 @@ function monotonicNow() {
   };
 }
 
+function monotonicTelemetryClock() {
+  let tick = Date.parse("2026-08-18T02:00:00.000Z");
+  return () => {
+    const value = tick;
+    tick += 100;
+    return value;
+  };
+}
+
 function fakeInterpretation({ input, now }) {
   const learned = Array.isArray(input.currentWorld.payload.learned) ? [...input.currentWorld.payload.learned] : [];
   const invalidated = input.currentWorld.payload.invalidateTarget === input.outcome.id
@@ -267,7 +276,7 @@ function fakeInterpretation({ input, now }) {
   };
 }
 
-function resultRunner({ failId = null, paths = null, delayMs = 0, concurrency = null } = {}) {
+function resultRunner({ failId = null, paths = null, delayMs = 0, delayById = null, concurrency = null } = {}) {
   return async ({ session, schemaPath, outputPath }) => {
     const id = /^Deliver ([a-z0-9-]+)\.$/iu.exec(session.productResult)?.[1];
     if (paths) paths.push({ id, schemaPath, outputPath });
@@ -276,7 +285,8 @@ function resultRunner({ failId = null, paths = null, delayMs = 0, concurrency = 
       concurrency.max = Math.max(concurrency.max, concurrency.active);
     }
     try {
-      if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
+      const effectiveDelayMs = delayById?.[id] ?? delayMs;
+      if (effectiveDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, effectiveDelayMs));
       if (id === failId) {
         const error = new Error(`synthetic ${id} worker failure`);
         error.code = "TEST_WORKER_FAILURE";
@@ -287,12 +297,12 @@ function resultRunner({ failId = null, paths = null, delayMs = 0, concurrency = 
         stdout: "",
         stderr: "",
         result: {
-          status: "done",
+          schemaVersion: "worker-result/v2",
+          status: "DONE",
           observableResult: `Prepared ${id}.`,
           operations: [{ type: "WRITE", path: `src/${id}/result.txt`, content: "delivered\n" }],
           validation: ["synthetic runner completed"],
-          blocker: "",
-          nextAction: "Use the delivered result.",
+          stop: null,
         },
       };
     } finally {
@@ -379,6 +389,60 @@ test("one proposal set executes compatible Claims concurrently and lands sibling
   assert.equal(listActiveOutcomeClaims(root).length, 0);
   const workerSchemaNames = paths.map((entry) => path.basename(entry.schemaPath));
   assert.ok(workerSchemaNames.every((name) => name.includes(".worker-result.schema.json")));
+});
+
+test("static wave durably records barrier effort and frozen structural refill opportunity without redispatch", async (t) => {
+  const { root, initial } = repository(t);
+  writeProposalSet(root, initial.head.headDigest, [proposal(root, "a"), proposal(root, "b"), proposal(root, "c")]);
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
+    runner: resultRunner({ delayById: { a: 10, b: 80 } }),
+    interpret: fakeInterpretation,
+    now: monotonicNow(),
+    telemetryClock: monotonicTelemetryClock(),
+  });
+
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.admitted, 2);
+  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b"]);
+
+  const telemetry = result.orchestrationTelemetry;
+  assert.equal(telemetry.schemaVersion, "repo-work-wave-telemetry/v1");
+  assert.equal(telemetry.authority, "NON_AUTHORITATIVE_OBSERVATION");
+  assert.equal(telemetry.schedulerPolicy, "STATIC_SYNCHRONOUS_WAVE_BASELINE");
+  assert.equal(telemetry.executionBound, 2);
+  assert.equal(telemetry.proposalCount, 3);
+  assert.equal(telemetry.executions.length, 2);
+  assert.deepEqual(telemetry.executions.map((entry) => entry.proposalId).sort(), ["a", "b"]);
+  assert.ok(telemetry.executions.every((entry) => entry.effort?.schemaVersion === "work-metrics/v1"));
+  assert.ok(telemetry.executions.every((entry) => entry.effort.workerMs >= 0));
+  assert.ok(telemetry.executions.every((entry) => entry.effort.attemptCount === 1));
+  assert.ok(telemetry.executions.every((entry) => entry.effort.operationCount === 1));
+  assert.ok(telemetry.synchronousBarrier.completionSpreadMs > 0);
+  assert.ok(telemetry.synchronousBarrier.cumulativePostCompletionBarrierMs > 0);
+
+  assert.equal(telemetry.frozenProposalStructuralRefill.length, 2);
+  const firstRefill = telemetry.frozenProposalStructuralRefill[0];
+  assert.deepEqual(firstRefill.structurallyCompatibleFrozenProposalIds, ["c"]);
+  assert.equal(firstRefill.structurallyCompatibleFrozenProposalCount, 1);
+  assert.equal(firstRefill.counterfactualReleasedLocalClaimCount, 1);
+  assert.equal(firstRefill.counterfactualFillableSlotCount, 1);
+  assert.equal(firstRefill.semanticEligibilityAsserted, false);
+  assert.equal(firstRefill.counterfactualOnly, true);
+  assert.equal(telemetry.landings.length, 2);
+  assert.ok(telemetry.landings.every((entry) => entry.waitAfterLocalCompletionMs >= 0));
+
+  assert.deepEqual(result.orchestrationTelemetryPersistence, { status: "PERSISTED", errorCode: null });
+  assert.match(telemetry.telemetryDigest, /^sha256:[a-f0-9]{64}$/u);
+  const telemetryPath = path.join(
+    protocolRoot(root),
+    "telemetry",
+    "repo-work-waves",
+    `${telemetry.telemetryDigest.slice("sha256:".length)}.json`,
+  );
+  assert.equal(fs.existsSync(telemetryPath), true);
+  assert.deepEqual(JSON.parse(fs.readFileSync(telemetryPath, "utf8")), telemetry);
 });
 
 test("proposal overlap skips the conflicting possibility and keeps scanning in stable order", async (t) => {

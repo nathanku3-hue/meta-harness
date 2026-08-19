@@ -216,9 +216,9 @@ RESUME is selected automatically from persisted state; the owner does not say `-
 
 Reuse requires exact still-ACTIVE custody with matching repository root, workspace identity, physical path, Git administrative marker, branch, sealed base, current HEAD, generation, and live product direction. The controller also requires the exclusive execution lease.
 
-Byte continuity is seal-first, not dirty-status-first. For generation 1, an unsealed baseline must be the exact clean sealed base. For repair generation N > 1, an unsealed baseline must exactly match durable candidate seal N-1. If candidate seal N already exists, that seal must exactly prove the live tree, index, and path set before continuation. The dirty-manifest digest remains a cheap custody consistency check but is not proof of file contents.
+Byte continuity is seal-first, not dirty-status-first. For generation 1, an unsealed baseline must be the exact clean sealed base. For repair generation N > 1, previous-generation continuity is either exact durable candidate seal N-1, or an exact `worker-stop/v1` boundary plus a separately bound `forward-motion-proof/v1` authorizing `CONTINUE_WITH_ALTERNATIVE`. The stop—not the semantic proof—owns mechanical continuity through exact HEAD, branch, index digest, dirty-manifest digest, and Git tree identity. If candidate seal N already exists, that seal must exactly prove the live tree, index, and path set before continuation. The dirty-manifest digest remains a cheap custody consistency check but is not proof of file contents.
 
-A current-generation sealed candidate resumes controller work in the same generation: reacquire the controller lease, re-prove the seal, then continue validation, product proof, and BANK without invoking the coding worker again. Process restart does not advance generation. If an AttemptEntry exists but no candidate seal was durably created, that coding generation is not replayed; closure remains bounded rather than silently resetting the attempt budget.
+A current-generation sealed candidate resumes controller work in the same generation: reacquire the controller lease, re-prove the seal, then continue validation, product proof, and BANK without invoking the coding worker again. A current-generation durable `worker-stop/v1` also resumes without replaying the coding worker: if no forward-motion proof exists, run the one bounded challenger; if a terminal proof exists, close from it; if `CONTINUE_WITH_ALTERNATIVE` exists and budget remains, re-prove the stop boundary and advance exactly once. If an AttemptEntry exists but neither candidate seal nor worker STOP was durably created, that coding generation is not replayed.
 
 A mismatch fails closed. Terminal workspace authority never returns, even when bytes are manually cleaned or restored. A lease left by a controller process that is no longer live may be recovered immediately after its exact lock bytes are rechecked; a live controller lease still excludes concurrent execution.
 
@@ -280,9 +280,11 @@ Meta-Harness owns the trust envelope—inputs, temporal separation, exact bytes,
 
 ## Coding worker
 
-The supported coding worker remains read-only. It receives product direction before local engineering context and returns bounded structured file contents.
+The supported coding worker remains read-only. It receives product direction before local engineering context and emits incompatible `worker-result/v2` with status `DONE`, `PARTIAL`, or `STOP`.
 
-It may not directly mutate the filesystem or Git state. The controller rejects traversal, symlink targets, duplicate paths, oversized content, protected paths, and changes outside the sealed boundary before materialization.
+`DONE` / `PARTIAL` may return bounded typed `WRITE`, `DELETE`, or `MOVE` proposals and must set `stop: null`. `STOP` must return zero mutation operations and a structured stop containing the unsatisfied requirement, failed means with evidence, alternatives considered, and an observed constraint if any. Worker vocabulary has no organizational `blocked` authority and no worker-authored `blocker` / `nextAction`; it may not nominate an owner, manager, librarian, approver, approval gate, or human question.
+
+It may not directly mutate the filesystem or Git state. After worker return the controller compares the exact Git-visible byte/tree boundary as well as HEAD, branch, index, dirty manifest, and allowed paths before trusting the result. Traversal, symlink targets, duplicate paths, oversized content, protected paths, changes outside the sealed boundary, or direct worker mutation fail closed.
 
 Worker-reported validation is advisory. Controller validation is authoritative.
 
@@ -303,7 +305,7 @@ CONTROLLER_COMMIT
 
 The permit does not grant product interpretation, credentials, destructive cleanup, arbitrary root shell, publication by default, or scope widening.
 
-After worker return, the controller re-proves live product direction, session identity, workspace identity, HEAD, branch, owned paths, and the generation's initial dirty manifest before materialization. Git-index mutation, HEAD movement, branch changes, or scope escape fail closed.
+After worker return, the controller re-proves live product direction, session identity, workspace identity, HEAD, branch, owned paths, the generation's initial dirty manifest, and exact Git-tree bytes before materialization. Git-index mutation, HEAD movement, branch changes, same-status byte mutation, or scope escape fail closed.
 
 ## Validation and repair loop
 
@@ -317,9 +319,11 @@ After controller materialization:
 6. if product proof is `PROVEN`, the candidate is eligible for `DONE`;
 7. do not ask the owner to choose the repair actor, session, validation command, or generation.
 
-Candidate seals are the durable provenance chain across repair generations. Generation N+1 must begin from exact seal N bytes; the next seal admits only paths already owned by seal N plus paths changed by the new typed controller operations. Cross-generation provenance is not reconstructed from an in-memory path accumulator.
+Candidate seals are the durable provenance chain across code-producing repair generations. Generation N+1 normally begins from exact seal N bytes; a zero-operation `STOP` generation instead carries exact mechanical continuity through `worker-stop/v1` and can advance only with a separate `CONTINUE_WITH_ALTERNATIVE` proof. The next candidate seal retains paths from the most recent actual candidate plus paths changed by the new typed controller operations. Cross-generation provenance is not reconstructed from an in-memory path accumulator.
 
-The product result, product-direction snapshot, scope, and stop conditions do not change between bounded repair attempts.
+A `STOP` invokes one fresh read-only challenger and no universal reviewer. The challenger has no ExecutionPermit or material/owner/Git authority. It tries to falsify terminality and returns semantic evidence for exactly one of `CONTINUE_WITH_ALTERNATIVE`, `REPLAN_REQUIRED`, `HARD_BLOCKED`, or `OWNER_REQUIRED`. Only `PRODUCT_TASTE`, `SCOPE_EXPANSION`, `CREDENTIALS`, `PROTECTED_ACCESS`, `DESTRUCTIVE_ACTION`, `PUBLICATION`, or `MATERIAL_RISK` may inhabit `OWNER_REQUIRED`; unsupported roles fail toward autonomous replan, never human routing. The challenger itself does not consume a coding attempt; a new coding generation does.
+
+The product result, product-direction snapshot, scope, Claim, and stop conditions do not change when only implementation means change. Exhausted implementation/validation without typed owner proof becomes `REPLAN_REQUIRED`, not implicit owner escalation.
 
 ## Automatic local banking
 
@@ -343,7 +347,7 @@ Push remains explicit publication authority. When `delivery.push=true`, the exis
 
 The source checkout's branch, HEAD, index, and dirty bytes are never the delivery target and remain unchanged.
 
-A `PARTIAL` or `BLOCKED` result is never delivered. `BANKED_UNPROVEN` is deliberately banked local work with non-complete product closure, not a `PARTIAL` workspace state.
+A `REPLAN_REQUIRED`, `BLOCKED`, or `OWNER_REQUIRED` result is never delivered. `BANKED_UNPROVEN` is deliberately banked local work with non-complete product closure, not a partially authoritative workspace state. Human `Need you:` output is permitted only for proof-backed `OWNER_REQUIRED`; question punctuation alone has no authority.
 
 ## Repository proposal / Claim authority
 

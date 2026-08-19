@@ -34,11 +34,11 @@ Use outcome-first planning.
 ## Coding-system law
 
 - `meta-harness work` is the primary product path. Normal help and normal reporting must remain product-facing.
-- Repository-root `PRODUCT.md` is owner-authored product direction. Pin exact bytes into every `work-session/v5`. Never generate, summarize, or overwrite it. Never mutate it through the worker path.
-- `work-session/v5` is the complete active coding brief. The worker must consume it directly, receive product direction before local engineering context, and must not reconstruct product intent from status files or reopen broad planning.
+- Repository-root `PRODUCT.md` is owner-authored product direction. Pin exact bytes into every `work-session/v7`. Never generate, summarize, or overwrite it. Never mutate it through the worker path.
+- `work-session/v7` is the complete active coding brief. The worker must consume it directly, receive product direction before local engineering context, and must not reconstruct product intent from status files or reopen broad planning.
 - Start implementation immediately. Reversible edits, focused validation, bounded repair, and controller-owned workspace creation inside the session are already authorized.
 - A NEW work session never inherits a mutable workspace. Seal an immutable base commit, create a fresh clean managed worktree with a new workspace identity, and execute there. RESUME is the only reuse path and requires exact ACTIVE workspace custody, generation, Git identity, dirty-manifest agreement, and the exclusive controller execution lease. Concurrent execution of one ACTIVE generation fails closed. Terminal workspace authority never returns even if its bytes are cleaned or restored.
-- The coding worker remains read-only with respect to the workspace and returns bounded typed `WRITE`, `DELETE`, or `MOVE` proposals. Meta-Harness validates and materializes them through the controller.
+- The coding worker remains read-only with respect to the workspace and emits `worker-result/v2`: bounded typed `WRITE`, `DELETE`, or `MOVE` proposals, or a zero-operation structured `STOP`. Meta-Harness validates/materializes proposals through the controller; a worker may stop executing but may not declare the Outcome blocked or route owner attention.
 - The coding worker may not directly mutate workspace bytes, reset, clean, stash, revert, stage, commit, push, tag, publish, change branches, mutate worktree topology, or change `PRODUCT.md`.
 - Reject traversal, symlink targets, duplicate or oversized proposals, changes outside `allowedPaths`, any `PRODUCT.md` mutation, Git-index mutation, HEAD movement, or branch changes.
 - Run declared validation outside the model and return failures to the same session until its attempt budget is exhausted.

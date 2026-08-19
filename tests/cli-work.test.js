@@ -453,7 +453,7 @@ test("inspect is a coarse diagnostic surface without lifecycle identifiers", (t)
   assert.doesNotMatch(result.stdout, /workspace|session|generation|custody|sha256|uuid/i);
 });
 
-test("blocked presentation distinguishes owner questions from executable external correction", () => {
+test("owner attention is proof-controlled rather than punctuation-controlled", () => {
   const render = (result) => {
     let output = "";
     renderHuman({ stdout: { write: (chunk) => { output += String(chunk); } } }, result);
@@ -463,6 +463,12 @@ test("blocked presentation distinguishes owner questions from executable externa
     outcome: "BLOCKED",
     blocker: "Date semantics require owner taste.",
     nextAction: "Should exported dates use local time or UTC?",
+  }), "Blocked: Date semantics require owner taste.\nNext: Should exported dates use local time or UTC?\n");
+  assert.equal(render({
+    outcome: "OWNER_REQUIRED",
+    blocker: "A genuine product-taste decision remains.",
+    nextAction: "Should exported dates use local time or UTC?",
+    forwardMotionProofDigest: `sha256:${"a".repeat(64)}`,
   }), "Need you: Should exported dates use local time or UTC?\n");
   assert.equal(render({
     outcome: "BLOCKED",

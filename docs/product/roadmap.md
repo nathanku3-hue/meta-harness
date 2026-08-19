@@ -43,7 +43,7 @@ The human-facing product remains small. Internal continuity may become richer, b
 
 ## Current stabilization boundary
 
-`PRODUCT_DIRECTION_CONTINUITY_1` / `work-session/v6` / product-proof stabilization is banked locally at `22fe09c`. `OUTCOME_CLAIM_AUTHORITY_1` is implemented, validated, and banked locally at `45eec13`; it hard-cuts repo-owned execution to `work-session/v7` while leaving the proven owner-goal transaction, workspace custody, verification, BANK, and closure machinery in place.
+`PRODUCT_DIRECTION_CONTINUITY_1` is banked locally at `22fe09c`; `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`; `PARALLEL_OUTCOME_PROGRESS_1` at `9616bd4`; and `LINEAR_PRODUCT_HEAD_1` at `e2172bc`. The live active path now has Outcome/Claim identity, parallel disposable workers, current-World Closure interpretation, one cumulative authoritative product commit, retained cross-wave proof continuity, and proposal bases derived from `world-head/v2.productCommit`.
 
 A new external score campaign is not a prerequisite for this architecture work. The purpose of the current slices is to remove demonstrated serial and human-routing bottlenecks, not to create another evidence ceremony.
 
@@ -105,7 +105,7 @@ The slice does **not** pretend that the existing `preconditionDigest` is a fact 
 
 **Product result:** parallel worker BANK commits converge into one cumulative locally integrated code commit, and every later repo-owned Outcome is mechanically based on that commit.
 
-Implemented and validated working-tree slice: `LINEAR_PRODUCT_HEAD_1` (see repository-root `implementation_plan.md`). The exact repository test topology passes in bounded replay: 117 test files / 870 tests / 0 failures; the monolithic wrapper itself could not return through DevSpace because of an upstream 502, so no wrapper-pass claim is made. Phase 2 made World learning linear but left successful worker commits on separate managed branches. Phase 3 closes that code-continuity gap before automatic refill can amplify it.
+Banked audited slice: `LINEAR_PRODUCT_HEAD_1` at `e2172bc`. The exact repository test topology passed in bounded replay: 117 test files / 870 tests / 0 failures; the monolithic wrapper itself could not return through DevSpace because of an upstream 502, so no wrapper-pass claim was made. Phase 2 made World learning linear but left successful worker commits on separate managed branches. Phase 3 closes that code-continuity gap before automatic refill can amplify it.
 
 ```text
 current Head H(product P)
@@ -124,43 +124,76 @@ Every integration replays all retained executable validation/product-proof oblig
 
 ### Phase 4 — Forward-motion / escalation proof
 
-**Product result:** an unavailable preferred route cannot prematurely consume human authority or become a false durable blocker.
+**Product result:** an unavailable preferred route cannot prematurely consume human authority or become a false durable blocker, and a permissible substitute can continue the same Outcome without planner or owner routing.
 
-Slice 1 already rejects unsupported/fabricated owner-authority assertions at the authority boundary. Phase 4 adds the stronger forward-motion rule: before `BLOCKED` / `OWNER_DECISION`, require a mechanically structured proof that distinguishes:
+Current local implementation slice: `FORWARD_MOTION_PROOF_1` (see repository-root `implementation_plan.md`). The architecture audit passed with material revisions and implementation is present on the uncommitted checkout while repository-wide validation completes. The active path hard-cuts worker-authored routing and question-punctuation authority.
 
 ```text
-desired outcome
-required facts/capabilities
-failed means
-alternatives considered
-hard-constraint evidence
-real owner-exclusive authority requested
+worker proposes structured STOP
+→ durable worker-stop evidence
+→ one fresh read-only forward-motion challenge
+→ forward-motion-proof/v1
+
+available in-scope alternative
+→ same Outcome / Claim / session
+→ next bounded generation automatically
+
+Outcome decomposition must change
+→ REPLAN_REQUIRED
+→ no owner attention
+
+supported hard outcome constraint
+→ BLOCKED
+
+validated constitutional owner-exclusive need
+→ OWNER_REQUIRED
+→ one concise Need you
 ```
+
+Only these owner-exclusive kinds may reach the human:
+
+```text
+PRODUCT_TASTE
+SCOPE_EXPANSION
+CREDENTIALS
+PROTECTED_ACCESS
+DESTRUCTIVE_ACTION
+PUBLICATION
+MATERIAL_RISK
+```
+
+Arbitrary model-invented roles such as librarian/manager/approver are not owner authority. Question punctuation is not authority. Successful work pays no challenger/reviewer tax.
 
 Core law:
 
 > A failed implementation route is not a blocked outcome.
 
-Persist disproven constraints/misconceptions so fresh sessions cannot resurrect a false blocker without new evidence.
+`worker-stop/v1` records the exact mechanical STOP boundary (AttemptEntry, workspace generation, HEAD/branch/index/dirty-manifest/Git-tree identity, and exact STOP bytes). `forward-motion-proof/v1` references that immutable stop and records semantic judgment only: failed means, alternatives, hard-constraint evidence, unsupported assertions, and any real owner request. A next generation after STOP requires both byte-identical worker-stop continuity and a separate `CONTINUE_WITH_ALTERNATIVE` proof. Repository World learning retains semantic evidence for fresh-session continuation; a generic belief graph/constraint ontology is deferred until real use proves it necessary.
 
-**Done when:** a fresh-session regression with a partial source and a previously disproven fictional authority requirement selects/researches viable alternative means instead of asking the owner.
+**Done when:** the Quant-style fresh-session regression with a partial source and a fictional authority requirement cannot reach `Need you`; if an in-scope substitute exists, the same Outcome continues automatically under a fresh execution generation; otherwise it becomes autonomous replan/hard-block learning unless one of the seven real owner-exclusive authorities is actually established.
 
-### Phase 5 — Logical planner + fresh proposal production
+### Phase 5 — Logical planner + automatic initial dispatch
 
-**Product result:** the owner talks only to one logical planner role, and current authoritative product/world state can be turned into fresh current-Head-bound proposal snapshots without manual task routing.
+**Owner-authority boundary before implementation:** current `PRODUCT.md` does not yet make this planner-only interface plus automatic decomposition/dispatch the owner-authored product journey. Roadmap intent is not sufficient authority. Before Phase 5 implementation, the owner must explicitly update `PRODUCT.md`; engineering must not infer that product change from this roadmap.
+
+**Product result:** the owner talks only to one logical planner role, and current authoritative product/world state turns directly into fresh current-Head-bound executable proposals and worker launches without manual handoff/routing.
 
 Planner behavior:
 
-- read owner intent, current World, authoritative integrated product commit, Claims, Closures, research findings, and relevant repository evidence;
-- ask only unresolved product/taste/owner-authority questions;
+- reconstruct from owner intent, current World/productCommit, Claims, Closures, forward-motion proofs, research findings, and relevant repository evidence;
+- consume worker/Closure handoff from durable state; the owner never pastes it back with `explain to me:`;
+- ask only unresolved product/taste/validated owner-authority questions;
 - produce enough independently valuable proposals to saturate useful current execution capacity plus expose the next meaningful dependency boundary;
 - bind proposals to current WorldHead; never choose work-session base independently of the Head;
-- stop planning and leave execution to Meta-Harness;
-- wake only for changed intent, material discoveries, repeated worker failure, exhausted useful outcomes, failed escalation proof, or a risk-triggered challenge requiring planning.
+- emit machine-consumable proposal intent, not instructions such as `run two streams` for the owner to relay;
+- hand proposals directly to Meta-Harness Claim admission so compatible work sessions/workers boot automatically;
+- keep worker prompts internal; the owner never copies, pastes, inspects, or routes them;
+- stop planning and disappear once the initial useful frontier is admitted;
+- wake only for changed intent, material discoveries, repeated worker failure, exhausted useful outcomes, failed forward-motion proof, or another planning-level change.
 
-Planner checkpoint is a reconstructable cache, never authoritative truth.
+Planner checkpoint/context is reconstructable cache, never authoritative truth.
 
-**Done when:** after minimal top-level alignment the owner can leave; planner sessions may die; a fresh planner can regenerate a proposal snapshot from durable state; only genuine owner judgment returns to the human.
+**Done when:** after minimal top-level alignment the owner can leave; fresh planner sessions may die/restart; durable worker handoff is consumed automatically; planner-selected parallel streams become Claims/workers without owner routing; worker prompts never become a human transport surface; and only genuine owner judgment returns to the human.
 
 ### Phase 6 — Event-driven reconciliation + capacity refill
 

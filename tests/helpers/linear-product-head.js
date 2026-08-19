@@ -118,7 +118,7 @@ function fakeInterpretation({ input, now }) {
 }
 
 function runner({ breakSharedId = null } = {}) {
-  return async ({ session }) => { const id = /^Deliver ([a-z0-9-]+)\.$/iu.exec(session.productResult)?.[1]; const operations = [{ type: "WRITE", path: `src/${id}/result.txt`, content: "delivered\n" }]; if (id === breakSharedId) operations.push({ type: "WRITE", path: "src/shared/invariant.txt", content: "broken\n" }); return { worker: "linear-product-test-runner", stdout: "", stderr: "", result: { status: "done", observableResult: `Prepared ${id}.`, operations, validation: ["synthetic runner"], blocker: "", nextAction: "Use the result." } }; };
+  return async ({ session }) => { const id = /^Deliver ([a-z0-9-]+)\.$/iu.exec(session.productResult)?.[1]; const operations = [{ type: "WRITE", path: `src/${id}/result.txt`, content: "delivered\n" }]; if (id === breakSharedId) operations.push({ type: "WRITE", path: "src/shared/invariant.txt", content: "broken\n" }); return { worker: "linear-product-test-runner", stdout: "", stderr: "", result: { schemaVersion: "worker-result/v2", status: "DONE", observableResult: `Prepared ${id}.`, operations, validation: ["synthetic runner"], stop: null } }; };
 }
 
 function legacySession(root, outcome, headDigest, id) {
