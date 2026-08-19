@@ -1,7 +1,7 @@
 {
   "name": "@nkgss/meta-harness",
   "version": "0.4.0",
-  "description": "A local coding system that carries one accepted product result into code, validation, repair, and a locally banked result.",
+  "description": "A local coding system that turns durable product direction into planned, claimed, validated, locally banked code.",
   "license": "MIT",
   "type": "commonjs",
   "repository": {

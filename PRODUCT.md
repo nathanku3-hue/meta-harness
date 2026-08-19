@@ -2,7 +2,7 @@
 
 ## Version
 
-product-direction-v1
+product-direction-v2
 
 ## Endgame
 
@@ -16,13 +16,23 @@ A solo developer/researcher shipping complex multi-module systems who needs AI c
 
 ```text
 owner-authored product direction
-→ accepted product result
-→ sealed work session
-→ safe workspace
-→ coding worker
+→ high-level intent
+→ planner decomposition
+→ multiple Outcomes
+→ automatic dispatch
 → exact validation
 → bounded repair
 → observable result
+```
+
+Phase-5 execution law:
+
+```text
+Planner proposes meaning.
+Kernel grants exact capability.
+Claim makes commitment durable.
+Worker executes.
+World learns.
 ```
 
 The primary command is `meta-harness work`. Product direction is stated once in this file and must survive every session, repair, and resume unchanged until the owner edits this file.

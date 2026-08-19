@@ -59,6 +59,21 @@ if (prompt.includes("Compile independent product proof before any coding candida
   process.exit(0);
 }
 
+if (prompt.includes("LOGICAL_PLANNER_AUTODISPATCH_V1")) {
+  let proposals = [];
+  if (process.env.FAKE_PLANNER_CANDIDATES_JSON) {
+    try {
+      proposals = JSON.parse(process.env.FAKE_PLANNER_CANDIDATES_JSON);
+    } catch (error) {
+      process.stderr.write(`invalid FAKE_PLANNER_CANDIDATES_JSON: ${error.message}\n`);
+      process.exit(3);
+    }
+  }
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, `${JSON.stringify({ schemaVersion: "planner-candidate-batch/v1", proposals })}\n`, "utf8");
+  process.exit(0);
+}
+
 if (prompt.includes("FORWARD_MOTION_CHALLENGE_V1")) {
   const disposition = String(process.env.FAKE_FORWARD_MOTION_DISPOSITION || "REPLAN_REQUIRED").toUpperCase();
   const failedMeans = [{ means: "preferred API/source", evidence: ["The worker observed that the preferred route was unavailable."] }];

@@ -40,6 +40,25 @@ const {
   writeProposalSet,
 } = require("./helpers/linear-product-head");
 
+function plannerCandidate(value) {
+  return {
+    id: value.id,
+    productResult: value.productResult,
+    journeyState: value.journeyState,
+    doNow: value.doNow,
+    newlyTrueBehavior: value.newlyTrueBehavior,
+    doneWhen: value.doneWhen,
+    stopOnlyIf: value.stopOnlyIf,
+    expectedWritePaths: value.allowedPaths,
+  };
+}
+
+function plannerRunner(values) {
+  return async () => ({
+    batch: { schemaVersion: "planner-candidate-batch/v1", proposals: values.map(plannerCandidate) },
+  });
+}
+
 test("world-transition/v2 product commit participates in transition and Head identity", (t) => {
   const { root, baseline } = repository(t);
   const initial = persistInitial(root, "world-transition/v2");
@@ -91,10 +110,10 @@ test("legacy Phase-2 APPLIED A+B migration reconstructs one cumulative v2 produc
 test("later wave cannot break a retained earlier product obligation", async (t) => {
   const { root } = repository(t); const initial = persistInitial(root, "world-transition/v2");
   writeProposalSet(root, initial.head.headDigest, [proposal("a")]);
-  assert.equal((await runRepoWorkWave({ repositoryPath: root, runner: runner(), interpret: fakeInterpretation, now: monotonicNow() })).outcome, "DONE");
+  assert.equal((await runRepoWorkWave({ repositoryPath: root, runner: runner(), plannerRunner: plannerRunner([proposal("a")]), interpret: fakeInterpretation, now: monotonicNow() })).outcome, "DONE");
   const afterA = readCurrentWorldState(root); const p1 = afterA.head.productCommit;
   writeProposalSet(root, afterA.head.headDigest, [proposal("c", { allowedPaths: ["src/c", "src/shared"] })]);
-  const second = await runRepoWorkWave({ repositoryPath: root, runner: runner({ breakSharedId: "c" }), interpret: fakeInterpretation, now: monotonicNow() });
+  const second = await runRepoWorkWave({ repositoryPath: root, runner: runner({ breakSharedId: "c" }), plannerRunner: plannerRunner([proposal("c", { allowedPaths: ["src/c", "src/shared"] })]), interpret: fakeInterpretation, now: monotonicNow() });
   assert.equal(second.outcome, "REPLAN_REQUIRED");
   const afterC = readCurrentWorldState(root); assert.equal(afterC.head.productCommit, p1);
   assert.deepEqual(afterC.world.payload.learned, ["a"]); assert.deepEqual(afterC.world.payload.replans, ["c"]);
@@ -104,7 +123,7 @@ test("later wave cannot break a retained earlier product obligation", async (t) 
 test("authoritative product commit remains reachable and repairs a missing mirror ref", async (t) => {
   const { root } = repository(t); const initial = persistInitial(root, "world-transition/v2");
   writeProposalSet(root, initial.head.headDigest, [proposal("a")]);
-  await runRepoWorkWave({ repositoryPath: root, runner: runner(), interpret: fakeInterpretation, now: monotonicNow() });
+  await runRepoWorkWave({ repositoryPath: root, runner: runner(), plannerRunner: plannerRunner([proposal("a")]), interpret: fakeInterpretation, now: monotonicNow() });
   const productCommit = readCurrentWorldState(root).head.productCommit; git(root, ["cat-file", "-e", `${productCommit}^{commit}`]);
   git(root, ["update-ref", "-d", PRODUCT_HEAD_REF]);
   assert.notEqual(spawnSync("git", ["rev-parse", "--verify", PRODUCT_HEAD_REF], { cwd: root }).status, 0);

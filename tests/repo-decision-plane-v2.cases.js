@@ -432,7 +432,7 @@ test("legacy NO_DISPATCH remains historical evidence and is not active mutable w
   const root = repository(t);
   const initial = persistWorld(root, { observations: ["current"] });
   installDecision(root, initial.head.headDigest, { type: "NO_DISPATCH", reason: "NO_VALUABLE_ACTION" });
-  const result = runRaw(root, ["work", root, "--json"]);
+  const result = runRaw(root, ["work", root, "--json"], { env: workerEnv() });
   assert.equal(result.status, 1, result.stderr || result.stdout);
   assert.equal(JSON.parse(result.stdout).outcome, "REPLAN_REQUIRED");
   assert.equal(fs.existsSync(path.join(root, ".worktrees")), false);

@@ -70,6 +70,7 @@ function repository(t) {
   fs.mkdirSync(path.join(root, "src", "shared"), { recursive: true }); fs.writeFileSync(path.join(root, "src", "shared", "invariant.txt"), "safe\n", "utf8");
   fs.writeFileSync(path.join(root, "src", "source.txt"), "authoritative\n", "utf8"); writeProductMd(root);
   writeJson(root, ".meta-harness/repo-charter.json", { ownerPolicy: "linear-product-head-test" });
+  writeJson(root, ".meta-harness/validation.json", { schemaVersion: "meta-harness-validation/v1", commands: [{ argv: [process.execPath, "-e", "const fs=require('fs'),p=require('path');let ok=false;function walk(d){for(const n of fs.readdirSync(d)){const f=p.join(d,n),s=fs.statSync(f);if(s.isDirectory())walk(f);else if(n==='result.txt'&&fs.readFileSync(f,'utf8')==='delivered\\n')ok=true}}walk('src');if(!ok)process.exit(7)"], cwd: ".", timeoutSeconds: 60 }] });
   fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.js"), proofProgram(), "utf8");
   writeJson(root, ".meta-harness/product-proof.json", { schemaVersion: "product-proof-policy/v2", programPath: ".meta-harness/product-proof.js", runtime: process.execPath, timeoutSeconds: 30, claims: [{ id: "delivered-result", statement: "The delivered result and retained product invariants hold.", baselineExpectation: "FAIL", covers: ["productResult", "newlyTrueBehavior", "doneWhen"] }] });
   fs.writeFileSync(path.join(root, ".meta-harness", "closure-interpreter.js"), interpreterProgram(), "utf8"); git(root, ["add", "."]); git(root, ["commit", "-m", "baseline"]);

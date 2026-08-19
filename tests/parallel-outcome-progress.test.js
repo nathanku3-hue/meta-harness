@@ -108,6 +108,14 @@ function repository(t, { payload = { learned: [] } } = {}) {
   fs.writeFileSync(path.join(root, "src", "source.txt"), "authoritative\n", "utf8");
   writeProductMd(root);
   writeJson(root, ".meta-harness/repo-charter.json", { ownerPolicy: "repo-owned-test" });
+  writeJson(root, ".meta-harness/validation.json", {
+    schemaVersion: "meta-harness-validation/v1",
+    commands: [{
+      argv: [process.execPath, "-e", "const fs=require('fs'),p=require('path');let ok=false;function walk(d){for(const n of fs.readdirSync(d)){const f=p.join(d,n),s=fs.statSync(f);if(s.isDirectory())walk(f);else if(n==='result.txt'&&fs.readFileSync(f,'utf8')==='delivered\\n')ok=true}}walk('src');if(!ok)process.exit(7)"],
+      cwd: ".",
+      timeoutSeconds: 60,
+    }],
+  });
   fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.js"), proofProgram(), "utf8");
   writeJson(root, ".meta-harness/product-proof.json", {
     schemaVersion: "product-proof-policy/v2",
@@ -227,6 +235,26 @@ function writeProposalSet(root, headDigest, proposals) {
   });
 }
 
+function plannerCandidate(id, expectedWritePath = `src/${id}`) {
+  const value = proposal(null, id, expectedWritePath);
+  return {
+    id: value.id,
+    productResult: value.productResult,
+    journeyState: value.journeyState,
+    doNow: value.doNow,
+    newlyTrueBehavior: value.newlyTrueBehavior,
+    doneWhen: value.doneWhen,
+    stopOnlyIf: value.stopOnlyIf,
+    expectedWritePaths: [expectedWritePath],
+  };
+}
+
+function plannerRunner(proposals) {
+  return async () => ({
+    batch: { schemaVersion: "planner-candidate-batch/v1", proposals },
+  });
+}
+
 function monotonicNow() {
   let tick = Date.parse("2026-08-18T02:00:00.000Z");
   return () => {
@@ -335,13 +363,15 @@ test("new Claim visibility implies durable session recovery and proposal deletio
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
     runner: resultRunner(),
+    plannerRunner: plannerRunner([]),
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });
   assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 1);
   assert.equal(listActiveOutcomeClaims(root).length, 0);
   assert.ok(readOutcomeClaimRelease(root, admitted.claim.claimDigest));
-  assert.equal(result.proposalSetDigest, null);
+  assert.equal(result.plannerInvoked, true);
+  assert.equal(result.plannerCandidateCount, 0);
 });
 
 test("new Claim admission rejects a proposal snapshot whose origin Head stopped being current", (t) => {
@@ -368,6 +398,7 @@ test("one proposal set executes compatible Claims concurrently and lands sibling
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "3" },
     runner: resultRunner({ paths, delayMs: 80, concurrency }),
+    plannerRunner: plannerRunner([plannerCandidate("a"), plannerCandidate("b"), plannerCandidate("c")]),
     interpret: (args) => {
       heads.push({ id: args.input.outcome.id, head: args.input.currentHead.headDigest });
       return fakeInterpretation(args);
@@ -398,6 +429,7 @@ test("static wave durably records barrier effort and frozen structural refill op
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
     runner: resultRunner({ delayById: { a: 10, b: 80 } }),
+    plannerRunner: plannerRunner([plannerCandidate("a"), plannerCandidate("b"), plannerCandidate("c")]),
     interpret: fakeInterpretation,
     now: monotonicNow(),
     telemetryClock: monotonicTelemetryClock(),
@@ -410,9 +442,10 @@ test("static wave durably records barrier effort and frozen structural refill op
   const telemetry = result.orchestrationTelemetry;
   assert.equal(telemetry.schemaVersion, "repo-work-wave-telemetry/v1");
   assert.equal(telemetry.authority, "NON_AUTHORITATIVE_OBSERVATION");
-  assert.equal(telemetry.schedulerPolicy, "STATIC_SYNCHRONOUS_WAVE_BASELINE");
+  assert.equal(telemetry.schedulerPolicy, "ONE_SHOT_INITIAL_FRONTIER");
   assert.equal(telemetry.executionBound, 2);
-  assert.equal(telemetry.proposalCount, 3);
+  assert.equal(telemetry.plannerInvoked, true);
+  assert.equal(telemetry.plannerCandidateCount, 3);
   assert.equal(telemetry.executions.length, 2);
   assert.deepEqual(telemetry.executions.map((entry) => entry.proposalId).sort(), ["a", "b"]);
   assert.ok(telemetry.executions.every((entry) => entry.effort?.schemaVersion === "work-metrics/v1"));
@@ -422,10 +455,10 @@ test("static wave durably records barrier effort and frozen structural refill op
   assert.ok(telemetry.synchronousBarrier.completionSpreadMs > 0);
   assert.ok(telemetry.synchronousBarrier.cumulativePostCompletionBarrierMs > 0);
 
-  assert.equal(telemetry.frozenProposalStructuralRefill.length, 2);
-  const firstRefill = telemetry.frozenProposalStructuralRefill[0];
-  assert.deepEqual(firstRefill.structurallyCompatibleFrozenProposalIds, ["c"]);
-  assert.equal(firstRefill.structurallyCompatibleFrozenProposalCount, 1);
+  assert.equal(telemetry.frozenCandidateStructuralRefill.length, 2);
+  const firstRefill = telemetry.frozenCandidateStructuralRefill[0];
+  assert.deepEqual(firstRefill.structurallyCompatibleFrozenCandidateIds, ["c"]);
+  assert.equal(firstRefill.structurallyCompatibleFrozenCandidateCount, 1);
   assert.equal(firstRefill.counterfactualReleasedLocalClaimCount, 1);
   assert.equal(firstRefill.counterfactualFillableSlotCount, 1);
   assert.equal(firstRefill.semanticEligibilityAsserted, false);
@@ -456,6 +489,11 @@ test("proposal overlap skips the conflicting possibility and keeps scanning in s
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "3" },
     runner: resultRunner(),
+    plannerRunner: plannerRunner([
+      plannerCandidate("a", "src/a"),
+      plannerCandidate("b", "src/a/nested"),
+      plannerCandidate("c", "src/c"),
+    ]),
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });
@@ -474,6 +512,7 @@ test("fresh current-World interpretation can invalidate a sibling without strand
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
     runner: resultRunner({ delayMs: 30 }),
+    plannerRunner: plannerRunner([plannerCandidate("a"), plannerCandidate("b")]),
     interpret: (args) => {
       seen.push({ id: args.input.outcome.id, head: args.input.currentHead.headDigest, learned: args.input.currentWorld.payload.learned });
       return fakeInterpretation(args);
@@ -564,6 +603,7 @@ test("one worker failure does not cancel siblings and every terminal Claim reach
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "3" },
     runner: resultRunner({ failId: "b", delayMs: 40 }),
+    plannerRunner: plannerRunner([plannerCandidate("a"), plannerCandidate("b"), plannerCandidate("c")]),
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });
@@ -582,7 +622,12 @@ test("empty proposal set is reconciliation-required, never active NO_DISPATCH te
     historicalOnly: true,
     decision: { type: "NO_DISPATCH", reason: "USE_PRODUCT" },
   });
-  const result = await runRepoWorkWave({ repositoryPath: root, interpret: fakeInterpretation, now: monotonicNow() });
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    plannerRunner: plannerRunner([]),
+    interpret: fakeInterpretation,
+    now: monotonicNow(),
+  });
   assert.equal(result.outcome, "REPLAN_REQUIRED");
   assert.equal(result.admitted, 0);
   assert.equal(result.outcomes.length, 0);
@@ -618,6 +663,7 @@ test("worker schema identity is session/workspace-addressed rather than one shar
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
     runner: resultRunner({ paths, delayMs: 20 }),
+    plannerRunner: plannerRunner([plannerCandidate("a"), plannerCandidate("b")]),
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });
