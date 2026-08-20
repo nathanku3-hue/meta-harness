@@ -17,6 +17,18 @@ const { git, persistInitial, repository } = require("./helpers/linear-product-he
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
 
+test("pre-aborted normal work cannot revise owner objective state", (t) => {
+  const { root } = repository(t);
+  const controller = new AbortController();
+  controller.abort();
+  assert.equal(fs.existsSync(objectivePath(root)), false);
+  assert.throws(
+    () => automaticRequest(root, "must not become durable", { signal: controller.signal }),
+    (error) => error.code === "MH_DRAIN_REQUESTED",
+  );
+  assert.equal(fs.existsSync(objectivePath(root)), false);
+});
+
 test("normal planner-enabled owner input changes only Git-common objective state", (t) => {
   const { root } = repository(t);
   fs.writeFileSync(path.join(root, "src", "a", "baseline.txt"), "owner tracked dirt\n", "utf8");

@@ -78,6 +78,35 @@ function current(root) {
   return readCurrentWorldState(root);
 }
 
+test("promoter result stays disposable when drain wins before canonical persistence", async (t) => {
+  const root = researchRepository(t, {
+    "docs/research/drain.md": "Drain keeps this evidence disposable until persistence.\n",
+  });
+  const authoritative = current(root);
+  const source = enumerateResearchSourceOccurrences({ repositoryPath: root, productCommit: authoritative.head.productCommit })[0];
+  const controller = new AbortController();
+  const runner = modelRunner(async () => {
+    controller.abort();
+    return candidate([{
+      kind: "FINDING",
+      statement: "The source says promotion is disposable until persistence.",
+      scope: "general",
+      quotes: ["Drain keeps this evidence disposable until persistence."],
+    }]);
+  });
+
+  await assert.rejects(
+    ensureCurrentResearchPromotions({
+      repositoryPath: root,
+      current: authoritative,
+      modelRunner: runner,
+      signal: controller.signal,
+    }),
+    (error) => error.code === "MH_DRAIN_REQUESTED",
+  );
+  assert.equal(readResearchPromotion(root, source.contentDigest, { optional: true }), null);
+});
+
 test("research sources come only from exact committed conventional-root blobs", async (t) => {
   const root = researchRepository(t, {
     "docs/research/current.md": "Committed evidence says the route is bounded.\n",

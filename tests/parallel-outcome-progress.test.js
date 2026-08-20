@@ -634,7 +634,7 @@ test("terminal Closure without a work result resolves through ATTEMPT_ABORTED an
     now: monotonicNow(),
   });
   assert.equal(interpreterCalled, false);
-  assert.equal(landing.state, "BLOCKED");
+  assert.equal(landing.state, "EXECUTION_ABORTED");
   const transition = readImmutableJson(root, "transitions", landing.transitionDigest);
   assert.equal(transition.cause.type, "ATTEMPT_ABORTED");
   assert.ok(readOutcomeClaimRelease(root, admitted.claim.claimDigest));
@@ -653,7 +653,8 @@ test("one worker failure does not cancel siblings and every terminal Claim reach
   });
   assert.equal(result.outcome, "PARTIAL");
   assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 2);
-  assert.equal(result.outcomes.filter((entry) => entry.state === "BLOCKED").length, 1);
+  assert.equal(result.outcomes.filter((entry) => entry.state === "EXECUTION_ABORTED").length, 1);
+  assert.equal(result.outcomes.filter((entry) => entry.state === "BLOCKED").length, 0);
   assert.equal(listActiveOutcomeClaims(root).length, 0);
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "c"]);
 });

@@ -6,6 +6,7 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
+const { compileProductProofSpec } = require("../lib/work-proof-compiler");
 const {
   gapProductProofSpec,
   productProofContract,
@@ -13,6 +14,7 @@ const {
   sealProductProofSpec,
 } = require("../lib/work-product-proof-spec");
 const { tempDir } = require("./helpers/cli");
+const { directionFromContent } = require("./helpers/product-direction");
 
 function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
@@ -66,6 +68,63 @@ function installPolicy(root, { runtime = "node", programPath = "proof/check.js" 
   git(root, ["commit", "-m", "product proof policy"]);
   return git(root, ["rev-parse", "HEAD"]);
 }
+
+test("proof-compiler result stays disposable when drain wins before compiled spec durableization", async (t) => {
+  const root = repository(t);
+  const controller = new AbortController();
+  const base = { commit: git(root, ["rev-parse", "HEAD"]) };
+  const productDirection = directionFromContent();
+  const modelRunner = async () => {
+    controller.abort();
+    return {
+      model: "test-proof-compiler",
+      result: {
+        claims: [{
+          id: "result",
+          statement: "The requested result is represented.",
+          disposition: "UNVERIFIABLE",
+          baselineExpectation: "NONE",
+          covers: ["productResult", "newlyTrueBehavior", "doneWhen"],
+          reason: "test result",
+        }],
+        program: null,
+      },
+      stdout: "",
+      stderr: "",
+    };
+  };
+
+  await assert.rejects(
+    Promise.resolve(compileProductProofSpec({
+      repositoryPath: root,
+      productDirection,
+      base,
+      productResult: "Add the delivered result.",
+      newlyTrueBehavior: "The delivered result becomes observable.",
+      doneWhen: "The delivered result is correct.",
+      signal: controller.signal,
+      modelRunner,
+    })),
+    (error) => error.code === "MH_DRAIN_REQUESTED",
+  );
+});
+
+test("ordinary proof-compiler failure still degrades to an explicit GAP", async (t) => {
+  const root = repository(t);
+  const spec = await Promise.resolve(compileProductProofSpec({
+    repositoryPath: root,
+    productDirection: directionFromContent(),
+    base: { commit: git(root, ["rev-parse", "HEAD"]) },
+    productResult: "Add the delivered result.",
+    newlyTrueBehavior: "The delivered result becomes observable.",
+    doneWhen: "The delivered result is correct.",
+    modelRunner: async () => {
+      throw new Error("compiler unavailable");
+    },
+  }));
+  assert.equal(spec.source.type, "GAP");
+  assert.match(spec.source.reason, /compiler unavailable/u);
+});
 
 test("absence is represented by an explicit canonical GAP spec rather than UNAVAILABLE runtime state", (t) => {
   const root = repository(t);

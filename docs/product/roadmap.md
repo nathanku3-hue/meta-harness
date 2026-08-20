@@ -44,7 +44,7 @@ The human-facing product remains small. Internal continuity may become richer, b
 
 ## Current stabilization boundary
 
-`PRODUCT_DIRECTION_CONTINUITY_1` is banked locally at `22fe09c`; `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`; `PARALLEL_OUTCOME_PROGRESS_1` at `9616bd4`; `LINEAR_PRODUCT_HEAD_1` at `e2172bc`; `FORWARD_MOTION_PROOF_1` at `a63e82c`; `LOGICAL_PLANNER_AUTODISPATCH_1` at `234b5b1`; `EVENT_DRIVEN_RECONCILIATION_1` at `39ab56a`; `PROMOTED_RESEARCH_FINDINGS_1` at `de0e828`; and `CURRENT_PRODUCT_STRUCTURAL_SAW_1` at `ddcfe0c`. The live active path now has Outcome/Claim identity, parallel disposable workers, current-World Closure interpretation, one cumulative authoritative product commit, retained cross-wave proof continuity, a typed forward-motion boundary, fresh durable-handoff planning, exact-or-reject capability compilation, settlement-driven refill without a queue/daemon, content-keyed attributable promoted research reconstructed into fresh planner boots without raw chat memory, and current-product structural SAW that rejects new/worsened structural debt without stale baseline refresh.
+`PRODUCT_DIRECTION_CONTINUITY_1` is banked locally at `22fe09c`; `OUTCOME_CLAIM_AUTHORITY_1` at `45eec13`; `PARALLEL_OUTCOME_PROGRESS_1` at `9616bd4`; `LINEAR_PRODUCT_HEAD_1` at `e2172bc`; `FORWARD_MOTION_PROOF_1` at `a63e82c`; `LOGICAL_PLANNER_AUTODISPATCH_1` at `234b5b1`; `EVENT_DRIVEN_RECONCILIATION_1` at `39ab56a`; `PROMOTED_RESEARCH_FINDINGS_1` at `de0e828`; `CURRENT_PRODUCT_STRUCTURAL_SAW_1` at `ddcfe0c`; and `OWNER_OBJECTIVE_CONTINUITY_1` at `5fbf7b8`. The live active path now has Outcome/Claim identity, parallel disposable workers, current-World Closure interpretation, one cumulative authoritative product commit, retained cross-wave proof continuity, typed forward motion, durable-handoff planning, exact-or-reject capability compilation, settlement-driven refill without a queue/daemon, attributable promoted research, current-product structural SAW, and controller-owned owner-objective revisions that remain planner-salient under imperative repository-local workflow prose.
 
 A new external score campaign is not a prerequisite for this architecture work. The purpose of the current slices is to remove demonstrated serial and human-routing bottlenecks, not to create another evidence ceremony.
 
@@ -384,7 +384,7 @@ owner judgment required       → surface one concise Need you / Next
 
 **Product result:** the owner's exact current high-level objective enters controller-owned durable planner state through the normal product path, survives conversational death, participates in planning freshness, and remains the optimization target even when repository-local status, review, phase, and authorization prose is more repetitive or imperative.
 
-**Implemented in the working tree; deterministic validation green; real-planner behavioral closure still pending.** `OWNER_OBJECTIVE_CONTINUITY_1` incorporates the broader reaudit cuts in repository-root `implementation_plan.md`. The retained real-model A/B/C eval cannot currently execute because the installed local Codex fails before reading the prompt with an incompatible models-cache error; this is recorded as an external validation gap rather than converted into another harness layer.
+**Banked implementation:** `OWNER_OBJECTIVE_CONTINUITY_1` at `5fbf7b8`. Deterministic validation is green; real-planner behavioral closure is still pending. The retained real-model A/B/C eval cannot currently execute because the installed local Codex fails before reading the prompt with an incompatible models-cache error; this remains an external validation gap rather than being converted into cache surgery, a fallback evaluator, or another harness layer.
 
 ```text
 OWNER INPUT
@@ -427,15 +427,62 @@ Hard cuts implemented:
 
 Deterministic evidence is green, including checkout-pure product-surface objective capture, ABA revision, stale-objective Claim rejection, same-Head/new-objective replanning, exact CRLF PRODUCT projection, neutral planner layering, and the retained Phase-1–8A authority/reconciliation replay (82/82). The required live semantic eval remains the only Phase-9 closure evidence not yet obtained.
 
-**Done when:** the existing opt-in real planner eval passes all three fresh trials for A, B, and C with zero bad trial, in addition to the already-green deterministic and retained regressions. Until then Phase 10 remains sequenced after Phase 9 rather than being activated as if objective continuity were behaviorally proven.
+**Done when:** the existing opt-in real planner eval passes all three fresh trials for A, B, and C with zero bad trial, in addition to the already-green deterministic and retained regressions. That live-model result remains Phase-9 behavioral evidence; it does not gate the separately implemented controlled-drain path.
 
-### Phase 10 — DRAIN / WAKE disposable-session proof
+### Phase 10 — Controlled DRAIN / ordinary WAKE disposable-session proof
 
-**Product result:** all model sessions can die safely and the organization still knows exactly what exists.
+**Product result:** intentional shutdown can make every local model session disposable while preserving exact durable commitments and leaving no controller-owned execution lease behind.
 
-`DRAIN` remains an internal controlled-shutdown concept rather than a required public lifecycle command. The eventual slice should stop new admission, quiesce/terminate ephemeral model work at safe boundaries, preserve recoverable active Claim/workspace custody, abort only work with no durable recoverable boundary, release live execution leases, and prove zero live executors. Ordinary `meta-harness work` is the WAKE path: it revalidates and resumes/releases using durable truth only.
+Implementation record: `CONTROLLED_DRAIN_WAKE_1` (repository-root `implementation_plan.md`). Phase 10 follows the banked Phase-9 implementation and closes intentional quiescence; it does not substitute shutdown evidence for the separate Phase-9 live planner evaluation.
 
-**Done when:** kill every planner, worker, challenger, promoter, and controller session; start entirely fresh execution; continuation needs no narration or old transcript and no public drain/wake workflow controls.
+```text
+active work
+→ first SIGINT / SIGTERM requests controller-local DRAINING
+→ stop new planner/promotion/admission/worker launch
+→ terminate local ephemeral model subprocesses
+→ classify each execution from existing durable truth
+
+PENDING_WORKSPACE
+BASELINE before AttemptEntry
+SEALED_CANDIDATE
+WORKER_STOP
+→ keep Claim/session active
+→ keep existing workspace ACTIVE when present
+→ create no workspace for PENDING_WORKSPACE
+→ release local lease when present
+→ ordinary future work resumes
+
+AttemptEntry + no seal + no STOP
+→ no-result Closure
+→ ATTEMPT_ABORTED
+→ release Claim
+
+terminal Closure already exists
+→ finish normal landing/release
+
+→ prove zero leases owned by draining controller
+→ exit
+```
+
+Hard cuts:
+
+- no public `drain`/`wake` command, persisted draining flag, parked Claim/workspace state, shutdown queue, or executor database;
+- hard-cut every actual model subprocess onto one cancellable `runEphemeralStructuredModel()` boundary: planner, promoter, worker, forward-motion challenger, **and the model-authored product-proof compiler**; delete the proof compiler's bespoke Codex `spawnSync`, while deterministic/no-model proof preparation/calibration remains synchronous;
+- thread one `AbortSignal` through that shared runtime so a pre-aborted call spawns nothing, detached/Windows process-tree death is observed through child close, and one local first-cause value (`DRAIN | TIMEOUT | OUTPUT_CAP`) decides the typed result; ordinary proof-compiler failure may still produce the existing GAP, but `MH_DRAIN_REQUESTED` must propagate and never manufacture a GAP;
+- make drain a universal post-model durableization fence: planner output observed after abort creates no Claim; promoter output creates no canonical promotion; worker output creates neither STOP nor materialized/sealed candidate; challenger output creates no forward-motion proof; proof-compiler output creates no compiled proof spec;
+- `runWork()` checks an already-aborted signal before verifier/workspace/lease creation, so exact `PENDING_WORKSPACE` preserves the Claim/session without creating custody; exact BASELINE/SEALED_CANDIDATE/WORKER_STOP boundaries likewise remain recoverable, while an entered generation with no durable candidate/STOP is honestly abandoned and resolved through existing no-result Closure + `ATTEMPT_ABORTED` semantics;
+- drain during or immediately after a forward-motion challenge must not synthesize fallback `REPLAN_REQUIRED`; the exact worker STOP remains the recovery boundary and ordinary WAKE reruns the challenger;
+- the reconciliation loop enters process-local `DRAINING`, checks the signal before every planner/promotion start, recovered/refill worker launch, post-model durableization, and planner candidate admission, settles current local executions, lands terminal Closures, and returns only after its running set is empty and no validated workspace lease belongs to the draining PID;
+- foreign-controller leases remain untouched; there is no repository-global stop-the-world or cross-process kill service;
+- no-result `ATTEMPT_ABORTED` projects end-to-end as `EXECUTION_ABORTED` through Closure landing, reconciliation/aggregation, planner handoff, and normal machine/human interpretation; it counts with interruption/replan semantics and never as hard `BLOCKED`, while the World transition schema remains unchanged;
+- first SIGINT/SIGTERM uses one-shot cooperative handlers that are removed before abort begins, so a subsequent OS termination signal is a real force escape rather than being swallowed by a permanent Node signal listener; no configurable drain timeout/supervisor is added;
+- short controller-owned atomic/mechanical work may finish its existing consistency boundary instead of gaining rollback machinery;
+- drain completion reaches the CLI only through a non-durable internal control result, never a new lifecycle state, and is rendered as safe stoppage rather than `Blocked` / `Replan`;
+- WAKE is the existing normal `meta-harness` / `meta-harness work` entry and reconstructs only from durable Outcome/Claim/session/workspace/Closure/World/objective evidence.
+
+The current local Codex cache/install problem is explicitly outside this slice: no auto-update, cache deletion, bundled runtime, provider fallback, or second evaluator is authorized merely to make the Phase-9 live eval run.
+
+**Done when:** controlled drain kills every local planner/promoter/worker/challenger/product-proof-compiler model process through the one shared cancellation membrane; preserves `PENDING_WORKSPACE` plus exact recoverable ACTIVE boundaries; durableizes no model result after drain wins; aborts/releases only entered no-result attempts; derives `ATTEMPT_ABORTED` as `EXECUTION_ABORTED` rather than hard block; proves zero local execution leases; preserves a real second-signal force escape; and a completely fresh ordinary invocation resumes/replans correctly with no narration, old transcript, or public lifecycle controls.
 
 ### Phase 11 — Narrow ports + Harness Darwinism
 

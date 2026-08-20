@@ -2,19 +2,22 @@
 
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const os = require("node:os");
 const path = require("node:path");
-const { spawnSync } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 const test = require("node:test");
 
-const { ROOT, runRaw, tempDir } = require("./helpers/cli");
+const { CLI, ROOT, runRaw, tempDir } = require("./helpers/cli");
 const { writeProductMd } = require("./helpers/product-direction");
 const { writePassingProductProof } = require("./helpers/product-proof");
 const { persistWorkSession, prepareWorkspace } = require("../lib/work-git");
 const { createGoalWorkSession } = require("../lib/work-session");
 const { compileProductProofSpec } = require("../lib/work-proof-compiler");
 const { renderHuman } = require("../lib/commands/work");
+const { protocolRoot } = require("../lib/world-authority");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
+const OWNER_GOAL_PROOF_COMPILER = path.join(ROOT, "tests", "fixtures", "owner-goal-proof-compiler.js");
 
 function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
@@ -28,8 +31,11 @@ function persistedSession(root) {
   return JSON.parse(fs.readFileSync(path.join(directory, pointer.sessionFile), "utf8"));
 }
 
-function repo(t, { withValidation = true, withOrigin = true, withProductProof = true } = {}) {
-  const parent = tempDir("cli-work-");
+function repo(t, { withValidation = true, withOrigin = true, withProductProof = true, tempParent = null } = {}) {
+  const fixtureParent = tempParent || (process.platform === "linux" && os.tmpdir().startsWith("/mnt/") ? "/tmp" : null);
+  const parent = fixtureParent
+    ? fs.mkdtempSync(path.join(fixtureParent, "cli-work-"))
+    : tempDir("cli-work-");
   const root = path.join(parent, "repo");
   const origin = path.join(parent, "origin.git");
   fs.mkdirSync(root);
@@ -74,6 +80,33 @@ function env(extra = {}) {
   };
 }
 
+function waitForFile(filePath, timeoutMs = 10_000) {
+  const deadline = Date.now() + timeoutMs;
+  return new Promise((resolve, reject) => {
+    const poll = () => {
+      if (fs.existsSync(filePath)) return resolve();
+      if (Date.now() >= deadline) return reject(new Error(`timed out waiting for ${filePath}`));
+      setTimeout(poll, 20);
+    };
+    poll();
+  });
+}
+
+function runAsync(cwd, args, options = {}) {
+  const selectedEnv = { ...(options.env || process.env), META_HARNESS_INTERNAL_CLI: "1" };
+  const child = spawn(process.execPath, [CLI, ...args], {
+    cwd,
+    stdio: ["ignore", "pipe", "pipe"],
+    env: selectedEnv,
+    ...options,
+  });
+  let stdout = "";
+  let stderr = "";
+  child.stdout.on("data", (chunk) => { stdout += String(chunk); });
+  child.stderr.on("data", (chunk) => { stderr += String(chunk); });
+  return { child, result: new Promise((resolve) => child.on("close", (status, signal) => resolve({ status, signal, stdout, stderr }))) };
+}
+
 test("primary work command executes in a fresh workspace and reports product fields before evidence", (t) => {
   const root = repo(t);
   const result = runRaw(ROOT, [
@@ -98,6 +131,33 @@ test("primary work command executes in a fresh workspace and reports product fie
   assert.deepEqual(parsed.delivery.push, { status: "not_authorized" });
   assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
   assert.equal(fs.readFileSync(path.join(parsed.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
+});
+
+test("bare invocation continues a direct owner goal after proof compilation is interrupted", async (t) => {
+  const root = repo(t, { withProductProof: false, withOrigin: false, tempParent: os.tmpdir() === "/mnt/c/Users/Lenovo/AppData/Local/Temp" ? "/tmp" : null });
+  const marker = path.join(root, "proof-compiler-started.txt");
+  const commandEnv = env({
+    META_HARNESS_WORKER_COMMAND_JSON: JSON.stringify([process.execPath, OWNER_GOAL_PROOF_COMPILER]),
+    META_HARNESS_PROOF_COMPILER_MARKER: marker,
+  });
+  const first = runAsync(root, ["Create the delivered result file."], { env: commandEnv });
+  t.after(() => {
+    if (first.child.exitCode === null) first.child.kill("SIGKILL");
+  });
+  await waitForFile(marker);
+  first.child.kill("SIGINT");
+  const interrupted = await first.result;
+  assert.equal(interrupted.status, 0, interrupted.stderr || interrupted.stdout);
+  assert.match(interrupted.stdout, /Stopped safely/u);
+  assert.equal(fs.existsSync(path.join(protocolRoot(root), "owner-goal-ingress.json")), true);
+  assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json")), false);
+
+  const resumed = runRaw(root, [], { env: commandEnv });
+  assert.equal(resumed.status, 0, resumed.stderr || resumed.stdout);
+  assert.match(resumed.stdout, /Done —/u);
+  assert.equal(fs.existsSync(path.join(protocolRoot(root), "owner-goal-ingress.json")), false);
+  const latest = persistedSession(root);
+  assert.equal(latest.productResult, "Create the delivered result file.");
 });
 
 test("pre-worker compiled proof can establish DONE without a pre-existing repository verifier", (t) => {
