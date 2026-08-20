@@ -1256,7 +1256,7 @@ plugin framework
 
 ## Roadmap consequence
 
-Keep the endgame ordering:
+Current custody is now:
 
 ```text
 Phase 9 — Owner-objective continuity
@@ -1265,23 +1265,215 @@ Phase 9 — Owner-objective continuity
   live real-planner A/B/C pass^3 remains a separate behavioral-evidence item
 
 Phase 10 — Controlled DRAIN / ordinary WAKE
-  implementation and deterministic closure follow the banked Phase-9 implementation
+  banked at 724204d
+  deterministic closure implemented
 
 Phase 11 — Narrow ports + Harness Darwinism
+  next candidate is DIRECT_ENTRY_AUTHORITY_MEMBRANE_1
+  plan patched for reaudit before runtime work
 ```
 
-DRAIN/WAKE should prove that conversations and model sessions are truly disposable without introducing a lifecycle product for the owner.
-
-Final architecture lock:
+Phase-10 architecture remains locked:
 
 > **DRAIN is a one-shot cancellation fence over controller-owned live activity. Every model process crosses one cancellable process boundary; every model result remains disposable until the controller durableizes it. `PENDING_WORKSPACE`, `BASELINE`, candidate seal, and worker STOP preserve the Claim; an entered attempt with no durable result becomes internal `INTERRUPTED_AFTER_ENTRY` → durable `ATTEMPT_ABORTED` → derived `EXECUTION_ABORTED`. Drain completes with zero controller-owned live activity or leases, while recoverable Claims remain for ordinary WAKE.**
 
+## Phase 11 candidate — DIRECT_ENTRY_AUTHORITY_MEMBRANE_1
+
+### Diagnosis
+
+The mediated repository planner does not need another intent or governance redesign.
+
+For a planner-enabled repository, the normal product entry already takes the literal owner result, stores it through `replaceOwnerObjectiveState(...)`, and enters the existing `REPO_WAVE` path. The planner already treats repository-local `Next`, `Decision needed`, `Phase`, `Review`, `SAW`, `Gate`, status, and `AGENTS` prose as repository data rather than routing authority. Managed/planner mode already has one deterministic predicate: `.meta-harness/repo-charter.json` is a regular non-symlink file.
+
+The remaining defect is outside that mediated path:
+
+> **A direct coding host can become a second mutation authority before the owner request crosses the existing Meta-Harness product entry.**
+
+Do not build an intent bridge. Build one mutation choke point.
+
+### Product result
+
+```text
+direct supported coding surface
+        ↓
+is this a Meta-Harness-managed repository?
+        │
+        ├─ no  → host behaves normally
+        │
+        └─ yes → preserve exact owner utterance
+                  ↓
+                existing normal Meta-Harness product entry
+                  ↓
+                owner-objective state
+                  ↓
+                existing planner / Claim / worker path
+
+managed repository
+→ direct host mutation is unavailable
+```
+
+Observable result:
+
+> **A managed Meta-Harness repository cannot accidentally acquire a second direct mutation authority merely because the owner entered through another coding surface.**
+
+### Authority membrane law
+
+A direct coding surface may be a front door to Meta-Harness, but it is not a second executor.
+
+For a managed repository, direct-host authority is **default deny by capability**:
+
+```text
+explicitly proven read-only capabilities
+  read / search / inspect only
+→ may remain exposed
+
+one Meta-Harness ingress
+→ may remain exposed
+
+all other repository / Git / workspace / publication capabilities
+  file mutation
+  rename / move
+  mutating shell
+  Git index / refs / branch mutation
+  commit / push / publication custody
+  worktree creation / removal / topology mutation
+  .meta-harness control-state mutation
+  unknown or newly added host capabilities
+→ absent or hard-denied by default
+
+owner asks for product work
+→ exact owner bytes enter the existing Meta-Harness product path
+
+host cannot establish the capability boundary
+→ zero direct fallback mutation
+→ direct surface is outside Meta-Harness execution authority
+```
+
+The first adapter names its tiny allowed surface explicitly; there is no generic tool-effect ontology. No prompt-precedence classifier or repository-governance ontology is part of the authority boundary.
+
+Enforcement preference:
+
+```text
+capability not exposed
+→ deterministic pre-action hard deny
+→ OS / filesystem sandbox backstop
+→ never prompt-only guidance, LLM risk classification, or reviewer opinion
+```
+
+The wrong operation should be unavailable rather than merely discouraged.
+
+### Hard cuts
+
+Do not add:
+
+```text
+second planner
+second worker
+second Claim mechanism
+second execution-custody system
+objective translation/schema
+repository-governance classifier
+Reviewer-C service or routine reviewer phase
+per-host/provider framework
+persistent bridge state
+write-enabled generic MCP expansion
+global agent configuration mutation
+target-repository AGENTS.md rewrite
+direct edit fallback when mediated entry is unavailable
+```
+
+The existing `meta-harness work` path remains the execution product.
+
+### Host seams — both must be proved independently
+
+The first supported direct-entry host needs two orthogonal capabilities:
+
+```text
+A. raw owner-input seam
+   receive the exact owner bytes before agent interpretation
+   and hand those bytes to ordinary Meta-Harness work
+
+B. capability seam
+   remove or deterministically deny every direct repository / Git / workspace
+   mutation capability before execution begins
+```
+
+A mutation gate alone prevents damage but does not prove that the exact owner objective crossed the membrane. A raw-input hook alone preserves intent but still leaves a second executor alive. Both are required.
+
+If both are proved, implement only that smallest host-specific membrane.
+
+If either is absent, do not compensate with another prompt, objective rewrite, governance classifier, or direct fallback. Record that direct surface as outside Meta-Harness execution authority until the missing host seam exists.
+
+#### Bounded ChatGPT/DevSpace seam check — 2026-08-20
+
+The observed connector does **not** expose a pre-model raw-owner-input interception primitive. Its prompt-related surface can launch a new conversation with supplied prompt text or run bounded callback/review protocols, but those actions occur only after this assistant turn has already interpreted the owner's message. They therefore cannot establish seam A for the current ChatGPT/DevSpace entry.
+
+The connector also exposes no current conversation-level capability-toggle or hard-deny primitive for dynamically reducing the active DevSpace tool surface; server-side denial remains architecturally plausible, but the current live substrate does not expose a mechanically provable two-seam membrane to this repository.
+
+Result:
+
+```text
+A. raw owner-input seam
+→ NOT AVAILABLE on the observed ChatGPT/DevSpace connector
+
+B. capability seam
+→ not sufficient to rescue A; no runtime membrane started
+
+DIRECT_ENTRY_AUTHORITY_MEMBRANE_1 on ChatGPT/DevSpace
+→ STOP with zero fallback mutation
+```
+
+This is a substrate stop, not an architecture rejection and not evidence to reopen the planner.
+
+### Acceptance — four observations only
+
+1. **Capture regression** — a Quant-like managed repository containing imperative SAW, Review, Decision-needed, phase, and status prose receives the exact direct owner request through the host. Meta-Harness, not the host agent, chooses the work.
+2. **Bypass regression** — while inside a managed repository, attempted direct-host action cannot alter repository authority state outside Meta-Harness: worktree bytes, Git index/refs/branches, worktree topology, `.meta-harness` control state, or publication/push custody. Unknown or newly added host capabilities fail closed.
+3. **Unavailable seam** — when the host cannot establish the membrane or enter the normal Meta-Harness path, it performs zero direct fallback mutation.
+4. **Zero-work case** — imperative governance prose with no positive-value lawful Outcome still produces zero fresh Outcomes.
+
+### Controlled comparison
+
+Run the first demonstrated host/repository fixture with:
+
+```text
+same model
+same repository
+same owner request
+
+current direct entry
+vs
+DIRECT_ENTRY_AUTHORITY_MEMBRANE_1
+```
+
+Measure:
+
+```text
+owner interventions
+governance-only work
+time to first useful evidence
+false hard blocks
+direct out-of-membrane mutations
+```
+
+Keep the experiment only if the membrane materially improves the direct-entry journey without creating a second execution system.
+
+### Explicitly outside this slice
+
+The W6 per-arm irreversible-eligibility case remains a one-time falsification probe against today's mediated planner, not part of direct-entry architecture.
+
+If the mediated planner passes W6, delete it from this slice. If it independently fails, that evidence may warrant a separate tiny law:
+
+> **Irreversible eligibility is evaluated per independently consumable evidence/custody unit; parent initiative authority is not transitive.**
+
+Likewise, scientific-constraint preservation remains a planner regression. The membrane does not interpret scientific constraints; it only ensures the request reaches the planner that already does.
+
 ## Stop boundary
 
-**Planning only. Stop for architecture audit.**
+**Phase 10 is implemented and banked at `724204d`. The stale planning-only sentence is retired.**
 
-Do not implement cancellation, signal handling, controlled parking, or drain-aware ATTEMPT_ABORTED projection in this round.
+**Phase 11 runtime work is not started. `DIRECT_ENTRY_AUTHORITY_MEMBRANE_1` remains accepted in direction, but the observed ChatGPT/DevSpace substrate fails the raw-input seam check, so this implementation path stops with zero fallback mutation.**
 
-Do not mutate the global/local Codex installation to unblock Phase-9 evidence as part of this slice.
+Do not mutate the global/local Codex installation to unblock Phase-9 evidence as part of this planning patch.
 
-`docs/product/decision-log.md`, `lessons.md`, and unrelated pre-existing untracked files remain outside this planning slice.
+`docs/product/decision-log.md`, `lessons.md`, unrelated pre-existing dirty/untracked files, and runtime source files remain outside this patch.
