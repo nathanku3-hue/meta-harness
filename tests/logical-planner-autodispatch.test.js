@@ -277,7 +277,7 @@ test("planner treats validity constraints as decision-edge data rather than glob
   const prompt = buildLogicalPlannerPrompt(input);
 
   assert.match(prompt, /validity constraints lose global priority/iu);
-  assert.match(prompt, /highest-value uncertainty reduction action available now/u);
+  assert.match(prompt, /highest-value decision-relevant uncertainty reduction action available now/u);
   assert.match(prompt, /measurement scheduler, measurement persistence service/u);
 });
 
@@ -358,4 +358,39 @@ test("planner snapshot is exact productCommit and does not transport owner-check
     removePlannerSnapshot(root, snapshot);
   }
   assert.equal(git(root, ["status", "--porcelain"]), before);
+});
+
+test("planner input projects object maturity and edge-scoped constraint impact without lifecycle state", (t) => {
+  const { root } = repository(t);
+  const initial = persistInitial(root, "world-transition/v2");
+  const current = readCurrentWorldState(root);
+  const world = {
+    ...current.world,
+    payload: {
+      ...current.world.payload,
+      frozenObjectDigest: "object-digest-v1",
+      constraints: [{
+        id: "source-confidence",
+        blocks: ["historical-claim"],
+        doesNotBlock: ["measurement"],
+        valueOfWaiting: "changes historical confidence decision",
+      }],
+    },
+  };
+  const input = compileRepoPlannerInput({
+    repositoryPath: root,
+    current: { ...current, world, head: initial.head },
+    recovered: [],
+    localBound: 1,
+  });
+  assert.deepEqual(input.objectMaturity, {
+    frozen: true,
+    frozenObjectDigest: "object-digest-v1",
+  });
+  assert.deepEqual(input.constraintImpact, [{
+    id: "source-confidence",
+    blocks: ["historical-claim"],
+    doesNotBlock: ["measurement"],
+    valueOfWaiting: "changes historical confidence decision",
+  }]);
 });
