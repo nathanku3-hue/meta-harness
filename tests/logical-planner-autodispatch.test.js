@@ -268,6 +268,19 @@ test("planner renders owner objective as instruction and repository workflow as 
   assert.match(prompt, /\.\.\/snapshot/u);
 });
 
+test("planner treats validity constraints as decision-edge data rather than global dispatch priority", (t) => {
+  const { root } = repository(t);
+  persistInitial(root, "world-transition/v2");
+  replaceOwnerObjectiveState(root, "start useful measurement after the object is frozen");
+  const current = readCurrentWorldState(root);
+  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [], localBound: 3 });
+  const prompt = buildLogicalPlannerPrompt(input);
+
+  assert.match(prompt, /validity constraints lose global priority/iu);
+  assert.match(prompt, /highest-value uncertainty reduction action available now/u);
+  assert.match(prompt, /measurement scheduler, measurement persistence service/u);
+});
+
 test("objective revision change kills unclaimed candidates but preserves admitted Claims and replans same Head", async (t) => {
   const { root } = repository(t);
   const initial = persistInitial(root, "world-transition/v2");
