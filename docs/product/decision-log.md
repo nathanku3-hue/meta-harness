@@ -3374,3 +3374,36 @@ Local `main` remains ahead of `origin/main` until pushed and confirmed.
 Reopen conditions:
 
 Reopen D051 only for a concrete regression where `proposal_validation` disappears from JSON/Markdown, validation mutates readiness or top-level `ok`, validation writes proposal/action/queue files, generates diffs, applies patches, executes child commands, refreshes readiness, mutates parent/child repos, or scope broadens into dashboard, daemon, provider/network, MCP, auto-repair, export/write/apply behavior, or autonomy.
+
+## D085: Close Current-Product Structural SAW Audit Stream
+
+Decision:
+
+Accept the `CURRENT_PRODUCT_STRUCTURAL_SAW_1` architecture and close this audit stream without activating another slice.
+
+Canonical structural admission is predecessor-relative:
+
+```text
+current authoritative product commit P
++ cumulative candidate tree T
++ exact predecessor-owned structural policy
+→ deterministic tree-derived structural delta
+→ only new/worsened debt may block canonical integration
+```
+
+The stale `.meta-harness/baseline/quality-baseline.json` remains maintenance/history evidence and is no longer the intended freshness authority for autonomous canonical integration. Candidate policy changes cannot alter the policy that evaluates that same candidate. Active SAW uses one current structural budget system and stable tree-derived facts rather than runtime-global registries, compatibility prose, or duplicate legacy line-budget semantics. Accepted canonical integrations use `product-integration/v2` with an exact `structuralSawDigest`; historical v1 receipts remain readable so retained obligations survive mixed lineage.
+
+Structural failure routes through existing autonomous integration failure / `INVALIDATED_REPLAN` semantics. It does not create owner authority. Universal semantic review remains rejected until a retained semantic false-negative or repeated measurable manual-review burden provides a concrete warrant.
+
+Closure state:
+
+- repository `HEAD` remains `de0e828` (`Implement promoted research findings`);
+- the Phase-8A implementation is present locally but uncommitted;
+- focused structural/integration validation passed 9/9;
+- adjacent Phase-6/7/quality regression validation passed 28/28;
+- no commit or push is authorized or implied by this stream closure;
+- Phase 7B and Phase 8B remain deferred; no successor slice is selected.
+
+Reopen conditions:
+
+Reopen this decision only for an observed structural false-negative, a repository-policy applicability defect, an integration-lineage regression, or evidence that the current tree-relative structural fact set is too weak or too expensive. Do not reopen merely because the historical maintenance baseline is stale.

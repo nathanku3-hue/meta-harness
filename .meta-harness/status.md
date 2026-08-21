@@ -1,10 +1,10 @@
 # Meta-Harness Current Product State
 
-State: CONTROLLED_DRAIN_WAKE_1_BANKED
+State: DIRECT_ENTRY_AUTHORITY_MEMBRANE_1_IMPLEMENTED_LOCAL
 Current checkout: `product/product-direction-continuity-1`
 Banked Phase-9 baseline: `5fbf7b8` (`Implement owner-objective continuity`)
 Banked Phase-10 closure: `724204d` (`Complete controlled drain/wake closure`)
-Next candidate: `DIRECT_ENTRY_AUTHORITY_MEMBRANE_1` — direction accepted; ChatGPT/DevSpace raw-input seam unavailable, runtime stopped
+Active Phase-11 slice: `DIRECT_ENTRY_AUTHORITY_MEMBRANE_1` — stable ACP v1 host membrane implemented locally; not yet banked
 
 ## Product result
 
@@ -22,7 +22,11 @@ Meta-Harness can intentionally quiesce controller-owned live work without invent
 - The mediated repository planner already makes the current owner objective primary, treats capacity as a ceiling, and treats imperative repository workflow prose as data rather than routing authority.
 - Planner-enabled repository detection already uses the regular non-symlink `.meta-harness/repo-charter.json` predicate.
 - For planner-enabled repositories, ordinary product entry already stores the literal owner result via owner-objective state before entering `REPO_WAVE`.
-- No Phase-11 runtime code has been started by the current planning patch.
+- Phase 11 now has a host-specific stable ACP v1 membrane: `meta-harness-acp` accepts exact ACP prompt text and routes it into the existing automatic product entry.
+- ACP transport session IDs are ephemeral correlation only and never become Claim, workspace, planner, or product authority.
+- ACP rejects MCP servers, additional directories, unmanaged repositories, repository subdirectories, and alternate repository roots; it advertises no agent mutation capabilities and issues no client mutation requests.
+- ACP `session/cancel` is threaded into the existing Phase-10 `AbortSignal` drain path; no second cancellation or execution system is introduced.
+- The ChatGPT/DevSpace direct surface remains unsupported because it still lacks a pre-model raw-owner-input seam; no fallback mutation path is authorized there.
 
 ## Next candidate product result
 
@@ -53,13 +57,15 @@ W6 per-arm irreversible eligibility is outside this slice unless today's mediate
 
 ## Host-seam result
 
-The bounded ChatGPT/DevSpace check found no pre-model primitive that captures the exact current owner message before agent interpretation. Prompt-related connector operations occur only after an assistant/tool decision and therefore cannot supply the required raw-input seam. No Phase-11 runtime membrane was started and no direct fallback mutation is authorized.
+The bounded ChatGPT/DevSpace check still finds no pre-model primitive that captures the exact current owner message before agent interpretation, so that direct surface remains a zero-fallback substrate stop.
 
-This is a substrate stop, not a planner defect or Phase-10 reopening. The authority-membrane architecture remains a valid future experiment on a host that mechanically exposes both raw-input capture and default-deny mutation-capability suppression.
+Stable ACP v1 is the first supported host experiment because it mechanically exposes both required seams: `session/prompt` delivers the exact owner text before Meta-Harness model interpretation, while the adapter can expose no client mutation request surface and can reject MCP/alternate-directory expansion before product execution. The implementation binds one ACP process to one exact managed repository root and routes the prompt bytes directly to `runAutomaticProductResult(...)`.
+
+Focused ACP/package/command/package-closure validation plus adjacent owner-objective/planner validation are green (28/28). `git diff --check` is clean. Attempts to obtain one repository-wide aggregate `npm test` result are currently failing at the DevSpace connector transport with HTTP 502 before a trustworthy suite result is returned; that external transport failure is not counted as a product test failure.
 
 ## Do now
 
-No ChatGPT/DevSpace runtime implementation for this slice. Resume only if this substrate gains a mechanically provable raw-owner-input seam, or if the owner explicitly authorizes a different host adoption experiment.
+Keep the ACP membrane narrow. Finish only repository-owned validation/documentation needed to bank this slice; do not add a generic host/provider layer or mutate the unsupported ChatGPT/DevSpace surface.
 
 ## Stop only if
 

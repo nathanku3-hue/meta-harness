@@ -31,6 +31,14 @@ meta-harness
 
 Meta-Harness decides NEW, RESUME, or STOP from retained repository and workspace truth. The owner does not select a session, actor, validation command, workspace, resume mode, or commit policy.
 
+### ACP direct entry
+
+ACP-capable clients may use the packaged `meta-harness-acp` executable as a front door to the same product path. It is not a second executor.
+
+For a Meta-Harness-managed repository, the ACP process binds to the exact repository root, accepts one text prompt without rewriting its bytes, and passes that text directly into normal automatic product entry. It rejects MCP servers, additional directories, alternate repository roots, unmanaged repositories, and repository subdirectories. The adapter advertises no direct mutation capabilities and does not request client filesystem, terminal, Git, worktree, or publication actions; all material work remains behind Meta-Harness planner/Claim/worker authority.
+
+ACP transport session IDs are ephemeral correlation only. `session/cancel` uses the same controlled-drain signal path as ordinary work, so cancellation does not create another persisted lifecycle. Direct coding surfaces that cannot mechanically provide both pre-model owner-input capture and default-deny mutation authority remain outside this execution boundary rather than receiving a fallback edit path.
+
 A normal successful run may surface only coarse liveness plus closure:
 
 ```text

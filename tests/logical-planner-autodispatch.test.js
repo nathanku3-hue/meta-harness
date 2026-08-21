@@ -279,6 +279,9 @@ test("planner treats validity constraints as decision-edge data rather than glob
   assert.match(prompt, /validity constraints lose global priority/iu);
   assert.match(prompt, /highest-value decision-relevant uncertainty reduction action available now/u);
   assert.match(prompt, /measurement scheduler, measurement persistence service/u);
+  assert.match(prompt, /bounded blocker set.*remove a named blocker.*now-lawful result read.*terminal kill/iu);
+  assert.match(prompt, /stale Next, HOLD, Gate, or handoff prose must not re-expand superseded uncertainty/iu);
+  assert.match(prompt, /Governance, packaging, architecture, status, review, or evidence-hardening is inadmissible/iu);
 });
 
 test("objective revision change kills unclaimed candidates but preserves admitted Claims and replans same Head", async (t) => {

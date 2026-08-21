@@ -1269,8 +1269,9 @@ Phase 10 — Controlled DRAIN / ordinary WAKE
   deterministic closure implemented
 
 Phase 11 — Narrow ports + Harness Darwinism
-  next candidate is DIRECT_ENTRY_AUTHORITY_MEMBRANE_1
-  plan patched for reaudit before runtime work
+  active slice is DIRECT_ENTRY_AUTHORITY_MEMBRANE_1 through the stable ACP v1 host seam
+  ChatGPT/DevSpace direct entry remains unsupported because it lacks a pre-model raw-input seam
+  ACP membrane implementation is locally green and not yet banked
 ```
 
 Phase-10 architecture remains locked:
@@ -1404,26 +1405,47 @@ If both are proved, implement only that smallest host-specific membrane.
 
 If either is absent, do not compensate with another prompt, objective rewrite, governance classifier, or direct fallback. Record that direct surface as outside Meta-Harness execution authority until the missing host seam exists.
 
-#### Bounded ChatGPT/DevSpace seam check — 2026-08-20
+#### First host selection — ACP stable v1 — 2026-08-20
 
-The observed connector does **not** expose a pre-model raw-owner-input interception primitive. Its prompt-related surface can launch a new conversation with supplied prompt text or run bounded callback/review protocols, but those actions occur only after this assistant turn has already interpreted the owner's message. They therefore cannot establish seam A for the current ChatGPT/DevSpace entry.
+The observed ChatGPT/DevSpace connector still does **not** expose a pre-model raw-owner-input interception primitive, so that direct surface remains outside Meta-Harness execution authority. No prompt convention or fallback mutation is added there.
 
-The connector also exposes no current conversation-level capability-toggle or hard-deny primitive for dynamically reducing the active DevSpace tool surface; server-side denial remains architecturally plausible, but the current live substrate does not expose a mechanically provable two-seam membrane to this repository.
-
-Result:
+The stable Agent Client Protocol v1 surface provides the two required seams without adding another executor:
 
 ```text
 A. raw owner-input seam
-→ NOT AVAILABLE on the observed ChatGPT/DevSpace connector
+session/prompt carries the owner's text into the ACP agent before any Meta-Harness model/planner interpretation
 
 B. capability seam
-→ not sufficient to rescue A; no runtime membrane started
-
-DIRECT_ENTRY_AUTHORITY_MEMBRANE_1 on ChatGPT/DevSpace
-→ STOP with zero fallback mutation
+the ACP agent advertises no mutation capabilities, rejects MCP servers and alternate directories,
+and never issues client requests for filesystem, terminal, Git, or publication effects
 ```
 
-This is a substrate stop, not an architecture rejection and not evidence to reopen the planner.
+The first host-specific membrane is therefore intentionally small:
+
+```text
+meta-harness-acp
+→ bind one process to one exact managed repository root
+→ accept exactly one non-empty text block per prompt without trimming/normalizing/concatenating
+→ pass those exact bytes to runAutomaticProductResult(...)
+→ let existing owner-objective / planner / Claim / worker authority execute the result
+→ emit only ACP session/update text notifications
+→ keep ACP session IDs transport-local and ephemeral
+→ map session/cancel into the existing Phase-10 AbortSignal drain path
+```
+
+Rejected at the membrane:
+
+```text
+unmanaged repository
+repository subdirectory instead of the exact root
+second repository root in the same ACP process
+MCP servers
+additional directories
+multi-block or non-text prompt shapes
+unknown transport sessions
+```
+
+This is an ACP adapter, not a generic host/provider framework. ChatGPT/DevSpace remains a substrate stop; ACP is the first mechanically provable direct-entry host.
 
 ### Acceptance — four observations only
 
@@ -1472,7 +1494,7 @@ Likewise, scientific-constraint preservation remains a planner regression. The m
 
 **Phase 10 is implemented and banked at `724204d`. The stale planning-only sentence is retired.**
 
-**Phase 11 runtime work is not started. `DIRECT_ENTRY_AUTHORITY_MEMBRANE_1` remains accepted in direction, but the observed ChatGPT/DevSpace substrate fails the raw-input seam check, so this implementation path stops with zero fallback mutation.**
+**Phase 11 `DIRECT_ENTRY_AUTHORITY_MEMBRANE_1` is implemented locally for stable ACP v1 and remains unbanked. The ChatGPT/DevSpace direct surface still stops with zero fallback mutation because it lacks the raw-input seam; ACP is the separate supported host experiment that mechanically supplies both seams. Focused ACP/package/authority and adjacent owner-objective/planner validation are green; repository-wide test-run transport is currently failing externally before a trustworthy aggregate result is returned.**
 
 Do not mutate the global/local Codex installation to unblock Phase-9 evidence as part of this planning patch.
 

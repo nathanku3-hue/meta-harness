@@ -9,10 +9,12 @@
     "url": "https://github.com/nathanku3-hue/meta-harness.git"
   },
   "bin": {
-    "meta-harness": "bin/meta-harness.js"
+    "meta-harness": "bin/meta-harness.js",
+    "meta-harness-acp": "bin/meta-harness-acp.js"
   },
   "files": [
     "bin/meta-harness.js",
+    "bin/meta-harness-acp.js",
     "lib/**/*.js",
     "!lib/commands/authority.js",
     "!lib/commands/brief.js",
@@ -86,6 +88,14 @@
     "test": "node scripts/run-tests.js",
     "prepublishOnly": "node bin/meta-harness.js release candidate verify-publication --from-env --json"
   },
+  "dependencies": {
+    "@agentclientprotocol/sdk": "1.3.0",
+    "zod": "4.4.3"
+  },
+  "bundleDependencies": [
+    "@agentclientprotocol/sdk",
+    "zod"
+  ],
   "packageManager": "npm@11.16.0",
   "engines": {
     "node": ">=20"
