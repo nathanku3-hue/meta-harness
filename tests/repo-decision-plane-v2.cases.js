@@ -433,8 +433,10 @@ test("legacy NO_DISPATCH remains historical evidence and is not active mutable w
   const initial = persistWorld(root, { observations: ["current"] });
   installDecision(root, initial.head.headDigest, { type: "NO_DISPATCH", reason: "NO_VALUABLE_ACTION" });
   const result = runRaw(root, ["work", root, "--json"], { env: workerEnv() });
-  assert.equal(result.status, 1, result.stderr || result.stdout);
-  assert.equal(JSON.parse(result.stdout).outcome, "REPLAN_REQUIRED");
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.outcome, "USE_PRODUCT");
+  assert.equal(parsed.endgameCoverage.complete, true);
   assert.equal(fs.existsSync(path.join(root, ".worktrees")), false);
   assert.deepEqual(fs.readdirSync(attemptEntriesRoot(root)), []);
 });
