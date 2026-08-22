@@ -7,7 +7,7 @@ const test = require("node:test");
 
 const { renderHuman } = require("../lib/commands/work");
 const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
-const { listActiveOutcomeClaims } = require("../lib/outcome-claim");
+const { listActiveOutcomeClaims, readOutcomeClaim } = require("../lib/outcome-claim");
 const { createOutcome } = require("../lib/outcome");
 const { buildLogicalPlannerPrompt, createPlannerSnapshot, removePlannerSnapshot } = require("../lib/repo-logical-planner");
 const {
@@ -46,6 +46,7 @@ function candidate(id, paths = [`src/${id}`]) {
     doneWhen: value.doneWhen,
     stopOnlyIf: value.stopOnlyIf,
     expectedWritePaths: paths,
+    continuesFromTransitionDigests: [],
   };
 }
 
@@ -58,10 +59,77 @@ function planner(values, onCall = () => {}) {
     const active = new Set((args.plannerInput?.activeCommitments || []).map((entry) => entry.outcome.id));
     const unresolved = new Set((args.plannerInput?.unresolvedHandoffs || []).map((entry) => entry.outcome.id));
     const proposals = values.filter((entry) => !learned.has(entry.id) && !active.has(entry.id) && !unresolved.has(entry.id));
-    return { batch: { schemaVersion: "planner-candidate-batch/v2", proposals: proposals.map((entry) => ({ ...entry, objectRefs: [], hypothesisRef: null, criterionRefs: [], metricRefs: [] })) } };
+    return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: proposals.map((entry) => ({ ...entry, objectRefs: [], hypothesisRef: null, criterionRefs: [], metricRefs: [] })) } };
   };
   run.calls = () => calls;
   return run;
+}
+
+function installRequiredEndgame(root) {
+  const current = fs.readFileSync(path.join(root, "PRODUCT.md"), "utf8");
+  const prefix = current.split("## Semantic Authority")[0].trimEnd();
+  const binding = {
+    state: "BOUND",
+    atoms: [{
+      id: "DESTINATION_B",
+      kind: "DESTINATION",
+      identity: "Deliver b.",
+      role: "REQUIRED_DESTINATION",
+    }],
+  };
+  fs.writeFileSync(
+    path.join(root, "PRODUCT.md"),
+    `${prefix}\n\n## Semantic Authority\n\n\`\`\`json\n${JSON.stringify(binding, null, 2)}\n\`\`\`\n`,
+    "utf8",
+  );
+  git(root, ["add", "PRODUCT.md"]);
+  git(root, ["commit", "-m", "require terminal destination"]);
+}
+
+function stoppedWorkerResult() {
+  return {
+    worker: "autonomous-continuation-stop-worker",
+    stdout: "",
+    stderr: "",
+    result: {
+      schemaVersion: "worker-result/v2",
+      status: "STOP",
+      observableResult: "STOP route is BLOCKed and closed without the required result.",
+      operations: [],
+      validation: [],
+      stop: {
+        unsatisfiedRequirement: "The preferred source is BLOCKed and this workcell is closed.",
+        failedMeans: [{ means: "preferred source", evidence: ["STOP: source route returned no usable result."] }],
+        alternativesConsidered: [],
+        assertedConstraint: "The preferred source route is unavailable.",
+      },
+    },
+  };
+}
+
+function replanProof() {
+  return {
+    disposition: "REPLAN_REQUIRED",
+    failedMeans: [{ means: "preferred source", evidence: ["The preferred source route returned no usable result."] }],
+    alternatives: [],
+    hardConstraint: null,
+    ownerRequest: null,
+    disprovedAssertions: [],
+  };
+}
+
+async function seedAutonomousReplan(root, id = "s0") {
+  const current = readCurrentWorldState(root);
+  const prepared = preparePlannerCandidate(root, current, candidate(id, [`src/${id}`]));
+  const admitted = admitPreparedPlannerCandidate(root, current, prepared);
+  const result = await runWork({
+    repositoryPath: root,
+    session: admitted.session,
+    runner: async () => stoppedWorkerResult(),
+    forwardMotionRunner: async () => replanProof(),
+  });
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  return result;
 }
 
 test("stale repo-proposals.json is inert fresh-work history", async (t) => {
@@ -102,7 +170,7 @@ test("recovered executable commitments start before fresh planning on every reco
       plannerCalls += 1;
       assert.equal(workerStarted, true);
       assert.deepEqual(plannerInput.currentWorld.payload.learned, ["a"]);
-      return { batch: { schemaVersion: "planner-candidate-batch/v2", proposals: [] } };
+      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
     },
     runner: async (args) => {
       workerStarted = true;
@@ -130,7 +198,7 @@ test("terminal Closure lands before a fresh planner boot", async (t) => {
     repositoryPath: root,
     plannerRunner: async (args) => {
       plannerInput = args.plannerInput;
-      return { batch: { schemaVersion: "planner-candidate-batch/v2", proposals: [] } };
+      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
     },
     runner: runner(),
     interpret: require("./helpers/linear-product-head").fakeInterpretation,
@@ -141,6 +209,181 @@ test("terminal Closure lands before a fresh planner boot", async (t) => {
   assert.deepEqual(plannerInput.currentWorld.payload.learned, ["a"]);
   assert.notEqual(plannerInput.head.productCommit, initial.head.productCommit);
   assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 1);
+  assert.equal(listActiveOutcomeClaims(root).length, 0);
+});
+
+test("autonomous REPLAN handoff dispatches a linked successor in the same work invocation", async (t) => {
+  const { root } = repository(t);
+  installRequiredEndgame(root);
+  persistInitial(root, "world-transition/v2");
+  await seedAutonomousReplan(root, "a");
+
+  let handoffDigest = null;
+  let successorClaimDigest = null;
+  let successorStarts = 0;
+  const baseRunner = runner();
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    plannerRunner: async ({ plannerInput }) => {
+      const handoff = plannerInput.unresolvedHandoffs.find((entry) => entry.disposition === "REPLAN_REQUIRED");
+      if (handoff && handoffDigest === null) {
+        handoffDigest = handoff.transitionDigest;
+        assert.deepEqual(handoff.activeContinuationClaimDigests, []);
+        return {
+          batch: {
+            schemaVersion: "planner-candidate-batch/v3",
+            proposals: [{ ...candidate("b"), continuesFromTransitionDigests: [handoff.transitionDigest] }],
+          },
+        };
+      }
+      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
+    },
+    runner: async (args) => {
+      successorStarts += 1;
+      successorClaimDigest = args.session.origin.claimDigest;
+      const claim = readOutcomeClaim(root, successorClaimDigest);
+      assert.deepEqual(claim.continuesFromTransitionDigests, [handoffDigest]);
+      return baseRunner(args);
+    },
+    interpret: require("./helpers/linear-product-head").fakeInterpretation,
+    now: monotonicNow(),
+  });
+
+  assert.match(handoffDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.match(successorClaimDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.equal(successorStarts, 1);
+  assert.equal(result.admitted, 1);
+  assert.equal(result.outcome, "USE_PRODUCT");
+  assert.equal(result.endgameCoverage.complete, true);
+  assert.equal(listActiveOutcomeClaims(root).length, 0);
+});
+
+test("empty planner frontier cannot quiesce an uncovered autonomous REPLAN handoff", async (t) => {
+  const { root } = repository(t);
+  installRequiredEndgame(root);
+  persistInitial(root, "world-transition/v2");
+  await seedAutonomousReplan(root, "a");
+  let sawAutonomousHandoff = false;
+
+  await assert.rejects(
+    runRepoWorkWave({
+      repositoryPath: root,
+      plannerRunner: async ({ plannerInput }) => {
+        sawAutonomousHandoff = sawAutonomousHandoff || plannerInput.unresolvedHandoffs.some((entry) => (
+          entry.disposition === "REPLAN_REQUIRED" && entry.activeContinuationClaimDigests.length === 0
+        ));
+        return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
+      },
+      runner: runner(),
+      interpret: require("./helpers/linear-product-head").fakeInterpretation,
+      now: monotonicNow(),
+    }),
+    (error) => error.code === "MH_FORWARD_PROGRESS_INVARIANT"
+      && /autonomous continuation obligation.*quiescence/iu.test(error.message),
+  );
+  assert.equal(sawAutonomousHandoff, true);
+});
+
+test("concurrent Claim admission covers a planner-snapshot handoff without false forward-progress failure", async (t) => {
+  const { root } = repository(t);
+  installRequiredEndgame(root);
+  persistInitial(root, "world-transition/v2");
+  await seedAutonomousReplan(root, "a");
+  let plannerCalls = 0;
+  let admittedDuringPlanner = null;
+
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    plannerRunner: async ({ current, plannerInput }) => {
+      plannerCalls += 1;
+      const handoff = plannerInput.unresolvedHandoffs.find((entry) => entry.disposition === "REPLAN_REQUIRED");
+      if (plannerCalls === 1) {
+        assert.ok(handoff);
+        const linked = { ...candidate("b"), continuesFromTransitionDigests: [handoff.transitionDigest] };
+        const prepared = preparePlannerCandidate(root, current, linked);
+        admittedDuringPlanner = admitPreparedPlannerCandidate(root, current, prepared, {
+          objectiveRevision: plannerInput.ownerIntent.activeDirective?.revision || 0,
+        });
+        assert.deepEqual(admittedDuringPlanner.claim.continuesFromTransitionDigests, [handoff.transitionDigest]);
+      }
+      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
+    },
+    runner: runner(),
+    interpret: require("./helpers/linear-product-head").fakeInterpretation,
+    now: monotonicNow(),
+  });
+
+  assert.ok(admittedDuringPlanner);
+  assert.ok(plannerCalls >= 2);
+  assert.equal(result.outcome, "USE_PRODUCT");
+  assert.equal(result.endgameCoverage.complete, true);
+});
+
+test("one autonomous transition can provenance multiple parallel successor Claims", async (t) => {
+  const { root } = repository(t);
+  installRequiredEndgame(root);
+  persistInitial(root, "world-transition/v2");
+  await seedAutonomousReplan(root, "a");
+  let handoffDigest = null;
+  let sent = false;
+  const linkedClaims = [];
+  const baseRunner = runner();
+
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
+    plannerRunner: async ({ plannerInput }) => {
+      const handoff = plannerInput.unresolvedHandoffs.find((entry) => entry.disposition === "REPLAN_REQUIRED");
+      if (!sent && handoff) {
+        sent = true;
+        handoffDigest = handoff.transitionDigest;
+        return {
+          batch: {
+            schemaVersion: "planner-candidate-batch/v3",
+            proposals: ["b", "c"].map((id) => ({
+              ...candidate(id),
+              continuesFromTransitionDigests: [handoff.transitionDigest],
+            })),
+          },
+        };
+      }
+      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
+    },
+    runner: async (args) => {
+      const claim = readOutcomeClaim(root, args.session.origin.claimDigest);
+      linkedClaims.push(claim);
+      return baseRunner(args);
+    },
+    interpret: require("./helpers/linear-product-head").fakeInterpretation,
+    now: monotonicNow(),
+  });
+
+  assert.equal(result.admitted, 2);
+  assert.equal(linkedClaims.length, 2);
+  assert.ok(linkedClaims.every((claim) => JSON.stringify(claim.continuesFromTransitionDigests) === JSON.stringify([handoffDigest])));
+  assert.equal(result.outcome, "USE_PRODUCT");
+});
+
+test("planner cannot invent continuation lineage absent from its exact handoff snapshot", async (t) => {
+  const { root } = repository(t);
+  persistInitial(root, "world-transition/v2");
+  const invented = `sha256:${"9".repeat(64)}`;
+
+  await assert.rejects(
+    runRepoWorkWave({
+      repositoryPath: root,
+      plannerRunner: async () => ({
+        batch: {
+          schemaVersion: "planner-candidate-batch/v3",
+          proposals: [{ ...candidate("b"), continuesFromTransitionDigests: [invented] }],
+        },
+      }),
+      runner: runner(),
+      interpret: require("./helpers/linear-product-head").fakeInterpretation,
+      now: monotonicNow(),
+    }),
+    (error) => error.code === "MH_PLANNER_CANDIDATE_CONTINUATION",
+  );
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
@@ -262,7 +505,7 @@ test("planner renders owner objective as instruction and repository workflow as 
   const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [], localBound: 3 });
   const prompt = buildLogicalPlannerPrompt(input);
 
-  assert.match(prompt, /^LOGICAL_PLANNER_AUTODISPATCH_V3/mu);
+  assert.match(prompt, /^LOGICAL_PLANNER_AUTODISPATCH_V4/mu);
   assert.ok(prompt.indexOf("OWNER / OPTIMIZATION") < prompt.indexOf("PLANNING LAWS"));
   assert.ok(prompt.indexOf("PLANNING LAWS") < prompt.indexOf("FACTUAL / COMMITMENT DATA"));
   assert.equal((prompt.match(/fastest honest decision-changing evidence/gu) || []).length, 1);
@@ -286,6 +529,8 @@ test("planner treats validity constraints as decision-edge data rather than glob
   assert.match(prompt, /bounded blocker set.*remove a named blocker.*now-lawful result read.*terminal kill/iu);
   assert.match(prompt, /stale Next, HOLD, Gate, or handoff prose must not re-expand superseded uncertainty/iu);
   assert.match(prompt, /Governance, packaging, architecture, status, review, or evidence-hardening is inadmissible/iu);
+  assert.match(prompt, /continuesFromTransitionDigests.*continuation lineage/iu);
+  assert.match(prompt, /Empty proposals is valid only when.*neither an uncovered autonomous continuation obligation/iu);
 });
 
 test("objective revision change kills unclaimed candidates but preserves admitted Claims and replans same Head", async (t) => {

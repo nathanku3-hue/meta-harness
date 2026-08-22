@@ -66,6 +66,7 @@ function plannerCandidate(value) {
     doneWhen: value.doneWhen,
     stopOnlyIf: value.stopOnlyIf,
     expectedWritePaths: value.allowedPaths,
+    continuesFromTransitionDigests: [],
   };
 }
 
@@ -76,7 +77,7 @@ function plannerRunner(values) {
     const unresolved = new Set((plannerInput?.unresolvedHandoffs || []).map((entry) => entry.outcome.id));
     return {
       batch: {
-        schemaVersion: "planner-candidate-batch/v2",
+        schemaVersion: "planner-candidate-batch/v3",
         proposals: values.map(plannerCandidate).filter((entry) => !learned.has(entry.id) && !active.has(entry.id) && !unresolved.has(entry.id)),
       },
     };

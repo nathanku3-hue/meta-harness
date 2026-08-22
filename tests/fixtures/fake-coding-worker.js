@@ -59,7 +59,7 @@ if (prompt.includes("Compile independent product proof before any coding candida
   process.exit(0);
 }
 
-if (/LOGICAL_PLANNER_AUTODISPATCH_V[23]/u.test(prompt)) {
+if (/LOGICAL_PLANNER_AUTODISPATCH_V[234]/u.test(prompt)) {
   let proposals = [];
   if (process.env.FAKE_PLANNER_CANDIDATES_JSON) {
     try {
@@ -70,7 +70,7 @@ if (/LOGICAL_PLANNER_AUTODISPATCH_V[23]/u.test(prompt)) {
     }
   }
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, `${JSON.stringify({ schemaVersion: "planner-candidate-batch/v2", proposals })}\n`, "utf8");
+  fs.writeFileSync(outputPath, `${JSON.stringify({ schemaVersion: "planner-candidate-batch/v3", proposals })}\n`, "utf8");
   process.exit(0);
 }
 

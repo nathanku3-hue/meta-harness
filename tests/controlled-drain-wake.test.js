@@ -95,7 +95,7 @@ function replanCandidate() {
 }
 
 function emptyPlanner() {
-  return { schemaVersion: "planner-candidate-batch/v2", proposals: [] };
+  return { schemaVersion: "planner-candidate-batch/v3", proposals: [] };
 }
 
 function plannerCandidate(id, paths = [`src/${id}`]) {
@@ -113,6 +113,7 @@ function plannerCandidate(id, paths = [`src/${id}`]) {
     doneWhen: value.doneWhen,
     stopOnlyIf: value.stopOnlyIf,
     expectedWritePaths: paths,
+    continuesFromTransitionDigests: [],
   };
 }
 
@@ -125,7 +126,7 @@ test("planner result stays disposable when drain wins before Claim admission", a
     signal: controller.signal,
     plannerRunner: async () => {
       controller.abort();
-      return { batch: { schemaVersion: "planner-candidate-batch/v2", proposals: [plannerCandidate("a", ["src/a"], root)] } };
+      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [plannerCandidate("a", ["src/a"], root)] } };
     },
     runner: async () => {
       throw new Error("drain after planner return must admit no worker");

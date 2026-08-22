@@ -58,6 +58,7 @@ function plannerCandidate(id, productId = id) {
     doneWhen: value.doneWhen,
     stopOnlyIf: value.stopOnlyIf,
     expectedWritePaths: value.allowedPaths,
+    continuesFromTransitionDigests: [],
   };
 }
 
@@ -66,7 +67,7 @@ function oneOutcomePlanner(id, productId = id) {
     const learned = new Set(plannerInput.currentWorld.payload.learned || []);
     return {
       batch: {
-        schemaVersion: "planner-candidate-batch/v2",
+        schemaVersion: "planner-candidate-batch/v3",
         proposals: learned.has(id) ? [] : [plannerCandidate(id, productId)],
       },
     };
@@ -174,7 +175,7 @@ test("T13 planner quiescence replans incomplete endgame and returns exact USE_PR
   persistInitial(incompleteRepo.root, "world-transition/v2");
   const incomplete = await runRepoWorkWave({
     repositoryPath: incompleteRepo.root,
-    plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v2", proposals: [] } }),
+    plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } }),
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });

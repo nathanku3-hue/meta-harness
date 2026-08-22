@@ -246,6 +246,7 @@ function plannerCandidate(id, expectedWritePath = `src/${id}`) {
     doneWhen: value.doneWhen,
     stopOnlyIf: value.stopOnlyIf,
     expectedWritePaths: [expectedWritePath],
+    continuesFromTransitionDigests: [],
   };
 }
 
@@ -256,7 +257,7 @@ function plannerRunner(proposals) {
     const unresolved = new Set((plannerInput?.unresolvedHandoffs || []).map((entry) => entry.outcome.id));
     return {
       batch: {
-        schemaVersion: "planner-candidate-batch/v2",
+        schemaVersion: "planner-candidate-batch/v3",
         proposals: proposals.filter((entry) => !learned.has(entry.id) && !active.has(entry.id) && !unresolved.has(entry.id)).map((entry) => ({ ...entry, objectRefs: [], hypothesisRef: null, criterionRefs: [], metricRefs: [] })),
       },
     };
@@ -530,7 +531,7 @@ test("proposal overlap rejects the conflicting current-Head candidate without po
       plannerCalls += 1;
       return {
         batch: {
-          schemaVersion: "planner-candidate-batch/v2",
+          schemaVersion: "planner-candidate-batch/v3",
           proposals: plannerCalls === 1 ? firstHeadCandidates.map((entry) => ({ ...entry, objectRefs: [], hypothesisRef: null, criterionRefs: [], metricRefs: [] })) : [],
         },
       };

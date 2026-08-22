@@ -37,6 +37,7 @@ function candidate(id = "a", paths = [`src/${id}`]) {
     doneWhen: value.doneWhen,
     stopOnlyIf: value.stopOnlyIf,
     expectedWritePaths: paths,
+    continuesFromTransitionDigests: [],
   };
 }
 
@@ -64,7 +65,7 @@ function directGoalSession(root, current, goal = "Direct entry parity.") {
 test("planner candidate schema is semantic-only and rejects authority fields", () => {
   const valid = candidate();
   assert.equal(validatePlannerCandidateBatch({
-    schemaVersion: "planner-candidate-batch/v2",
+    schemaVersion: "planner-candidate-batch/v3",
     proposals: [valid],
   }).proposals.length, 1);
 
@@ -81,7 +82,7 @@ test("planner candidate schema is semantic-only and rejects authority fields", (
   ]) {
     assert.throws(
       () => validatePlannerCandidateBatch({
-        schemaVersion: "planner-candidate-batch/v2",
+        schemaVersion: "planner-candidate-batch/v3",
         proposals: [{ ...valid, [field]: value }],
       }),
       (error) => error.code === "MH_PLANNER_CANDIDATE_SHAPE",
@@ -157,6 +158,8 @@ test("controller derives exact capability, base, validation, attempts, and local
   assert.ok(prepared.validation.length > 0);
 
   const admitted = admitPreparedPlannerCandidate(root, current, prepared);
+  assert.equal(admitted.claim.schemaVersion, "outcome-claim/v2");
+  assert.deepEqual(admitted.claim.continuesFromTransitionDigests, []);
   assert.deepEqual(admitted.claim.executionBoundary, { writePaths: ["src/a"] });
   assert.deepEqual(admitted.session.allowedPaths, ["src/a"]);
   assert.equal(admitted.session.base.commit, current.head.productCommit);
