@@ -82,8 +82,8 @@ test("product-surface objective capture leaves checkout unchanged end to end", (
       META_HARNESS_WORKER_COMMAND_JSON: JSON.stringify([process.execPath, FAKE_WORKER]),
     },
   });
-  assert.equal(result.status, 1, result.stderr || result.stdout);
-  assert.match(result.stdout, /^Replan:/mu);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(result.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
   const state = readOwnerObjectiveState(root);
   assert.equal(state.revision, 1);
   assert.equal(state.content, "fastest honest decision-changing evidence");

@@ -18,13 +18,19 @@ const {
 const { tempDir } = require("./helpers/cli");
 const { directionFromContent, SAMPLE_PRODUCT_MD, writeProductMd } = require("./helpers/product-direction");
 const { gapProofSpec } = require("./helpers/product-proof");
+const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
 
 const TEST_BASE = Object.freeze({ type: "EXACT_COMMIT", commit: "1".repeat(40) });
 
 function explicitSession(overrides = {}) {
+  const productDirection = directionFromContent();
+  const semanticAuthority = compileSemanticAuthority({ productDirection });
   const body = {
     schemaVersion: WORK_SESSION_SCHEMA,
-    productDirection: directionFromContent(),
+    productDirection,
+    semanticState: semanticAuthority.semanticState,
+    semanticProjection: semanticProjection(semanticAuthority),
+    endgameProjection: endgameProjection(semanticAuthority),
     origin: { type: "OWNER_GOAL" },
     base: TEST_BASE,
     productResult: "Ship one product-facing coding command.",
@@ -54,9 +60,9 @@ test("journey reducer keeps automatic continuation mechanically bounded", () => 
   assert.equal(reduceJourneyState({ compiledDecision: { type: "NO_DISPATCH", reason: "USE_PRODUCT" } }).next.operation, "STOP");
 });
 
-test("work-session/v7 seals product direction, product-proof spec, provenance, trusted base, and exact path/validation scope", () => {
+test("work-session/v8 seals product direction, semantic authority, product-proof spec, provenance, trusted base, and exact path/validation scope", () => {
   const session = explicitSession();
-  assert.equal(session.schemaVersion, "work-session/v7");
+  assert.equal(session.schemaVersion, "work-session/v8");
   assert.equal(session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.deepEqual(session.base, TEST_BASE);

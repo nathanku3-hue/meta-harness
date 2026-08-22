@@ -56,6 +56,10 @@ function plannerCandidate(value) {
   return {
     id: value.id,
     productResult: value.productResult,
+    objectRefs: [],
+    hypothesisRef: null,
+    criterionRefs: [],
+    metricRefs: [],
     journeyState: value.journeyState,
     doNow: value.doNow,
     newlyTrueBehavior: value.newlyTrueBehavior,
@@ -72,7 +76,7 @@ function plannerRunner(values) {
     const unresolved = new Set((plannerInput?.unresolvedHandoffs || []).map((entry) => entry.outcome.id));
     return {
       batch: {
-        schemaVersion: "planner-candidate-batch/v1",
+        schemaVersion: "planner-candidate-batch/v2",
         proposals: values.map(plannerCandidate).filter((entry) => !learned.has(entry.id) && !active.has(entry.id) && !unresolved.has(entry.id)),
       },
     };
@@ -183,7 +187,7 @@ test("legacy Phase-2 APPLIED A+B migration reconstructs one cumulative v2 produc
 test("later wave cannot break a retained earlier product obligation", async (t) => {
   const { root } = repository(t); const initial = persistInitial(root, "world-transition/v2");
   writeProposalSet(root, initial.head.headDigest, [proposal("a")]);
-  assert.equal((await runRepoWorkWave({ repositoryPath: root, runner: runner(), plannerRunner: plannerRunner([proposal("a")]), interpret: fakeInterpretation, now: monotonicNow() })).outcome, "DONE");
+  assert.equal((await runRepoWorkWave({ repositoryPath: root, runner: runner(), plannerRunner: plannerRunner([proposal("a")]), interpret: fakeInterpretation, now: monotonicNow() })).outcome, "USE_PRODUCT");
   const afterA = readCurrentWorldState(root); const p1 = afterA.head.productCommit;
   writeProposalSet(root, afterA.head.headDigest, [proposal("c", { allowedPaths: ["src/c", "src/shared"] })]);
   const second = await runRepoWorkWave({ repositoryPath: root, runner: runner({ breakSharedId: "c" }), plannerRunner: plannerRunner([proposal("c", { allowedPaths: ["src/c", "src/shared"] })]), interpret: fakeInterpretation, now: monotonicNow() });
@@ -205,7 +209,7 @@ test("structural SAW failure on a later cumulative tree replans without advancin
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });
-  assert.equal(first.outcome, "DONE");
+  assert.equal(first.outcome, "USE_PRODUCT");
   const afterA = readCurrentWorldState(root);
   const p1 = afterA.head.productCommit;
   const receiptA = latestIntegrationReceiptForHead(root, afterA.head);

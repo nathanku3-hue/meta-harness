@@ -256,8 +256,8 @@ function plannerRunner(proposals) {
     const unresolved = new Set((plannerInput?.unresolvedHandoffs || []).map((entry) => entry.outcome.id));
     return {
       batch: {
-        schemaVersion: "planner-candidate-batch/v1",
-        proposals: proposals.filter((entry) => !learned.has(entry.id) && !active.has(entry.id) && !unresolved.has(entry.id)),
+        schemaVersion: "planner-candidate-batch/v2",
+        proposals: proposals.filter((entry) => !learned.has(entry.id) && !active.has(entry.id) && !unresolved.has(entry.id)).map((entry) => ({ ...entry, objectRefs: [], hypothesisRef: null, criterionRefs: [], metricRefs: [] })),
       },
     };
   };
@@ -414,7 +414,7 @@ test("one proposal set executes compatible Claims concurrently and lands sibling
     now: monotonicNow(),
   });
 
-  assert.equal(result.outcome, "DONE");
+  assert.equal(result.outcome, "USE_PRODUCT");
   assert.equal(result.admitted, 3);
   assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 3);
   assert.ok(concurrency.max >= 2, `expected overlapping workers, saw max=${concurrency.max}`);
@@ -466,7 +466,7 @@ test("freed capacity refills from the post-landing Head before a slow sibling ca
   assert.deepEqual(worldAtCStart.world.payload.learned, ["a"]);
   assert.equal(cBaseCommit, worldAtCStart.head.productCommit);
   assert.notEqual(cBaseCommit, initial.head.productCommit);
-  assert.equal(result.outcome, "DONE");
+  assert.equal(result.outcome, "USE_PRODUCT");
   assert.equal(result.admitted, 3);
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b", "c"]);
 
@@ -526,12 +526,12 @@ test("proposal overlap rejects the conflicting current-Head candidate without po
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "3" },
     runner: resultRunner(),
-    plannerRunner: async () => {
+    plannerRunner: async ({ plannerInput }) => {
       plannerCalls += 1;
       return {
         batch: {
-          schemaVersion: "planner-candidate-batch/v1",
-          proposals: plannerCalls === 1 ? firstHeadCandidates : [],
+          schemaVersion: "planner-candidate-batch/v2",
+          proposals: plannerCalls === 1 ? firstHeadCandidates.map((entry) => ({ ...entry, objectRefs: [], hypothesisRef: null, criterionRefs: [], metricRefs: [] })) : [],
         },
       };
     },
@@ -659,7 +659,7 @@ test("one worker failure does not cancel siblings and every terminal Claim reach
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "c"]);
 });
 
-test("empty proposal set is reconciliation-required, never active NO_DISPATCH terminal authority", async (t) => {
+test("empty positive-value frontier reaches USE_PRODUCT from quiescent planner truth", async (t) => {
   const { root, initial } = repository(t);
   writeProposalSet(root, initial.head.headDigest, []);
   writeJson(root, ".meta-harness/repo-decision.json", {
@@ -673,7 +673,8 @@ test("empty proposal set is reconciliation-required, never active NO_DISPATCH te
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });
-  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.equal(result.outcome, "USE_PRODUCT");
+  assert.equal(result.endgameCoverage.complete, true);
   assert.equal(result.admitted, 0);
   assert.equal(result.outcomes.length, 0);
   assert.equal(fs.existsSync(path.join(root, ".worktrees")), false);

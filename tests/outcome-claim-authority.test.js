@@ -47,6 +47,7 @@ const {
 const { tempDir } = require("./helpers/cli");
 const { writeProductMd } = require("./helpers/product-direction");
 const { gapProofSpec } = require("./helpers/product-proof");
+const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
 
 const CLAIM_RACE = path.join(__dirname, "fixtures", "outcome-claim-race.js");
 
@@ -165,12 +166,16 @@ function claim(root, headDigest, value, writePaths) {
 function workSession(root, value, claimed, allowedPaths) {
   const productDirection = pinProductDirection(root);
   const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
+  const semanticAuthority = compileSemanticAuthority({ productDirection });
   const productResult = value.desiredState;
   const newlyTrueBehavior = value.desiredState;
   const doneWhen = value.evidenceRequirement;
   return sealWorkSession({
     schemaVersion: WORK_SESSION_SCHEMA,
     productDirection,
+    semanticState: semanticAuthority.semanticState,
+    semanticProjection: semanticProjection(semanticAuthority),
+    endgameProjection: endgameProjection(semanticAuthority),
     origin: {
       type: "REPO_OUTCOME",
       outcomeDigest: value.outcomeDigest,

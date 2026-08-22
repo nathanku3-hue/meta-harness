@@ -48,6 +48,15 @@ const SAMPLE_PRODUCT_MD = [
   "",
   "Only the owner edits this file and bumps Version.",
   "",
+  "## Semantic Authority",
+  "",
+  "```json",
+  "{",
+  "  \"state\": \"EXPLICIT_NONE\",",
+  "  \"atoms\": []",
+  "}",
+  "```",
+  "",
 ].join("\n");
 
 function writeProductMd(repositoryPath, content = SAMPLE_PRODUCT_MD) {

@@ -9,6 +9,7 @@ const test = require("node:test");
 
 const { sealWorkSession } = require("../lib/work-session");
 const { compileProductProofSpec } = require("../lib/work-proof-compiler");
+const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
 const { CLI, ROOT } = require("./helpers/cli");
 
 const enabled = /^(?:1|true)$/i.test(String(process.env.META_HARNESS_LIVE_WORK || ""));
@@ -93,9 +94,13 @@ test("live coding system carries one result through Codex and exact validation",
     doneWhen,
     allowModel: false,
   });
+  const semanticAuthority = compileSemanticAuthority({ productDirection });
   const session = sealWorkSession({
-    schemaVersion: "work-session/v7",
+    schemaVersion: "work-session/v8",
     productDirection,
+    semanticState: semanticAuthority.semanticState,
+    semanticProjection: semanticProjection(semanticAuthority),
+    endgameProjection: endgameProjection(semanticAuthority),
     origin: { type: "OWNER_GOAL" },
     base,
     productResult,

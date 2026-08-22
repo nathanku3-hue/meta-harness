@@ -13,6 +13,7 @@ const {
   projectProductDirectionForPlanner,
 } = require("../lib/product-direction");
 const { materializeWorkerOperations } = require("../lib/work-materializer");
+const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
 const {
   createGoalWorkSession,
   sealWorkSession,
@@ -70,9 +71,14 @@ function goalSession(root, goal = "Add a visible result.") {
 }
 
 function sealedSession(root, overrides = {}) {
+  const productDirection = pinProductDirection(root);
+  const semanticAuthority = compileSemanticAuthority({ productDirection });
   const body = {
-    schemaVersion: "work-session/v7",
-    productDirection: pinProductDirection(root),
+    schemaVersion: "work-session/v8",
+    productDirection,
+    semanticState: semanticAuthority.semanticState,
+    semanticProjection: semanticProjection(semanticAuthority),
+    endgameProjection: endgameProjection(semanticAuthority),
     origin: { type: "OWNER_GOAL" },
     base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
     productResult: "Create src/result.txt with delivered content.",
@@ -129,7 +135,7 @@ test("created v7 session contains exact PRODUCT.md bytes, base, proof spec, and 
   const root = npmRepo(t);
   const live = pinProductDirection(root);
   const session = goalSession(root);
-  assert.equal(session.schemaVersion, "work-session/v7");
+  assert.equal(session.schemaVersion, "work-session/v8");
   assert.equal(session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.equal(session.productDirection.content, live.content);

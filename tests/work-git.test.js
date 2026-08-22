@@ -23,6 +23,7 @@ const { sealWorkSession } = require("../lib/work-session");
 const { tempDir } = require("./helpers/cli");
 const { directionFromContent } = require("./helpers/product-direction");
 const { gapProofSpec } = require("./helpers/product-proof");
+const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
 
 function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
@@ -85,12 +86,16 @@ function acceptedCandidate(session, seal) {
 
 function isolatedSession(root, base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) }) {
   const productDirection = directionFromContent();
+  const semanticAuthority = compileSemanticAuthority({ productDirection });
   const productResult = "Create the isolated result.";
   const newlyTrueBehavior = "A repository-local managed worktree is ready.";
   const doneWhen = "The physical path is repo-local and registered by Git.";
   return sealWorkSession({
-    schemaVersion: "work-session/v7",
+    schemaVersion: "work-session/v8",
     productDirection,
+    semanticState: semanticAuthority.semanticState,
+    semanticProjection: semanticProjection(semanticAuthority),
+    endgameProjection: endgameProjection(semanticAuthority),
     origin: { type: "OWNER_GOAL" },
     base,
     productResult,

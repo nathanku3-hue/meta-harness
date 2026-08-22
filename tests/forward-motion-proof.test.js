@@ -23,6 +23,7 @@ const {
 } = require("../lib/work-forward-motion-record");
 const { sealWorkSession } = require("../lib/work-session");
 const { compileProductProofSpec } = require("../lib/work-proof-compiler");
+const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
 const {
   acquireWorkspaceExecutionLease,
   releaseWorkspaceExecutionLease,
@@ -71,9 +72,13 @@ function session(root, maxAttempts = 2) {
     doneWhen,
     allowModel: false,
   });
+  const semanticAuthority = compileSemanticAuthority({ productDirection });
   return sealWorkSession({
-    schemaVersion: "work-session/v7",
+    schemaVersion: "work-session/v8",
     productDirection,
+    semanticState: semanticAuthority.semanticState,
+    semanticProjection: semanticProjection(semanticAuthority),
+    endgameProjection: endgameProjection(semanticAuthority),
     origin: { type: "OWNER_GOAL" },
     base,
     productResult,

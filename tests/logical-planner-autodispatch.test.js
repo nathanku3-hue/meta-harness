@@ -36,6 +36,10 @@ function candidate(id, paths = [`src/${id}`]) {
   return {
     id: value.id,
     productResult: value.productResult,
+    objectRefs: [],
+    hypothesisRef: null,
+    criterionRefs: [],
+    metricRefs: [],
     journeyState: value.journeyState,
     doNow: value.doNow,
     newlyTrueBehavior: value.newlyTrueBehavior,
@@ -54,7 +58,7 @@ function planner(values, onCall = () => {}) {
     const active = new Set((args.plannerInput?.activeCommitments || []).map((entry) => entry.outcome.id));
     const unresolved = new Set((args.plannerInput?.unresolvedHandoffs || []).map((entry) => entry.outcome.id));
     const proposals = values.filter((entry) => !learned.has(entry.id) && !active.has(entry.id) && !unresolved.has(entry.id));
-    return { batch: { schemaVersion: "planner-candidate-batch/v1", proposals } };
+    return { batch: { schemaVersion: "planner-candidate-batch/v2", proposals: proposals.map((entry) => ({ ...entry, objectRefs: [], hypothesisRef: null, criterionRefs: [], metricRefs: [] })) } };
   };
   run.calls = () => calls;
   return run;
@@ -78,7 +82,7 @@ test("stale repo-proposals.json is inert fresh-work history", async (t) => {
   assert.equal(fs.existsSync(path.join(root, ".meta-harness", "repo-proposals.json")), true);
   let humanOutput = "";
   renderHuman({ stdout: { write: (text) => { humanOutput += String(text); } } }, result);
-  assert.match(humanOutput, /^Done — 1 independent outcome landed/u);
+  assert.equal(humanOutput, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
   assert.doesNotMatch(humanOutput, /planner prompt|worker prompt|claimDigest|workspaceId|run stream|sha256:/iu);
 });
 
@@ -86,7 +90,7 @@ test("recovered executable commitments start before fresh planning on every reco
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   const current = readCurrentWorldState(root);
-  const prepared = preparePlannerCandidate(root, current, candidate("a"));
+  const prepared = preparePlannerCandidate(root, current, candidate("a", ["src/a"], root));
   admitPreparedPlannerCandidate(root, current, prepared);
   let workerStarted = false;
   let plannerCalls = 0;
@@ -98,7 +102,7 @@ test("recovered executable commitments start before fresh planning on every reco
       plannerCalls += 1;
       assert.equal(workerStarted, true);
       assert.deepEqual(plannerInput.currentWorld.payload.learned, ["a"]);
-      return { batch: { schemaVersion: "planner-candidate-batch/v1", proposals: [] } };
+      return { batch: { schemaVersion: "planner-candidate-batch/v2", proposals: [] } };
     },
     runner: async (args) => {
       workerStarted = true;
@@ -117,7 +121,7 @@ test("terminal Closure lands before a fresh planner boot", async (t) => {
   const { root } = repository(t);
   const initial = persistInitial(root, "world-transition/v2");
   const current = readCurrentWorldState(root);
-  const prepared = preparePlannerCandidate(root, current, candidate("a"));
+  const prepared = preparePlannerCandidate(root, current, candidate("a", ["src/a"], root));
   const admitted = admitPreparedPlannerCandidate(root, current, prepared);
   await runWork({ repositoryPath: root, session: admitted.session, runner: runner() });
 
@@ -126,7 +130,7 @@ test("terminal Closure lands before a fresh planner boot", async (t) => {
     repositoryPath: root,
     plannerRunner: async (args) => {
       plannerInput = args.plannerInput;
-      return { batch: { schemaVersion: "planner-candidate-batch/v1", proposals: [] } };
+      return { batch: { schemaVersion: "planner-candidate-batch/v2", proposals: [] } };
     },
     runner: runner(),
     interpret: require("./helpers/linear-product-head").fakeInterpretation,
@@ -144,10 +148,10 @@ test("ordinary conflicting planner rejection leaves no orphan Outcome", (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   const current = readCurrentWorldState(root);
-  const admittedA = preparePlannerCandidate(root, current, candidate("a", ["src/a"]));
+  const admittedA = preparePlannerCandidate(root, current, candidate("a", ["src/a"], root));
   admitPreparedPlannerCandidate(root, current, admittedA);
 
-  const rejected = candidate("b", ["src/a/nested"]);
+  const rejected = candidate("b", ["src/a/nested"], root);
   const prospective = createOutcome({
     id: rejected.id,
     desiredState: rejected.productResult,

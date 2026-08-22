@@ -28,11 +28,13 @@ const {
   releaseWorkspaceExecutionLease,
 } = require("../lib/workspace-custody");
 const { sealWorkSession } = require("../lib/work-session");
+const { pinProductDirection } = require("../lib/product-direction");
 const { compileProductProofSpec } = require("../lib/work-proof-compiler");
 const { productProofContract, sealProductProofSpec } = require("../lib/work-product-proof-spec");
 const { ROOT, tempDir } = require("./helpers/cli");
 const { directionFromContent } = require("./helpers/product-direction");
 const { writePassingProductProof } = require("./helpers/product-proof");
+const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
 
@@ -60,6 +62,17 @@ function repository(t, { withProductProof = true } = {}) {
   return root;
 }
 
+function installSemanticBinding(root, binding = null) {
+  const current = fs.readFileSync(path.join(root, "PRODUCT.md"), "utf8");
+  const prefix = current.split("## Semantic Authority")[0].trimEnd();
+  const content = binding === null
+    ? `${prefix}\n`
+    : `${prefix}\n\n## Semantic Authority\n\n\`\`\`json\n${JSON.stringify(binding, null, 2)}\n\`\`\`\n`;
+  fs.writeFileSync(path.join(root, "PRODUCT.md"), content, "utf8");
+  git(root, ["add", "PRODUCT.md"]);
+  git(root, ["commit", "-m", binding === null ? "unbound product direction" : "bound product direction"]);
+}
+
 function addOrigin(root) {
   const origin = path.join(path.dirname(root), "origin.git");
   git(path.dirname(root), ["init", "--bare", origin]);
@@ -82,7 +95,7 @@ function session(root, {
   const resolvedValidation = validation === undefined
     ? [{ argv: check, cwd: ".", timeoutSeconds: 30 }]
     : validation;
-  const productDirection = directionFromContent();
+  const productDirection = pinProductDirection(root);
   const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
   const productResult = "Create the delivered result file.";
   const newlyTrueBehavior = "src/result.txt contains delivered.";
@@ -96,9 +109,13 @@ function session(root, {
     doneWhen,
     allowModel: false,
   });
+  const semanticAuthority = compileSemanticAuthority({ productDirection });
   return sealWorkSession({
-    schemaVersion: "work-session/v7",
+    schemaVersion: "work-session/v8",
     productDirection,
+    semanticState: semanticAuthority.semanticState,
+    semanticProjection: semanticProjection(semanticAuthority),
+    endgameProjection: endgameProjection(semanticAuthority),
     origin: { type: "OWNER_GOAL" },
     base,
     productResult,
@@ -144,6 +161,43 @@ function workerResult(operations, status = "DONE") {
     },
   };
 }
+
+test("T0 ordinary UNBOUND product direction can still reach local DONE", async (t) => {
+  const root = repository(t);
+  installSemanticBinding(root, null);
+  const workSession = session(root);
+  assert.equal(workSession.semanticState, "UNBOUND");
+  const result = await runWork({
+    repositoryPath: root,
+    session: workSession,
+    runner: async () => workerResult([{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }]),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.productProof.state, "PROVEN");
+});
+
+test("T4 BOUND endgame authority does not block an independently useful local slice", async (t) => {
+  const root = repository(t);
+  installSemanticBinding(root, {
+    state: "BOUND",
+    atoms: [
+      { id: "OBJECT_PRIMARY", kind: "OBJECT", identity: "primary object", role: "PRIMARY" },
+      { id: "DESTINATION_E1", kind: "DESTINATION", identity: "terminal destination", role: "REQUIRED_DESTINATION" },
+    ],
+  });
+  const workSession = session(root);
+  assert.equal(workSession.semanticState, "BOUND");
+  assert.deepEqual(workSession.endgameProjection.requiredDestinationRefs, ["DESTINATION_E1"]);
+  const result = await runWork({
+    repositoryPath: root,
+    session: workSession,
+    runner: async () => workerResult([{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }]),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.productProof.state, "PROVEN");
+});
 
 function enterDurableAttempt(root, workSession) {
   const workspace = prepareWorkspace(root, workSession);
@@ -812,9 +866,13 @@ test("forged imported compiled proof calibration is rejected before worker execu
     },
     calibration: [{ claimId: "forged-delivered-result", expected: "PASS", observed: "PASS" }],
   });
+  const semanticAuthority = compileSemanticAuthority({ productDirection });
   const workSession = sealWorkSession({
-    schemaVersion: "work-session/v7",
+    schemaVersion: "work-session/v8",
     productDirection,
+    semanticState: semanticAuthority.semanticState,
+    semanticProjection: semanticProjection(semanticAuthority),
+    endgameProjection: endgameProjection(semanticAuthority),
     origin: { type: "OWNER_GOAL" },
     base,
     productResult,

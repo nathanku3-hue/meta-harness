@@ -358,7 +358,7 @@ test("repo work auto-promotes before fresh planner boot and transports compact a
     researchModelRunner: runner,
     plannerRunner: async ({ plannerInput: input }) => {
       plannerInput = input;
-      return { batch: { schemaVersion: "planner-candidate-batch/v1", proposals: [] } };
+      return { batch: { schemaVersion: "planner-candidate-batch/v2", proposals: [] } };
     },
     interpret: fakeInterpretation,
   });
@@ -390,7 +390,7 @@ test("no current research source has zero promotion tax", async (t) => {
     researchModelRunner: runner,
     plannerRunner: async ({ plannerInput: input }) => {
       plannerInput = input;
-      return { batch: { schemaVersion: "planner-candidate-batch/v1", proposals: [] } };
+      return { batch: { schemaVersion: "planner-candidate-batch/v2", proposals: [] } };
     },
     interpret: fakeInterpretation,
   });

@@ -25,9 +25,11 @@ const {
   acquireWorkspaceExecutionLease,
   releaseWorkspaceExecutionLease,
 } = require("../lib/workspace-custody");
+const { pinProductDirection } = require("../lib/product-direction");
 const { tempDir } = require("./helpers/cli");
-const { directionFromContent, writeProductMd } = require("./helpers/product-direction");
+const { SAMPLE_PRODUCT_MD, writeProductMd } = require("./helpers/product-direction");
 const { gapProofSpec } = require("./helpers/product-proof");
+const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
 
 function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
@@ -35,7 +37,21 @@ function git(cwd, args) {
   return String(result.stdout || "").trim();
 }
 
-function repository(t) {
+function requiredDestinationProduct() {
+  const prefix = SAMPLE_PRODUCT_MD.split("## Semantic Authority")[0].trimEnd();
+  const binding = {
+    state: "BOUND",
+    atoms: [{
+      id: "DESTINATION_E1",
+      kind: "DESTINATION",
+      identity: "Deliver required E1.",
+      role: "REQUIRED_DESTINATION",
+    }],
+  };
+  return `${prefix}\n\n## Semantic Authority\n\n\`\`\`json\n${JSON.stringify(binding, null, 2)}\n\`\`\`\n`;
+}
+
+function repository(t, productContent = SAMPLE_PRODUCT_MD) {
   const parent = tempDir("execution-permit-");
   const root = path.join(parent, "repository");
   fs.mkdirSync(root);
@@ -44,7 +60,7 @@ function repository(t) {
   git(root, ["config", "user.email", "execution-permit@example.invalid"]);
   fs.writeFileSync(path.join(root, ".gitignore"), ".worktrees/\n", "utf8");
   fs.writeFileSync(path.join(root, "README.md"), "baseline\n", "utf8");
-  writeProductMd(root);
+  writeProductMd(root, productContent);
   git(root, ["add", ".gitignore", "README.md", "PRODUCT.md"]);
   git(root, ["commit", "-m", "baseline"]);
   t.after(() => fs.rmSync(parent, { recursive: true, force: true }));
@@ -52,14 +68,18 @@ function repository(t) {
 }
 
 function session(root) {
-  const productDirection = directionFromContent();
+  const productDirection = pinProductDirection(root);
   const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
   const productResult = "Create one visible result.";
   const newlyTrueBehavior = "The result file exists.";
   const doneWhen = "The result file exists and validation passes.";
+  const semanticAuthority = compileSemanticAuthority({ productDirection });
   return sealWorkSession({
-    schemaVersion: "work-session/v7",
+    schemaVersion: "work-session/v8",
     productDirection,
+    semanticState: semanticAuthority.semanticState,
+    semanticProjection: semanticProjection(semanticAuthority),
+    endgameProjection: endgameProjection(semanticAuthority),
     origin: { type: "OWNER_GOAL" },
     base,
     productResult,
@@ -144,6 +164,31 @@ test("ExecutionPermit is generation-bound, single-use, lease-bound, and capabili
     () => assertPermitCapability(permit, "ROOT_SHELL"),
     (error) => error.code === "MH_EXECUTION_PERMIT_CAPABILITY",
   );
+});
+
+test("T2 capability deferral cannot delete a required destination from standing or session authority", (t) => {
+  const root = repository(t, requiredDestinationProduct());
+  const workSession = session(root);
+  assert.deepEqual(workSession.endgameProjection.requiredDestinationRefs, ["DESTINATION_E1"]);
+
+  const { workspace, registryDir, workspaceLease } = leasedWorkspace(t, root, workSession);
+  const permit = issueExecutionPermit({
+    repositoryRoot: workspace.repositoryRoot,
+    workspacePath: workspace.workspacePath,
+    session: workSession,
+    attempt: 1,
+    boundary: captureBoundary(workspace.workspacePath, workSession.allowedPaths),
+    workspaceCustody: workspace.custody,
+    workspaceLease,
+    workspaceRegistryDir: registryDir,
+    stateDirectory: stateDirectory(root),
+  });
+  assert.throws(
+    () => assertPermitCapability(permit, "OUTCOME_READ"),
+    (error) => error.code === "MH_EXECUTION_CAPABILITY_DENIED",
+  );
+  assert.deepEqual(workSession.endgameProjection.requiredDestinationRefs, ["DESTINATION_E1"]);
+  assert.equal(compileSemanticAuthority({ productDirection: pinProductDirection(root) }).atoms.some((atom) => atom.id === "DESTINATION_E1"), true);
 });
 
 test("ExecutionPermit generation baseline fails closed before material execution", (t) => {

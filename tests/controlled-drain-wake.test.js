@@ -23,6 +23,7 @@ const {
 } = require("../lib/workspace-custody");
 const { readImmutableJson } = require("../lib/world-authority");
 const { readCurrentWorldState } = require("../lib/world-transition");
+
 const {
   createOutcome,
   fakeInterpretation,
@@ -94,7 +95,7 @@ function replanCandidate() {
 }
 
 function emptyPlanner() {
-  return { schemaVersion: "planner-candidate-batch/v1", proposals: [] };
+  return { schemaVersion: "planner-candidate-batch/v2", proposals: [] };
 }
 
 function plannerCandidate(id, paths = [`src/${id}`]) {
@@ -102,6 +103,10 @@ function plannerCandidate(id, paths = [`src/${id}`]) {
   return {
     id: value.id,
     productResult: value.productResult,
+    objectRefs: [],
+    hypothesisRef: null,
+    criterionRefs: [],
+    metricRefs: [],
     journeyState: value.journeyState,
     doNow: value.doNow,
     newlyTrueBehavior: value.newlyTrueBehavior,
@@ -120,7 +125,7 @@ test("planner result stays disposable when drain wins before Claim admission", a
     signal: controller.signal,
     plannerRunner: async () => {
       controller.abort();
-      return { batch: { schemaVersion: "planner-candidate-batch/v1", proposals: [plannerCandidate("a")] } };
+      return { batch: { schemaVersion: "planner-candidate-batch/v2", proposals: [plannerCandidate("a", ["src/a"], root)] } };
     },
     runner: async () => {
       throw new Error("drain after planner return must admit no worker");

@@ -70,7 +70,7 @@ if (/LOGICAL_PLANNER_AUTODISPATCH_V[23]/u.test(prompt)) {
     }
   }
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-  fs.writeFileSync(outputPath, `${JSON.stringify({ schemaVersion: "planner-candidate-batch/v1", proposals })}\n`, "utf8");
+  fs.writeFileSync(outputPath, `${JSON.stringify({ schemaVersion: "planner-candidate-batch/v2", proposals })}\n`, "utf8");
   process.exit(0);
 }
 

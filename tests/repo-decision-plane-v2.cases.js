@@ -371,13 +371,13 @@ function realityTransition(predecessorHeadDigest, successor) {
   return validateWorldTransition({ ...body, transitionDigest: computeWorldTransitionDigest(body) });
 }
 
-test("authoritative WorldHead compiles minimal work-session/v7 with Outcome claim provenance and sealed product proof", (t) => {
+test("authoritative WorldHead compiles minimal work-session/v8 with Outcome claim provenance and sealed product proof", (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { claims: ["repo-owned"], hypotheses: ["opaque"] });
   installDecision(root, initial.head.headDigest);
   const compiled = compileRepoDecisionWork(root);
   assert.equal(compiled.type, "DISPATCH");
-  assert.equal(compiled.session.schemaVersion, "work-session/v7");
+  assert.equal(compiled.session.schemaVersion, "work-session/v8");
   assert.equal(compiled.session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.equal(compiled.session.base.commit, git(root, ["rev-parse", "HEAD"]));
   assert.deepEqual(compiled.session.origin, {

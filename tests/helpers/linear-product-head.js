@@ -7,6 +7,7 @@ const { spawnSync } = require("node:child_process");
 const { createOutcome, persistOutcome } = require("../../lib/outcome");
 const { acquireOutcomeClaimSession } = require("../../lib/outcome-claim");
 const { pinProductDirection } = require("../../lib/product-direction");
+const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../../lib/semantic-authority");
 const { loadRepoCharter } = require("../../lib/repo-proposal-set");
 const { compileProductProofSpec } = require("../../lib/work-proof-compiler");
 const { WORK_SESSION_SCHEMA, sealWorkSession } = require("../../lib/work-session");
@@ -123,9 +124,47 @@ function runner({ breakSharedId = null } = {}) {
 }
 
 function legacySession(root, outcome, headDigest, id) {
-  const direction = pinProductDirection(root); const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) }; const value = proposal(id);
-  const productProofSpec = compileProductProofSpec({ repositoryPath: root, productDirection: direction, base, productResult: value.productResult, newlyTrueBehavior: value.newlyTrueBehavior, doneWhen: value.doneWhen, allowModel: false });
-  return acquireOutcomeClaimSession({ repositoryPath: root, outcomeDigest: outcome.outcomeDigest, originWorldHeadDigest: headDigest, executionBoundary: { writePaths: value.allowedPaths }, buildSession: (claim) => sealWorkSession({ schemaVersion: WORK_SESSION_SCHEMA, productDirection: direction, origin: { type: "REPO_OUTCOME", outcomeDigest: outcome.outcomeDigest, claimDigest: claim.claimDigest }, base, productResult: value.productResult, journeyState: value.journeyState, doNow: value.doNow, newlyTrueBehavior: value.newlyTrueBehavior, doneWhen: value.doneWhen, productProofSpec, stopOnlyIf: value.stopOnlyIf, authorizedReversibleActions: ["Edit only the claimed write boundary.", "Run validation."], ownerOnlyActions: ["Expand product scope."], allowedPaths: value.allowedPaths, validation: value.validation, maxAttempts: 1, delivery: value.delivery }) });
+  const direction = pinProductDirection(root);
+  const semanticAuthority = compileSemanticAuthority({ productDirection: direction });
+  const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
+  const value = proposal(id);
+  const productProofSpec = compileProductProofSpec({
+    repositoryPath: root,
+    productDirection: direction,
+    base,
+    productResult: value.productResult,
+    newlyTrueBehavior: value.newlyTrueBehavior,
+    doneWhen: value.doneWhen,
+    allowModel: false,
+  });
+  return acquireOutcomeClaimSession({
+    repositoryPath: root,
+    outcomeDigest: outcome.outcomeDigest,
+    originWorldHeadDigest: headDigest,
+    executionBoundary: { writePaths: value.allowedPaths },
+    buildSession: (claim) => sealWorkSession({
+      schemaVersion: WORK_SESSION_SCHEMA,
+      productDirection: direction,
+      semanticState: semanticAuthority.semanticState,
+      semanticProjection: semanticProjection(semanticAuthority),
+      endgameProjection: endgameProjection(semanticAuthority),
+      origin: { type: "REPO_OUTCOME", outcomeDigest: outcome.outcomeDigest, claimDigest: claim.claimDigest },
+      base,
+      productResult: value.productResult,
+      journeyState: value.journeyState,
+      doNow: value.doNow,
+      newlyTrueBehavior: value.newlyTrueBehavior,
+      doneWhen: value.doneWhen,
+      productProofSpec,
+      stopOnlyIf: value.stopOnlyIf,
+      authorizedReversibleActions: ["Edit only the claimed write boundary.", "Run validation."],
+      ownerOnlyActions: ["Expand product scope."],
+      allowedPaths: value.allowedPaths,
+      validation: value.validation,
+      maxAttempts: 1,
+      delivery: value.delivery,
+    }),
+  });
 }
 
 function legacyLearning(root, predecessorHeadDigest, closure, payload, now = new Date("2026-08-18T04:00:00.000Z")) {
