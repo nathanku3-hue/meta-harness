@@ -284,6 +284,24 @@ test("empty planner frontier cannot quiesce an uncovered autonomous REPLAN hando
   assert.equal(sawAutonomousHandoff, true);
 });
 
+test("empty planner frontier cannot USE_PRODUCT an uncovered autonomous REPLAN without required destinations", async (t) => {
+  const { root } = repository(t);
+  persistInitial(root, "world-transition/v2");
+  await seedAutonomousReplan(root, "a");
+
+  await assert.rejects(
+    runRepoWorkWave({
+      repositoryPath: root,
+      plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } }),
+      runner: runner(),
+      interpret: require("./helpers/linear-product-head").fakeInterpretation,
+      now: monotonicNow(),
+    }),
+    (error) => error.code === "MH_FORWARD_PROGRESS_INVARIANT"
+      && /autonomous continuation obligation.*quiescence/iu.test(error.message),
+  );
+});
+
 test("concurrent Claim admission covers a planner-snapshot handoff without false forward-progress failure", async (t) => {
   const { root } = repository(t);
   installRequiredEndgame(root);

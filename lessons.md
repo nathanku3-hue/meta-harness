@@ -16,6 +16,7 @@ These are architecture lessons worth carrying across future Meta-Harness work. T
 - Canonical checks should compare normalized facts derived from the exact candidate/predecessor trees. Runtime-global registries, mutable checkout state, timestamps, prose diagnostics, and operator-maintained snapshots are unsuitable as canonical evidence unless the contract explicitly makes them authoritative.
 - Grandfather old debt only by exact predecessor presence. New debt, growth of grandfathered debt, or newly introduced forbidden structural facts should fail without requiring cleanup of unrelated historical debt.
 - Run cheap deterministic rejection before expensive model or retained semantic proof. Add model review only when mechanical checks have a demonstrated false-negative class that justifies its cost.
+- Autonomous continuation obligations are independent of destination coverage. Gating one on the other lets default UNBOUND products drop leftover REPLAN into USE_PRODUCT.
 
 ## Simplicity and deletion
 
