@@ -199,14 +199,7 @@ test("mid-worker drain lands ATTEMPT_ABORTED as EXECUTION_ABORTED and releases t
   const current = readCurrentWorldState(root);
   const transition = readImmutableJson(root, "transitions", current.head.lastTransitionDigest);
   assert.equal(transition.cause.type, "ATTEMPT_ABORTED");
-  const plannerInput = compileRepoPlannerInput({
-    repositoryPath: root,
-    current,
-    recovered: [],
-    localBound: 1,
-    localRunningCount: 0,
-    localRunningClaimDigests: [],
-  });
+  const plannerInput = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
   assert.equal(plannerInput.unresolvedHandoffs[0]?.disposition, "EXECUTION_ABORTED");
 });
 

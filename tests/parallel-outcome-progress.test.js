@@ -11,6 +11,7 @@ const {
 } = require("../lib/execution-closure");
 const {
   listActiveOutcomeClaims,
+  readOutcomeClaim,
   readOutcomeClaimRelease,
   readOutcomeClaimSession,
 } = require("../lib/outcome-claim");
@@ -434,7 +435,40 @@ test("one proposal set executes compatible Claims concurrently and lands sibling
   assert.ok(workerSchemaNames.every((name) => name.includes(".worker-result.schema.json")));
 });
 
-test("freed capacity refills from the post-landing Head before a slow sibling can finish", async (t) => {
+test("local worker throttle does not reduce repository Claim admission capacity", async (t) => {
+  const { root, initial } = repository(t);
+  writeProposalSet(root, initial.head.headDigest, [proposal(root, "a"), proposal(root, "b"), proposal(root, "c")]);
+  const concurrency = { active: 0, max: 0 };
+  const baseRunner = resultRunner({ delayMs: 20, concurrency });
+  let activeClaimsAtFirstWorker = null;
+  let recoverableSessionsAtFirstWorker = null;
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "1" },
+    runner: async (args) => {
+      if (activeClaimsAtFirstWorker === null) {
+        const active = listActiveOutcomeClaims(root);
+        activeClaimsAtFirstWorker = active.length;
+        recoverableSessionsAtFirstWorker = active.filter((claim) => readOutcomeClaimSession(root, claim.claimDigest, { optional: true })).length;
+      }
+      return baseRunner(args);
+    },
+    plannerRunner: plannerRunner([plannerCandidate("a"), plannerCandidate("b"), plannerCandidate("c")]),
+    interpret: fakeInterpretation,
+    now: monotonicNow(),
+  });
+
+  assert.equal(result.admitted, 3);
+  assert.equal(activeClaimsAtFirstWorker, 3);
+  assert.equal(recoverableSessionsAtFirstWorker, 3);
+  assert.equal(concurrency.max, 1);
+  assert.equal(result.orchestrationTelemetry.executionBound, 1);
+  assert.equal(result.orchestrationTelemetry.maxLocalConcurrency, 1);
+  assert.equal(result.outcome, "USE_PRODUCT");
+  assert.equal(listActiveOutcomeClaims(root).length, 0);
+});
+
+test("freed local worker slot starts an already-admitted Claim before a slow sibling can finish", async (t) => {
   const { root, initial } = repository(t);
   writeProposalSet(root, initial.head.headDigest, [proposal(root, "a"), proposal(root, "b"), proposal(root, "c")]);
   let releaseB;
@@ -465,8 +499,8 @@ test("freed capacity refills from the post-landing Head before a slow sibling ca
 
   assert.equal(cStarted, true, "C must start while B is still held inside its worker runner");
   assert.deepEqual(worldAtCStart.world.payload.learned, ["a"]);
-  assert.equal(cBaseCommit, worldAtCStart.head.productCommit);
-  assert.notEqual(cBaseCommit, initial.head.productCommit);
+  assert.equal(cBaseCommit, initial.head.productCommit);
+  assert.notEqual(cBaseCommit, worldAtCStart.head.productCommit);
   assert.equal(result.outcome, "USE_PRODUCT");
   assert.equal(result.admitted, 3);
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b", "c"]);
@@ -547,30 +581,68 @@ test("proposal overlap rejects the conflicting current-Head candidate without po
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "c"]);
 });
 
-test("fresh current-World interpretation can invalidate a sibling without stranding its Claim", async (t) => {
+test("fresh current-World interpretation invalidates a sibling and dispatches a provenance-linked successor", async (t) => {
   const { root, initial } = repository(t, {
     payload: { learned: [], invalidateAfter: "a", invalidateTarget: "b" },
   });
   writeProposalSet(root, initial.head.headDigest, [proposal(root, "a"), proposal(root, "b")]);
   const seen = [];
+  const baseRunner = resultRunner({ delayMs: 30 });
+  let sentInitial = false;
+  let sentSuccessor = false;
+  let invalidatedClaimDigest = null;
+  let handoffDigest = null;
+  let successorClaim = null;
   const result = await runRepoWorkWave({
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
-    runner: resultRunner({ delayMs: 30 }),
-    plannerRunner: plannerRunner([plannerCandidate("a"), plannerCandidate("b")]),
+    runner: async (args) => {
+      const id = /^Deliver ([a-z0-9-]+)\.$/iu.exec(args.session.productResult)?.[1];
+      if (id === "b") invalidatedClaimDigest = args.session.origin.claimDigest;
+      if (id === "c") successorClaim = readOutcomeClaim(root, args.session.origin.claimDigest);
+      return baseRunner(args);
+    },
+    plannerRunner: async ({ plannerInput }) => {
+      const handoff = plannerInput.unresolvedHandoffs.find((entry) => entry.disposition === "INVALIDATED_REPLAN");
+      if (handoff && !sentSuccessor) {
+        sentSuccessor = true;
+        handoffDigest = handoff.transitionDigest;
+        return {
+          batch: {
+            schemaVersion: "planner-candidate-batch/v3",
+            proposals: [{
+              ...plannerCandidate("c"),
+              continuesFromTransitionDigests: [handoff.transitionDigest],
+              objectRefs: [],
+              hypothesisRef: null,
+              criterionRefs: [],
+              metricRefs: [],
+            }],
+          },
+        };
+      }
+      if (!sentInitial) {
+        sentInitial = true;
+        return plannerRunner([plannerCandidate("a"), plannerCandidate("b")])({ plannerInput });
+      }
+      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
+    },
     interpret: (args) => {
       seen.push({ id: args.input.outcome.id, head: args.input.currentHead.headDigest, learned: args.input.currentWorld.payload.learned });
       return fakeInterpretation(args);
     },
     now: monotonicNow(),
   });
-  assert.equal(result.outcome, "PARTIAL");
-  assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 1);
-  assert.equal(result.outcomes.filter((entry) => entry.state === "INVALIDATED_REPLAN").length, 1);
-  assert.deepEqual(seen.map((entry) => entry.id), ["a", "b"]);
+  assert.equal(result.outcome, "USE_PRODUCT");
+  assert.ok(invalidatedClaimDigest);
+  assert.ok(readOutcomeClaimRelease(root, invalidatedClaimDigest));
+  assert.ok(successorClaim);
+  assert.deepEqual(successorClaim.continuesFromTransitionDigests, [handoffDigest]);
+  assert.deepEqual(seen.slice(0, 2).map((entry) => entry.id), ["a", "b"]);
   assert.equal(seen[0].head, initial.head.headDigest);
   assert.notEqual(seen[1].head, initial.head.headDigest);
   assert.deepEqual(seen[1].learned, ["a"]);
+  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "c"]);
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
@@ -641,23 +713,59 @@ test("terminal Closure without a work result resolves through ATTEMPT_ABORTED an
   assert.ok(readOutcomeClaimRelease(root, admitted.claim.claimDigest));
 });
 
-test("one worker failure does not cancel siblings and every terminal Claim reaches durable resolution", async (t) => {
+test("one worker failure preserves siblings and dispatches a provenance-linked successor", async (t) => {
   const { root, initial } = repository(t);
   writeProposalSet(root, initial.head.headDigest, [proposal(root, "a"), proposal(root, "b"), proposal(root, "c")]);
+  const baseRunner = resultRunner({ failId: "b", delayMs: 40 });
+  let sentInitial = false;
+  let sentSuccessor = false;
+  let failedClaimDigest = null;
+  let handoffDigest = null;
+  let successorClaim = null;
   const result = await runRepoWorkWave({
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "3" },
-    runner: resultRunner({ failId: "b", delayMs: 40 }),
-    plannerRunner: plannerRunner([plannerCandidate("a"), plannerCandidate("b"), plannerCandidate("c")]),
+    runner: async (args) => {
+      const id = /^Deliver ([a-z0-9-]+)\.$/iu.exec(args.session.productResult)?.[1];
+      if (id === "b") failedClaimDigest = args.session.origin.claimDigest;
+      if (id === "d") successorClaim = readOutcomeClaim(root, args.session.origin.claimDigest);
+      return baseRunner(args);
+    },
+    plannerRunner: async ({ plannerInput }) => {
+      const handoff = plannerInput.unresolvedHandoffs.find((entry) => entry.disposition === "EXECUTION_ABORTED");
+      if (handoff && !sentSuccessor) {
+        sentSuccessor = true;
+        handoffDigest = handoff.transitionDigest;
+        return {
+          batch: {
+            schemaVersion: "planner-candidate-batch/v3",
+            proposals: [{
+              ...plannerCandidate("d"),
+              continuesFromTransitionDigests: [handoff.transitionDigest],
+              objectRefs: [],
+              hypothesisRef: null,
+              criterionRefs: [],
+              metricRefs: [],
+            }],
+          },
+        };
+      }
+      if (!sentInitial) {
+        sentInitial = true;
+        return plannerRunner([plannerCandidate("a"), plannerCandidate("b"), plannerCandidate("c")])({ plannerInput });
+      }
+      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
+    },
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });
-  assert.equal(result.outcome, "PARTIAL");
-  assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 2);
-  assert.equal(result.outcomes.filter((entry) => entry.state === "EXECUTION_ABORTED").length, 1);
-  assert.equal(result.outcomes.filter((entry) => entry.state === "BLOCKED").length, 0);
+  assert.equal(result.outcome, "USE_PRODUCT");
+  assert.ok(failedClaimDigest);
+  assert.ok(readOutcomeClaimRelease(root, failedClaimDigest));
+  assert.ok(successorClaim);
+  assert.deepEqual(successorClaim.continuesFromTransitionDigests, [handoffDigest]);
   assert.equal(listActiveOutcomeClaims(root).length, 0);
-  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "c"]);
+  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "c", "d"]);
 });
 
 test("empty positive-value frontier reaches USE_PRODUCT from quiescent planner truth", async (t) => {

@@ -212,18 +212,76 @@ Meta-Harness lesson:
 
 **Adopt the immutability/refinement separation, not the runtime breadth.** `PRODUCT.md` is already the correct immutable owner layer. Any future learned layer should remain subordinate to it and require evidence plus rollback.
 
-### Pi agent
+### Pi agent + Databricks harness benchmark
 
-Primary source: https://github.com/earendil-works/pi
+Primary sources:
+
+- https://github.com/earendil-works/pi
+- https://www.databricks.com/blog/benchmarking-coding-agents-databricks-multi-million-line-codebase
 
 Useful signal:
 
 - A comparatively small, self-extensible coding-agent harness can expose the agent loop, state management, and tool APIs without turning the workflow into a large process framework.
 - The project separates coding-agent UI/runtime from the core agent loop and LLM API.
+- Databricks' July 8, 2026 production-code benchmark reports that, with the same model and thinking effort, changing harness changed task cost by more than 2x in some comparisons while quality stayed the same; Pi sent about 3x less context per turn.
+- Databricks grades with held-out executable tests rather than an LLM judge and seals Git history against solution leakage.
 
-Research boundary:
+Meta-Harness lesson:
 
-This round did not find a primary-source Pi benchmark that establishes the Pi harness itself as SOTA. Treat Pi as a useful **minimal-harness baseline**, not as a verified SOTA claim “via DeepSeek.”
+**Harness context is a first-class efficiency variable. Keep the model-facing working set thin and put durable coordination in repository/controller truth rather than repeated prompt context.**
+
+### mini-SWE-agent
+
+Primary source: https://github.com/SWE-agent/mini-swe-agent/blob/main/docs/index.md
+
+Useful signal:
+
+- mini-SWE-agent v2 presents a roughly 100-line agent core and reports more than 74% SWE-bench Verified.
+- Its model surface is intentionally radical: bash is the only tool, history is linear, and actions are independent subprocess executions that are easy to redirect into sandboxes.
+- The authors explicitly argue that much of the special tool/interface engineering emphasized in 2024 is no longer required to build a useful coding agent.
+
+Meta-Harness lesson:
+
+**Every permanent harness mechanism should justify why the model plus a simpler execution substrate cannot do without it.** Do not copy unrestricted bash; keep Meta-Harness's stronger authority/materialization boundary while applying the same deletion pressure to orchestration surface.
+
+### Anthropic Managed Agents
+
+Primary source: https://www.anthropic.com/engineering/managed-agents
+
+Useful signal:
+
+- Anthropic separates durable session context from the harness process and from execution containers; session context lives outside the model context window and can be re-read selectively.
+- Their scaling model uses many stateless harnesses and provisions execution containers only when needed.
+
+Meta-Harness lesson:
+
+**Controller/tab processes should remain disposable.** Claim + WorkSession + World already provide the durable continuity needed here; do not add another session-log abstraction merely to imitate the implementation.
+
+### Anthropic parallel Claude compiler experiment
+
+Primary source: https://www.anthropic.com/engineering/building-c-compiler
+
+Useful signal:
+
+- Agents claim tasks with simple text-file locks, work in separate environments, and synchronize through Git.
+- The prototype explicitly has no orchestration agent and no separate agent-to-agent communication mechanism.
+
+Meta-Harness lesson:
+
+Meta-Harness already has stronger primitives for the same need: **Claim is the durable task lock; isolated workspaces contain execution; serialized World integration carries completed facts. Workers do not need sibling chat.**
+
+### DeepSeek Harness Code Runtime
+
+Primary source: https://github.com/deepseek-ai/deepseek-harness/blob/master/packages/code-runtime/code-runtime/README.md
+
+Useful signal:
+
+- Code Mode places model-written computation behind a narrow `run_code`-style surface and keeps intermediate binding traffic out of repeated model context.
+- The shipped runtime is currently a worker-thread backend. DeepSeek's own documentation describes `isolation` as a diagnostic label rather than a security claim and states that a hard security boundary awaits a container backend.
+
+Meta-Harness lesson:
+
+**Thin model surface, thick deterministic substrate remains the useful pattern; worker-thread containment is not authority isolation.** Keep Meta-Harness's read-only worker and controller-owned materialization/validation boundary rather than moving model-written computation inside trusted authority.
 
 ### OpenAI Codex CLI
 

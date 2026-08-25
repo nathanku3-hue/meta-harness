@@ -31,7 +31,7 @@ The human-facing product remains small. Internal continuity may become richer, b
 2. **Outcome is work identity.** A path, directory, lifecycle phase, chat, session, or agent is not the identity of work. Path and resource scope are derived capability/safety boundaries.
 3. **Outcomes are stable; means are disposable.** Failure of one API, library, runtime, data source, architecture route, or implementation tactic is not evidence that the outcome is blocked.
 4. **Escalation requires proof.** Before durable `BLOCKED` or owner escalation, the system must distinguish a hard outcome constraint from failure of the currently preferred means and exhaust permissible forward motion or replan.
-5. **Planner is out of the execution hot path.** The planner proposes the positive-value frontier up to local capacity and then disappears. Capacity is a ceiling, not a quota; unused slots are correct when no additional positive-value Outcome exists. The planner does not babysit workers or relay their reports.
+5. **Planner is out of the execution hot path.** The planner proposes the positive-value frontier up to repository active-Claim capacity and then disappears. Repository Claim capacity is commitment authority; local worker concurrency is throughput only. Capacity is a ceiling, not a quota; unused slots are correct when no additional positive-value Outcome exists. The planner does not babysit workers or relay their reports.
 6. **One worker, one claim, one outcome, one closure.** A worker may discover future work but may not silently turn discoveries into roadmap commitment.
 7. **Execution may be parallel; authoritative truth remains linear.** Expensive work can overlap. World transitions remain validated and serial.
 8. **WorldHead is provenance, not global freshness.** Continued validity of an executing outcome is determined by its declared preconditions, invariants, capabilities, resources, and conflict domains rather than by equality with an unchanged whole-World digest.
@@ -215,7 +215,7 @@ Planner context/output is reconstructable, disposable, and non-authoritative. `e
 
 ### Phase 6 — Event-driven reconciliation + capacity refill
 
-**Product result:** remove the remaining whole-wave barrier so terminal Closures land as soon as they are ready, authoritative releases immediately free local capacity, and fresh current-Head planning refills that capacity while slower siblings continue.
+**Product result:** remove the remaining whole-wave barrier so terminal Closures land as soon as they are ready, authoritative releases immediately free repository Claim capacity, and fresh current-Head planning refills that capacity while slower siblings continue. Local worker slots control execution throughput only.
 
 **Banked validated slice:** `EVENT_DRIVEN_RECONCILIATION_1` at `39ab56a`. Phase 5's synchronous-barrier/counterfactual-refill telemetry established the defect; Phase 6 replaced that counterfactual with actual event-driven landing/refill behavior and telemetry.
 

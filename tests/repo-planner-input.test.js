@@ -5,6 +5,7 @@ const test = require("node:test");
 
 const { findExecutionClosureForOrigin } = require("../lib/execution-closure");
 const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
+const { REPOSITORY_ACTIVE_CLAIM_BOUND } = require("../lib/outcome-claim");
 const { landOutcomeClosure } = require("../lib/repo-outcome-landing");
 const { compileRepoPlannerInput } = require("../lib/repo-planner-input");
 const { runWork } = require("../lib/work-loop");
@@ -81,7 +82,7 @@ test("planner input v3 puts exact owner intent first and excludes full PRODUCT p
   persistInitial(root, "world-transition/v2");
   replaceOwnerObjectiveState(root, "fastest honest decision-changing evidence");
   const current = readCurrentWorldState(root);
-  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [], localBound: 3 });
+  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
 
   assert.equal(input.schemaVersion, "repo-planner-input/v3");
   assert.equal(Object.keys(input)[1], "ownerIntent");
@@ -93,29 +94,24 @@ test("planner input v3 puts exact owner intent first and excludes full PRODUCT p
   assert.equal(Object.hasOwn(input, "ownerDirective"), false);
 });
 
-test("local running Claims are not double-counted while durable custody still looks executable", (t) => {
+test("running-elsewhere Claim consumes repository capacity without local execution bookkeeping", (t) => {
   const { root } = repository(t);
   const initial = persistInitial(root, "world-transition/v2");
   const durableOutcome = outcome(root);
   const admitted = legacySession(root, durableOutcome, initial.head.headDigest, "a");
   const recovered = [{
-    type: "EXECUTABLE",
+    type: "RUNNING_ELSEWHERE",
     claim: admitted.claim,
     session: admitted.session,
-    continuation: "PENDING_WORKSPACE",
+    workspaceId: "external-workspace",
   }];
   const current = readCurrentWorldState(root);
-  const input = compileRepoPlannerInput({
-    repositoryPath: root,
-    current,
-    recovered,
-    localBound: 3,
-    localRunningCount: 1,
-    localRunningClaimDigests: [admitted.claim.claimDigest],
-  });
+  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered });
+  assert.equal(input.capacity.repositoryActiveClaimBound, REPOSITORY_ACTIVE_CLAIM_BOUND);
   assert.equal(input.capacity.occupiedSlots, 1);
-  assert.equal(input.capacity.availableSlots, 2);
+  assert.equal(input.capacity.availableSlots, REPOSITORY_ACTIVE_CLAIM_BOUND - 1);
   assert.equal(input.activeCommitments.length, 1);
+  assert.equal(input.activeCommitments[0].state, "running_elsewhere");
 });
 
 test("fresh planner input reconstructs unresolved durable handoff without chat or execution internals", async (t) => {
@@ -141,7 +137,7 @@ test("fresh planner input reconstructs unresolved durable handoff without chat o
   assert.equal(landing.state, "REPLAN_REQUIRED");
 
   const current = readCurrentWorldState(root);
-  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [], localBound: 3 });
+  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
   assert.equal(input.unresolvedHandoffs.length, 1);
   const handoff = input.unresolvedHandoffs[0];
   assert.equal(handoff.outcomeDigest, durableOutcome.outcomeDigest);
@@ -193,6 +189,6 @@ test("later authoritative success supersedes older unresolved handoff", async (t
   assert.equal(landing.state, "LANDED");
 
   const current = readCurrentWorldState(root);
-  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [], localBound: 3 });
+  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
   assert.equal(input.unresolvedHandoffs.some((entry) => entry.outcomeDigest === durableOutcome.outcomeDigest), false);
 });

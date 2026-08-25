@@ -370,15 +370,15 @@ The normal repo-owned reconciliation transaction is:
 ```text
 drain landing-ready terminal Closures
 → recover active Claims from durable session/workspace custody
-→ start recoverable executable Claims up to local capacity
-→ if capacity remains, plan the current Head at most once in this controller epoch
-→ admit compatible candidates as NEW Claims
+→ start recoverable executable Claims up to local worker concurrency
+→ if repository active-Claim capacity remains, plan the current Head at most once in this controller epoch
+→ admit compatible candidates as NEW Claims up to repository active-Claim capacity
 → run independent runWork() transactions concurrently
 → wake on the next local settlement only
 → reread durable truth and land the resulting Closure against CURRENT World
 → controller-owned cumulative code integration + retained proof
 → world-transition/v2 CAS + Claim release
-→ refill released capacity from the successor Head while slower siblings continue
+→ repository Claim capacity reopens; plan the successor Head while slower siblings continue
 ```
 
 A planner candidate is disposable possibility; an Outcome is immutable work identity materialized as part of successful Claim admission; a Claim is durable temporary commitment. Candidate preparation constructs the prospective Outcome bytes/digest in memory. Under the World/Claim authority lock, the controller proves current-Head and boundary availability before persisting that Outcome prerequisite, exact session, `outcome-claim-session/v1`, and finally the Claim. Ordinary stale/conflicting rejection therefore leaves no Outcome object; crash residue before Claim visibility remains inert.

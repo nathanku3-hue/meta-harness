@@ -418,7 +418,7 @@ test("promoted research context fails explicitly instead of truncating", async (
     (error) => error.code === "MH_RESEARCH_CONTEXT_BUDGET",
   );
   assert.throws(
-    () => compileRepoPlannerInput({ repositoryPath: root, current: authoritative, recovered: [], localBound: 3 }),
+    () => compileRepoPlannerInput({ repositoryPath: root, current: authoritative, recovered: [] }),
     (error) => error.code === "MH_RESEARCH_CONTEXT_BUDGET",
   );
 });

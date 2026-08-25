@@ -169,7 +169,13 @@ test("recovered executable commitments start before fresh planning on every reco
     plannerRunner: async ({ plannerInput }) => {
       plannerCalls += 1;
       assert.equal(workerStarted, true);
-      assert.deepEqual(plannerInput.currentWorld.payload.learned, ["a"]);
+      if (plannerCalls === 1) {
+        assert.deepEqual(plannerInput.currentWorld.payload.learned, []);
+        assert.deepEqual(plannerInput.activeCommitments.map((entry) => entry.outcome.id), ["a"]);
+      } else {
+        assert.deepEqual(plannerInput.currentWorld.payload.learned, ["a"]);
+        assert.equal(plannerInput.activeCommitments.length, 0);
+      }
       return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
     },
     runner: async (args) => {
@@ -179,7 +185,7 @@ test("recovered executable commitments start before fresh planning on every reco
     interpret: require("./helpers/linear-product-head").fakeInterpretation,
     now: monotonicNow(),
   });
-  assert.equal(plannerCalls, 1);
+  assert.equal(plannerCalls, 2);
   assert.equal(result.plannerInvoked, true);
   assert.equal(result.recovered, 1);
   assert.deepEqual(readCurrentWorldState(root).world.payload.learned, ["a"]);
@@ -405,6 +411,46 @@ test("planner cannot invent continuation lineage absent from its exact handoff s
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
+test("capacity race rejection is normal Claim contention and stops the stale planner batch", async (t) => {
+  const { root } = repository(t);
+  persistInitial(root, "world-transition/v2");
+  let filledCapacity = false;
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "3" },
+    plannerRunner: async ({ current, plannerInput }) => {
+      if (!filledCapacity) {
+        filledCapacity = true;
+        for (const id of ["a", "b", "c"]) {
+          const prepared = preparePlannerCandidate(root, current, candidate(id));
+          admitPreparedPlannerCandidate(root, current, prepared, {
+            objectiveRevision: plannerInput.ownerIntent.activeDirective?.revision || 0,
+          });
+        }
+        return {
+          batch: {
+            schemaVersion: "planner-candidate-batch/v3",
+            proposals: [candidate("d"), candidate("e")],
+          },
+        };
+      }
+      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
+    },
+    runner: runner(),
+    interpret: require("./helpers/linear-product-head").fakeInterpretation,
+    now: monotonicNow(),
+  });
+
+  assert.equal(result.outcome, "USE_PRODUCT");
+  assert.equal(result.recovered, 3);
+  assert.ok(result.orchestrationTelemetry.candidateRejections.some((entry) => (
+    entry.candidateId === "d" && entry.code === "MH_OUTCOME_CLAIM_CAPACITY"
+  )));
+  assert.equal(result.orchestrationTelemetry.candidateRejections.some((entry) => entry.candidateId === "e"), false);
+  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b", "c"]);
+  assert.equal(listActiveOutcomeClaims(root).length, 0);
+});
+
 test("ordinary conflicting planner rejection leaves no orphan Outcome", (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
@@ -520,7 +566,7 @@ test("planner renders owner objective as instruction and repository workflow as 
   persistInitial(root, "world-transition/v2");
   replaceOwnerObjectiveState(root, "fastest honest decision-changing evidence");
   const current = readCurrentWorldState(root);
-  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [], localBound: 3 });
+  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
   const prompt = buildLogicalPlannerPrompt(input);
 
   assert.match(prompt, /^LOGICAL_PLANNER_AUTODISPATCH_V4/mu);
@@ -538,7 +584,7 @@ test("planner treats validity constraints as decision-edge data rather than glob
   persistInitial(root, "world-transition/v2");
   replaceOwnerObjectiveState(root, "start useful measurement after the object is frozen");
   const current = readCurrentWorldState(root);
-  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [], localBound: 3 });
+  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
   const prompt = buildLogicalPlannerPrompt(input);
 
   assert.match(prompt, /validity constraints lose global priority/iu);
@@ -651,7 +697,6 @@ test("planner input projects object maturity and edge-scoped constraint impact w
     repositoryPath: root,
     current: { ...current, world, head: initial.head },
     recovered: [],
-    localBound: 1,
   });
   assert.deepEqual(input.objectMaturity, {
     frozen: true,

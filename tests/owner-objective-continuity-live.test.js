@@ -72,12 +72,7 @@ function fixtureRepository(t, payload, objective, { adversarialEndgameProse = fa
 
 async function plannerTrial(root) {
   const current = readCurrentWorldState(root);
-  const plannerInput = compileRepoPlannerInput({
-    repositoryPath: root,
-    current,
-    recovered: [],
-    localBound: 3,
-  });
+  const plannerInput = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
   const produced = await runLogicalPlanner({
     repositoryPath: root,
     current,

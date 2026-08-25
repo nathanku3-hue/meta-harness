@@ -12,8 +12,10 @@ const { enterExecutionAttempt, issueExecutionPermit } = require("../lib/executio
 const { createOutcome, persistOutcome } = require("../lib/outcome");
 const {
   acquireOutcomeClaim,
+  ensureOutcomeClaim,
   findActiveOutcomeClaimForOutcome,
   listActiveOutcomeClaims,
+  REPOSITORY_ACTIVE_CLAIM_BOUND,
 } = require("../lib/outcome-claim");
 const { pinProductDirection } = require("../lib/product-direction");
 const { validateRepoDecision } = require("../lib/repo-decision");
@@ -330,6 +332,97 @@ test("two fresh processes racing the same Outcome produce exactly one Claim winn
   assert.equal(results.filter((result) => result.code === "MH_OUTCOME_ALREADY_CLAIMED").length, 1);
   assert.equal(listActiveOutcomeClaims(root).length, 1);
   assert.equal(findActiveOutcomeClaimForOutcome(root, value.outcomeDigest).outcomeDigest, value.outcomeDigest);
+});
+
+test("fresh processes racing disjoint Outcomes cannot exceed repository active Claim capacity", async (t) => {
+  const root = repository(t);
+  const initial = persistWorld(root, { revision: 1 });
+  const contenderCount = REPOSITORY_ACTIVE_CLAIM_BOUND + 2;
+  const values = Array.from({ length: contenderCount }, (_, index) => outcome(
+    root,
+    `capacity-${index}`,
+    `Capacity result ${index} exists.`,
+    `Capacity input ${index} remains available.`,
+  ));
+  const barrier = path.join(root, "claim-capacity-race.barrier");
+  fs.writeFileSync(barrier, "hold\n", "utf8");
+
+  const children = values.map((value, index) => {
+    const ready = path.join(root, `claim-capacity-race-${index}.ready`);
+    const child = spawn(process.execPath, [CLAIM_RACE], {
+      cwd: root,
+      windowsHide: true,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: {
+        ...process.env,
+        MH_CLAIM_REPOSITORY: root,
+        MH_CLAIM_OUTCOME: value.outcomeDigest,
+        MH_CLAIM_HEAD: initial.head.headDigest,
+        MH_CLAIM_PATHS: JSON.stringify([`src/a/lane-${index}`]),
+        MH_CLAIM_BARRIER: barrier,
+        MH_CLAIM_READY: ready,
+      },
+    });
+    return { child, ready };
+  });
+  t.after(() => {
+    for (const { child } of children) {
+      if (child.exitCode === null) child.kill();
+    }
+  });
+
+  await Promise.all(children.map(({ ready }) => waitForFile(ready)));
+  const resultsPromise = Promise.all(children.map(({ child }) => childJson(child)));
+  fs.unlinkSync(barrier);
+  const results = await resultsPromise;
+
+  assert.equal(
+    results.filter((result) => result.ok).length,
+    REPOSITORY_ACTIVE_CLAIM_BOUND,
+    JSON.stringify(results),
+  );
+  assert.equal(
+    results.filter((result) => result.code === "MH_OUTCOME_CLAIM_CAPACITY").length,
+    contenderCount - REPOSITORY_ACTIVE_CLAIM_BOUND,
+    JSON.stringify(results),
+  );
+  assert.equal(listActiveOutcomeClaims(root).length, REPOSITORY_ACTIVE_CLAIM_BOUND);
+});
+
+test("full repository capacity still permits idempotent existing Claim resolution", (t) => {
+  const root = repository(t);
+  const initial = persistWorld(root, { revision: 1 });
+  const values = Array.from({ length: REPOSITORY_ACTIVE_CLAIM_BOUND + 1 }, (_, index) => outcome(
+    root,
+    `ensure-capacity-${index}`,
+    `Ensure capacity result ${index} exists.`,
+    `Ensure capacity input ${index} remains available.`,
+  ));
+  const claims = values.slice(0, REPOSITORY_ACTIVE_CLAIM_BOUND).map((value, index) => claim(
+    root,
+    initial.head.headDigest,
+    value,
+    [`src/a/ensure-${index}`],
+  ));
+
+  const existing = ensureOutcomeClaim({
+    repositoryPath: root,
+    outcomeDigest: values[0].outcomeDigest,
+    originWorldHeadDigest: initial.head.headDigest,
+    executionBoundary: { writePaths: ["src/a/ensure-0"] },
+  });
+  assert.equal(existing.claimDigest, claims[0].claimDigest);
+
+  assert.throws(
+    () => ensureOutcomeClaim({
+      repositoryPath: root,
+      outcomeDigest: values.at(-1).outcomeDigest,
+      originWorldHeadDigest: initial.head.headDigest,
+      executionBoundary: { writePaths: ["src/b/ensure-new"] },
+    }),
+    (error) => error.code === "MH_OUTCOME_CLAIM_CAPACITY",
+  );
+  assert.equal(listActiveOutcomeClaims(root).length, REPOSITORY_ACTIVE_CLAIM_BOUND);
 });
 
 test("A can bank H to H1 while disjoint B remains executable, and stale B learning cannot commit blindly", (t) => {
