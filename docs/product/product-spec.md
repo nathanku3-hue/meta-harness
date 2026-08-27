@@ -387,6 +387,48 @@ Existing Claims deliberately do not gain whole-World equality: unrelated World a
 
 Repo-owned continuation is Claim-addressed rather than selected by repository-global `latest.json`. Claims with disjoint concrete write boundaries may coexist; duplicate Outcomes and overlapping boundaries fail closed. Controller-local fan-out is a bounded operational limit only and is never persisted as queue, priority, reservation, event history, or World state. Terminal Closures are always drained before a fresh planner boot, planner completion is never authority, and an unchanged Head receives at most one planner boot per active controller epoch.
 
+### Delegation Round 2 contract seam
+
+`meta-harness-delegation-round2/v1` is a pure projection/acceptance contract for a bounded DevSpace `DELEGATION-R2` run. It does not own dispatch, lane lifecycle, or World mutation. Input memory is reconstructed only from authoritative current product truth: the exact owner-authored PRODUCT Endgame projection, the current `world-head/v2` plus current accepted World, one explicit current gate, and immutable evidence references. Each lane names one immutable `outcome/v1`; lane acceptance criteria are mechanically `desired-state = Outcome.desiredState` and `evidence-requirement = Outcome.evidenceRequirement`.
+
+Meta-Harness computes the exact DevSpace `delegation-context/v1` digest before launch. Compact `lane-result-card/v1` fan-in must bind that context and the sealed lane objective/criteria. The normal acceptance path rejects transcript/message payloads and does not ingest expanded evidence bodies. A disputed criterion may issue one bounded evidence request for refs already present in that lane's compact result; the returned evidence set must match exactly. Lane `worldDelta` remains advisory until a later authoritative interpreter/World transition accepts it.
+
+This Round-2 seam remains frozen and explicitly excludes Grill, DONE/HOLD/obsolete lifecycle, released-capacity refill/kill/frontier scheduling, automatic World landing, and runtime/fidelity routing.
+
+### Delegation Round 3 autonomous lifecycle
+
+Round 3 is one bounded event-driven reconciliation layer over the frozen Round-2 contract. It does not introduce a scheduler or new execution substrate. The retained DevSpace parent/child task lifecycle remains the host; Meta-Harness decides only what remains positive-value after accepted evidence changes World.
+
+A result-bearing Round-2 lane is terminal at the host and is reduced to immutable `meta-harness-delegation-learning/v1`. That learning binds the delegation/contract/context, lane/Outcome, task/workspace, lane-brief/boot-prompt, compact result digest, criterion verdicts, evidence summaries, advisory `worldDelta`, remaining uncertainty, and handoff. Raw transcript fields are still excluded.
+
+The repository-owned fixed closure interpreter receives the compact learning plus its immutable Outcome against the **current** World/attestation. A validated successor commits through `world-transition/v2` cause `DELEGATION_LEARNING`. This transition preserves `WorldHead.productCommit` exactly, so external delegation may update accepted semantic truth while unrelated Claims/lanes continue but can never manufacture canonical product code. CAS loss reinterprets against the winning current World. A compact result digest already present in authoritative World lineage is replay-rejected/idempotently recognized.
+
+After each newly landed result, and on an explicit reconciliation event, a fresh read-only frontier planner receives only PRODUCT Endgame, current World/WorldHead, current gate, still-live sealed lane objectives/criteria, compact landed-result evidence, and retained HOLD checkpoint refs. Every live lane receives exactly one semantic decision:
+
+```text
+CONTINUE  still positive-value on the current frontier
+HOLD      still relevant but should checkpoint and stop consuming live capacity
+OBSOLETE  current accepted World makes the lane no longer decision-relevant
+```
+
+The same frontier may propose new lane candidates up to capacity that will exist after its HOLD/OBSOLETE decisions. Thus terminal results and lifecycle cancellation release slots in the same reconciliation; capacity remains a ceiling, never a quota. A candidate contains immutable Outcome semantics plus disposable `journeyState`, `doNow`, `stopOnlyIf`, and `expectedWritePaths` predictions. The controller applies the existing exact-boundary normalization/protection law, derives deterministic validation from the exact current `WorldHead.productCommit`, and only then persists the Outcome. The planner never chooses validation, Git/publication identity, task/workspace identity, runtime, or browser. Refill compiles a fresh Round-2 contract and a real DevSpace native task brief for each lane with controller-derived scope/validation and non-publishing Git custody.
+
+Before HOLD cancellation, Meta-Harness persists deterministic `delegation-hold-checkpoint/v1` containing the exact retained task/workspace and sealed contract/lane/context identities, current WorldHead, gate, reason, and bounded evidence refs. It contains no chat history and grants no scheduling authority. Only after the checkpoint exists may `cancel_lane` terminate the lane. OBSOLETE cancels without a HOLD checkpoint. A useful `INTERRUPTED`/`FAILED` retained delegation is continued through existing `resume_delegation` rather than a new worker/scheduler abstraction.
+
+Every executable frontier gets one fresh read-only Grill pass. Grill either `ACCEPT`s the frontier or `REPLACE`s it once with a complete corrected frontier; there is no recursive review loop. It specifically challenges unnecessary decomposition, stale/duplicate lanes, premature owner gates, and the invalid inference `failed route = failed Outcome`. The challenged frontier is the one used for both lifecycle action and refill, so new delegation is never spawned from an unchallenged decomposition. If WorldHead changes while frontier/Grill reasoning is running, that stale result is discarded and the full pass retries against the newer current World before any cancel/refill action executes.
+
+Owner-visible gate behavior is derived from the post-lifecycle semantic frontier:
+
+```text
+CONTINUE       autonomous positive-value work remains; surface nothing
+FORWARD_GATE   autonomous lane frontier is empty and a new semantic gate follows
+OWNER_DECISION only a typed owner-exclusive scope/taste/access/risk choice remains
+```
+
+The frontier digest includes continuing lanes, new Outcomes, blockers, and gate semantics, but excludes completed HOLD/OBSOLETE cleanup actions. Therefore cancelling a stale lane does not make the same gate appear again. Before a non-`CONTINUE` gate is returned, Meta-Harness persists immutable `delegation-surfaced-frontier/v1` evidence bound to the exact current WorldHead and rechecks that Head before persistence. Restart finds the latest surfaced record on current World lineage and suppresses the same digest without conversational memory; a caller-supplied prior digest may only agree with retained evidence. The retained Round-2 gate string is used only when no surfaced-frontier evidence exists yet.
+
+The host seam maps only to the bounded Round-1 primitives: compact `get_delegation {delegationId}`, `resume_delegation {delegationId}`, `cancel_lane {delegationId,laneKey}`, and `spawn_delegation {repository,baseRef,memory,lanes[]}`. Refill pins `baseRef` to the exact current product commit and supplies each lane's sealed acceptance criteria plus a controller-compiled task brief; commit/push authority is false. A retained delegation id may be reconciled directly; Meta-Harness consumes MCP `structuredContent`, fetches the compact snapshot, and re-runs Round-2 context/lane binding itself. Round 3 still excludes runtime/fidelity routing, shared Chromium, provider routing, queues, daemons, dashboards, swarms, and persistent idle workers. Those belong only to Round 4 if required by the real resource/fidelity journey.
+
 ### Current-World Closure landing
 
 Worker success is not repo-level product success until current authoritative truth accepts it. For every terminal Claim with durable work evidence, Meta-Harness supplies the exact current World+attestation, Outcome, Claim, ExecutionClosure, and work result to the repository-owned fixed interpreter at `.meta-harness/closure-interpreter.js`.
