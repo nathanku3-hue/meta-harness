@@ -49,9 +49,9 @@ HOLD      lane remains relevant but should checkpoint and stop consuming capacit
 OBSOLETE  current accepted World makes the lane no longer decision-relevant
 ```
 
-The planner may also propose up to the capacity that will exist **after** its HOLD/OBSOLETE decisions. Capacity is a ceiling, not a quota. A new-lane candidate contains Outcome semantics plus `journeyState`, `doNow`, `stopOnlyIf`, and `expectedWritePaths`. Those execution fields are disposable predictions, not authority: Meta-Harness normalizes/rejects the whole footprint under the existing planner boundary law and derives deterministic validation from the exact current `WorldHead.productCommit`. The planner never chooses validation commands, Git identity, publication policy, task identity, workspace identity, runtime, or browser. Only after controller compilation succeeds does Meta-Harness persist the immutable Outcome, compile a fresh Round-2 contract, and build the exact DevSpace `spawn_delegation` request.
+Round 3 cannot mint fresh work. The frontier schema retains `newOutcomes` only as a frozen compatibility field and validation requires it to be exactly empty. Fresh coding authority remains exclusively on the existing logical planner → immutable Outcome → atomic Claim → controller integration path. A delegation lane with Claim history, or a pre-fix writable `r3-*` refill identity, is classified as CODE and fails closed before Round-3 evidence lifecycle or learning can continue.
 
-A result-bearing lane is reported as `CLOSE`; no extra host close primitive is required because `lane_submit` is already terminal and result-bearing lanes cannot relaunch.
+A result-bearing evidence lane is reported as `CLOSE`; no extra Round-3 host close primitive is required because `lane_submit` is terminal and DevSpace owns page/resource cleanup for result-bearing lanes.
 
 ## HOLD continuity
 
@@ -82,7 +82,7 @@ capacity = ceiling, not quota
 round boundary ≠ semantic gate
 ```
 
-The same challenged frontier is used for lifecycle action and any refill spawn, so refill is always challenged before delegation. If WorldHead changes while the frontier planner or Grill is running, the stale frontier is discarded and the full planner→Grill pass retries against the newer current World before any lifecycle action executes.
+The same challenged frontier is used for retained-lane lifecycle action. If WorldHead changes while the frontier planner or Grill is running, the stale frontier is discarded and the full planner→Grill pass retries against the newer current World. After planner + Grill + World recheck, Meta-Harness also force-refreshes the compact DevSpace lane snapshot and compares task, workspace, launch status, and result digest. Any host drift discards the frontier and recomputes before HOLD, OBSOLETE, or resume action executes.
 
 ## Gate behavior
 
@@ -94,22 +94,21 @@ FORWARD_GATE   no autonomous lane remains and a new semantic forward gate follow
 OWNER_DECISION only a typed owner-exclusive choice/access/risk boundary remains
 ```
 
-Meta-Harness hashes the **post-lifecycle positive-value frontier**: continuing lanes, newly proposed Outcomes, blockers, and gate semantics. HOLD/OBSOLETE cleanup actions themselves are not part of that owner-facing digest. Therefore completing cleanup does not resurface the same gate.
+Meta-Harness hashes the **post-lifecycle positive-value frontier**: continuing lanes, blockers, and gate semantics; the frozen `newOutcomes` field is always empty. HOLD/OBSOLETE cleanup actions themselves are not part of that owner-facing digest. Therefore completing cleanup does not resurface the same gate.
 
 A non-CONTINUE gate is surfaced only when that semantic frontier digest differs from the previously surfaced digest. Every owner-visible gate is first retained as immutable `delegation-surfaced-frontier/v1` evidence bound to the exact current WorldHead; restart recovers the latest record on current World lineage, so de-duplication never depends on conversation memory. A caller-supplied digest may only agree with retained evidence. Before the record is written, current Head is rechecked so a stale gate fails closed instead of surfacing.
 
 ## Host seam
 
-The Round-3 orchestrator maps only to bounded existing DevSpace lifecycle primitives:
+The Round-3 orchestrator maps only to bounded retained-lane DevSpace lifecycle primitives:
 
 ```text
 getDelegation    → get_delegation { delegationId }
 resumeDelegation → resume_delegation { delegationId }
 cancelLane       → cancel_lane { delegationId, laneKey }
-spawnDelegation  → spawn_delegation { repository, baseRef, memory, lanes[] }
 ```
 
-For refill, `baseRef` is the exact current `WorldHead.productCommit`; `memory` is the sealed Round-2 memory packet; each lane carries the sealed acceptance criteria plus a controller-compiled native task brief. `allowedPaths` are the normalized predicted footprint, validation is resolved mechanically from the exact base tree, and Git custody is sealed non-publishing (`commit=false`, `push=false`). Placeholder remote/branch strings therefore grant no publication capability and cannot be exercised through DevSpace native-task custody.
+`spawn_delegation` remains a frozen Round-2 substrate primitive for creation of an already-authorized delegation. Round 3 never calls it, derives no writable task brief, and cannot consume released lane capacity as coding authority.
 
 A retained `delegationId` may be supplied instead of a manual snapshot; the orchestrator fetches the compact snapshot itself and re-runs Round-2 binding checks before using it. MCP wrapper results are consumed from `structuredContent`; no transcript or custom host response format is required.
 
@@ -125,4 +124,4 @@ Round 3 owns semantic lifecycle only. Do not add here:
 - shared Chromium policy;
 - full-fidelity owner/UI runtime selection.
 
-Those are Round 4 only where they are required to make the already-working delegation journey resource-efficient without reducing fidelity.
+Round 4 may optimize only the execution/host seam around this frozen lifecycle: an active invocation may wait on compact retained lane state, and DevSpace may share real Chromium resources, provided neither mechanism creates fresh Outcome/Claim authority or adds a second dispatcher.
