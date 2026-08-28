@@ -55,14 +55,14 @@ function snapshot(contract, {
   };
 }
 
-function contractFor(root, current, outcomes, gate = "Round 3 autonomous delegation remains active.") {
+function contractFor(root, current, outcomes, gate = "Round 3 autonomous delegation remains active.", laneKeys = null) {
   return compileDelegationRound2Contract({
     repositoryPath: root,
     current,
     recovered: [],
     gate,
     lanes: outcomes.map((outcome, index) => ({
-      laneKey: String.fromCharCode(65 + index),
+      laneKey: laneKeys?.[index] || String.fromCharCode(65 + index),
       outcomeDigest: outcome.outcomeDigest,
     })),
   });
