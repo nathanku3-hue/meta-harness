@@ -25,13 +25,16 @@ Confidence: <value or not recorded>
 Worker: <worker-id>
 Stream: <stream>
 Task: <bounded task>
-Phase: <phase>
 Updated: <ISO timestamp>
-Ship gate tier: <FAST|REVIEW|SLOW|BLOCK>
-Task resolution: <ship|blocked|decision-needed|follow-up-queued>
 ```
 
 `Outcome:` is evidence metadata, not the product result. No title, hash, command log, reviewer note, or status field may precede the five required product fields.
+
+## Legacy compatibility boundary
+
+The internal worker-report CLI may continue accepting legacy lifecycle and decision inputs, and machine event records may retain `phase`, `ship_gate_tier`, and `task_resolution` for compatibility. Newly generated Markdown worker reports must not render `Phase:`, `Ship gate tier:`, `Task resolution:`, `## What decision is needed`, or `Decision needed from user:`. Historical reports are not migrated.
+
+Those compatibility values do not grant product, planner, Outcome, Claim, work-session, ExecutionPermit, worker, or owner authority.
 
 ## Completion law
 
@@ -45,4 +48,4 @@ Task resolution: <ship|blocked|decision-needed|follow-up-queued>
 
 ## Supporting sections
 
-After metadata, include only useful sections: what changed, why it matters, blocker, decision, next action, validation/evidence, and accountability. The normal chat closure remains concise and must not paste the full report unless requested.
+After metadata, include only useful sections: what changed, why it matters, blocker, next action, validation/evidence, and accountability. The normal chat closure remains concise and must not paste the full report unless requested.

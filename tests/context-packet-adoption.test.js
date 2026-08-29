@@ -50,10 +50,12 @@ function artifact(overrides = {}) {
   };
 }
 
-function initAdoptedRepo() {
+function initRepo({ adopted }) {
   const cwd = tempDir("meta-harness-context-packet-adoption-");
   run(cwd, ["init", "Context packet adoption"]);
-  writeFile(cwd, ".meta-harness/contracts/context-adoption.md", "# Context Gate Adoption Contract\n");
+  if (adopted) {
+    writeFile(cwd, ".meta-harness/contracts/context-adoption.md", "# Context Gate Adoption Contract\n");
+  }
   writeFile(cwd, ".meta-harness/status.md", [
     "# Status",
     "",
@@ -65,6 +67,14 @@ function initAdoptedRepo() {
     "",
   ].join("\n"));
   return cwd;
+}
+
+function initAdoptedRepo() {
+  return initRepo({ adopted: true });
+}
+
+function initUnadoptedRepo() {
+  return initRepo({ adopted: false });
 }
 
 function writeContextArtifact(root, roundId, content) {
@@ -108,4 +118,32 @@ test("review packets allow stale well-formed artifacts but reject malformed arti
   const malformed = runRaw(cwd, ["context", "packet", "ROUND-002", "--for", "planning", "--json"]);
   assert.notEqual(malformed.status, 0);
   assert.match(`${malformed.stdout}\n${malformed.stderr}`, /failed validation/);
+});
+
+test("unadopted repositories do not project a stale phase map into context packet sources", () => {
+  const cwd = initUnadoptedRepo();
+  writeFile(cwd, ".meta-harness/phase-map.md", "# stale legacy phase map\n");
+  writeContextArtifact(cwd, "ROUND-001", artifact());
+
+  const review = run(cwd, ["context", "packet", "ROUND-001", "--for", "review", "--json"]);
+  const packet = JSON.parse(review);
+
+  assert.doesNotMatch(packet.packet_markdown, /- \.meta-harness\/phase-map\.md/);
+});
+
+test("adopted repositories project owner direction first and phase map only as legacy compatibility evidence", () => {
+  const cwd = initAdoptedRepo();
+  writeFile(cwd, "PRODUCT.md", "# Product direction\n");
+  writeFile(cwd, "README.md", "# Fixture\n");
+  writeFile(cwd, "package.json", "{\"name\":\"context-packet-fixture\"}\n");
+  writeFile(cwd, ".meta-harness/phase-map.md", "# adopted legacy phase map\n");
+  writeContextArtifact(cwd, "ROUND-001", artifact());
+
+  const review = run(cwd, ["context", "packet", "ROUND-001", "--for", "review", "--json"]);
+  const packet = JSON.parse(review);
+
+  assert.match(
+    packet.packet_markdown,
+    /## Sources\n\n- PRODUCT\.md\n- \.meta-harness\/status\.md\n- \.meta-harness\/events\.jsonl\n- \.meta-harness\/local\/context\/ROUND-001\.json\n- \.meta-harness\/phase-map\.md \(legacy compatibility evidence\)\n- README\.md\n- package\.json/,
+  );
 });

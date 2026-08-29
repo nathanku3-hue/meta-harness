@@ -9,14 +9,15 @@ This skill is inspection-only. Do not use it to authorize a worker. `meta-harnes
 
 ## Sources (read in order)
 
-1. `.meta-harness/status.md`
-2. `.meta-harness/phase-map.md`
-3. `.meta-harness/events.jsonl` (last 5 events)
-4. `.meta-harness/local/context/ROUND-NNN.json` (current gate output)
-5. Relevant `.meta-harness/workers/*.md`
-6. Relevant `.meta-harness/expert-packets/*`
-7. `README.md`, `package.json` / `pyproject.toml` (stack detection)
-8. Decision log entries relevant to current scope
+1. `PRODUCT.md` / explicit owner direction, when present
+2. `.meta-harness/status.md`, when present
+3. `.meta-harness/events.jsonl` (last 5 events), when present
+4. Current context-gate artifact being inspected
+5. `.meta-harness/phase-map.md` only when `.meta-harness/contracts/context-adoption.md` exists and the phase map is present; label it legacy compatibility evidence
+6. `README.md`, `package.json` / `pyproject.toml` (stack detection)
+7. Decision log entries relevant to current scope
+
+Relevant `.meta-harness/workers/*` and `.meta-harness/expert-packets/*` remain related inspection files, not authority sources.
 
 ## Packet Sections
 
@@ -35,4 +36,6 @@ This skill is inspection-only. Do not use it to authorize a worker. `meta-harnes
 - No raw chat logs.
 - Stale or low-freshness packets are inspection-only and must carry warnings.
 - If gate verdict was `narrowed`, packet must state the narrowed scope explicitly.
+- Context-gate material is compatibility/inspection evidence only. Explicit owner direction, current World / Claims, and sealed work-session / ExecutionPermit authority outrank it.
+- An unadopted repository never gains legacy lifecycle semantics merely because a stale `phase-map.md` exists.
 - Never reinterpret a packet as execution authority; only a current, consumed ExecutionPermit authorizes a material worker attempt.

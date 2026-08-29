@@ -25,6 +25,15 @@ function packagedContract() {
   return fs.readFileSync(CONTRACT_PATH, "utf8");
 }
 
+test("packaged adoption contract quarantines lifecycle authority to explicit compatibility adoption", () => {
+  const contract = packagedContract();
+
+  assert.match(contract, /COMPATIBILITY-ONLY CONTRACT/);
+  assert.match(contract, /may block that legacy compatibility path/i);
+  assert.match(contract, /never grants product, planner, Outcome, Claim, work-session, ExecutionPermit, worker, or owner authority/);
+  assert.match(contract, /phase-map\.md.*optional legacy compatibility evidence.*contract is adopted.*file is present/i);
+});
+
 test("context gate transition graph constants are internally consistent", () => {
   const result = checkContextGateGraph();
 

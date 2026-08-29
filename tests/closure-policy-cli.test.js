@@ -43,9 +43,11 @@ test("init creates per-repo markdown harness state", () => {
   assert.match(workerReportTemplate, /This template is a WORKER_REPORT evidence surface/);
   assert.match(workerReportTemplate, /Final chat answers must use the shortest adaptive PM_CLOSURE/);
   assert.match(workerReportTemplate, /four-item budget applies only to normal human-facing closure/i);
-  assert.match(workerReportTemplate, /human: taste\/acceptance, expert: domain knowledge, or expert: system methodology/);
-  assert.match(workerReportTemplate, /remain Approval needed or Blocked, not expert-decision tags/);
-  assert.match(workerReportTemplate, /SLOW and tier metadata may remain in WORKER_REPORT accountability and evidence fields/);
+  assert.doesNotMatch(workerReportTemplate, /^Phase:/m);
+  assert.doesNotMatch(workerReportTemplate, /^Ship gate tier:/m);
+  assert.doesNotMatch(workerReportTemplate, /^Task resolution:/m);
+  assert.doesNotMatch(workerReportTemplate, /## What decision is needed|Decision needed from user:/);
+  assert.doesNotMatch(workerReportTemplate, /ship_gate_tier|task_resolution/);
   assert.match(
     workerReportTemplate,
     /Silent docs-only fallback from code, test, provider_probe, commit, validation, execution, or data_output work is forbidden/,
@@ -124,6 +126,9 @@ test("event and worker-report update evidence and lookback without changing cano
   assert.equal(typeof events[1].ts, "string");
   assert.equal(events[2].actor, "codex-researcher");
   assert.equal(events[2].evidence, ".meta-harness/workers/codex-researcher.md");
+  assert.equal(events[2].phase, "work");
+  assert.equal(events[2].ship_gate_tier, "FAST");
+  assert.equal(events[2].task_resolution, "ship");
   assert.equal(fs.existsSync(path.join(harness, "workers", "codex-researcher.md")), true);
 
   const report = fs.readFileSync(path.join(harness, "workers", "codex-researcher.md"), "utf8");
@@ -148,14 +153,14 @@ test("event and worker-report update evidence and lookback without changing cano
   assert.match(report, /Round: ROUND-001/);
   assert.match(report, /Progress: 10\/100 -> 20\/100/);
   assert.match(report, /Confidence: 9\/10/);
-  assert.match(report, /Ship gate tier: FAST/);
-  assert.match(report, /Task resolution: ship/);
+  assert.doesNotMatch(report, /^Phase:/m);
+  assert.doesNotMatch(report, /^Ship gate tier:/m);
+  assert.doesNotMatch(report, /^Task resolution:/m);
+  assert.doesNotMatch(report, /## What decision is needed|Decision needed from user:/);
+  assert.doesNotMatch(report, /ship_gate_tier|task_resolution/);
   assert.match(report, /## What changed/);
   assert.match(report, /## Why it matters/);
   assert.match(report, /## What is blocked/);
-  assert.match(report, /## What decision is needed/);
-  assert.match(report, /Decision needed from user: hold/);
-  assert.match(report, /Options considered: none recorded/);
   assert.match(report, /## Next action/);
   assert.match(report, /## Validation \/ evidence/);
   assert.match(report, /## Accountability/);

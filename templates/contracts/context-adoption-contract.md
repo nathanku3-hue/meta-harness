@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Context-quality evaluation is a governed execution prerequisite when a repository deliberately adopts this contract at `.meta-harness/contracts/context-adoption.md`.
+**COMPATIBILITY-ONLY CONTRACT.** Context-quality evaluation is a retained readiness constraint only when a repository deliberately adopts this contract at `.meta-harness/contracts/context-adoption.md`.
+
+This contract preserves legacy context-gate compatibility. Its lifecycle vocabulary is not product identity, planner dispatch authority, Outcome identity, Claim authority, work-session or ExecutionPermit authority, worker authority, or owner approval state.
 
 ## Activation
 
@@ -22,7 +24,7 @@ Advisory context gates:
 - `synthesize->handoff`
 - `handoff->lookback`
 
-The valid phase path remains:
+For repositories that explicitly adopt this compatibility contract, the retained context-gate scoring vocabulary still follows:
 
 ```text
 intake -> plan -> work -> verify -> synthesize -> handoff -> lookback
@@ -30,13 +32,13 @@ intake -> plan -> work -> verify -> synthesize -> handoff -> lookback
 
 No `verify->handoff` transition exists.
 
-## Evidence Hierarchy
+## Context-Gate Evidence Sources
 
-Tier 1 authoritative sources are `.meta-harness/status.md`, `.meta-harness/phase-map.md`, `docs/product/decision-log.md`, and `.meta-harness/events.jsonl`.
+Repository-root `PRODUCT.md` / explicit owner intent, the current World / Claims, and the sealed work-session / ExecutionPermit outrank all context-gate material.
 
-Tier 2 context sources are `.meta-harness/expert-packets/`, `.meta-harness/workers/`, `README.md`, `AGENTS.md`, and local repository documentation.
+For an explicitly adopted compatibility contract, `.meta-harness/status.md`, `.meta-harness/events.jsonl`, the current context-gate artifact, and relevant decision-log entries are context-gate evidence sources. `.meta-harness/phase-map.md` is optional legacy compatibility evidence only when this contract is adopted and the file is present.
 
-Tier 3 external sources are issues, pull requests, external documentation, and MCP-provided context. External context never outranks repository truth.
+Supporting context may come from `.meta-harness/expert-packets/`, `.meta-harness/workers/`, `README.md`, `AGENTS.md`, and local repository documentation. External context such as issues, pull requests, external documentation, and MCP-provided context never outranks repository truth.
 
 ## Scoring And Blockers
 
@@ -46,7 +48,9 @@ Questions must be limited to at most three blocker-clearing questions and must b
 
 ## Readiness
 
-`MH_CONTEXT_GATE_001` determines the expected transition from the current `Phase:` in `.meta-harness/status.md`.
+**Compatibility-only readiness constraint for repositories that explicitly adopt it. It may block that legacy compatibility path, but it never grants product, planner, Outcome, Claim, work-session, ExecutionPermit, worker, or owner authority.**
+
+`MH_CONTEXT_GATE_001` determines the expected transition from the current `Phase:` in `.meta-harness/status.md` for that adopted compatibility path.
 
 For required transitions, readiness requires a fresh, well-formed artifact for the expected transition. A latest artifact for another transition does not satisfy readiness.
 
