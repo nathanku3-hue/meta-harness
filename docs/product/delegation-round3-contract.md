@@ -124,4 +124,4 @@ Round 3 owns semantic lifecycle only. Do not add here:
 - shared Chromium policy;
 - full-fidelity owner/UI runtime selection.
 
-Round 4 may optimize only the execution/host seam around this frozen lifecycle: an active invocation may wait on compact retained lane state, and DevSpace may share real Chromium resources, provided neither mechanism creates fresh Outcome/Claim authority or adds a second dispatcher.
+The execution/host seam is closed by Rounds 4-5 and documented in [Delegation Fresh-Session User Flow](delegation-fresh-session-flow.md). Round 4 added active-turn waiting on compact retained lane state without durable scheduler state. Round 5 replaced the failed shared-ChatGPT-context assumption with independent authenticated BrowserContexts inside one separate managed Chrome process. Neither round creates fresh Outcome/Claim authority or a second dispatcher. Reopen this lifecycle only for a newly observed supported-use defect.

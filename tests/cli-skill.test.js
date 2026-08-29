@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const { canonicalSkillBundleHash } = require("../lib/skill-registry");
-const { ROOT, readJsonl, runRaw, snapshotTree, tempDir, writeFile } = require("./helpers/cli");
+const { ROOT, readJsonl, run, runRaw, snapshotTree, tempDir, writeFile } = require("./helpers/cli");
 
 function copySkillRepo(targetRoot) {
   fs.cpSync(
@@ -23,6 +23,25 @@ function copySkillRepo(targetRoot) {
 
 function parseJson(stdout) {
   return JSON.parse(stdout);
+}
+
+function setupDoctorEval(name) {
+  const fixture = JSON.parse(fs.readFileSync(path.join(
+    ROOT,
+    ".agents",
+    "skills",
+    "repo-adoption-doctor",
+    "evals",
+    name,
+  ), "utf8"));
+  const cwd = tempDir();
+  for (const [relative, content] of Object.entries(fixture.setup.files || {})) {
+    writeFile(cwd, relative, content);
+  }
+  if (fixture.setup.install_templates) {
+    run(cwd, ["templates", "install", "--allow-dirty"]);
+  }
+  return cwd;
 }
 
 function readRegistry(targetRoot) {
@@ -113,6 +132,21 @@ test("skill doctor separates diagnostic findings from strict failure", () => {
   assert.equal(strict.status, 2);
   const strictPayload = parseJson(strict.stdout);
   assert.equal(strictPayload.error_code, "MH_SKILL_FINDINGS");
+});
+
+test("skill doctor keeps action-law conflicts diagnostic under strict mode", () => {
+  const cwd = setupDoctorEval("warn-action-law-conflict.json");
+
+  for (const extraArgs of [[], ["--strict"]]) {
+    const result = runRaw(cwd, ["skill", "doctor", "--target", ".", "--json", ...extraArgs]);
+    assert.equal(result.status, 0, result.stderr);
+    const payload = parseJson(result.stdout);
+    const conflict = payload.findings.find((finding) => finding.id === "ADOPT_ACTION_LAW_CONFLICT");
+    assert.equal(payload.ok, false);
+    assert.ok(conflict);
+    assert.equal(conflict.severity, "warn");
+    assert.equal(payload.error_code, undefined);
+  }
 });
 
 test("skill preflight passes with explicit evidence and writes nothing", () => {

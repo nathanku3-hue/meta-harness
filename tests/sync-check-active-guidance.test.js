@@ -2,7 +2,11 @@
 
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const { gateFirstGuidanceConflicts, scanContracts } = require("../lib/sync-check");
+const {
+  gateFirstGuidanceConflicts,
+  scanContracts,
+  scanHostGuidanceActionLawConflicts,
+} = require("../lib/sync-check");
 const { tempDir, writeFile } = require("./helpers/cli");
 
 test("contract scan allows warning text mentioning old headings", () => {
@@ -100,6 +104,47 @@ test("adversarial operator wording is detected as gate-first input", () => {
   assert.equal(details.includes("active guidance waits for audit before execution"), true);
   assert.equal(details.includes("active guidance requires audit after the worker plan"), true);
   assert.equal(details.includes("active guidance requires blanket ambiguity confirmation"), true);
+});
+
+test("action-law detector catches the demonstrated universal review and routine approval conflicts", () => {
+  const prompt = [
+    "MANDATORY REVIEW BEFORE ALL NEW WORK.",
+    "SAW AFTER EVERY ROUND.",
+    "Decision needed: authorize the next packet.",
+    "Ask GO before reversible work.",
+  ].join("\n");
+  assert.deepEqual(gateFirstGuidanceConflicts(prompt), [
+    "active guidance requires universal review before new work",
+    "active guidance requires review or SAW after every round",
+    "active guidance requires routine owner approval before ordinary continuation",
+    "active guidance requires routine owner approval before ordinary continuation",
+  ]);
+});
+
+test("action-law detector preserves explicit safe negations", () => {
+  assert.deepEqual(gateFirstGuidanceConflicts([
+    "Do not require review before all new work.",
+    "Never require SAW after every round.",
+    "Do not ask for GO before reversible work.",
+  ].join("\n")), []);
+});
+
+test("host action-law scan ignores inactive guidance bundles", () => {
+  const targetRoot = tempDir();
+  writeFile(targetRoot, "AGENTS.md", [
+    "# Agent Guidance",
+    "",
+    "MANDATORY REVIEW BEFORE ALL NEW WORK.",
+    "SAW AFTER EVERY ROUND.",
+    "Decision needed: authorize the next packet.",
+  ].join("\n"));
+  writeFile(targetRoot, ".agents/prototypes/old/SKILL.md", "MANDATORY REVIEW BEFORE ALL NEW WORK.\n");
+
+  const result = scanHostGuidanceActionLawConflicts({ targetRoot });
+  assert.equal(result.status, "FAIL");
+  assert.equal(result.checked, 1);
+  assert.equal(result.items.length, 3);
+  assert.equal(result.items.every((item) => item.path === "AGENTS.md"), true);
 });
 
 test("contract scan allows active guidance that separates artifacts from chat closure", () => {

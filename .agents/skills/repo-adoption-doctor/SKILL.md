@@ -23,6 +23,7 @@ Identify why a target repo is not fully Meta-Harness adopted and produce a prior
 6. Quality gate failures (oversized files)
 7. Package boundary issues (forbidden paths in dry-run)
 8. Weak .gitignore (missing secret patterns)
+9. Operative host-guidance action-law conflicts (universal review/SAW/routine owner approval for ordinary reversible work)
 
 ## Output
 

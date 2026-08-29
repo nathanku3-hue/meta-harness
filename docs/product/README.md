@@ -10,10 +10,11 @@ Date: 2026-07-17
 3. [PRD](prd.md) — target user, problem, outcomes, boundaries, and success measures.
 4. [Roadmap](roadmap.md) — locked endgame and numbered functional-slice build order.
 5. [Product Specification](product-spec.md) — operating contracts and artifact expectations.
-6. [Architecture Map](../architecture/map.md) — layer and dependency boundaries.
-7. [SOP](../sop/meta-harness-sop.md) — auditor-planner and worker operating loop.
-8. [Runtime Authority Architecture](runtime-authority-architecture.md) — frozen custody and execution-authority substrate.
-9. [Decision Log](decision-log.md) — append-only decisions and deviations.
+6. [Delegation Fresh-Session User Flow](delegation-fresh-session-flow.md) — canonical fresh-ChatGPT boot, `open_workspace(taskId)` continuation, compact fan-in, lifecycle, and programme closure.
+7. [Architecture Map](../architecture/map.md) — layer and dependency boundaries.
+8. [SOP](../sop/meta-harness-sop.md) — auditor-planner and worker operating loop.
+9. [Runtime Authority Architecture](runtime-authority-architecture.md) — frozen custody and execution-authority substrate.
+10. [Decision Log](decision-log.md) — append-only decisions and deviations.
 
 ## Authority Order
 
@@ -40,6 +41,7 @@ A material disagreement must block `ok: true` until reconciled.
 - `prd.md`
 - `roadmap.md`
 - `product-spec.md`
+- `delegation-fresh-session-flow.md`
 - `runtime-authority-architecture.md`
 - `decision-log.md`
 - `../architecture/map.md`

@@ -46,6 +46,19 @@ test("repo adoption doctor returns exact finding IDs for an unadopted fixture", 
   assert.deepEqual(compactFindings(result.findings), fixture.expected.findings);
 });
 
+test("repo adoption doctor warns on operative action-law conflicts", () => {
+  const fixture = readEval("warn-action-law-conflict.json");
+  const cwd = setupFixture(fixture);
+  const result = diagnoseRepoAdoption({ sourceRoot: ROOT, targetRoot: cwd });
+
+  assert.equal(result.ok, fixture.expected.ok);
+  assert.deepEqual(compactFindings(result.findings), fixture.expected.findings);
+  assert.match(result.findings[0].evidence, /AGENTS\.md/);
+  assert.match(result.findings[0].evidence, /universal review before new work/);
+  assert.match(result.findings[0].evidence, /review or SAW after every round/);
+  assert.match(result.findings[0].evidence, /routine owner approval before ordinary continuation/);
+});
+
 test("repo adoption doctor refuses direct forbidden-path reads", () => {
   assert.equal(_test.deniedReadPath(".env"), true);
   assert.equal(_test.deniedReadPath("provider-config/provider.json"), true);

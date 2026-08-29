@@ -48,6 +48,8 @@ The human-facing product remains small. Internal continuity may become richer, b
 
 A new external score campaign is not a prerequisite for this architecture work. The purpose of the current slices is to remove demonstrated serial and human-routing bottlenecks, not to create another evidence ceremony.
 
+The bounded delegation programme is now closed at the fresh-session architecture described in [Delegation Fresh-Session User Flow](delegation-fresh-session-flow.md): fresh authenticated ChatGPT conversations receive deterministic zero-history boot packets, reattach exact mechanical continuity with `open_workspace(taskId)`, return compact `lane_submit` results, and are reconciled through current-World evidence lifecycle while fresh coding remains Claim-bound. Round 5's accepted DevSpace browser-host reference is `product/autopilot-alpha` at `94f8ea8`; later dirty browser edits are separate worktree state. No Round 6 is implied by roadmap momentum.
+
 `PRODUCT.md` remains owner-authored and is not changed by this roadmap. Roadmap architecture cannot silently rewrite owner product direction.
 
 ## Critical path to the endgame
