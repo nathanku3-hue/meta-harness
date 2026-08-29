@@ -10,7 +10,7 @@ const test = require("node:test");
 const { CLI, ROOT, runRaw, tempDir } = require("./helpers/cli");
 const { writeProductMd } = require("./helpers/product-direction");
 const { writePassingProductProof } = require("./helpers/product-proof");
-const { persistWorkSession, prepareWorkspace } = require("../lib/work-git");
+const { persistOwnerGoalIngress, persistWorkSession, prepareWorkspace } = require("../lib/work-git");
 const { createGoalWorkSession } = require("../lib/work-session");
 const { compileProductProofSpec } = require("../lib/work-proof-compiler");
 const { renderHuman } = require("../lib/commands/work");
@@ -505,6 +505,43 @@ test("bare meta-harness stops cleanly when no active result exists", (t) => {
   const result = runRaw(root, [], { env: env() });
   assert.equal(result.status, 0, result.stderr);
   assert.equal(result.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
+});
+
+test("inspect JSON exposes only semantic entry action and retained owner-goal result", (t) => {
+  const root = repo(t);
+  const beforeMeta = fs.existsSync(path.join(root, ".git", "meta-harness"));
+  const idle = runRaw(root, ["inspect", "--json"], { env: env() });
+  assert.equal(idle.status, 0, idle.stderr || idle.stdout);
+  assert.deepEqual(JSON.parse(idle.stdout), {
+    schemaVersion: "meta-entry/v1",
+    action: "IDLE",
+    result: null,
+  });
+  assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness")), beforeMeta);
+
+  persistOwnerGoalIngress(root, "Create the delivered result file.");
+  const active = runRaw(root, ["inspect", "--json"], { env: env() });
+  assert.equal(active.status, 0, active.stderr || active.stdout);
+  assert.deepEqual(JSON.parse(active.stdout), {
+    schemaVersion: "meta-entry/v1",
+    action: "CONTINUE",
+    result: "Create the delivered result file.",
+  });
+  assert.doesNotMatch(active.stdout, /workspace|session|claim|generation|sha256|OWNER_GOAL|REPO_WAVE/i);
+});
+
+test("planner-managed repository entry stays topology-blind to the host", (t) => {
+  const root = repo(t);
+  fs.mkdirSync(path.join(root, ".meta-harness"), { recursive: true });
+  fs.writeFileSync(path.join(root, ".meta-harness", "repo-charter.json"), "{}\n", "utf8");
+  const result = runRaw(root, ["inspect", "--json"], { env: env() });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.deepEqual(JSON.parse(result.stdout), {
+    schemaVersion: "meta-entry/v1",
+    action: "CONTINUE",
+    result: null,
+  });
+  assert.doesNotMatch(result.stdout, /planner|repo.wave|claim|workspace|session/i);
 });
 
 test("inspect is a coarse diagnostic surface without lifecycle identifiers", (t) => {

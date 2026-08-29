@@ -20,6 +20,7 @@ const {
   worktreePlan,
 } = require("../lib/work-git");
 const { sealWorkSession } = require("../lib/work-session");
+const { publicRepositoryEntry, resolveRepositoryEntry } = require("../lib/repository-entry");
 const { tempDir } = require("./helpers/cli");
 const { directionFromContent } = require("./helpers/product-direction");
 const { gapProofSpec } = require("./helpers/product-proof");
@@ -190,6 +191,70 @@ test("resume binds repository, persisted workspace record, session identity, and
     () => loadLatestWorkSession(root),
     (error) => ["MH_WORK_RESUME", "MH_WORKSPACE_CUSTODY_MISMATCH", "MH_WORK_WORKTREE_ESCAPE"].includes(error.code),
   );
+});
+
+test("direct continuation derives from custody and immutable session truth, never latest.json", (t) => {
+  const { root } = repository(t);
+  const session = isolatedSession(root);
+  const workspace = prepareWorkspace(root, session);
+  const state = persistWorkSession(root, session, workspace);
+  const pointerPath = path.join(state.directory, "latest.json");
+
+  fs.rmSync(pointerPath);
+  assert.equal(loadLatestWorkSession(root).sessionDigest, session.sessionDigest);
+
+  fs.writeFileSync(pointerPath, "{ definitely-not-json\n", "utf8");
+  assert.equal(loadLatestWorkSession(root).sessionDigest, session.sessionDigest);
+
+  fs.writeFileSync(pointerPath, `${JSON.stringify({
+    schemaVersion: "work-session-pointer/v1",
+    sessionFile: "retired.json",
+    workspacePath: "retired",
+    mode: "current",
+  }, null, 2)}\n`, "utf8");
+  assert.equal(loadLatestWorkSession(root).sessionDigest, session.sessionDigest);
+});
+
+test("multiple ACTIVE direct custodories fail closed instead of guessing latest", (t) => {
+  const { root } = repository(t);
+  const first = isolatedSession(root);
+  persistWorkSession(root, first, prepareWorkspace(root, first));
+
+  fs.writeFileSync(path.join(root, "second-base.txt"), "second base\n", "utf8");
+  git(root, ["add", "second-base.txt"]);
+  git(root, ["commit", "-m", "second direct base"]);
+  const second = isolatedSession(root);
+  assert.notEqual(second.sessionDigest, first.sessionDigest);
+  persistWorkSession(root, second, prepareWorkspace(root, second));
+
+  assert.throws(
+    () => latestWorkSessionState(root),
+    (error) => error.code === "MH_WORK_RESUME_CONFLICT"
+      && error.details?.workspaceIds?.length === 2,
+  );
+  assert.deepEqual(publicRepositoryEntry(resolveRepositoryEntry(root)), {
+    schemaVersion: "meta-entry/v1",
+    action: "INVALID",
+    result: null,
+  });
+});
+
+test("corrupt canonical custody fails closed even when latest.json looks valid", (t) => {
+  const { root } = repository(t);
+  const session = isolatedSession(root);
+  const workspace = prepareWorkspace(root, session);
+  persistWorkSession(root, session, workspace);
+  const custodyPath = path.join(root, ".git", "meta-harness", "workspaces", `${workspace.workspaceId}.json`);
+  fs.writeFileSync(custodyPath, "{ corrupt canonical custody\n", "utf8");
+  assert.throws(
+    () => latestWorkSessionState(root),
+    (error) => error.code === "MH_WORKSPACE_CUSTODY_READ",
+  );
+  assert.deepEqual(publicRepositoryEntry(resolveRepositoryEntry(root)), {
+    schemaVersion: "meta-entry/v1",
+    action: "INVALID",
+    result: null,
+  });
 });
 
 test("resume keeps its sealed base when origin and the source branch advance", (t) => {
