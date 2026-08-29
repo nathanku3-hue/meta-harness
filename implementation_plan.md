@@ -1269,233 +1269,418 @@ Phase 10 — Controlled DRAIN / ordinary WAKE
   deterministic closure implemented
 
 Phase 11 — Narrow ports + Harness Darwinism
-  active slice is DIRECT_ENTRY_AUTHORITY_MEMBRANE_1 through the stable ACP v1 host seam
-  ChatGPT/DevSpace direct entry remains unsupported because it lacks a pre-model raw-input seam
-  ACP membrane implementation is locally green and not yet banked
+  DIRECT_ENTRY_AUTHORITY_MEMBRANE_1 ACP runtime is already banked in e193bce
+  remaining work is closure-truth reconciliation only
+  ChatGPT/DevSpace direct entry is a killed substrate route after HOST_PREMODEL_PRIMITIVE_UNAVAILABLE
+  no DevSpace continuation is active unless a new host primitive is externally observed
 ```
 
 Phase-10 architecture remains locked:
 
 > **DRAIN is a one-shot cancellation fence over controller-owned live activity. Every model process crosses one cancellable process boundary; every model result remains disposable until the controller durableizes it. `PENDING_WORKSPACE`, `BASELINE`, candidate seal, and worker STOP preserve the Claim; an entered attempt with no durable result becomes internal `INTERRUPTED_AFTER_ENTRY` → durable `ATTEMPT_ABORTED` → derived `EXECUTION_ABORTED`. Drain completes with zero controller-owned live activity or leases, while recoverable Claims remain for ordinary WAKE.**
 
-## Phase 11 candidate — DIRECT_ENTRY_AUTHORITY_MEMBRANE_1
+## Phase 11 / P0 recut — DEVSPACE_PREMODEL_OWNER_INGRESS_1
 
-### Diagnosis
+### Stable baseline
 
-The mediated repository planner does not need another intent or governance redesign.
+The mediated Meta-Harness product path is not the remaining unknown. Owner-objective continuity, planner/Outcome/Claim authority, disposable execution, controlled drain/wake, and exact product landing already exist. The stable ACP v1 adapter is the current concrete reference that the desired topology works when a host exposes both seams: owner input arrives before Meta-Harness model interpretation, and the host adapter exposes no second mutation authority.
 
-For a planner-enabled repository, the normal product entry already takes the literal owner result, stores it through `replaceOwnerObjectiveState(...)`, and enters the existing `REPO_WAVE` path. The planner already treats repository-local `Next`, `Decision needed`, `Phase`, `Review`, `SAW`, `Gate`, status, and `AGENTS` prose as repository data rather than routing authority. Managed/planner mode already has one deterministic predicate: `.meta-harness/repo-charter.json` is a regular non-symlink file.
+The remaining unsupported surface is direct ChatGPT/DevSpace:
 
-The remaining defect is outside that mediated path:
+> **The host has not mechanically proved that the exact current owner message can be captured before any model invocation.**
 
-> **A direct coding host can become a second mutation authority before the owner request crosses the existing Meta-Harness product entry.**
+`E:\code\meta-harness` owns the Meta-Harness side and the ACP adapter. It does **not** currently expose the DevSpace ChatGPT request path that would have to enforce this ordering. That repository boundary is load-bearing: R1 must not compensate for a missing host primitive by adding bridge code inside Meta-Harness.
 
-Do not build an intent bridge. Build one mutation choke point.
+### P0 thesis
+
+A fresh ChatGPT/DevSpace direct conversation is unsupported until the host can establish both properties:
+
+```text
+1. exact owner-input capture completes before model invocation
+2. direct mutation authority can be removed/default-denied before execution
+```
+
+R1 intentionally tested only the first property because failure there is sufficient to kill the direct DevSpace journey.
+
+The substrate question was:
+
+> **Can the DevSpace host mechanically deliver the exact actual owner message to a pre-model callback whose successful completion is a hard prerequisite to model invocation?**
+
+R1 has now answered **no** with `HOST_PREMODEL_PRIMITIVE_UNAVAILABLE`. That result is programme-changing: direct ChatGPT/DevSpace continuation is killed rather than followed by an independent capability-membrane proof. The second host property remains a future reopening criterion, not a standalone engineering programme.
+
+Do not run `DEVSPACE_CAPABILITY_MEMBRANE_PROOF_1`, do not build the membrane speculatively, and do not search for a bridge around the missing lifecycle seam. Reopen the combined DevSpace path only after the host itself exposes a mechanically enforceable pre-model owner-input primitive.
+
+The next executable product action is instead to finish and bank the already-proven ACP supported entry. This planning patch stops for re-audit before that closure execution begins.
+
+## R1 — host substrate proof
+
+### Product result
+
+DevSpace proves one host-native pre-model owner-input primitive:
+
+```text
+actual owner message event
+        ↓
+host receives exact text
+        ↓
+PRE_MODEL_OWNER_INPUT(exact text)
+        ↓
+callback completes successfully
+        ↓
+only then may model invocation begin
+```
+
+R1 deliberately does **not**:
+
+```text
+detect Meta-Harness-managed repositories
+change host tool permissions
+route into runAutomaticProductResult(...)
+persist owner-input/v1
+create Objective / Outcome / Claim / workspace state
+promote host/session correlation into product authority
+solve cancellation or multi-tab scheduling
+```
+
+This is a substrate proof, not the first eighth of a finished membrane.
+
+### Hard prerequisite — real host ownership surface
+
+Locate the earliest host-owned point where the actual submitted owner text exists and the later point where model invocation becomes possible.
+
+If the available DevSpace/ChatGPT host source or hook surface cannot be modified or cannot enforce a hard prerequisite between those two points, terminate R1 with:
+
+```text
+HOST_PREMODEL_PRIMITIVE_UNAVAILABLE
+```
+
+That is a successful kill result for the spike.
+
+On this result:
+
+```text
+ChatGPT/DevSpace direct entry remains unsupported
+no connector workaround
+no "call Meta-Harness first" prompt convention
+no Meta-Harness intent bridge
+no new executor/provider/framework
+no fallback direct mutation path
+```
+
+Do not write Meta-Harness runtime code merely to make the unsupported host look integrated.
+
+### R1 engineering sequence
+
+1. **Ordering sentinel.** Instrument only the real host request path. Prove model startup is structurally impossible until the pre-model owner callback has returned success. "Usually first" or timestamp ordering is insufficient.
+2. **Inert callback.** Add the smallest host-native callback/event necessary to receive the actual owner-authored text. It observes/delivers only; it does not route product work or alter permissions.
+3. **Fidelity corpus.** Exercise exact host-delivered text across leading/trailing spaces, blank lines, LF/CRLF cases at the defined host text boundary, Unicode, Chinese text, emoji, Markdown, nested code fences, quotes, JSON-looking strings, and instruction-like text.
+4. **Provenance negatives.** Prove system text, model output, tool results, injected context, resumed transcript items, and sibling conversation content cannot produce the owner-input callback.
+
+Use a deterministic digest only as proof instrumentation around the host text boundary. Do not introduce a durable `owner-input/v1` schema or make a model-facing component authoritative for what the owner typed.
+
+### R1 acceptance — four bars only
+
+```text
+A. ORDERING
+
+owner submits P
+→ pre-model callback(P) completes successfully
+→ only then model invocation is permitted
+
+
+B. FIDELITY
+
+exact host-delivered owner text bytes/text boundary
+==
+exact callback-delivered owner text bytes/text boundary
+
+with deterministic digest equality over the same defined representation
+
+
+C. PROVENANCE
+
+only the actual owner-message event can produce the callback
+
+system / model / tool / context / transcript / sibling-chat text
+→ cannot impersonate owner input
+
+
+D. HARD KILL + NO PRODUCT/AUTHORITY SIDE EFFECT
+
+host cannot mechanically guarantee A-C
+→ HOST_PREMODEL_PRIMITIVE_UNAVAILABLE
+→ model integration work stops
+→ no Meta-Harness bridge or fallback mutation is added
+→ host-only probe/instrumentation is permitted, but the captured owner turn creates no repository/product/authority mutation
+```
+
+R1 does not require managed-repository semantics, a capability policy, concurrency/session correlation, cancellation, or end-to-end Meta-Harness execution. Those requirements are real, but they do not belong in the substrate question.
+
+## Dormant future continuation — only after an externally observed DevSpace host change
+
+This section is retained only as the architecture that would become eligible if a future DevSpace host exposes the missing pre-model primitive. It is **not** an active Round 2, capability-probe programme, or implementation authorization from the current repository state.
 
 ### Product result
 
 ```text
-direct supported coding surface
-        ↓
-is this a Meta-Harness-managed repository?
-        │
-        ├─ no  → host behaves normally
-        │
-        └─ yes → preserve exact owner utterance
-                  ↓
-                existing normal Meta-Harness product entry
-                  ↓
-                owner-objective state
-                  ↓
-                existing planner / Claim / worker path
-
-managed repository
-→ direct host mutation is unavailable
+owner message
+→ proven pre-model capture
+→ deterministic managed-repository detection
+→ default-deny direct-host mutation membrane
+→ exact captured owner input
+→ existing runAutomaticProductResult(...)
+→ existing owner-objective / planner / Claim / worker path
 ```
 
-Observable result:
+For unmanaged repositories, normal host behavior remains outside Meta-Harness semantics.
 
-> **A managed Meta-Harness repository cannot accidentally acquire a second direct mutation authority merely because the owner entered through another coding surface.**
-
-### Authority membrane law
-
-A direct coding surface may be a front door to Meta-Harness, but it is not a second executor.
-
-For a managed repository, direct-host authority is **default deny by capability**:
+For a managed repository, reuse the existing deterministic predicate:
 
 ```text
-explicitly proven read-only capabilities
-  read / search / inspect only
-→ may remain exposed
-
-one Meta-Harness ingress
-→ may remain exposed
-
-all other repository / Git / workspace / publication capabilities
-  file mutation
-  rename / move
-  mutating shell
-  Git index / refs / branch mutation
-  commit / push / publication custody
-  worktree creation / removal / topology mutation
-  .meta-harness control-state mutation
-  unknown or newly added host capabilities
-→ absent or hard-denied by default
-
-owner asks for product work
-→ exact owner bytes enter the existing Meta-Harness product path
-
-host cannot establish the capability boundary
-→ zero direct fallback mutation
-→ direct surface is outside Meta-Harness execution authority
+.meta-harness/repo-charter.json
+is a regular file
+and not a symlink
 ```
 
-The first adapter names its tiny allowed surface explicitly; there is no generic tool-effect ontology. No prompt-precedence classifier or repository-governance ontology is part of the authority boundary.
+Detection is read-only. It must not initialize Meta-Harness, rewrite configuration, create a worktree, or alter `.meta-harness`.
 
-Enforcement preference:
+### Capability membrane
+
+The host exposes only:
 
 ```text
-capability not exposed
-→ deterministic pre-action hard deny
-→ OS / filesystem sandbox backstop
-→ never prompt-only guidance, LLM risk classification, or reviewer opinion
+explicitly proven read/search/inspect capabilities
++ one exact Meta-Harness ingress
 ```
 
-The wrong operation should be unavailable rather than merely discouraged.
+Everything else is absent or hard-denied before model execution:
 
-### Hard cuts
+```text
+file mutation
+rename / move
+mutating shell
+Git index / ref / branch mutation
+commit / push / publication custody
+worktree creation / removal / topology mutation
+.meta-harness control-state mutation
+unknown or newly added host capabilities
+```
+
+Prefer capability non-exposure, then deterministic pre-action denial, then OS/filesystem sandboxing as backstop. Prompt guidance, model classification, and reviewer opinion are not authority controls.
+
+### Exact handoff
+
+Pass the captured owner text unchanged into the already-existing normal Meta-Harness product entry. Do not add:
+
+```text
+intent schema
+translation model
+second planner
+second Claim system
+persistent bridge state
+host-owned product identity
+session-owned continuity
+```
+
+Host/session IDs remain ephemeral correlation only.
+
+### Future combined-slice acceptance
+
+If the missing host primitive is externally observed and the DevSpace route is explicitly reopened, ship the first complete direct journey only when all of these hold together:
+
+1. exact pre-model owner capture from R1 remains true;
+2. managed-repository detection is deterministic and side-effect free;
+3. direct mutation capabilities are absent/default-denied before model execution;
+4. exact captured owner input reaches `runAutomaticProductResult(...)` unchanged;
+5. unavailable membrane or handoff produces zero direct fallback mutation;
+6. a no-positive-value case still produces zero fresh Outcomes through the existing planner path.
+
+## Robustness after the first complete journey
+
+Do not front-load robustness into R1 unless the host implementation makes a property inseparable from the primitive itself.
+
+After the first complete supported journey, harden only demonstrated host concerns:
+
+```text
+multiple fresh conversations / tabs
+turn correlation
+cancellation
+duplicate/reordered delivery protection
+fresh-session recovery from durable Meta-Harness truth
+```
+
+The invariants remain:
+
+```text
+host/session correlation is never Outcome / Claim / workspace authority
+conversation continuity is never required for recovery
+cancellation reuses existing DRAIN semantics where applicable
+```
+
+Do not run ACP/DevSpace conformance while DevSpace remains unsupported. Only after a future second host is actually supported and exposes duplicated semantics may the two real implementations be compared and a smallest common host port considered. Do not build a generic provider/plugin framework in advance.
+
+## Hard cuts for the whole P0
 
 Do not add:
 
 ```text
-second planner
-second worker
-second Claim mechanism
-second execution-custody system
-objective translation/schema
+HostPort / ProviderPort framework before two hosts prove duplication
+generic event bus
+objective translation or second objective model
+second planner / worker / Claim / execution-custody system
 repository-governance classifier
-Reviewer-C service or routine reviewer phase
-per-host/provider framework
-persistent bridge state
+universal hook/policy engine
+session database or transcript persistence
 write-enabled generic MCP expansion
 global agent configuration mutation
 target-repository AGENTS.md rewrite
-direct edit fallback when mediated entry is unavailable
+prompt-only authority convention
+direct edit fallback
 ```
 
-The existing `meta-harness work` path remains the execution product.
+Stable external references may inform topology, but not expand this P0: Copilot-style pre-prompt/pre-tool hooks validate the host-boundary shape; citation-backed memory is a reference for revalidation, not a new authority object; DeepSeek-style replaceability does not make kernel authority pluggable; MCP/ACP session handles remain transport/correlation rather than product work identity.
 
-### Host seams — both must be proved independently
+## R1 execution result — `HOST_PREMODEL_PRIMITIVE_UNAVAILABLE`
 
-The first supported direct-entry host needs two orthogonal capabilities:
+Re-audit passed and R1 was executed against the actual surfaces available to this ChatGPT/DevSpace session.
+
+### Mechanical substrate finding
+
+The complete exposed `DevSpace_Local` host surface has no operation that can intercept the **current actual owner-message event before this model invocation** or make successful callback completion a prerequisite to model startup.
+
+The only fresh-Chat lifecycle operations are later than the required boundary:
 
 ```text
-A. raw owner-input seam
-   receive the exact owner bytes before agent interpretation
-   and hand those bytes to ordinary Meta-Harness work
+web_launch
+→ create a fresh chatgpt.com conversation
+→ submit supplied prompt
+→ no pre-model callback or startup gate
 
-B. capability seam
-   remove or deterministically deny every direct repository / Git / workspace
-   mutation capability before execution begins
+web_connector_start
+→ retain proof state
+→ launch a fresh ChatGPT conversation with a fixed acceptance prompt
+→ only after that launched conversation receives the challenge may web_connector_probe run
+
+review_start
+→ launch a fixed review packet into a fresh ChatGPT conversation
+→ only after that conversation receives its prompt-only challenge may review_submit run
 ```
 
-A mutation gate alone prevents damage but does not prove that the exact owner objective crossed the membrane. A raw-input hook alone preserves intent but still leaves a second executor alive. Both are required.
-
-If both are proved, implement only that smallest host-specific membrane.
-
-If either is absent, do not compensate with another prompt, objective rewrite, governance classifier, or direct fallback. Record that direct surface as outside Meta-Harness execution authority until the missing host seam exists.
-
-#### First host selection — ACP stable v1 — 2026-08-20
-
-The observed ChatGPT/DevSpace connector still does **not** expose a pre-model raw-owner-input interception primitive, so that direct surface remains outside Meta-Harness execution authority. No prompt convention or fallback mutation is added there.
-
-The stable Agent Client Protocol v1 surface provides the two required seams without adding another executor:
+Those are launch/post-launch connector or review surfaces. They can prove that a model-created conversation can later discover/call DevSpace, but they cannot establish:
 
 ```text
-A. raw owner-input seam
-session/prompt carries the owner's text into the ACP agent before any Meta-Harness model/planner interpretation
-
-B. capability seam
-the ACP agent advertises no mutation capabilities, rejects MCP servers and alternate directories,
-and never issues client requests for filesystem, terminal, Git, or publication effects
+actual owner message event
+→ host callback completes
+→ only then current model invocation becomes possible
 ```
 
-The first host-specific membrane is therefore intentionally small:
+The repository-owned source surface confirms the same boundary. `E:\code\meta-harness` contains the Meta-Harness runtime and ACP adapter, while a bounded source search finds no DevSpace ChatGPT request-path implementation or host lifecycle hook to instrument. The only pre-model references are product/status/plan statements describing the missing seam.
+
+Therefore R1 cannot mechanically demonstrate A. ORDERING, and without the real owner-message event source it also cannot truthfully establish B. FIDELITY or C. PROVENANCE at that boundary.
+
+### Required kill behavior
 
 ```text
-meta-harness-acp
-→ bind one process to one exact managed repository root
-→ accept exactly one non-empty text block per prompt without trimming/normalizing/concatenating
-→ pass those exact bytes to runAutomaticProductResult(...)
-→ let existing owner-objective / planner / Claim / worker authority execute the result
-→ emit only ACP session/update text notifications
-→ keep ACP session IDs transport-local and ephemeral
-→ map session/cancel into the existing Phase-10 AbortSignal drain path
+HOST_PREMODEL_PRIMITIVE_UNAVAILABLE
+
+ChatGPT/DevSpace direct entry remains unsupported
+PASS continuation does not start
+no managed-repo membrane implementation
+no runAutomaticProductResult(...) bridge
+no connector workaround
+no "call Meta-Harness first" prompt convention
+no new executor/provider/framework
+no fallback direct mutation path
 ```
 
-Rejected at the membrane:
+This is the intended successful kill result for the substrate spike, not a product failure to route around.
+
+### Side-effect boundary
+
+R1 performed capability/source inspection only. No owner turn was captured into product authority, and no Meta-Harness runtime, ACP adapter, tests, status/roadmap/product docs, repository authority state, Git index/ref/branch, or worktree topology was changed by R1. The accepted planning/result record remains the only edited R1 surface; unrelated pre-existing dirty/untracked owner state is preserved.
+
+Phase 10 remains banked at `724204d`. Stable ACP v1 remains the locally implemented reference membrane and is unchanged. ChatGPT/DevSpace should be reconsidered only when the host itself exposes a mechanically enforceable pre-model owner-input primitive; that future host change is the evidence that would reopen the combined membrane + exact-handoff continuation.
+
+Do not mutate the global/local Codex installation to unblock Phase-9 evidence as part of this result.
+
+`docs/product/decision-log.md`, `lessons.md`, `.meta-harness/status.md`, roadmap/product docs, unrelated pre-existing dirty/untracked files, and runtime source files remain outside this R1 result patch.
+
+## Round 2 recut — verify the already-banked ACP entry, repair closure truth, then stop
+
+### Programme truth
+
+Treat the two host results separately and do not leave the failed host psychologically open as active implementation work:
 
 ```text
-unmanaged repository
-repository subdirectory instead of the exact root
-second repository root in the same ACP process
-MCP servers
-additional directories
-multi-block or non-text prompt shapes
-unknown transport sessions
+ACP_HOST_MEMBRANE = WORKING / BANKED
+DEVSPACE_HOST_MEMBRANE = SUBSTRATE_UNAVAILABLE
 ```
 
-This is an ACP adapter, not a generic host/provider framework. ChatGPT/DevSpace remains a substrate stop; ACP is the first mechanically provable direct-entry host.
+Git truth is authoritative here: stable ACP v1 runtime, tests, and package wiring are already committed in `e193bce` (`Integrate continuity work and planner endgame guard`). Round 2 must not restage or repackage that runtime merely because closure/status prose is stale.
 
-### Acceptance — four observations only
+`HOST_PREMODEL_PRIMITIVE_UNAVAILABLE` is sufficient to kill direct-DevSpace continuation. No independent DevSpace capability-membrane proof follows it. Negative substrate evidence is converted directly into saved engineering time.
 
-1. **Capture regression** — a Quant-like managed repository containing imperative SAW, Review, Decision-needed, phase, and status prose receives the exact direct owner request through the host. Meta-Harness, not the host agent, chooses the work.
-2. **Bypass regression** — while inside a managed repository, attempted direct-host action cannot alter repository authority state outside Meta-Harness: worktree bytes, Git index/refs/branches, worktree topology, `.meta-harness` control state, or publication/push custody. Unknown or newly added host capabilities fail closed.
-3. **Unavailable seam** — when the host cannot establish the membrane or enter the normal Meta-Harness path, it performs zero direct fallback mutation.
-4. **Zero-work case** — imperative governance prose with no positive-value lawful Outcome still produces zero fresh Outcomes.
+### Product result
 
-### Controlled comparison
-
-Run the first demonstrated host/repository fixture with:
+Round 2 repairs stale closure truth around an already-banked supported entry:
 
 ```text
-same model
-same repository
-same owner request
-
-current direct entry
-vs
-DIRECT_ENTRY_AUTHORITY_MEMBRANE_1
+ACP runtime already committed in e193bce
+→ reuse or rerun only necessary validation
+→ reconcile stale closure/status truth
+→ commit only that bounded closure delta
+→ STOP
 ```
 
-Measure:
+Terminal product state:
 
 ```text
-owner interventions
-governance-only work
-time to first useful evidence
-false hard blocks
-direct out-of-membrane mutations
+ACP direct entry = supported and banked
+ChatGPT/DevSpace direct entry = unsupported, zero fallback mutation
+no active host-abstraction or DevSpace successor slice
 ```
 
-Keep the experiment only if the membrane materially improves the direct-entry journey without creating a second execution system.
+### Execution sequence after re-audit GO
 
-### Explicitly outside this slice
+1. **Freeze runtime scope.** Treat the ACP implementation in `e193bce` as already banked. No runtime redesign, no DevSpace work, and no new host abstraction.
+2. **Reuse passed evidence whose input surface is unchanged.** The focused ACP/package/command/package-closure plus adjacent owner-objective/planner validation already recorded as green remains valid unless the closure correction changes its declared input surface.
+3. **Run only the smallest repository-owned validation needed to confirm the already-banked ACP entry remains valid.** Treat DevSpace connector HTTP 502 transport as external evidence transport failure, not as a reason to redesign ACP or manufacture a second aggregate-test mechanism.
+4. **Repair only stale closure/status truth.** Update the minimum documentation needed to state that ACP runtime is already committed and ChatGPT/DevSpace is substrate-unavailable.
+5. **Bank only the closure delta.** The closure commit must not restage, rewrite, or absorb the already-committed ACP runtime unless validation discovers a real product defect requiring a separate repair. Preserve unrelated dirty owner state.
+6. **Stop.** Do not activate a DevSpace successor. Reopen that route only on newly observed host capability evidence.
 
-The W6 per-arm irreversible-eligibility case remains a one-time falsification probe against today's mediated planner, not part of direct-entry architecture.
+### Round 2 acceptance
 
-If the mediated planner passes W6, delete it from this slice. If it independently fails, that evidence may warrant a separate tiny law:
+Round 2 is complete when all of these are true together:
 
-> **Irreversible eligibility is evaluated per independently consumable evidence/custody unit; parent initiative authority is not transitive.**
+1. Git still shows the stable ACP v1 runtime as committed in `e193bce`, with no closure-only edit to ACP runtime/package/test files;
+2. the stable ACP v1 direct-entry membrane remains mechanically narrow and routes exact ACP prompt text into the existing automatic product path;
+3. the existing no-alternate-mutation guarantees and managed-repository restrictions remain green on the unchanged supported surface;
+4. required repository-owned closure checks pass, with external DevSpace transport failures reported separately rather than converted into product failures;
+5. product/status truth says ACP is supported and banked while ChatGPT/DevSpace is substrate-unavailable;
+6. the closure commit contains only the bounded closure correction and does not absorb unrelated dirty/untracked owner state;
+7. no `HostPort`, `ProviderPort`, generic policy layer, conformance programme, DevSpace bridge, prompt workaround, ACP v2 migration, or second executor is added.
 
-Likewise, scientific-constraint preservation remains a planner regression. The membrane does not interpret scientific constraints; it only ensures the request reaches the planner that already does.
+If validation finds a real ACP runtime defect, stop treating this as a closure-only round and repair only that demonstrated defect under a separately explicit scope. Do not silently fold runtime changes into the closure commit.
 
-## Stop boundary
+### Explicit non-goals
 
-**Phase 10 is implemented and banked at `724204d`. The stale planning-only sentence is retired.**
+```text
+no ACP runtime restaging without a demonstrated defect
+no DEVSPACE_CAPABILITY_MEMBRANE_PROOF_1
+no second DevSpace substrate probe
+no managed-DevSpace membrane implementation
+no runAutomaticProductResult(...) DevSpace bridge
+no SOTA/research expansion
+no ACP v2 migration
+no generic host abstraction
+no generic policy DSL
+no new review/evidence programme
+no prompt-only authority workaround
+```
 
-**Phase 11 `DIRECT_ENTRY_AUTHORITY_MEMBRANE_1` is implemented locally for stable ACP v1 and remains unbanked. The ChatGPT/DevSpace direct surface still stops with zero fallback mutation because it lacks the raw-input seam; ACP is the separate supported host experiment that mechanically supplies both seams. Focused ACP/package/authority and adjacent owner-objective/planner validation are green; repository-wide test-run transport is currently failing externally before a trustworthy aggregate result is returned.**
+A common host port remains unwarranted because there is still only one real supported implementation. The failed DevSpace substrate is evidence of absence, not a second implementation.
 
-Do not mutate the global/local Codex installation to unblock Phase-9 evidence as part of this planning patch.
+### Re-audit result
 
-`docs/product/decision-log.md`, `lessons.md`, unrelated pre-existing dirty/untracked files, and runtime source files remain outside this patch.
+Round 2 is GO on this corrected closure-only scope. Execute the bounded validation/status reconciliation, commit only the closure delta, then stop.
