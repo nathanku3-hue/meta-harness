@@ -507,6 +507,19 @@ test("bare meta-harness stops cleanly when no active result exists", (t) => {
   assert.equal(result.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
 });
 
+test("private host projection preserves human result text without exposing lifecycle topology", (t) => {
+  const root = repo(t);
+  const result = runRaw(root, [], { env: env({ META_HARNESS_INTERNAL_HOST_RESULT: "1" }) });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.deepEqual(JSON.parse(result.stdout), {
+    schemaVersion: "meta-host-result/v1",
+    kind: "USE_PRODUCT",
+    externalPacketDigests: [],
+    text: "No active slice.\nUse the product.\nWait for observed real-use friction.",
+  });
+  assert.doesNotMatch(result.stdout, /workspaceId|sessionDigest|claimDigest|generation/u);
+});
+
 test("inspect JSON exposes only semantic entry action and retained owner-goal result", (t) => {
   const root = repo(t);
   const beforeMeta = fs.existsSync(path.join(root, ".git", "meta-harness"));

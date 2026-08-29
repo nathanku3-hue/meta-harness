@@ -9,6 +9,7 @@ const test = require("node:test");
 const {
   createExternalProposalRunner,
   extractInternalDevSpaceProposalHost,
+  reconcileProposalDispatch,
 } = require("../lib/devspace-proposal-host");
 const { findExecutionClosureForOrigin } = require("../lib/execution-closure");
 const { listActiveOutcomeClaims } = require("../lib/outcome-claim");
@@ -19,8 +20,14 @@ const {
 const { recoverClaimCommitment, runRepoWorkWave } = require("../lib/repo-work-wave");
 const {
   claimWorkSessionState,
+  resolveActiveWorkspaceContinuation,
   workspaceRegistryDirectory,
 } = require("../lib/work-git");
+const { compileCandidateMaterialization } = require("../lib/candidate-materialization");
+const {
+  readProposalDispatchIntent,
+  readProposalDispatchResult,
+} = require("../lib/proposal-dispatch");
 const { runWork } = require("../lib/work-loop");
 const { readWorkspaceCustody, workspaceExecutionLeasesOwnedByPid } = require("../lib/workspace-custody");
 const { readCurrentWorldState } = require("../lib/world-transition");
@@ -62,11 +69,75 @@ function admittedClaim(t, id = "a") {
 
 function hostBinding(request, digit = "7") {
   return {
-    schemaVersion: "meta-proposal-activation/v1",
+    schemaVersion: "meta-proposal-reconcile/v1",
+    state: "RUNNING",
     packetDigest: request.packet.packetDigest,
     taskId: `proposal_${digit.repeat(8)}`,
     taskDigest: `sha256:${digit.repeat(64)}`,
+    resultDigest: null,
     activationEstablished: true,
+  };
+}
+
+function externalWorkerResult(id, operations = null) {
+  return {
+    schemaVersion: "worker-result/v2",
+    status: "DONE",
+    observableResult: `Prepared ${id}.`,
+    operations: operations || [{ type: "WRITE", path: `src/${id}/result.txt`, content: "delivered\n" }],
+    validation: ["external proposal"],
+    stop: null,
+  };
+}
+
+function externalStopResult() {
+  return {
+    schemaVersion: "worker-result/v2",
+    status: "STOP",
+    observableResult: "The preferred route could not complete the Outcome.",
+    operations: [],
+    validation: ["external proposal"],
+    stop: {
+      unsatisfiedRequirement: "The current means could not satisfy the sealed requirement.",
+      failedMeans: [{ means: "preferred route", evidence: ["The external worker observed the route was unavailable."] }],
+      alternativesConsidered: [],
+      assertedConstraint: "The preferred route is unavailable in the current environment.",
+    },
+  };
+}
+
+function readyHostFor(requestBinding, result, digit = "7") {
+  const running = hostBinding({ packet: { packetDigest: requestBinding.packetDigest } }, digit);
+  const resultDigest = `sha256:${"e".repeat(64)}`;
+  let releaseCount = 0;
+  return {
+    host: {
+      ensureActivation: async (request) => {
+        assert.equal(request.packet.packetDigest, requestBinding.packetDigest);
+        return {
+          ...running,
+          state: "RESULT_READY",
+          resultDigest,
+          activationEstablished: false,
+        };
+      },
+      readResult: async (binding) => ({
+        schemaVersion: "meta-proposal-result/v1",
+        ...binding,
+        result,
+        resultDigest,
+        submittedAt: "2026-08-29T17:30:00.000Z",
+      }),
+      release: async (binding) => {
+        releaseCount += 1;
+        return {
+          schemaVersion: "meta-proposal-release-ack/v1",
+          ...binding,
+          released: true,
+        };
+      },
+    },
+    releaseCount: () => releaseCount,
   };
 }
 
@@ -153,6 +224,295 @@ test("external proposal runner persists intent before host effect and leaves the
   assert.equal(recovered.intent.intentDigest, result.intentDigest);
   assert.equal(recovered.receipt.receiptDigest, result.receiptDigest);
   assert.equal(recovered.intent.request.packet.packetDigest, result.packetDigest);
+});
+
+test("durable external worker result fans in through materialization, validation, BANK, Closure, and World", async (t) => {
+  const fixture = admittedClaim(t, "a");
+  const digit = "6";
+  const seeded = await runWork({
+    repositoryPath: fixture.root,
+    session: fixture.session,
+    runner: createExternalProposalRunner({
+      ensureActivation: async (request) => hostBinding(request, digit),
+    }),
+  });
+  assert.equal(seeded.control, "EXTERNAL_OPEN");
+  const active = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  assert.equal(active.state, "ACTIVE");
+  const { host, releaseCount } = readyHostFor(
+    { packetDigest: seeded.packetDigest },
+    externalWorkerResult("a"),
+    digit,
+  );
+  let localCalls = 0;
+  const result = await runRepoWorkWave({
+    repositoryPath: fixture.root,
+    proposalHost: host,
+    plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } }),
+    runner: async () => {
+      localCalls += 1;
+      throw new Error("captured external result must re-enter the controller pipeline without a local worker");
+    },
+    interpret: fakeInterpretation,
+    now: monotonicNow(),
+  });
+
+  assert.equal(localCalls, 0);
+  assert.equal(result.outcome, "USE_PRODUCT");
+  assert.deepEqual(result.outcomes.map((entry) => entry.state), ["LANDED"]);
+  assert.equal(result.externalOpen, 0);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
+  const landed = readCurrentWorldState(fixture.root);
+  assert.equal(
+    require("./helpers/linear-product-head").git(fixture.root, ["show", `${landed.head.productCommit}:src/a/result.txt`]),
+    "delivered",
+  );
+  assert.deepEqual(landed.world.payload.learned, ["a"]);
+  assert.equal(releaseCount(), 1);
+
+  const captured = readProposalDispatchResult({
+    workspaceRegistryDir: workspaceRegistryDirectory(fixture.root),
+    workspaceId: active.workspaceId,
+    generation: 1,
+    optional: false,
+  });
+  assert.equal(captured.packetDigest, seeded.packetDigest);
+  assert.equal(captured.workerResult.status, "DONE");
+});
+
+test("Meta restart after durable result capture consumes the exact result without touching DevSpace again", async (t) => {
+  const fixture = admittedClaim(t, "a");
+  const digit = "5";
+  const seeded = await runWork({
+    repositoryPath: fixture.root,
+    session: fixture.session,
+    runner: createExternalProposalRunner({
+      ensureActivation: async (request) => hostBinding(request, digit),
+    }),
+  });
+  const active = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  const registryDir = workspaceRegistryDirectory(fixture.root);
+  const intent = readProposalDispatchIntent({
+    workspaceRegistryDir: registryDir,
+    workspaceId: active.workspaceId,
+    generation: 1,
+  });
+  const ready = readyHostFor({ packetDigest: seeded.packetDigest }, externalWorkerResult("a"), digit);
+  const capture = await reconcileProposalDispatch({
+    proposalHost: ready.host,
+    workspaceRegistryDir: registryDir,
+    intent,
+  });
+  assert.equal(capture.state, "RESULT_READY");
+  assert.ok(capture.result);
+  assert.equal(ready.releaseCount(), 1);
+  assert.equal(recoverClaimCommitment(fixture.root, fixture.claim).type, "EXECUTABLE");
+
+  let hostCallsAfterCapture = 0;
+  const result = await runRepoWorkWave({
+    repositoryPath: fixture.root,
+    proposalHost: {
+      ensureActivation: async () => { hostCallsAfterCapture += 1; throw new Error("captured result must not reconcile with DevSpace again"); },
+      readResult: async () => { hostCallsAfterCapture += 1; throw new Error("captured result must be Meta-local"); },
+      release: async () => { hostCallsAfterCapture += 1; throw new Error("release was already attempted after Meta capture"); },
+    },
+    plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } }),
+    runner: async () => { throw new Error("local worker must not replace the captured external result"); },
+    interpret: fakeInterpretation,
+    now: monotonicNow(),
+  });
+  assert.equal(hostCallsAfterCapture, 0);
+  assert.equal(result.outcome, "USE_PRODUCT");
+  assert.deepEqual(result.outcomes.map((entry) => entry.state), ["LANDED"]);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
+});
+
+test("restart from mixed materialization bytes converges the durable Git target before seal and BANK", async (t) => {
+  const fixture = admittedClaim(t, "a");
+  const digit = "4";
+  const operations = [
+    { type: "WRITE", path: "src/a/result.txt", content: "delivered\n" },
+    { type: "WRITE", path: "src/a/extra.txt", content: "extra\n" },
+  ];
+  const seeded = await runWork({
+    repositoryPath: fixture.root,
+    session: fixture.session,
+    runner: createExternalProposalRunner({
+      ensureActivation: async (request) => hostBinding(request, digit),
+    }),
+  });
+  const active = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  const registryDir = workspaceRegistryDirectory(fixture.root);
+  const intent = readProposalDispatchIntent({
+    workspaceRegistryDir: registryDir,
+    workspaceId: active.workspaceId,
+    generation: 1,
+  });
+  const ready = readyHostFor({ packetDigest: seeded.packetDigest }, externalWorkerResult("a", operations), digit);
+  await reconcileProposalDispatch({ proposalHost: ready.host, workspaceRegistryDir: registryDir, intent });
+  const captured = readProposalDispatchResult({
+    workspaceRegistryDir: registryDir,
+    workspaceId: active.workspaceId,
+    generation: 1,
+    optional: false,
+  });
+  const custody = readWorkspaceCustody(registryDir, active.workspaceId);
+  const continuation = resolveActiveWorkspaceContinuation(fixture.root, fixture.session, custody);
+  assert.equal(continuation.kind, "ENTERED_NO_SEAL");
+  const plan = compileCandidateMaterialization({
+    stateDirectory: path.join(fixture.root, ".git", "meta-harness", "work-sessions"),
+    workspacePath: custody.workspacePath,
+    allowedPaths: fixture.session.allowedPaths,
+    sessionDigest: fixture.session.sessionDigest,
+    workspaceId: active.workspaceId,
+    generation: 1,
+    attemptEntryDigest: continuation.attemptEntry.entryDigest,
+    resultRecordDigest: captured.resultRecordDigest,
+    baselineTreeOid: intent.request.packet.baseline.treeOid,
+    operations,
+  });
+  fs.writeFileSync(path.join(custody.workspacePath, "src", "a", "result.txt"), "delivered\n", "utf8");
+  assert.equal(
+    resolveActiveWorkspaceContinuation(fixture.root, fixture.session, readWorkspaceCustody(registryDir, active.workspaceId)).kind,
+    "MATERIALIZING",
+  );
+
+  const result = await runRepoWorkWave({
+    repositoryPath: fixture.root,
+    proposalHost: {
+      ensureActivation: async () => { throw new Error("materializing continuation must not relaunch external work"); },
+      readResult: async () => { throw new Error("materializing continuation already owns a captured result"); },
+      release: async () => ({ released: true }),
+    },
+    plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } }),
+    runner: async () => { throw new Error("materializing continuation must not invoke a local worker"); },
+    interpret: fakeInterpretation,
+    now: monotonicNow(),
+  });
+  assert.equal(result.outcome, "USE_PRODUCT");
+  assert.equal(plan.targetTreeOid, readProposalDispatchResult({
+    workspaceRegistryDir: registryDir,
+    workspaceId: active.workspaceId,
+    generation: 1,
+    optional: false,
+  }) && plan.targetTreeOid);
+  assert.deepEqual(result.outcomes.map((entry) => entry.state), ["LANDED"]);
+});
+
+test("external worker STOP enters the existing forward-motion challenger instead of materialization", async (t) => {
+  const fixture = admittedClaim(t, "a");
+  const digit = "2";
+  const seeded = await runWork({
+    repositoryPath: fixture.root,
+    session: fixture.session,
+    runner: createExternalProposalRunner({
+      ensureActivation: async (request) => hostBinding(request, digit),
+    }),
+  });
+  const active = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  const registryDir = workspaceRegistryDirectory(fixture.root);
+  const intent = readProposalDispatchIntent({
+    workspaceRegistryDir: registryDir,
+    workspaceId: active.workspaceId,
+    generation: 1,
+  });
+  const ready = readyHostFor({ packetDigest: seeded.packetDigest }, externalStopResult(), digit);
+  await reconcileProposalDispatch({ proposalHost: ready.host, workspaceRegistryDir: registryDir, intent });
+  let challengerCalls = 0;
+  const result = await runWork({
+    repositoryPath: fixture.root,
+    session: active.session,
+    runner: async () => { throw new Error("captured STOP must not invoke another coding worker"); },
+    forwardMotionRunner: async () => {
+      challengerCalls += 1;
+      throw new Error("synthetic challenger fallback");
+    },
+  });
+  assert.equal(challengerCalls, 1);
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.match(result.forwardMotionProofDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.deepEqual(result.changedPaths, []);
+  assert.equal(ready.releaseCount(), 1);
+});
+
+test("failed external candidate validation advances to a fresh repair packet and later BANKs the repair result", async (t) => {
+  const fixture = admittedClaim(t, "a");
+  const firstDigit = "3";
+  const seeded = await runWork({
+    repositoryPath: fixture.root,
+    session: fixture.session,
+    runner: createExternalProposalRunner({
+      ensureActivation: async (request) => hostBinding(request, firstDigit),
+    }),
+  });
+  assert.equal(seeded.control, "EXTERNAL_OPEN");
+
+  let repairPacketDigest = null;
+  let repairEnsureCalls = 0;
+  const badResultDigest = `sha256:${"d".repeat(64)}`;
+  const firstWave = await runRepoWorkWave({
+    repositoryPath: fixture.root,
+    proposalHost: {
+      ensureActivation: async (request) => {
+        if (request.packet.packetDigest === seeded.packetDigest) {
+          return {
+            ...hostBinding(request, firstDigit),
+            state: "RESULT_READY",
+            resultDigest: badResultDigest,
+            activationEstablished: false,
+          };
+        }
+        repairEnsureCalls += 1;
+        repairPacketDigest = request.packet.packetDigest;
+        return hostBinding(request, "8");
+      },
+      readResult: async (binding) => {
+        assert.equal(binding.packetDigest, seeded.packetDigest);
+        return {
+          schemaVersion: "meta-proposal-result/v1",
+          ...binding,
+          result: externalWorkerResult("a", [
+            { type: "WRITE", path: "src/a/result.txt", content: "wrong\n" },
+          ]),
+          resultDigest: badResultDigest,
+          submittedAt: "2026-08-29T17:40:00.000Z",
+        };
+      },
+      release: async (binding) => ({
+        schemaVersion: "meta-proposal-release-ack/v1",
+        ...binding,
+        released: true,
+      }),
+    },
+    plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } }),
+    runner: async () => { throw new Error("external repair path must not invoke the local coding runner"); },
+    interpret: fakeInterpretation,
+    now: monotonicNow(),
+  });
+  assert.equal(firstWave.externalOpen, 1);
+  assert.equal(repairEnsureCalls, 1);
+  assert.match(repairPacketDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.notEqual(repairPacketDigest, seeded.packetDigest);
+  const activeAfterFailure = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  assert.equal(readWorkspaceCustody(workspaceRegistryDirectory(fixture.root), activeAfterFailure.workspaceId).generation, 2);
+
+  const repairReady = readyHostFor(
+    { packetDigest: repairPacketDigest },
+    externalWorkerResult("a"),
+    "8",
+  );
+  const final = await runRepoWorkWave({
+    repositoryPath: fixture.root,
+    proposalHost: repairReady.host,
+    plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } }),
+    runner: async () => { throw new Error("captured repair result must not invoke the local coding runner"); },
+    interpret: fakeInterpretation,
+    now: monotonicNow(),
+  });
+  assert.equal(final.outcome, "USE_PRODUCT");
+  assert.deepEqual(final.outcomes.map((entry) => entry.state), ["LANDED"]);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
+  assert.equal(repairReady.releaseCount(), 1);
 });
 
 test("host failure after durable intent stays EXTERNAL_OPEN and next repo invocation reconciles the same packet once", async (t) => {
@@ -363,6 +723,108 @@ test("repo wave fills independent Claim capacity with distinct external packets 
   assert.equal(secondWavePackets.length, 3);
   assert.deepEqual(new Set(secondWavePackets), retainedPacketDigests);
   assert.equal(localCalls, 0);
+});
+
+test("three external Claims may settle out of dispatch order without duplicate workers or lost World integration", async (t) => {
+  const fixture = admittedClaim(t, "a");
+  const packetById = new Map();
+  const digitById = new Map([["a", "1"], ["b", "2"], ["c", "3"]]);
+  const idForRequest = (request) => {
+    const match = /Deliver ([abc])\./u.exec(request.prompt);
+    assert.ok(match, "proposal prompt must retain the sealed product result");
+    packetById.set(match[1], request.packet.packetDigest);
+    return match[1];
+  };
+  const seeded = await runWork({
+    repositoryPath: fixture.root,
+    session: fixture.session,
+    runner: createExternalProposalRunner({
+      ensureActivation: async (request) => {
+        const id = idForRequest(request);
+        return hostBinding(request, digitById.get(id));
+      },
+    }),
+  });
+  packetById.set("a", seeded.packetDigest);
+
+  const initial = await runRepoWorkWave({
+    repositoryPath: fixture.root,
+    proposalHost: {
+      ensureActivation: async (request) => {
+        const id = idForRequest(request);
+        return hostBinding(request, digitById.get(id));
+      },
+    },
+    plannerRunner: async ({ plannerInput }) => {
+      const active = new Set(plannerInput.activeCommitments.map((entry) => entry.outcome.id));
+      return {
+        batch: {
+          schemaVersion: "planner-candidate-batch/v3",
+          proposals: ["b", "c"].filter((id) => !active.has(id)).map((id) => candidate(id)),
+        },
+      };
+    },
+    runner: async () => { throw new Error("external Claim wave must not invoke local coding workers"); },
+    interpret: fakeInterpretation,
+    now: monotonicNow(),
+  });
+  assert.equal(initial.externalOpen, 3);
+  assert.equal(packetById.size, 3);
+  assert.equal(new Set(packetById.values()).size, 3);
+
+  const ready = new Set();
+  const landedOrder = [];
+  for (const id of ["c", "a", "b"]) {
+    ready.add(id);
+    const reverse = new Map([...packetById].map(([entryId, digest]) => [digest, entryId]));
+    const wave = await runRepoWorkWave({
+      repositoryPath: fixture.root,
+      proposalHost: {
+        ensureActivation: async (request) => {
+          const requestId = idForRequest(request);
+          const running = hostBinding(request, digitById.get(requestId));
+          return ready.has(requestId)
+            ? {
+                ...running,
+                state: "RESULT_READY",
+                resultDigest: `sha256:${requestId.repeat(64)}`,
+                activationEstablished: false,
+              }
+            : running;
+        },
+        readResult: async (binding) => {
+          const resultId = reverse.get(binding.packetDigest);
+          assert.ok(resultId && ready.has(resultId));
+          return {
+            schemaVersion: "meta-proposal-result/v1",
+            ...binding,
+            result: externalWorkerResult(resultId),
+            resultDigest: `sha256:${resultId.repeat(64)}`,
+            submittedAt: "2026-08-29T17:50:00.000Z",
+          };
+        },
+        release: async (binding) => ({
+          schemaVersion: "meta-proposal-release-ack/v1",
+          ...binding,
+          released: true,
+        }),
+      },
+      plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } }),
+      runner: async () => { throw new Error("settled external result must not invoke local coding workers"); },
+      interpret: (input) => {
+        landedOrder.push(input.input.outcome.id);
+        return fakeInterpretation(input);
+      },
+      now: monotonicNow(),
+    });
+    if (id === "c") assert.equal(wave.externalOpen, 2);
+    else if (id === "a") assert.equal(wave.externalOpen, 1);
+    else assert.equal(wave.outcome, "USE_PRODUCT");
+  }
+
+  assert.deepEqual(landedOrder, ["c", "a", "b"]);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
+  assert.deepEqual(readCurrentWorldState(fixture.root).world.payload.learned, ["c", "a", "b"]);
 });
 
 test("receipt task substitution fails closed without aborting or releasing the external Claim", async (t) => {
