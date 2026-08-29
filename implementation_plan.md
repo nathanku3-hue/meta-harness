@@ -1684,3 +1684,785 @@ A common host port remains unwarranted because there is still only one real supp
 ### Re-audit result
 
 Round 2 is GO on this corrected closure-only scope. Execute the bounded validation/status reconciliation, commit only the closure delta, then stop.
+
+## P0-R3 recut after architecture audit — DURABLE_EXTERNAL_PROPOSAL_CONTINUITY_1
+
+### Re-audit corrections adopted
+
+R3 remains one engineering round, but it no longer claims that durable external dispatch is the same thing as live worker execution and it no longer cuts the working owner path over before result fan-in exists.
+
+The corrected programme split is:
+
+```text
+R3
+→ external-dispatch architecture can be built, validated, and banked
+→ one entered CODE_PROPOSE attempt can survive controller/host process loss on one external route
+→ no external completion is inferred
+→ normal production continue_meta_harness does NOT switch to that route yet
+
+P1
+→ challenged worker-result/v2 fan-in
+→ same AttemptEntry can return to existing materialize → validate → proof → BANK → World
+→ only then remove the internal cutover guard for the normal owner journey
+```
+
+Therefore distinguish:
+
+```text
+R3 external-dispatch architecture complete
+!=
+P0 owner journey complete
+```
+
+The owner journey is not complete while a successfully finished external worker can never return a result to Meta-Harness.
+
+No public feature flag, user workflow toggle, or alternate owner command is added. The external proposal transport is an injected/internal host capability in R3 and is exercised by the complete R3 acceptance suite. P1 is the round that may connect that already-proven capability to the normal production `continue_meta_harness` path.
+
+### Product result
+
+For one already-entered Claim-bound `CODE_PROPOSE` attempt selected by the internal R3 transport injection, Meta-Harness can durably commit that exact attempt to one external proposal route **before** contacting DevSpace, release its process execution lease, and later recover the attempt without aborting or replaying it.
+
+DevSpace idempotently binds the exact route to one restart-safe `meta-proposal-task/v1` and may ensure at most one process-local fresh-ChatGPT Activation for that task. Durable Meta truth says only that the attempt is externally open; Activation liveness remains an ephemeral host observation.
+
+The corrected target is:
+
+```text
+Claim
+→ WorkSession
+→ exact workspace custody
+→ live ExecutionPermit
+→ AttemptEntry(CODE_PROPOSE)
+→ proposal-worker-packet/v1
+→ durable proposal-dispatch-intent/v1
+→ EXTERNAL_OPEN
+→ private DevSpace ensure operation
+→ one retained meta-proposal-task/v1
+→ zero or one process-local Activation
+→ optional durable proposal-dispatch-receipt/v1 proving task binding only
+```
+
+R3 does **not** make the external route a completing product path. The normal owner DevSpace continuation keeps the existing synchronous/local-worker transport until P1 can return and settle `worker-result/v2`.
+
+### Truth vocabulary — break the proposed `RUNNING_ELSEWHERE` reuse
+
+Do not classify an externally dispatched attempt as `RUNNING_ELSEWHERE` merely because durable dispatch intent exists.
+
+Keep the existing `RUNNING_ELSEWHERE` meaning for the case it can actually prove:
+
+```text
+ACTIVE workspace
++ validated live foreign Meta workspace execution lease
+→ RUNNING_ELSEWHERE
+```
+
+Add a distinct durable recovery state:
+
+```text
+EXTERNAL_OPEN
+```
+
+Meaning exactly:
+
+> This already-entered attempt is durably committed to one external proposal route. Do not abort it, replay it locally, or admit a duplicate Claim merely because no controller process lease is live.
+
+It does **not** mean:
+
+```text
+worker is currently thinking
+browser is alive
+task is currently activated
+worker finished
+result exists
+continuation is guaranteed to succeed
+```
+
+After R3 the important distinction is:
+
+```text
+durable task/route identity
+!=
+live Activation
+```
+
+Host reconciliation may observe a live Activation during the current process lifetime, but that observation never becomes durable product truth.
+
+### Planner projection and Claim capacity
+
+Add a truthful planner projection:
+
+```text
+EXTERNAL_OPEN
+→ external_open
+```
+
+Do not project it as `running_elsewhere`.
+
+The planning law is:
+
+> `external_open` is an active committed Claim whose current proposal route is external and unresolved. It consumes Claim capacity but does not establish a blocker, result, or liveness claim. Independent free Claim capacity may still be planned and admitted.
+
+The Claim remains the capacity authority. No external-task table, Activation count, or browser state participates in Claim admission.
+
+### The dispatch intent is narrow durable continuation authority
+
+The prior wording that dispatch intent is “not new coding authority” is too weak.
+
+Once Meta exits, the process-owned ExecutionPermit lease is no longer current, yet the external child must be allowed to continue the already-entered proposal operation. Therefore `proposal-dispatch-intent/v1` is:
+
+> **a derived, narrowly delegated continuation capability for this exact `CODE_PROPOSE` attempt only.**
+
+It may authorize only the proposal-side behavior already inside the read-only worker membrane:
+
+```text
+read
+search
+list
+reason about the sealed task
+produce worker-result/v2 conceptually
+```
+
+It never grants:
+
+```text
+workspace mutation
+Git mutation
+materialization
+validation
+candidate seal
+product proof
+BANK
+World transition
+ExecutionClosure
+Claim release
+publication
+new Outcome/Claim/session authority
+```
+
+The intent is derived while the live ExecutionPermit is current and must bind the exact current authority facts. After that derivation, the external worker continues under the durable delegated proposal capability, not under a fiction that the old process permit is still live.
+
+### Factor worker semantics from authority projection
+
+The current R2 packet path reuses `buildCodingPrompt()` with the full live ExecutionPermit projection. That is correct for a local worker but becomes misleading after the Meta process releases its lease.
+
+Refactor prompt construction into:
+
+```text
+common worker semantics
++
+authority projection
+```
+
+so the two paths are:
+
+```text
+local coding worker
+→ common semantics
+→ live ExecutionPermit projection
+
+external proposal worker
+→ same common semantics
+→ durable external CODE_PROPOSE continuation projection
+```
+
+The common portion remains identical for:
+
+```text
+owner-authored product direction
+task/result/journey/done condition
+semantic projection
+prior failure
+allowed paths
+controller-owned validation description
+worker-result/v2 schema expectations
+read-only mutation law
+STOP law
+```
+
+The external authority paragraph must explicitly say that the originating ExecutionPermit is provenance for the delegation, not current process-owned authority. Do not expose the stale full ExecutionPermit projection as though its controller capabilities or lease are still live.
+
+Avoid a digest cycle: the external prompt authority projection may contain stable session/workspace/generation/AttemptEntry facts, but must not require the final dispatch-intent digest or packet digest in order to compute the prompt that those records themselves bind.
+
+### `proposal-dispatch-intent/v1` — persist before any host effect
+
+Add a focused Meta module such as:
+
+```text
+lib/proposal-dispatch.js
+```
+
+Persist one create-only intent before contacting DevSpace.
+
+Conceptually:
+
+```json
+{
+  "schemaVersion": "proposal-dispatch-intent/v1",
+  "sessionDigest": "sha256:...",
+  "workspaceId": "...",
+  "generation": 1,
+  "attemptEntryDigest": "sha256:...",
+  "permitDigest": "sha256:...",
+  "packetDigest": "sha256:...",
+  "baseline": {
+    "head": "...",
+    "treeOid": "...",
+    "dirtyManifestDigest": "sha256:..."
+  },
+  "delegation": {
+    "capability": "CODE_PROPOSE",
+    "workspaceMutation": false,
+    "controllerCompletionAuthority": false
+  },
+  "request": {
+    "workspaceRoot": "...",
+    "packet": {},
+    "prompt": "...",
+    "workerResultSchema": {}
+  },
+  "createdAt": "...",
+  "intentDigest": "sha256:..."
+}
+```
+
+The exact request is retained because after process death the old live permit cannot safely be reconstructed and re-projected as current authority.
+
+Create-only equality/idempotence must be exact. A same-identity record with different bytes is corruption, not an update.
+
+Once this intent exists:
+
+```text
+local worker fallback is forbidden for that AttemptEntry
+another external packet is forbidden for that AttemptEntry
+ordinary ENTERED_NO_SEAL abort inference is forbidden for that AttemptEntry
+```
+
+### `proposal-dispatch-receipt/v1` — prove task binding, never liveness
+
+After DevSpace confirms the exact packet is bound to a retained proposal task, Meta may persist a create-only receipt:
+
+```json
+{
+  "schemaVersion": "proposal-dispatch-receipt/v1",
+  "intentDigest": "sha256:...",
+  "packetDigest": "sha256:...",
+  "taskId": "proposal_...",
+  "taskDigest": "sha256:...",
+  "acceptedAt": "...",
+  "receiptDigest": "sha256:..."
+}
+```
+
+Do not persist:
+
+```text
+state = RUNNING
+activation = LIVE
+browser = ACTIVE
+worker = THINKING
+```
+
+The receipt proves only:
+
+```text
+exact packet accepted
+exact retained task identity bound
+```
+
+An `ensureActivation()` response may include a process-local observation that an Activation was established for the caller, but that observation is not copied into durable Meta state as liveness truth.
+
+### Crash windows and recovery law
+
+The corrected recovery matrix is:
+
+| Retained state | Next Meta interpretation | Host action when internal bridge exists |
+| --- | --- | --- |
+| Claim only, no workspace | normal execution | none |
+| workspace baseline, no AttemptEntry | normal execution | none |
+| AttemptEntry, no dispatch intent | existing `EXECUTION_ABORTED` recovery | none |
+| valid intent, host never saw request | `EXTERNAL_OPEN` | retry exact retained request |
+| task retained, Meta missed response | `EXTERNAL_OPEN` | same packet resolves same task |
+| Activation launched, Meta died | `EXTERNAL_OPEN` | ensure reuses live Activation if observed |
+| receipt persisted, bridge absent | `EXTERNAL_OPEN` | none; never local replay |
+| DevSpace restarted, task retained | `EXTERNAL_OPEN` | ensure replacement Activation |
+| worker may have naturally finished reasoning | still `EXTERNAL_OPEN` | no completion inference before P1 |
+
+Therefore `recoverClaimCommitment()` becomes conceptually:
+
+```text
+ACTIVE workspace
+│
+├─ validated live foreign Meta process lease
+│    → RUNNING_ELSEWHERE
+│
+├─ continuation != ENTERED_NO_SEAL
+│    → existing recovery
+│
+└─ ENTERED_NO_SEAL
+     │
+     ├─ no valid proposal dispatch intent
+     │    → existing EXECUTION_ABORTED recovery
+     │
+     └─ valid proposal dispatch intent
+          → EXTERNAL_OPEN
+```
+
+External-dispatch validation must prove the same exact:
+
+```text
+session
+Claim/Outcome origin
+workspace
+workspace generation
+AttemptEntry
+permit provenance digest
+packet
+baseline HEAD/tree/dirty manifest
+current unchanged workspace bytes/index/HEAD
+```
+
+A corrupt, stale, substituted, broadened, or mismatched intent/receipt fails closed.
+
+### DevSpace `ensureActivation()` — durable task identity, ephemeral Activation
+
+Keep the R2 `MetaProposalWorkerController` and add one higher-level idempotent operation:
+
+```text
+ensureActivation(exact MetaProposalTaskInput)
+```
+
+Semantics:
+
+```text
+same exact packet already has retained task?
+  yes → reuse task
+  no  → seal exact task
+
+process-local live Activation for task?
+  yes → reuse it
+  no  → start one fresh managed ChatGPT Activation
+
+return task binding
++ current-call Activation establishment observation
+```
+
+Concurrent calls for the same packet converge on:
+
+```text
+one retained task
+at most one live Activation in the owning process
+```
+
+`packetDigest` is the **one downstream DevSpace ensure/idempotency identity**. The task store, bridge request reconciliation, concurrent ensure path, lost-response recovery, and restart reconstruction all key the same external operation by this digest. Do not add a second dispatch request ID, activation request ID, or host-generated retry identity that could let one Meta packet fork into multiple retained operations.
+
+After a DevSpace restart:
+
+```text
+retained task remains in SQLite
+process-local Activation map is empty
+ensureActivation(same packet)
+→ replacement fresh Activation for same task
+```
+
+Do not add a durable browser/Activation lifecycle table, scheduler, mailbox, queue, or transcript registry.
+
+### Mechanically enforce one DevSpace runtime per state directory
+
+R3 requires:
+
+> **Exactly one live DevSpace runtime owns a given DevSpace state directory at a time, and startup enforces that fact mechanically.**
+
+Do not leave this as a deployment convention. Before the server can create or ensure any proposal Activation, acquire one exclusive state-directory runtime lock. Keep the mechanism smaller than a distributed lease system:
+
+```text
+DevSpace startup for stateDir X
+→ atomically acquire runtime lock for X
+→ retain owner PID + random process token
+
+lock belongs to a live owner
+→ refuse startup before any proposal task/Activation reconciliation
+
+lock owner is demonstrably dead
+→ reclaim stale lock safely
+→ become the sole owner
+
+clean shutdown
+→ release only the lock whose token matches this process
+```
+
+The lock is process-custody evidence only. It is not product state, proposal-task state, an Activation lifecycle record, a scheduler, or a browser lease. A tiny create-exclusive lock file under the state directory is sufficient if stale-owner validation and token-checked release are exact on supported platforms.
+
+Then the authority split stays small:
+
+```text
+task uniqueness
+→ retained SQLite state keyed by packetDigest
+
+Activation uniqueness
+→ mechanically single owning DevSpace process
+
+restart
+→ old process gone / stale runtime lock reclaimed
+→ new owner reconstructs an Activation from retained task identity
+```
+
+R3 does not support multiple live DevSpace server processes coordinating Activations against one persistence store. Reject the second runtime instead of building a cross-process Activation lease/mailbox protocol or cluster support.
+
+### Private DevSpace↔Meta bridge
+
+The one-operation ephemeral loopback bridge remains acceptable for R3.
+
+A dedicated inherited child-process IPC channel may be used instead only if the existing Windows spawn path makes it strictly smaller in implementation. Do not create a separate investigation gate or block R3 on replacing the loopback design.
+
+If loopback is retained, its invariant is:
+
+```text
+one parent continue operation lifetime
+one exact operation: ensure proposal Activation
+127.0.0.1 only
+ephemeral port
+unguessable process-local capability token
+exact request schema and bounded size
+no arbitrary command/path/browser/Git/review controls
+listener closes with parent Meta invocation
+closing listener does not revoke retained task or cancel launched Activation
+```
+
+Conceptual request:
+
+```json
+{
+  "schemaVersion": "meta-proposal-ensure/v1",
+  "workspaceRoot": "...",
+  "packet": {},
+  "prompt": "...",
+  "workerResultSchema": {}
+}
+```
+
+Conceptual response:
+
+```json
+{
+  "schemaVersion": "meta-proposal-activation/v1",
+  "packetDigest": "sha256:...",
+  "taskId": "proposal_...",
+  "taskDigest": "sha256:...",
+  "activationEstablished": true
+}
+```
+
+`activationEstablished` is a current-call observation only. It is never interpreted as durable completion or persisted as `RUNNING` truth.
+
+### Never leak the bridge capability to a model
+
+Controller transport environment and model subprocess environment must be split before any model process starts.
+
+Conceptually:
+
+```text
+process environment
+→ extract private DevSpace proposal host capability
+→ remove URL/token/pipe identifiers
+→ sanitized model environment
+```
+
+The sanitized environment is the only environment available to:
+
+```text
+logical planner
+research promoter
+product-proof compiler
+forward-motion challenger
+local coding worker
+external worker launch prompt/tool environment where applicable
+```
+
+No model may discover or invoke the private host capability through environment inheritance.
+
+### Reuse `runWork()` admission; return `EXTERNAL_OPEN` as a non-terminal controller control
+
+Do not duplicate the existing worktree/session/permit/AttemptEntry admission path in `repo-work-wave.js`.
+
+Extend the runner boundary only enough to provide the external runner the exact already-established controller facts it needs:
+
+```text
+repositoryPath
+stateDirectory
+workspace
+workspaceLease
+attemptBoundary
+executionPermit
+attemptEntry
+```
+
+The external runner sequence is:
+
+```text
+compile proposal-worker-packet/v1 with external authority projection
+→ persist proposal-dispatch-intent/v1
+→ attempt private ensureActivation(exact retained request)
+→ persist task-binding receipt if returned
+→ return internal EXTERNAL_OPEN control
+```
+
+If the host call fails or is interrupted **after intent is durable**:
+
+```text
+do not throw the attempt into generic controller rejection
+do not recover it as EXECUTION_ABORTED
+do not fall back to local coding worker
+return/retain EXTERNAL_OPEN
+```
+
+`runWork()` must then:
+
+1. re-check that workspace bytes/index/HEAD remain unchanged;
+2. verify the intent belongs to the current session/workspace/generation/AttemptEntry and was derived from the current permit;
+3. if a receipt exists, verify exact intent/packet/task binding;
+4. not materialize;
+5. not validate;
+6. not create candidate seal/product proof/BANK;
+7. not create ExecutionClosure;
+8. not terminalize workspace custody;
+9. return the non-terminal `EXTERNAL_OPEN` controller result;
+10. release the process execution lease in the existing `finally`.
+
+The workspace remains:
+
+```text
+ACTIVE
+same generation
+AttemptEntry entered
+no candidate seal
+no worker STOP
+valid external dispatch intent
+no live Meta process lease required
+```
+
+The ordinary local worker path remains semantically unchanged when it returns `worker-result/v2`.
+
+### Reconcile an external-open route once per repo-work invocation
+
+Recovery and host liveness are separate.
+
+A valid external intent tells Meta:
+
+```text
+do not abort or replay this AttemptEntry
+```
+
+The private host answers only:
+
+```text
+ensure the disposable execution surface for this retained task exists now
+```
+
+When the internal R3 host capability is present, once per repo-work invocation:
+
+```text
+for each EXTERNAL_OPEN active Claim:
+  call ensureActivation(exact retained intent request) once
+```
+
+Use a process-local set keyed by intent digest so the repository reconciliation loop does not repeatedly ensure the same task in one invocation.
+
+Results remain simple:
+
+```text
+same process + live Activation
+→ reuse
+
+DevSpace restart
+→ replacement Activation for same task
+
+previous launch failure
+→ retry exact route
+
+same packet retained
+→ same task
+
+revoked/substituted task
+→ fail closed
+```
+
+No polling, scheduler, transcript inspection, or completion inference is added.
+
+### Production cutover guard — R3 must not break the working owner path
+
+This is the main product correction.
+
+In R3:
+
+```text
+internal/integration transport injection present
++ REPO_OUTCOME + CODE_PROPOSE
+→ external proposal route may be exercised
+
+normal production continue_meta_harness entry
+→ does NOT inject/enable the external proposal route yet
+→ existing local coding worker remains the completing path
+```
+
+Do not expose an environment feature flag, CLI flag, configuration knob, or user-facing toggle to bypass this guard.
+
+The DevSpace bridge/controller can be real code and can be exercised end-to-end by R3 integration tests. What remains guarded is only the production decision to route ordinary owner work through a path that cannot yet return a result.
+
+P1 may remove this guard only after its challenged result callback proves that the same external task/packet/AttemptEntry can feed a validated `worker-result/v2` back into the existing Meta pipeline.
+
+Before P1 finalizes any owner-facing asynchronous `continue_meta_harness` suspension/result lifecycle, re-check the active ChatGPT MCP host for advertised `io.modelcontextprotocol/tasks` support. If native MCP Tasks is actually available end-to-end, evaluate its durable parent-facing task handle / later result channel before inventing a parallel custom polling protocol. This is a P1 research watchpoint only: R3 must not depend on Tasks support, and native parent-task support would not by itself replace the bounded child worker-result submission back into DevSpace.
+
+### Controlled drain behavior
+
+Controlled drain must respect the durable route commitment.
+
+Before dispatch intent exists:
+
+```text
+existing entered-attempt drain/recovery law remains authoritative
+```
+
+After dispatch intent exists:
+
+```text
+SIGINT / cancellation / Meta process exit
+→ release Meta-owned execution lease
+→ keep Claim + ACTIVE workspace + AttemptEntry + intent
+→ do not revoke proposal task
+→ do not emit ExecutionClosure
+→ do not locally replay
+→ future internal reconciliation may re-ensure Activation
+```
+
+An in-flight bridge call may disappear with the parent process. That does not erase the durable external route.
+
+### Expected Meta-Harness surface
+
+Aim for the smallest truthful surface:
+
+| File | R3 role |
+| --- | --- |
+| `lib/proposal-dispatch.js` **new** | create-only intent/receipt, exact validation, recovery lookup |
+| `lib/devspace-proposal-host.js` **new** | private bridge client + capability extraction/sanitization |
+| `lib/coding-worker.js` | factor common prompt semantics from local/external authority projection |
+| `lib/proposal-worker-packet.js` | compile packet/prompt using external delegated authority, not stale live-permit prose |
+| `lib/work-loop.js` | runner context + non-terminal `EXTERNAL_OPEN` settlement |
+| `lib/repo-work-wave.js` | recovery classification, one-shot external reconciliation, Claim-capacity accounting |
+| `lib/repo-planner-input.js` | `EXTERNAL_OPEN → external_open` projection |
+| `lib/commands/work.js` | accept only internal host injection and sanitize model environment; no public toggle |
+| `tests/proposal-dispatch.test.js` **new** | intent/receipt/authority/crash invariants |
+| focused work-loop/repo-wave tests | external-open settlement, capacity, recovery, drain, production guard |
+| security-focused env test | bridge capability never reaches a model subprocess |
+
+Do not change planner candidate/Claim schemas, WorkSession identity, materializer, verifier, product proof, BANK, or World authority unless implementation uncovers a demonstrated incompatibility with the exact R3 invariant.
+
+### Expected DevSpace surface
+
+Continue from the accepted R2 proposal-task/controller lineage.
+
+| File | R3 role |
+| --- | --- |
+| `src/meta-proposal-worker.ts` | idempotent `ensureActivation()` over retained task + process-local Activation, keyed by `packetDigest` |
+| `src/meta-proposal-bridge.ts` **new** | one-operation authenticated loopback/IPC bridge |
+| `src/state-dir-runtime-lock.ts` **new or equivalent focused module** | exclusive process ownership of one DevSpace state directory; stale-owner reclaim + token-checked release |
+| `src/meta-harness.ts` | private bridge integration support, but keep production external cutover disabled in R3 |
+| `src/server.ts` / process entry | acquire state-directory ownership before proposal controller use; release on shutdown |
+| proposal/bridge/server tests | task/Activation idempotence, restart, runtime-lock exclusion, auth, lifetime, production guard |
+
+No DB migration should be needed. `meta-proposal-task/v1` does not gain a durable Activation state or completion state in R3.
+
+### R3 acceptance suite
+
+R3 is ready for the next architecture re-audit only when the plan targets all of these mechanical proofs:
+
+1. **Intent precedes host effect.** Instrumented host call count remains zero until create-only intent persistence succeeds.
+2. **Intent is exact narrow delegation.** It binds current Claim/session/workspace/generation/AttemptEntry/permit provenance/packet/baseline and grants only external `CODE_PROPOSE` continuation.
+3. **No stale permit authority in external prompt.** External worker text does not describe the released process-owned ExecutionPermit as current authority.
+4. **Intent create-only conflict fails closed.** Same identity with changed request, packet, baseline, or authority bytes is rejected.
+5. **No intent preserves existing abort law.** `ENTERED_NO_SEAL` without dispatch still recovers as existing `EXECUTION_ABORTED`.
+6. **Intent changes only that recovery case.** Valid intent recovers as `EXTERNAL_OPEN`, not `RUNNING_ELSEWHERE` and not `EXECUTION_ABORTED`.
+7. **Bridge unavailable is safe.** `EXTERNAL_OPEN` remains active and is never replayed locally merely because DevSpace is unavailable.
+8. **Host missed-before-accept retry is exact.** Intent exists, host saw nothing, next ensure uses the byte-identical retained request.
+9. **Lost response is idempotent.** DevSpace retained task + missing Meta receipt resolves to the same task on retry.
+10. **One idempotency identity.** `packetDigest` is the downstream ensure/reconciliation identity everywhere; no second dispatch/activation request ID can fork one packet into another retained operation.
+11. **Receipt proves binding only.** Persisted receipt contains no durable worker/Activation liveness state.
+12. **Activation idempotence.** Same packet requested concurrently yields one retained task and at most one live Activation in the owning DevSpace process.
+13. **DevSpace restart reconstruction.** Retained task survives; a new owning process may create one replacement Activation for that same task.
+14. **Single-state-directory ownership is mechanical.** Runtime A owns stateDir X; runtime B attempting X refuses startup before creating or ensuring any Activation. After A is demonstrably dead, one new process may safely reclaim the stale runtime lock. No cross-process Activation mailbox/lease system is added.
+15. **Workspace invariance.** External dispatch changes no allowed workspace bytes, Git index, HEAD, branch, or worktree topology.
+16. **No premature completion.** `EXTERNAL_OPEN` creates no candidate seal, validation, product proof, BANK, World landing, ExecutionClosure, or Claim release.
+17. **Claim capacity remains correct.** An external-open Claim occupies one repository Claim slot while independent remaining capacity may be planned/admitted.
+18. **Planner vocabulary is truthful.** `EXTERNAL_OPEN` reaches planner context as `external_open`, never `running_elsewhere` or blocker evidence.
+19. **Whole reducer treats external-open as active unresolved work.** One `EXTERNAL_OPEN` Claim with no other state is not hard-blocked, not `needsReplan`, not terminally settled, and not quiescent/no-work; it produces no endgame STOP, `EXECUTION_ABORTED`, or fabricated blocker/replan handoff.
+20. **Reconcile once per invocation.** Repo-wave looping does not repeatedly call ensure for one intent digest during one process invocation.
+21. **Controlled drain preserves the route.** Once intent exists, drain releases local lease without revoking task, Closing execution, or replaying the AttemptEntry.
+22. **Bridge is private and bounded.** Loopback/IPC accepts only exact ensure requests, authenticates capability, is size/schema bounded, and dies with the parent continuation call.
+23. **Bridge secret isolation.** Planner/promoter/proof/challenger/local worker/model subprocess environments contain none of the host endpoint/token/pipe capability.
+24. **Production cutover remains off.** Normal `continue_meta_harness` does not supply the external transport in R3 and the existing completing local-worker owner path remains green.
+25. **No public toggle.** CLI/config/environment surface has no user-selectable “external worker” switch.
+26. **Existing deterministic regressions stay green.** R1/R2 proposal membrane, work-loop, repo-wave, controlled-drain, planner, product-direction, authority, and adjacent suites remain green on unchanged surfaces.
+
+### R3 live/code-complete acceptance boundary
+
+Code-complete R3 can be demonstrated without converting ordinary owner work into an unreturnable external path:
+
+```text
+Meta fixture/real repo Claim
+→ real proposal-worker-packet/v1
+→ real durable dispatch intent
+→ real private bridge
+→ real retained DevSpace proposal task/controller
+→ fixture or bounded managed-browser launch acknowledgement
+→ Meta returns internal EXTERNAL_OPEN
+→ process lease released
+→ second invocation recovers same EXTERNAL_OPEN route
+→ same task is re-ensured without duplicate
+```
+
+A fresh-ChatGPT acceptance may additionally prove that the child opens the retained DevSpace task and sees only the R2 read/search/list membrane. That still does not prove product completion and must not be used to justify production cutover.
+
+The full owner journey:
+
+```text
+fresh owner ChatGPT
+→ continue_meta_harness
+→ external proposal child
+→ worker-result/v2 returns
+→ Meta materializes/validates/proves/BANKs
+→ owner receives completed result
+```
+
+belongs to P1 acceptance, because the result-return edge does not exist in R3.
+
+### R3 non-goals
+
+Do not add:
+
+```text
+worker_submit or any result callback
+worker-result polling
+transcript capture/scraping
+proposal-task completion state
+durable Activation/browser lifecycle state
+cross-process DevSpace Activation lease/mailbox
+queue/daemon/scheduler
+controller materialization from child in R3
+validation/repair/candidate seal/product proof/BANK/World landing for external work
+Claim schema migration
+WorkSession replacement
+generic host RPC
+generic worker/provider API
+public external-worker flag/config/toggle
+production default external cutover
+steering
+provider routing
+```
+
+Those either belong to P1 or require a new observed defect.
+
+### R3 done definition
+
+Use this exact boundary for the next re-audit:
+
+> **For one already-entered Claim-bound `CODE_PROPOSE` attempt selected through an internal host capability, Meta-Harness can durably commit that attempt to exactly one external proposal route before contacting the host. Recovery recognizes that durable commitment as `EXTERNAL_OPEN` instead of aborting, locally replaying, or falsely claiming liveness. The immutable dispatch intent carries only a derived external `CODE_PROPOSE` continuation capability; `packetDigest` is the one downstream DevSpace idempotency identity; and any receipt proves exact retained task binding but not Activation state. DevSpace idempotently binds that packet to one restart-safe task and can ensure at most one process-local fresh-ChatGPT Activation because state-directory ownership is mechanically exclusive at process startup. Meta may release its process lease without surrendering or duplicating the Claim, and external-open Claims continue occupying repository Claim capacity while independent capacity remains plannable. No external completion is inferred before P1, and the normal production `continue_meta_harness` owner path does not switch to external workers until result fan-in exists.**
+
+At that point R3 external-dispatch architecture is complete and bankable. P0 owner-journey completion remains open for P1 result fan-in.
