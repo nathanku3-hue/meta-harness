@@ -417,7 +417,7 @@ Hard cuts implemented:
 - objective state is deliberately tiny: `revision`, exact `content`, and `contentDigest`; every replacement increments revision, including ABA, with no goal database, history graph, lifecycle, or ObjectiveManager;
 - planner freshness is keyed by exact `WorldHead.headDigest + objectiveRevision`, so the same Head may replan after a real owner-objective change but cannot spin for the same epoch;
 - unclaimed planner possibilities are valid only for the exact Head + objective revision that produced them: planner-originated Claim admission checks both inside the existing authority mutex; already-visible Claims remain commitments when the objective changes;
-- fresh planner context is `repo-planner-input/v3` with compact exact-byte-attributable `ownerIntent`, including `Target user`; full PRODUCT prose is not duplicated into planner data, while workers keep full pinned `PRODUCT.md` through unchanged `work-session/v7`;
+- fresh planner context is `repo-planner-input/v3` with compact exact-byte-attributable `ownerIntent`, including `Target user`; full PRODUCT prose is not duplicated into planner data, while workers keep full pinned `PRODUCT.md` through `work-session/v8`;
 - the logical planner cwd is a neutral non-Git temp directory outside the target repository, with the exact `productCommit` snapshot as a sibling read-only inspection surface; target `AGENTS.md`/status/review prose therefore enters as repository data rather than automatic target-project instruction hierarchy;
 - owner intent is rendered directly in an `OWNER / OPTIMIZATION` instruction section, while World/Claims/handoffs/research/capacity are serialized separately as factual/commitment data;
 - PRODUCT/current objective define optimization, World/execution evidence define factual truth, and Claims/controller capability define commitments/executable authority; these categories are not collapsed into one prose precedence list;
@@ -502,6 +502,12 @@ sunset experiment
 ```
 
 Periodically remove mechanisms and rerun the historical regression corpus. If outcomes do not degrade, delete the mechanism.
+
+## P1 fresh-session continuity closure
+
+P1 closes the supported ChatGPT/DevSpace coding journey without adding persistent agent memory. External Claim workers settle through durable task-scoped callback results, Meta captures the exact result, Git owns the immutable target-tree materialization intent, and controller restart returns to the existing seal → validation → product proof → BANK → Closure → World pipeline. The active host turn waits only within a bounded budget and stale unresolved browser Activations are replaceable process-local transport, not product state.
+
+`CONTINUITY-BENCH-1` records bounded non-authoritative prompt/result/read/search/Activation telemetry across fresh success, validation repair, and process restart. The benchmark measured mechanical reconstruction but found no decision-relevant fact missing from existing durable/retrievable state, so P1 memory is **`NO_BUILD`**. See `docs/research/continuity-bench-1-2026-08-29.md`. Do not add transcript memory, compaction, embeddings, vector search, or a generic session-memory service unless later real-use evidence proves a missing durable knowledge class.
 
 ## Permanent regression corpus
 

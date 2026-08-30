@@ -25,6 +25,7 @@ const {
 } = require("../lib/work-git");
 const { compileCandidateMaterialization } = require("../lib/candidate-materialization");
 const {
+  readProposalContextTelemetry,
   readProposalDispatchIntent,
   readProposalDispatchResult,
 } = require("../lib/proposal-dispatch");
@@ -127,6 +128,23 @@ function readyHostFor(requestBinding, result, digit = "7") {
         result,
         resultDigest,
         submittedAt: "2026-08-29T17:30:00.000Z",
+      }),
+      readTelemetry: async (binding) => ({
+        schemaVersion: "meta-proposal-context-telemetry/v1",
+        authority: "NON_AUTHORITATIVE_OBSERVATION",
+        ...binding,
+        promptBytes: 1200,
+        resultBytes: 400,
+        activationCount: 1,
+        timeToSubmitMs: 5000,
+        readCalls: 3,
+        readBytes: 7000,
+        fileReads: [{ path: "src/a/b.js", calls: 2, repeatReads: 1 }],
+        searchCalls: 2,
+        searches: [{ queryDigest: `sha256:${"d".repeat(64)}`, calls: 2, repeatQueries: 1 }],
+        truncated: false,
+        createdAt: "2026-08-29T17:29:50.000Z",
+        updatedAt: "2026-08-29T17:30:00.000Z",
       }),
       release: async (binding) => {
         releaseCount += 1;
@@ -278,6 +296,16 @@ test("durable external worker result fans in through materialization, validation
   });
   assert.equal(captured.packetDigest, seeded.packetDigest);
   assert.equal(captured.workerResult.status, "DONE");
+  const telemetry = readProposalContextTelemetry({
+    workspaceRegistryDir: workspaceRegistryDirectory(fixture.root),
+    workspaceId: active.workspaceId,
+    generation: 1,
+    optional: false,
+  });
+  assert.equal(telemetry.authority, "NON_AUTHORITATIVE_OBSERVATION");
+  assert.equal(telemetry.packetDigest, seeded.packetDigest);
+  assert.equal(telemetry.hostTelemetry.fileReads[0].repeatReads, 1);
+  assert.equal(telemetry.hostTelemetry.searches[0].repeatQueries, 1);
 });
 
 test("Meta restart after durable result capture consumes the exact result without touching DevSpace again", async (t) => {

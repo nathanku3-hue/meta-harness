@@ -130,7 +130,7 @@ The reducer does not own product taste, allowed-path semantics, Git custody, val
 
 ## Internal work-session contract
 
-`work-session/v7` is the complete digest-bound coding brief. Users do not author or select it in the normal journey. v7 is an incompatible cut; v6 is not accepted on the active execution path. Owner-goal provenance remains `OWNER_GOAL`; repo-owned provenance is `REPO_OUTCOME` bound to one immutable Outcome and active Claim.
+`work-session/v8` is the complete digest-bound coding brief. Users do not author or select it in the normal journey. v8 is the active incompatible contract; older session schemas are not accepted on the active execution path. Owner-goal provenance remains `OWNER_GOAL`; repo-owned provenance is `REPO_OUTCOME` bound to one immutable Outcome and active Claim.
 
 Required fields remain:
 
@@ -156,7 +156,7 @@ delivery.push
 sessionDigest
 ```
 
-`delivery.commit` remains in v6 bytes but is no longer task-time owner authority: successful validated results are always locally banked by the controller. `delivery.push` remains publication authority and is never inferred from successful validation.
+`delivery.commit` remains a retained compatibility field in v8 bytes but is no longer task-time owner authority: successful validated results are always locally banked by the controller. `delivery.push` remains publication authority and is never inferred from successful validation.
 
 The session digest is domain-separated SHA-256 over canonical session content excluding `sessionDigest`. Product-direction digest is SHA-256 over exact `PRODUCT.md` bytes.
 
@@ -218,7 +218,9 @@ Reuse requires exact still-ACTIVE custody with matching repository root, workspa
 
 Byte continuity is seal-first, not dirty-status-first. For generation 1, an unsealed baseline must be the exact clean sealed base. For repair generation N > 1, previous-generation continuity is either exact durable candidate seal N-1, or an exact `worker-stop/v1` boundary plus a separately bound `forward-motion-proof/v1` authorizing `CONTINUE_WITH_ALTERNATIVE`. The stop—not the semantic proof—owns mechanical continuity through exact HEAD, branch, index digest, dirty-manifest digest, and Git tree identity. If candidate seal N already exists, that seal must exactly prove the live tree, index, and path set before continuation. The dirty-manifest digest remains a cheap custody consistency check but is not proof of file contents.
 
-A current-generation sealed candidate resumes controller work in the same generation: reacquire the controller lease, re-prove the seal, then continue validation, product proof, and BANK without invoking the coding worker again. A current-generation durable `worker-stop/v1` also resumes without replaying the coding worker: if no forward-motion proof exists, run the one bounded challenger; if a terminal proof exists, close from it; if `CONTINUE_WITH_ALTERNATIVE` exists and budget remains, re-prove the stop boundary and advance exactly once. If an AttemptEntry exists but neither candidate seal nor worker STOP was durably created, that coding generation is not replayed.
+A current-generation sealed candidate resumes controller work in the same generation: reacquire the controller lease, re-prove the seal, then continue validation, product proof, and BANK without invoking the coding worker again. A current-generation durable `worker-stop/v1` also resumes without replaying the coding worker: if no forward-motion proof exists, run the one bounded challenger; if a terminal proof exists, close from it; if `CONTINUE_WITH_ALTERNATIVE` exists and budget remains, re-prove the stop boundary and advance exactly once.
+
+For a repo-owned external proposal, an entered generation may instead retain an exact proposal dispatch keyed by `packetDigest`. DevSpace durably settles one schema-validated `worker-result/v2`; Meta captures that result create-only, reacquires the current workspace lease, and derives only the ephemeral permission to materialize that exact result. Before the first workspace mutation Meta compiles and persists an immutable Git target tree (`baselineTreeOid + targetTreeOid + touchedPaths`). Restart may converge any touched path that is still exactly at its known baseline or target state toward the target tree; unexplained or foreign state fails closed. Once the ordinary candidate seal exists, the existing validation, product-proof, BANK, Closure, and World recovery path takes over. If an AttemptEntry has neither candidate/STOP evidence nor an exact retained external proposal route, that coding generation is not replayed.
 
 A mismatch fails closed. Terminal workspace authority never returns, even when bytes are manually cleaned or restored. A lease left by a controller process that is no longer live may be recovered immediately after its exact lock bytes are rechecked; a live controller lease still excludes concurrent execution.
 
@@ -258,7 +260,7 @@ If multiple allowed paths imply different project roots, or a project root is ot
 
 ## Pre-worker product-proof compiler
 
-Every `work-session/v7` pins exactly one canonical `product-proof-spec/v1` before the coding worker can produce a candidate. Proof absence is not a second execution branch.
+Every `work-session/v8` pins exactly one canonical `product-proof-spec/v1` before the coding worker can produce a candidate. Proof absence is not a second execution branch.
 
 The proof contract binds exact:
 
@@ -287,6 +289,12 @@ The supported coding worker remains read-only. It receives product direction bef
 It may not directly mutate the filesystem or Git state. After worker return the controller compares the exact Git-visible byte/tree boundary as well as HEAD, branch, index, dirty manifest, and allowed paths before trusting the result. Traversal, symlink targets, duplicate paths, oversized content, protected paths, changes outside the sealed boundary, or direct worker mutation fail closed.
 
 Worker-reported validation is advisory. Controller validation is authoritative.
+
+For a repo-owned Claim, the same worker contract may execute in a fresh external ChatGPT conversation through the narrow DevSpace proposal task. That task is read/search/list plus one `proposal_submit(challenge, result)` callback only. The callback capability belongs to the durable proposal task, not to its disposable browser Activation; identical callback replay is idempotent and a different settlement for the same challenge fails closed. No child transcript is captured or consumed. A result already retained for the packet suppresses worker relaunch; an unresolved stale Activation may be replaced process-locally without creating a new Meta generation.
+
+Fresh-session continuity telemetry is observational only. DevSpace may retain bounded prompt/result byte counts, Activation count, time-to-submit, read count/bytes, bounded relative file-read identities, and digest-only exact search identities. It does not retain search text or child transcripts, reports when bounded identity sets truncate observations, and cannot participate in Claim, execution, validation, Git, product-proof, BANK, Closure, or World authority. Meta may capture one create-only telemetry snapshot beside the exact proposal dispatch for later measurement.
+
+`CONTINUITY-BENCH-1` closes P1 memory as `NO_BUILD`: measured repeated reads/searches were current-source retrieval, while repair failure context and restart task/prompt identity were already durable and retrievable. The retrieval hierarchy remains existing WorkSession/proposal packet → worker result → validation/product proof → Closure/World → current repository/evidence. A bounded advisory `continuation-capsule/v1` may be reconsidered only if later evidence demonstrates costly decision-relevant knowledge that repeatedly disappears and is absent from those durable sources.
 
 ## Execution permit
 
@@ -339,7 +347,7 @@ After passed regression validation and controller candidate acceptance, Meta-Har
 6. commits the accepted paths on the managed branch;
 7. terminalizes the workspace as `TERMINAL_COMMITTED`.
 
-This happens even when `work-session/v7` contains `delivery.commit=false`; that field cannot disable controller-owned local BANK.
+This happens even when `work-session/v8` contains `delivery.commit=false`; that field cannot disable controller-owned local BANK.
 
 If controller death occurs after the exact BANK commit but before operational result/closure persistence, restart must re-prove the durable candidate seal against the managed workspace Git state, recover `TERMINAL_COMMITTED`, and reconstruct durable operational closure from the exact execution origin. New repo-owned closure uses Outcome + Claim provenance; legacy Decision-origin closure remains readable for retained recovery evidence.
 
