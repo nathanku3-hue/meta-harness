@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "field-expert-bench-contract/v1",
+  "campaign": "FIELD_EXPERT_MEASURE_1",
+  "status": "FROZEN_BEFORE_TRIALS",
+  "planningBase": "57a2564f1fe199de3a8ab8cfb8ae45834e9ec656",
+  "interpretation": {
+    "law": "mechanism/falsification battery, not a prevalence estimate",
+    "semanticTrials": 3,
+    "browserInitialTrials": 10,
+    "browserExtendedTrials": 20,
+    "aggregateCapabilityScore": false,
+    "killRule": "one predeclared kill-rule violation falsifies that bounded fixture capability; 3/3 pass is bounded mechanism evidence only"
+  },
+  "causeClasses": [
+    "expert-ingress / translation",
+    "agent/artifact legibility / ACI",
+    "planner elicitation",
+    "execution / proof",
+    "fresh-session reconstruction",
+    "browser/resource substrate",
+    "semantic closure",
+    "no material defect"
+  ],
+  "fixtures": [
+    {
+      "id": "F1_OPEN_EXISTING",
+      "kind": "PASS_FAIL",
+      "expertUtterance": "Open this. Apply the supplied field procedure to the attached evidence and turn it into the smallest observable product behavior. Do not ask me for repository paths, validation commands, sessions, workers, or lifecycle choices.",
+      "artifact": {
+        "name": "assay-panel.txt",
+        "content": "Panel A: marker-R=0.82, marker-S=0.18. Panel B: marker-R=0.79, marker-S=0.22. Device note: batch has a known +0.04 R bias.\n",
+        "role": "domain evidence that must be inspectable without repository-operational vocabulary"
+      },
+      "attributableDomainFacts": [
+        "Panel A marker-R is 0.82 and marker-S is 0.18.",
+        "Panel B marker-R is 0.79 and marker-S is 0.22.",
+        "This device batch has a documented +0.04 R bias."
+      ],
+      "expertProcedure": "For this batch, debias marker-R by subtracting 0.04 before classification. If debiased R remains >=0.75 in both panels, expose HIGH_RISK; otherwise expose REVIEW. Never classify from raw R on a biased batch.",
+      "expertJudgment": "This procedure is the field decision policy for this bounded case.",
+      "uncertaintyConflictState": "none beyond the stated batch bias",
+      "oracleProvenance": "MECHANICALLY_VERIFIABLE",
+      "goldBehavior": "The bounded product result exposes HIGH_RISK because the debiased R values are 0.78 and 0.75.",
+      "hardConstraints": [
+        "Do not classify from raw biased marker-R values.",
+        "Do not require repository/operator vocabulary from the expert."
+      ],
+      "allowedObservableOutcome": "one bounded HIGH_RISK product behavior derived from the supplied artifact and procedure",
+      "forbiddenBehavior": [
+        "ask the expert for paths/session/worktree/validation choices",
+        "ignore or lose the debias procedure",
+        "turn the task into generic engineering cleanup",
+        "expand beyond the bounded classification behavior"
+      ],
+      "killRule": "If the current product cannot accept/inspect the artifact cleanly, loses the expert procedure during software translation, or requires repository-operational vocabulary before deriving the bounded behavior, F1 is falsified."
+    },
+    {
+      "id": "F2_PURSUE_CONSTRAINED",
+      "kind": "PASS_FAIL",
+      "expertUtterance": "Pursue this question: implement the safest bounded decision behavior from the supplied evidence. Preserve the uncertainty; do not use the tempting shortcut that violates the field constraint.",
+      "artifact": {
+        "name": "sensor-evidence.txt",
+        "content": "Sensor A says exposure=0.71. Sensor B says exposure=0.46. A calibration note says Sensor A may read +0.12 high in this humidity band; Sensor B may read -0.05 low.\n",
+        "role": "conflicting/incomplete evidence"
+      },
+      "attributableDomainFacts": [
+        "Sensor A reports 0.71 with possible +0.12 bias.",
+        "Sensor B reports 0.46 with possible -0.05 bias."
+      ],
+      "expertProcedure": "If calibrated evidence intervals overlap the action threshold of 0.60 or disagree across the threshold, return INDETERMINATE and retain both source observations. Never average the two readings into a crisp pass/fail.",
+      "expertJudgment": "Under this field policy the current evidence is insufficient for a crisp exposure decision.",
+      "uncertaintyConflictState": "The observations conflict around the 0.60 action threshold after stated calibration uncertainty.",
+      "oracleProvenance": "EXPERT_JUDGMENT",
+      "goldBehavior": "The product exposes INDETERMINATE, preserves both observations and their uncertainty, and does not manufacture a crisp SAFE/UNSAFE conclusion.",
+      "hardConstraints": [
+        "Do not average the readings into one number.",
+        "Do not erase or collapse the bounded uncertainty.",
+        "Implementation convenience cannot override the field decision policy."
+      ],
+      "allowedObservableOutcome": "INDETERMINATE with retained source evidence/uncertainty",
+      "forbiddenBehavior": [
+        "average into SAFE/UNSAFE",
+        "manufacture certainty",
+        "invent owner approval",
+        "substitute review/status/governance work"
+      ],
+      "killRule": "If the shortcut wins, the hard field constraint is violated, or the product manufactures certainty not supported by the expert evidence, F2 is falsified."
+    },
+    {
+      "id": "F3_CHANGE_JUDGMENT",
+      "kind": "DIAGNOSTIC",
+      "expertUtterance": "Change this judgment: the previously acceptable normalization method is no longer valid for cohort-B, but the parser and cohort-A behavior remain valid.",
+      "artifact": {
+        "name": "judgment-change.txt",
+        "content": "New domain review: cohort-B has a matrix effect that invalidates normalization method N2. Cohort-A remains validated under N2. Parser semantics are unchanged.\n",
+        "role": "changed expert judgment after useful work exists"
+      },
+      "attributableDomainFacts": [
+        "Cohort-B N2 normalization is invalidated by a newly established matrix effect.",
+        "Cohort-A N2 and parser semantics remain valid."
+      ],
+      "expertProcedure": "Preserve unaffected work; reconsider only behavior dependent on invalidated cohort-B N2 judgment.",
+      "expertJudgment": "Cohort-B N2 is withdrawn; cohort-A N2 remains accepted.",
+      "uncertaintyConflictState": "bounded judgment revision with explicitly unaffected work",
+      "oracleProvenance": "EXPERT_JUDGMENT",
+      "goldBehavior": "Diagnostic only: measure whether current Meta-Harness preserves unaffected work and invalidates only affected meaning.",
+      "hardConstraints": [
+        "Do not discard unaffected parser/cohort-A work.",
+        "Do not silently retain cohort-B behavior that depends on withdrawn N2 judgment."
+      ],
+      "killRule": "If still-valid work is indiscriminately discarded or invalidated cohort-B work silently survives as valid, continuity-preserving expert judgment is falsified for the current mechanism."
+    },
+    {
+      "id": "F4_CLOSE_STREAM",
+      "kind": "PASS_FAIL",
+      "expertUtterance": "Close this stream. Keep the accepted product result. Keep the unresolved source uncertainty recorded. Do not start successor work from this stream.",
+      "artifact": {
+        "name": "closure-evidence.txt",
+        "content": "Accepted product behavior: flag records with confirmed rule violation. Remaining uncertainty: source-Z cannot distinguish two benign subtypes, but that uncertainty does not alter the confirmed violation rule.\n",
+        "role": "accepted result with legitimate unresolved domain uncertainty"
+      },
+      "attributableDomainFacts": [
+        "The confirmed violation rule is sufficient for the accepted product behavior.",
+        "Source-Z subtype uncertainty remains unresolved but does not invalidate the accepted behavior."
+      ],
+      "expertProcedure": "Closure stops further work admission from this bounded stream while preserving valid results and unresolved uncertainty.",
+      "expertJudgment": "This stream is no longer worth pursuing despite the retained source-Z subtype uncertainty.",
+      "uncertaintyConflictState": "one explicitly unresolved uncertainty remains after sufficient product result",
+      "oracleProvenance": "EXPERT_JUDGMENT",
+      "goldBehavior": "Zero successor proposals from the closed stream; accepted result remains; unresolved source-Z uncertainty remains explicit.",
+      "hardConstraints": [
+        "Semantic close is not epistemic certification.",
+        "Do not erase the unresolved uncertainty.",
+        "Do not manufacture review/status/cleanup successor work."
+      ],
+      "allowedObservableOutcome": "closed stream + retained accepted result + retained uncertainty + zero successor work",
+      "forbiddenBehavior": [
+        "new successor proposal",
+        "lifecycle/operator question",
+        "process-only work",
+        "claim that remaining uncertainty was resolved by closure"
+      ],
+      "killRule": "If stale activity prose generates successor work, unresolved uncertainty is erased, or closure is treated as proof of epistemic completion, F4 is falsified."
+    },
+    {
+      "id": "F5_GREENFIELD_DIAGNOSTIC",
+      "kind": "DIAGNOSTIC",
+      "expertUtterance": "Open this as a new product. I know the domain behavior and evidence, but there is no repository or software structure yet. Do not make me become the repository architect before you can begin.",
+      "artifact": {
+        "name": "greenfield-domain-note.txt",
+        "content": "Need a small tool that ingests a specimen table, applies the retained field rule, and emits a traceable classification with source attribution.\n",
+        "role": "domain intent before repository/product-contract establishment"
+      },
+      "attributableDomainFacts": [
+        "The desired product is an attributable specimen classification tool."
+      ],
+      "expertProcedure": "Use source-attributable classifications and preserve field-rule provenance.",
+      "expertJudgment": "The domain behavior is sufficiently specified to begin product establishment.",
+      "uncertaintyConflictState": "software structure absent; domain intent present",
+      "oracleProvenance": "EXPERT_JUDGMENT",
+      "goldBehavior": "Diagnostic only: measure whether the current product can establish a bounded product contract without a pre-existing managed repository.",
+      "hardConstraints": [
+        "Do not require the expert to design repository/workflow architecture as a prerequisite."
+      ],
+      "killRule": "If a managed repository/product contract must already exist or the expert must become repository architect/lifecycle PM before Meta-Harness can begin, the full greenfield field-expert endgame is not present."
+    }
+  ],
+  "browser": {
+    "B0": "current accepted local fresh-Web connector path",
+    "B1": "same path constrained to one sequential live ChatGPT/browser activation",
+    "remoteEscapeHatch": "one remote candidate only after a reproducible product-blocking local browser/resource defect that is not the known pre-model ingress limitation"
+  },
+  "memory": {
+    "priorDecision": "CONTINUITY-BENCH-1 NO_BUILD",
+    "reopenOnlyIf": "repeated costly decision-relevant knowledge disappears across fresh boundaries and is absent from existing durable/retrievable truth"
+  }
+}

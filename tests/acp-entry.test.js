@@ -4,8 +4,16 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const { pathToFileURL } = require("node:url");
 
-const { createAcpAgent, createAcpTransport, exactPromptText } = require("../lib/acp-entry");
+const {
+  createAcpAgent,
+  createAcpTransport,
+  exactPromptInput,
+  exactPromptText,
+} = require("../lib/acp-entry");
+const { expertSourceRefName, reopenExpertSource } = require("../lib/expert-source-ingress");
+const { readSourceBearingOwnerIngress } = require("../lib/source-bearing-owner-ingress");
 const { tempDir } = require("./helpers/cli");
 const { git } = require("./helpers/linear-product-head");
 
@@ -168,6 +176,132 @@ test("unsupported session scope and prompt shapes fail before product execution"
   assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness")), false);
 });
 
+test("ACP ResourceLink capture preserves raw text and exact source bytes without checkout mutation", async (t) => {
+  const root = repository(t);
+  const externalPath = path.join(path.dirname(root), "field-procedure.txt");
+  const sourceText = "Threshold 0.60. Preserve INDETERMINATE when intervals overlap.\n";
+  fs.writeFileSync(externalPath, sourceText, "utf8");
+  const acp = fakeAcp();
+  const calls = [];
+  const before = {
+    head: git(root, ["rev-parse", "HEAD"]),
+    status: git(root, ["status", "--porcelain=v1", "--untracked-files=all"]),
+    index: git(root, ["diff", "--cached", "--binary"]),
+  };
+  const transport = createAcpTransport(context(root), {
+    acp,
+    runProductResult: async (productResult, runContext) => {
+      calls.push({ productResult, runContext });
+      runContext.stdout.write("Done — captured.\n");
+      return { exitCode: 0 };
+    },
+  });
+  const session = transport.newSession({ cwd: root, mcpServers: [] });
+  const rawText = "  Apply the attached procedure.\r\nPreserve uncertainty.  ";
+  const result = await transport.prompt({
+    sessionId: session.sessionId,
+    prompt: [
+      { type: "text", text: rawText },
+      { type: "resource_link", name: "field-procedure.txt", uri: pathToFileURL(externalPath).href },
+    ],
+  }, {
+    signal: new AbortController().signal,
+    sendUpdate: async () => {},
+  });
+
+  assert.deepEqual(result, { stopReason: "end_turn" });
+  assert.equal(calls[0].productResult, rawText);
+  assert.match(calls[0].runContext.ownerIngressDigest, /^sha256:[a-f0-9]{64}$/u);
+  const ingress = readSourceBearingOwnerIngress(root, calls[0].runContext.ownerIngressDigest);
+  assert.equal(ingress.rawText, rawText);
+  assert.equal(ingress.sources[0].name, "field-procedure.txt");
+  const reopened = reopenExpertSource(root, ingress.sources[0]);
+  assert.equal(reopened.text, sourceText);
+  assert.equal(git(root, ["rev-parse", expertSourceRefName(reopened.contentDigest)]), reopened.blobOid);
+  assert.equal(git(root, ["rev-parse", "HEAD"]), before.head);
+  assert.equal(git(root, ["status", "--porcelain=v1", "--untracked-files=all"]), before.status);
+  assert.equal(git(root, ["diff", "--cached", "--binary"]), before.index);
+});
+
+test("F1R valid Text + ResourceLink transport passes three fresh trials", async (t) => {
+  for (let trial = 1; trial <= 3; trial += 1) {
+    const root = repository(t);
+    const externalPath = path.join(path.dirname(root), `f1r-${trial}.txt`);
+    fs.writeFileSync(externalPath, `F1R source ${trial}.\n`, "utf8");
+    const acp = fakeAcp();
+    const calls = [];
+    const transport = createAcpTransport(context(root), {
+      acp,
+      runProductResult: async (productResult, runContext) => {
+        calls.push({ productResult, runContext });
+        return { exitCode: 0 };
+      },
+    });
+    const session = transport.newSession({ cwd: root, mcpServers: [] });
+    const rawText = `F1R owner text ${trial}.`;
+    const result = await transport.prompt({
+      sessionId: session.sessionId,
+      prompt: [
+        { type: "text", text: rawText },
+        { type: "resource_link", name: `f1r-${trial}.txt`, uri: pathToFileURL(externalPath).href },
+      ],
+    }, {
+      signal: new AbortController().signal,
+      sendUpdate: async () => {},
+    });
+    assert.equal(result.stopReason, "end_turn");
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].productResult, rawText);
+    const ingress = readSourceBearingOwnerIngress(root, calls[0].runContext.ownerIngressDigest);
+    assert.equal(ingress.sources.length, 1);
+    assert.equal(reopenExpertSource(root, ingress.sources[0]).text, `F1R source ${trial}.\n`);
+  }
+});
+
+test("ACP ResourceLink admission rejects hosted file URLs before source persistence", async (t) => {
+  const root = repository(t);
+  const externalPath = path.join(path.dirname(root), "good-source.txt");
+  fs.writeFileSync(externalPath, "good source\n", "utf8");
+  const acp = fakeAcp();
+  let executions = 0;
+  const transport = createAcpTransport(context(root), {
+    acp,
+    runProductResult: async () => { executions += 1; },
+  });
+  const session = transport.newSession({ cwd: root, mcpServers: [] });
+
+  await assertInvalid(
+    () => transport.prompt({
+      sessionId: session.sessionId,
+      prompt: [
+        { type: "text", text: "Use the sources." },
+        { type: "resource_link", name: "good.txt", uri: pathToFileURL(externalPath).href },
+        { type: "resource_link", name: "remote.txt", uri: "file://remote-host/share/source.txt" },
+      ],
+    }, {
+      signal: new AbortController().signal,
+      sendUpdate: async () => {},
+    }),
+    /empty hostname/u,
+  );
+  assert.equal(executions, 0);
+  assert.equal(git(root, ["for-each-ref", "--format=%(refname)", "refs/meta-harness/research-sources"]), "");
+
+  await assertInvalid(
+    () => transport.prompt({
+      sessionId: session.sessionId,
+      prompt: [
+        { type: "text", text: "Use this." },
+        { type: "resource_link", name: "localhost.txt", uri: "file://localhost/tmp/source.txt" },
+      ],
+    }, {
+      signal: new AbortController().signal,
+      sendUpdate: async () => {},
+    }),
+    /empty hostname/u,
+  );
+});
+
 test("session/cancel drains the active turn and the same transport session can recover", async (t) => {
   const root = repository(t);
   const acp = fakeAcp();
@@ -285,6 +419,14 @@ test("ACP app registers only baseline inbound handlers and only emits session/up
 test("exact prompt validation does not trim, normalize, or concatenate", () => {
   const value = "\r\n  雪  \r\n";
   assert.equal(exactPromptText([{ type: "text", text: value }]), value);
+  const parsed = exactPromptInput([
+    { type: "resource_link", name: "a.txt", uri: "file:///tmp/a.txt" },
+    { type: "text", text: value },
+    { type: "resource_link", name: "b.txt", uri: "file:///tmp/b.txt" },
+  ]);
+  assert.equal(parsed.text, value);
+  assert.deepEqual(parsed.resources.map((entry) => entry.name), ["a.txt", "b.txt"]);
   assert.equal(exactPromptText([{ type: "text", text: "" }]), null);
   assert.equal(exactPromptText([{ type: "text", text: "a" }, { type: "text", text: "b" }]), null);
+  assert.equal(exactPromptInput([{ type: "text", text: "a" }, { type: "image", data: "x" }]), null);
 });

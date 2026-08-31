@@ -107,3 +107,26 @@ test("objective revision advances across ABA even when final bytes match the ori
   assert.notEqual(first.revision, third.revision);
   assert.deepEqual(readOwnerObjectiveState(root), third);
 });
+
+test("source-bearing objective adoption is exactly idempotent by ingress digest", (t) => {
+  const { root } = repository(t);
+  const ingressA = `sha256:${"a".repeat(64)}`;
+  const ingressB = `sha256:${"b".repeat(64)}`;
+
+  const first = replaceOwnerObjectiveState(root, "normalized objective", { ingressDigest: ingressA });
+  const replay = replaceOwnerObjectiveState(root, "normalized objective", { ingressDigest: ingressA });
+  const next = replaceOwnerObjectiveState(root, "next objective", { ingressDigest: ingressB });
+
+  assert.equal(first.schemaVersion, "owner-objective-state/v2");
+  assert.equal(first.revision, 1);
+  assert.equal(first.ingressDigest, ingressA);
+  assert.deepEqual(replay, first);
+  assert.equal(replay.revision, 1);
+  assert.equal(next.revision, 2);
+  assert.equal(next.ingressDigest, ingressB);
+
+  assert.throws(
+    () => replaceOwnerObjectiveState(root, "different content", { ingressDigest: ingressB }),
+    (error) => error.code === "MH_OWNER_OBJECTIVE_STATE",
+  );
+});

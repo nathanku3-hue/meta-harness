@@ -4,8 +4,11 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const { pathToFileURL } = require("node:url");
 
+const { captureExpertResourceLinks } = require("../lib/expert-source-ingress");
 const { listActiveOutcomeClaims } = require("../lib/outcome-claim");
+const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
 const { compileRepoPlannerInput } = require("../lib/repo-planner-input");
 const { buildLogicalPlannerPrompt } = require("../lib/repo-logical-planner");
 const {
@@ -18,6 +21,7 @@ const {
 } = require("../lib/repo-research-promotion");
 const { readResearchPromotion } = require("../lib/research-evidence-store");
 const { runRepoWorkWave } = require("../lib/repo-work-wave");
+const { persistSourceBearingOwnerIngress } = require("../lib/source-bearing-owner-ingress");
 const { readCurrentWorldState } = require("../lib/world-transition");
 const {
   fakeInterpretation,
@@ -141,7 +145,12 @@ test("research sources come only from exact committed conventional-root blobs", 
 
   const projected = projectCurrentPromotedResearch({ repositoryPath: root, productCommit: authoritative.head.productCommit });
   assert.equal(projected.length, 1);
-  assert.equal(projected[0].sourcePath, "docs/research/current.md");
+  assert.deepEqual(projected[0].source, {
+    kind: "REPOSITORY",
+    path: "docs/research/current.md",
+    blobOid: sources[0].blobOid,
+    contentDigest: sources[0].contentDigest,
+  });
   const serialized = JSON.stringify(projected);
   assert.equal(serialized.includes("DIRTY checkout replacement"), false);
   assert.equal(serialized.includes("UNTRACKED owner bytes"), false);
@@ -180,6 +189,26 @@ test("attribution stores exact unique UTF-8 byte evidence and rejects missing or
   assert.equal(evidence.quote, "UNIQUE α");
   assert.equal(evidence.byteEnd - evidence.byteStart, Buffer.byteLength("UNIQUE α", "utf8"));
   assert.equal(source.bytes.subarray(evidence.byteStart, evidence.byteEnd).toString("utf8"), "UNIQUE α");
+});
+
+test("research promoter explicitly permits its intentionally non-Git temp cwd", async (t) => {
+  const root = researchRepository(t, {
+    "docs/research/non-git.md": "Non-Git promotion remains read-only and attributable.\n",
+  });
+  const runner = modelRunner((args) => {
+    assert.equal(args.skipGitRepoCheck, true);
+    assert.equal(fs.existsSync(path.join(args.cwd, ".git")), false);
+    if (process.env.WSL_DISTRO_NAME) assert.match(args.cwd, /^\/mnt\/[a-z]\//u);
+    return candidate([{
+      kind: "FINDING",
+      statement: "The source says promotion remains read-only and attributable.",
+      scope: "general",
+      quotes: ["Non-Git promotion remains read-only and attributable."],
+    }]);
+  });
+
+  await ensureCurrentResearchPromotions({ repositoryPath: root, current: current(root), modelRunner: runner });
+  assert.equal(runner.calls(), 1);
 });
 
 test("promotion candidate cannot smuggle authority fields", () => {
@@ -221,9 +250,10 @@ test("same exact content is promoted once across path rename and current path st
 
   assert.equal(runner.calls(), 1);
   assert.equal(secondProjection.length, 1);
-  assert.equal(secondProjection[0].sourcePath, "docs/research/b.md");
+  assert.equal(secondProjection[0].source.kind, "REPOSITORY");
+  assert.equal(secondProjection[0].source.path, "docs/research/b.md");
   assert.equal(secondProjection[0].findingDigest, firstProjection[0].findingDigest);
-  assert.equal(secondProjection[0].sourceContentDigest, firstProjection[0].sourceContentDigest);
+  assert.equal(secondProjection[0].source.contentDigest, firstProjection[0].source.contentDigest);
 });
 
 test("concurrent promotion races converge on one canonical content-keyed receipt", async (t) => {
@@ -328,8 +358,158 @@ test("contradictory current findings coexist with separate attribution", async (
   await ensureCurrentResearchPromotions({ repositoryPath: root, current: authoritative, modelRunner: runner });
   const projected = projectCurrentPromotedResearch({ repositoryPath: root, productCommit: authoritative.head.productCommit });
   assert.equal(projected.length, 2);
-  assert.deepEqual(projected.map((entry) => entry.sourcePath).sort(), ["docs/chats/no.md", "docs/research/yes.md"]);
+  assert.deepEqual(projected.map((entry) => entry.source.path).sort(), ["docs/chats/no.md", "docs/research/yes.md"]);
   assert.deepEqual(new Set(projected.map((entry) => entry.kind)), new Set(["FINDING", "DISPROVED_ASSUMPTION"]));
+});
+
+test("expert ingress promotes from retained Git blob and projects truthful EXPERT_INGRESS provenance", async (t) => {
+  const { root } = repository(t);
+  persistInitial(root, "world-transition/v2");
+  const externalPath = path.join(path.dirname(root), "expert-procedure.txt");
+  const sourceText = "If uncertainty intervals overlap, preserve INDETERMINATE.";
+  fs.writeFileSync(externalPath, sourceText, "utf8");
+  const [descriptor] = captureExpertResourceLinks(root, [{
+    type: "resource_link",
+    name: "expert-procedure.txt",
+    uri: pathToFileURL(externalPath).href,
+  }]);
+  const ingress = persistSourceBearingOwnerIngress(root, "Apply the attached procedure.", [descriptor]);
+  replaceOwnerObjectiveState(root, "Apply the attached procedure.", { ingressDigest: ingress.ingressDigest });
+  fs.unlinkSync(externalPath);
+  const authoritative = current(root);
+  const runner = modelRunner(candidate([{
+    kind: "CONSTRAINT",
+    statement: "Overlapping uncertainty intervals require an indeterminate result.",
+    scope: "the attached field procedure",
+    quotes: ["If uncertainty intervals overlap, preserve INDETERMINATE."],
+  }]));
+
+  await ensureCurrentResearchPromotions({ repositoryPath: root, current: authoritative, modelRunner: runner });
+  assert.equal(runner.calls(), 1);
+  const projected = projectCurrentPromotedResearch({
+    repositoryPath: root,
+    productCommit: authoritative.head.productCommit,
+  });
+  assert.equal(projected.length, 1);
+  assert.equal(projected[0].source.kind, "EXPERT_INGRESS");
+  assert.equal(projected[0].source.ingressDigest, ingress.ingressDigest);
+  assert.equal(projected[0].source.ordinal, 0);
+  assert.equal(projected[0].source.name, "expert-procedure.txt");
+  assert.equal(projected[0].source.blobOid, descriptor.blobOid);
+  assert.equal(projected[0].source.contentDigest, descriptor.contentDigest);
+  assert.equal(Object.prototype.hasOwnProperty.call(projected[0].source, "path"), false);
+
+  const plannerInput = compileRepoPlannerInput({ repositoryPath: root, current: authoritative, recovered: [] });
+  assert.equal(plannerInput.ownerIntent.activeDirective.ingressDigest, ingress.ingressDigest);
+  assert.deepEqual(plannerInput.promotedResearch, projected);
+  const prompt = buildLogicalPlannerPrompt(plannerInput);
+  assert.match(prompt, /advisory evidence, not kernel truth/u);
+});
+
+test("F1E expert artifact to promoted planner evidence passes three fresh trials", async (t) => {
+  for (let trial = 1; trial <= 3; trial += 1) {
+    const { root } = repository(t);
+    persistInitial(root, "world-transition/v2");
+    const externalPath = path.join(path.dirname(root), `f1e-${trial}.txt`);
+    const quote = `Trial ${trial}: overlapping uncertainty intervals require INDETERMINATE.`;
+    fs.writeFileSync(externalPath, quote, "utf8");
+    const [descriptor] = captureExpertResourceLinks(root, [{
+      type: "resource_link",
+      name: `f1e-${trial}.txt`,
+      uri: pathToFileURL(externalPath).href,
+    }]);
+    const ingress = persistSourceBearingOwnerIngress(root, `Apply F1E procedure ${trial}.`, [descriptor]);
+    replaceOwnerObjectiveState(root, `Apply F1E procedure ${trial}.`, { ingressDigest: ingress.ingressDigest });
+    fs.unlinkSync(externalPath);
+    const authoritative = current(root);
+    const runner = modelRunner(candidate([{
+      kind: "CONSTRAINT",
+      statement: "Overlapping uncertainty intervals require an indeterminate result.",
+      scope: "the attached expert procedure",
+      quotes: [quote],
+    }]));
+
+    await ensureCurrentResearchPromotions({ repositoryPath: root, current: authoritative, modelRunner: runner });
+    assert.equal(runner.calls(), 1);
+    const plannerInput = compileRepoPlannerInput({ repositoryPath: root, current: authoritative, recovered: [] });
+    assert.equal(plannerInput.promotedResearch.length, 1);
+    const evidence = plannerInput.promotedResearch[0];
+    assert.equal(evidence.kind, "CONSTRAINT");
+    assert.equal(evidence.source.kind, "EXPERT_INGRESS");
+    assert.equal(evidence.source.ingressDigest, ingress.ingressDigest);
+    assert.deepEqual(evidence.evidenceQuotes, [quote]);
+    assert.equal(plannerInput.ownerIntent.activeDirective.ingressDigest, ingress.ingressDigest);
+  }
+});
+
+test("later owner objective replacement does not carry prior expert sources forward", async (t) => {
+  const { root } = repository(t);
+  persistInitial(root, "world-transition/v2");
+  const externalPath = path.join(path.dirname(root), "historical-expert.txt");
+  const sourceText = "Historical expert evidence must not contaminate a later objective.";
+  fs.writeFileSync(externalPath, sourceText, "utf8");
+  const [descriptor] = captureExpertResourceLinks(root, [{
+    type: "resource_link",
+    name: "historical-expert.txt",
+    uri: pathToFileURL(externalPath).href,
+  }]);
+  const ingress = persistSourceBearingOwnerIngress(root, "Use historical expert evidence.", [descriptor]);
+  replaceOwnerObjectiveState(root, "Use historical expert evidence.", { ingressDigest: ingress.ingressDigest });
+  const runner = modelRunner(candidate([{
+    kind: "FINDING",
+    statement: "The source is historical expert evidence.",
+    scope: "general",
+    quotes: [sourceText],
+  }]));
+  await ensureCurrentResearchPromotions({ repositoryPath: root, current: current(root), modelRunner: runner });
+  assert.equal(projectCurrentPromotedResearch({ repositoryPath: root, productCommit: current(root).head.productCommit }).length, 1);
+
+  replaceOwnerObjectiveState(root, "A genuinely new objective without expert sources.");
+  const projected = projectCurrentPromotedResearch({ repositoryPath: root, productCommit: current(root).head.productCommit });
+  assert.deepEqual(projected, []);
+});
+
+test("repository and expert occurrences with identical exact bytes share one promotion but retain truthful provenance", async (t) => {
+  const sourceText = "Shared exact source bytes without newline.";
+  const root = researchRepository(t, {
+    "docs/research/shared.txt": sourceText,
+  });
+  const externalPath = path.join(path.dirname(root), "shared-expert.txt");
+  fs.writeFileSync(externalPath, sourceText, "utf8");
+  const [descriptor] = captureExpertResourceLinks(root, [{
+    type: "resource_link",
+    name: "shared-expert.txt",
+    uri: pathToFileURL(externalPath).href,
+  }]);
+  const ingress = persistSourceBearingOwnerIngress(root, "Use both current sources.", [descriptor]);
+  replaceOwnerObjectiveState(root, "Use both current sources.", { ingressDigest: ingress.ingressDigest });
+  const authoritative = current(root);
+  const repositorySource = enumerateResearchSourceOccurrences({
+    repositoryPath: root,
+    productCommit: authoritative.head.productCommit,
+  })[0];
+  assert.equal(descriptor.blobOid, repositorySource.blobOid);
+  assert.equal(descriptor.contentDigest, repositorySource.contentDigest);
+
+  const runner = modelRunner(candidate([{
+    kind: "FINDING",
+    statement: "The exact shared source is present.",
+    scope: "general",
+    quotes: [sourceText],
+  }]));
+  await ensureCurrentResearchPromotions({ repositoryPath: root, current: authoritative, modelRunner: runner });
+  assert.equal(runner.calls(), 1);
+
+  const projected = projectCurrentPromotedResearch({
+    repositoryPath: root,
+    productCommit: authoritative.head.productCommit,
+  });
+  assert.equal(projected.length, 2);
+  assert.deepEqual(projected.map((entry) => entry.source.kind), ["REPOSITORY", "EXPERT_INGRESS"]);
+  assert.equal(projected[0].findingDigest, projected[1].findingDigest);
+  assert.equal(projected[0].source.contentDigest, projected[1].source.contentDigest);
+  assert.equal(projected[0].source.path, "docs/research/shared.txt");
+  assert.equal(projected[1].source.ingressDigest, ingress.ingressDigest);
 });
 
 test("repo work auto-promotes before fresh planner boot and transports compact advisory evidence only", async (t) => {

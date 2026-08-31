@@ -56,7 +56,7 @@ A material disagreement must block `ok: true` until reconciled.
 - PM summaries;
 - handoff views;
 - behavior maps;
-- scorecards.
+- scorecards, including the current [P1 fresh-session SOTA product scorecard](../research/sota-score-2026-08-29-p1-fresh-session-continuity.md).
 
 Generated projections must declare their canonical sources, hashes, generator version, creation time, expiry, and contradiction policy.
 
