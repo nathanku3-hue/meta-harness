@@ -24,6 +24,16 @@ test("WSL worker paths translate to native Windows paths", () => {
     pathStyle: "windows",
   });
   assert.deepEqual(args.slice(args.indexOf("-C"), args.indexOf("-C") + 2), ["-C", "E:\\Code\\repo"]);
+  const projectDocOverrideAt = args.indexOf("project_doc_max_bytes=0");
+  const skillsOverrideAt = args.indexOf("skills.include_instructions=false");
+  const execAt = args.indexOf("exec");
+  assert.ok(projectDocOverrideAt > 0);
+  assert.equal(args[projectDocOverrideAt - 1], "-c");
+  assert.ok(projectDocOverrideAt < execAt);
+  assert.ok(skillsOverrideAt > 0);
+  assert.equal(args[skillsOverrideAt - 1], "-c");
+  assert.ok(skillsOverrideAt < execAt);
+  assert.ok(args.indexOf("--ignore-rules") > execAt);
   assert.ok(args.includes("E:\\Code\\repo\\.git\\schema.json"));
   assert.ok(args.includes("E:\\Code\\repo\\.git\\output.json"));
 });

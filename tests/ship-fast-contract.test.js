@@ -67,6 +67,14 @@ test("candidate AGENTS maps terminal classification to exact user-facing guidanc
   assert.match(agents, /```text\nNo active slice\.\nUse the product\.\nWait for observed real-use friction\.\n```/);
 });
 
+test("candidate AGENTS keeps unsupported direct ChatGPT\/DevSpace entry diagnostic-only", () => {
+  const agents = read("AGENTS.md");
+  assert.match(agents, /ChatGPT\/DevSpace direct sessions are not a Meta-Harness execution membrane/i);
+  assert.match(agents, /read\/diagnostic only/i);
+  assert.match(agents, /never edit, reset, clean, stash, stage, commit, push/i);
+  assert.match(agents, /supported `meta-harness` or ACP entry/i);
+});
+
 test("worker contract puts product evidence before internal metadata", () => {
   const worker = read("templates/contracts/worker-done-contract.md");
   const fields = [

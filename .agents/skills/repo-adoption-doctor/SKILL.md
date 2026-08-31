@@ -15,15 +15,16 @@ Identify why a target repo is not fully Meta-Harness adopted and produce a prior
 
 ## Checks
 
-1. Missing installed templates (sync check)
-2. Missing root status.md / events.jsonl (state check)
-3. Old runs/ layout present (state check migration)
-4. Missing .gitattributes
-5. Missing SECURITY.md, CODEOWNERS, dependabot.yml
-6. Quality gate failures (oversized files)
-7. Package boundary issues (forbidden paths in dry-run)
-8. Weak .gitignore (missing secret patterns)
-9. Operative host-guidance action-law conflicts (universal review/SAW/routine owner approval for ordinary reversible work)
+1. Dirty checkout recovery comes first: Git may establish dirt, not mutation origin. Preserve the checkout and classify retained provenance, authority/custody, protected current work, reversibility, and the exact repair set before generic code review.
+2. Missing installed templates (sync check)
+3. Missing root status.md / events.jsonl (state check)
+4. Old runs/ layout present (state check migration)
+5. Missing .gitattributes
+6. Missing SECURITY.md, CODEOWNERS, dependabot.yml
+7. Quality gate failures (oversized files)
+8. Package boundary issues (forbidden paths in dry-run)
+9. Weak .gitignore (missing secret patterns)
+10. Operative host-guidance action-law conflicts (universal review/SAW/fixed Architecture→GO pauses/routine owner approval for ordinary reversible work)
 
 ## Output
 
@@ -37,5 +38,6 @@ Return a prioritized list:
 ## Boundaries
 
 - Read-only: does not modify target repo
+- Never reset, clean, stash, checkout, or otherwise rewrite a dirty target while diagnosing adoption
 - Does not read .env, secrets, credentials, provider output
 - Does not expand permissions

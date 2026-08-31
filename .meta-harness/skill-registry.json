@@ -10,7 +10,7 @@
       "reviewer": "nathanku3-hue",
       "source": "local",
       "source_commit": null,
-      "content_hash": "sha256:7074b52fb4bb157c64459f53787811ab09c3cf056c34388810938f00139d3a11",
+      "content_hash": "sha256:f4526d33e5e697a2fb43a84406a03a83d886951247076bd09c14f1f7215c6442",
       "license": "inherit-repo",
       "allowed_tools": ["read_file", "list_dir", "grep_search"],
       "forbidden_paths": [".env", "secrets", "credentials", "provider-config", "runtime", "data"],

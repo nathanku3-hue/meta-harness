@@ -34,6 +34,7 @@ Use outcome-first planning.
 ## Coding-system law
 
 - `meta-harness work` is the primary product path. Normal help and normal reporting must remain product-facing.
+- ChatGPT/DevSpace direct sessions are not a Meta-Harness execution membrane. Without a mechanically admitted Meta-Harness task capability, treat the source checkout as read/diagnostic only: never edit, reset, clean, stash, stage, commit, push, or claim Meta-Harness execution authority from an arbitrary cwd. Route material owner work through supported `meta-harness` or ACP entry.
 - Repository-root `PRODUCT.md` is owner-authored product direction. Pin exact bytes into every `work-session/v7`. Never generate, summarize, or overwrite it. Never mutate it through the worker path.
 - `work-session/v7` is the complete active coding brief. The worker must consume it directly, receive product direction before local engineering context, and must not reconstruct product intent from status files or reopen broad planning.
 - For repo-owned fresh work, recover active Claims first, then use at most one fresh read-only logical planner boot per exact WorldHead + owner-objective revision to propose the positive-value frontier up to repository active-Claim capacity. Repository active-Claim capacity is authority; local worker concurrency is throughput only. Capacity is a ceiling, not a quota; unused slots are correct when no additional positive-value Outcome exists. Planner input is reconstructed from durable truth; planner candidates are disposable semantics and never authority or continuity.

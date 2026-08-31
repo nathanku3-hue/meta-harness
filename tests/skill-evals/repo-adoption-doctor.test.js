@@ -3,6 +3,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 const { diagnoseRepoAdoption, _test } = require("../../lib/repo-adoption-doctor");
 const { ROOT, run, tempDir, writeFile } = require("../helpers/cli");
@@ -57,6 +58,30 @@ test("repo adoption doctor warns on operative action-law conflicts", () => {
   assert.match(result.findings[0].evidence, /universal review before new work/);
   assert.match(result.findings[0].evidence, /review or SAW after every round/);
   assert.match(result.findings[0].evidence, /routine owner approval before ordinary continuation/);
+});
+
+test("repo adoption doctor puts dirty recovery before generic review without inventing mutation provenance", () => {
+  const cwd = tempDir();
+  const git = (args) => {
+    const result = spawnSync("git", args, { cwd, encoding: "utf8", shell: false });
+    assert.equal(result.status, 0, result.stderr);
+  };
+  git(["init"]);
+  git(["config", "user.email", "doctor@example.invalid"]);
+  git(["config", "user.name", "Repo Doctor Test"]);
+  writeFile(cwd, "tracked.txt", "baseline\n");
+  git(["add", "tracked.txt"]);
+  git(["commit", "-m", "baseline"]);
+  writeFile(cwd, "tracked.txt", "owner work in progress\n");
+
+  const result = diagnoseRepoAdoption({ sourceRoot: ROOT, targetRoot: cwd });
+  const recovery = result.findings.find((entry) => entry.id === "ADOPT_DIRTY_RECOVERY_FIRST");
+  assert.equal(result.findings[0].id, "ADOPT_DIRTY_RECOVERY_FIRST");
+  assert.equal(recovery.severity, "warn");
+  assert.match(recovery.fix, /preserve the checkout/i);
+  assert.match(recovery.fix, /provenance only from retained evidence/i);
+  assert.match(recovery.evidence, /mutation origin is not established by Git/i);
+  assert.doesNotMatch(`${recovery.issue} ${recovery.fix} ${recovery.evidence}`, /reset|clean|stash/i);
 });
 
 test("repo adoption doctor refuses direct forbidden-path reads", () => {

@@ -121,11 +121,22 @@ test("action-law detector catches the demonstrated universal review and routine 
   ]);
 });
 
+test("action-law detector catches fixed architecture-to-GO review lifecycle capture", () => {
+  assert.deepEqual(gateFirstGuidanceConflicts([
+    "BIG CHANGE → Architecture → pause → GO.",
+    "After Architecture, pause and wait for approval.",
+  ].join("\n")), [
+    "active guidance turns big-change architecture review into a routine owner gate",
+    "active guidance pauses after architecture review for routine owner approval",
+  ]);
+});
+
 test("action-law detector preserves explicit safe negations", () => {
   assert.deepEqual(gateFirstGuidanceConflicts([
     "Do not require review before all new work.",
     "Never require SAW after every round.",
     "Do not ask for GO before reversible work.",
+    "Do not pause after Architecture for GO.",
   ].join("\n")), []);
 });
 
