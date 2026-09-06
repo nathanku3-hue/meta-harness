@@ -7,6 +7,7 @@ const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const { attemptEntriesRoot } = require("../lib/world-authority");
+const { buildCodingPrompt } = require("../lib/coding-worker");
 const {
   assertEnteredPermitCapability,
   enterExecutionAttempt,
@@ -14,13 +15,17 @@ const {
 } = require("../lib/execution-permit");
 const { materializeWorkerOperations } = require("../lib/work-materializer");
 const {
+  commonGitDirectory,
+  createImmutableRunSnapshot,
   loadLatestWorkSession,
   persistWorkSession,
   prepareWorkspace,
   sealCandidate,
+  worktreePlan,
   workspaceRegistryDirectory,
 } = require("../lib/work-git");
-const { captureBoundary, runWork } = require("../lib/work-loop");
+const { captureBoundary, persistMutationCheckpoint, runWork } = require("../lib/work-loop");
+const { appendRunEvent, readRunJournal, runIdForSession } = require("../lib/run-journal");
 const {
   acquireWorkspaceExecutionLease,
   advanceWorkspaceGeneration,
@@ -35,6 +40,7 @@ const { ROOT, tempDir } = require("./helpers/cli");
 const { directionFromContent } = require("./helpers/product-direction");
 const { writePassingProductProof } = require("./helpers/product-proof");
 const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
+const { ensureRepositoryIdentity, runtimeCapabilityDigest } = require("../lib/runtime-identity");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
 
@@ -55,7 +61,13 @@ function repository(t, { withProductProof = true } = {}) {
   fs.writeFileSync(path.join(root, "README.md"), "baseline\n", "utf8");
   const { writeProductMd } = require("./helpers/product-direction");
   writeProductMd(root);
-  if (withProductProof) writePassingProductProof(root);
+  if (withProductProof) {
+    writePassingProductProof(root);
+    const proofPolicyPath = path.join(root, ".meta-harness", "product-proof.json");
+    const proofPolicy = JSON.parse(fs.readFileSync(proofPolicyPath, "utf8"));
+    proofPolicy.runtime = "node";
+    fs.writeFileSync(proofPolicyPath, `${JSON.stringify(proofPolicy, null, 2)}\n`, "utf8");
+  }
   git(root, ["add", "."]);
   git(root, ["commit", "-m", "baseline"]);
   t.after(() => fs.rmSync(parent, { recursive: true, force: true }));
@@ -199,6 +211,85 @@ test("T4 BOUND endgame authority does not block an independently useful local sl
   assert.equal(result.productProof.state, "PROVEN");
 });
 
+test("mutation checkpoint exposes no success before snapshot and journal durability", () => {
+  const order = [];
+  const snapshotOid = "a".repeat(40);
+  const snapshotDigest = `sha256:${"b".repeat(64)}`;
+  const workspace = {
+    repositoryRoot: "repository",
+    workspacePath: "workspace",
+    workspaceId: "11111111-1111-4111-8111-111111111111",
+    generation: 1,
+  };
+  const session = {
+    sessionDigest: `sha256:${"c".repeat(64)}`,
+    base: { commit: "d".repeat(40) },
+  };
+  const boundary = { treeOid: "e".repeat(40) };
+
+  const checkpoint = persistMutationCheckpoint({
+    snapshotter(input) {
+      order.push("snapshot");
+      assert.equal(input.treeOid, boundary.treeOid);
+      return {
+        treeOid: input.treeOid,
+        snapshotOid,
+        snapshotDigest,
+      };
+    },
+    journalReader() {
+      order.push("journal-read");
+      return [];
+    },
+    journalAppender(input) {
+      order.push("journal-write");
+      assert.equal(input.data.snapshotOid, snapshotOid);
+      return { type: input.type, data: input.data };
+    },
+    journalGitDirectory: "git-common",
+    runId: "run-test",
+    repositoryIdentity: { repositoryId: "22222222-2222-4222-8222-222222222222" },
+    runtimeDigest: `sha256:${"f".repeat(64)}`,
+    workspace,
+    session,
+    boundary,
+    materializedPaths: ["src/result.txt"],
+    source: "test",
+    env: {},
+  });
+
+  order.push("visible-success");
+  assert.deepEqual(order, ["snapshot", "journal-read", "journal-write", "visible-success"]);
+  assert.equal(checkpoint.snapshot.snapshotOid, snapshotOid);
+  assert.equal(checkpoint.event.data.snapshotOid, snapshotOid);
+
+  assert.throws(
+    () => persistMutationCheckpoint({
+      snapshotter() {
+        order.push("failed-snapshot");
+        throw new Error("snapshot failed");
+      },
+      journalReader() {
+        throw new Error("journal must not run after snapshot failure");
+      },
+      journalAppender() {
+        throw new Error("journal must not run after snapshot failure");
+      },
+      journalGitDirectory: "git-common",
+      runId: "run-test-failed",
+      repositoryIdentity: { repositoryId: "22222222-2222-4222-8222-222222222222" },
+      runtimeDigest: `sha256:${"f".repeat(64)}`,
+      workspace,
+      session,
+      boundary,
+      materializedPaths: ["src/result.txt"],
+      source: "test",
+      env: {},
+    }),
+    /snapshot failed/u,
+  );
+});
+
 function enterDurableAttempt(root, workSession) {
   const workspace = prepareWorkspace(root, workSession);
   const state = persistWorkSession(root, workSession, workspace);
@@ -248,7 +339,7 @@ function sealInterruptedCandidate(root, workSession, operations) {
   }
 }
 
-test("zero validation blocks before workspace creation or worker launch", async (t) => {
+test("zero validation requests autonomous replan before workspace creation or worker launch", async (t) => {
   const root = repository(t);
   let workerCalls = 0;
   const runner = async () => {
@@ -260,7 +351,7 @@ test("zero validation blocks before workspace creation or worker launch", async 
     session: session(root, { validation: [] }),
     runner,
   });
-  assert.equal(result.outcome, "BLOCKED");
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
   assert.equal(result.workspace.mode, "not_created");
   assert.equal(result.attempts, 0);
   assert.equal(result.delivery.validation, "unavailable");
@@ -274,11 +365,11 @@ test("zero validation blocks before workspace creation or worker launch", async 
     dryRun: true,
     runner,
   });
-  assert.equal(dry.outcome, "BLOCKED");
+  assert.equal(dry.outcome, "REPLAN_REQUIRED");
   assert.equal(workerCalls, 0);
 });
 
-test("durable AttemptEntry exists before worker execution", async (t) => {
+test("durable scoped AttemptEntry exists before worker execution without an ExecutionPermit", async (t) => {
   const root = repository(t);
   const workSession = session(root);
   let runnerCalls = 0;
@@ -286,12 +377,19 @@ test("durable AttemptEntry exists before worker execution", async (t) => {
     runWork({
       repositoryPath: root,
       session: workSession,
-      runner: async ({ executionPermit }) => {
+      runner: async ({ executionPermit, attemptEntry, workspace }) => {
         runnerCalls += 1;
-        const entryPath = path.join(attemptEntriesRoot(root), "owner", executionPermit.authority.workspaceId, "1.json");
+        assert.equal(executionPermit, null);
+        assert.equal(attemptEntry.schemaVersion, "attempt-entry/v2");
+        assert.equal(attemptEntry.mechanism, "RUN_CAPABILITY");
+        assert.equal(attemptEntry.permitId, null);
+        assert.equal(attemptEntry.permitDigest, null);
+        assert.match(attemptEntry.attemptInputKey, /^sha256:[a-f0-9]{64}$/u);
+        const entryPath = path.join(attemptEntriesRoot(root), "owner", workspace.workspaceId, "1.json");
         assert.equal(fs.existsSync(entryPath), true);
-        const entry = JSON.parse(fs.readFileSync(entryPath, "utf8"));
-        assert.equal(entry.permitDigest, executionPermit.permitDigest);
+        const persisted = JSON.parse(fs.readFileSync(entryPath, "utf8"));
+        assert.equal(persisted.entryDigest, attemptEntry.entryDigest);
+        assert.equal(persisted.attemptInputKey, attemptEntry.attemptInputKey);
         throw new Error("worker exploded after attempt entry");
       },
     }),
@@ -326,7 +424,7 @@ test("sealed candidate interruption resumes verification without invoking the co
   assert.equal(result.metrics.continuation, "RESUME");
   assert.equal(result.metrics.repairAttempts, 0);
   assert.equal(result.metrics.attempts[0].worker, "recovered-sealed-candidate");
-  assert.deepEqual(result.executionPermits.map((permit) => permit.generation), [1]);
+  assert.deepEqual(result.executionAttempts.map((attempt) => attempt.generation), [1]);
   assert.equal(result.productProof.state, "PROVEN");
   assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
   assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
@@ -391,7 +489,7 @@ test("restart after repair generation advance derives provenance from the preced
   assert.equal(result.outcome, "DONE");
   assert.equal(result.attempts, 2);
   assert.equal(result.metrics.repairAttempts, 1);
-  assert.deepEqual(result.executionPermits.map((permit) => permit.generation), [1, 2]);
+  assert.deepEqual(result.executionAttempts.map((attempt) => attempt.generation), [1, 2]);
   assert.equal(fs.readFileSync(path.join(result.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
 });
 
@@ -412,11 +510,12 @@ test("entered generation without a durable seal is never replayed after interrup
   });
 
   assert.equal(workerCalls, 0);
-  assert.equal(result.outcome, "BLOCKED");
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
   assert.equal(result.attempts, 1);
   assert.equal(result.workspace.generation, 1);
-  assert.equal(result.workspace.state, "TERMINAL_BLOCKED");
-  assert.match(result.blocker, /produced neither a durable candidate seal nor a durable worker STOP; replay is refused/i);
+  assert.equal(result.workspace.state, "TERMINAL_ABANDONED");
+  assert.match(result.blocker, /produced neither a durable candidate seal nor a durable worker STOP; replay of that exact generation is refused/i);
+  assert.match(result.nextAction, /same product result.*latest durable snapshot/i);
 });
 
 test("work loop carries a product brief into a fresh isolated generation and exact validation", async (t) => {
@@ -454,13 +553,358 @@ test("work loop carries a product brief into a fresh isolated generation and exa
   assert.equal(git(root, ["diff", "--cached", "--name-only"]), "");
 });
 
+test("normal coding prompt exposes the product and available operations without authority topology", async (t) => {
+  const root = repository(t);
+  const workSession = session(root);
+  const result = await runWork({
+    repositoryPath: root,
+    session: workSession,
+    runner: async ({ executionPermit, workspaceMode, attempt }) => {
+      const prompt = buildCodingPrompt(workSession, {
+        attempt,
+        priorFailure: "",
+        workspaceMode,
+        executionPermit,
+      });
+      assert.match(prompt, /Product result: Create the delivered result file\./u);
+      assert.match(prompt, /Available worker operations:/u);
+      assert.match(prompt, /typed WRITE, DELETE, or MOVE operations/u);
+      assert.doesNotMatch(prompt, /ExecutionPermit|Execution authority|Semantic authority state|Semantic projection|Endgame projection|OutcomeClaim|workspace custody|Owner-only actions/u);
+      return workerResult([{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }]);
+    },
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "DONE");
+});
+
+test("successful materialization is snapshotted and journaled before the run can finish", async (t) => {
+  const root = repository(t);
+  const workSession = session(root);
+  const result = await runWork({
+    repositoryPath: root,
+    session: workSession,
+    runner: async () => workerResult([{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }]),
+    timeoutSeconds: 30,
+  });
+
+  const runId = runIdForSession(workSession.sessionDigest);
+  const events = readRunJournal({ gitCommonDirectory: commonGitDirectory(root), runId });
+  const mutation = events.find((entry) => entry.type === "mutation/result");
+  assert.ok(mutation);
+  assert.equal(mutation.data.sessionDigest, workSession.sessionDigest);
+  assert.equal(mutation.data.workspaceId, result.workspace.workspaceId);
+  assert.equal(mutation.data.source, "coding-worker");
+  assert.deepEqual(mutation.data.materializedPaths, ["src/result.txt"]);
+  assert.match(mutation.data.snapshotOid, /^[a-f0-9]{40,64}$/u);
+  assert.match(mutation.data.snapshotDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.equal(git(root, ["show", `${mutation.data.snapshotOid}:src/result.txt`]), "delivered");
+  assert.equal(events[0].type, "run/started");
+  assert.ok(events.indexOf(mutation) > 0);
+  assert.equal(result.outcome, "DONE");
+});
+
+test("journal durability failure prevents materialization success from reaching validation or completion", async (t) => {
+  const root = repository(t);
+  const workSession = session(root);
+  const order = [];
+  const fakeSnapshotOid = "d".repeat(40);
+  const fakeSnapshotDigest = `sha256:${"e".repeat(64)}`;
+
+  await assert.rejects(
+    runWork({
+      repositoryPath: root,
+      session: workSession,
+      runner: async () => {
+        order.push("worker-proposal");
+        return workerResult([{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }]);
+      },
+      snapshotter: (input) => {
+        order.push("snapshot-durable");
+        return {
+          repositoryId: "11111111-1111-4111-8111-111111111111",
+          runtimeCapabilityDigest: `sha256:${"f".repeat(64)}`,
+          sessionDigest: input.sessionDigest,
+          workspaceId: input.workspaceId,
+          generation: input.generation,
+          treeOid: input.treeOid,
+          parentOid: input.parentOid,
+          snapshotDigest: fakeSnapshotDigest,
+          snapshotOid: fakeSnapshotOid,
+          ref: "refs/meta-harness/snapshots/fake",
+        };
+      },
+      journalReader: () => [],
+      journalAppender: ({ type, data }) => {
+        if (type === "run/started") {
+          order.push("journal-start");
+          return { type, data, eventDigest: `sha256:${"1".repeat(64)}` };
+        }
+        if (type === "model/request") {
+          order.push("journal-model-request");
+          return { type, data, eventDigest: `sha256:${"2".repeat(64)}` };
+        }
+        if (type === "model/response") {
+          order.push("journal-model-response");
+          return { type, data, eventDigest: `sha256:${"3".repeat(64)}` };
+        }
+        assert.equal(type, "mutation/result");
+        order.push("journal-mutation");
+        assert.equal(data.snapshotOid, fakeSnapshotOid);
+        throw new Error("simulated journal durability failure");
+      },
+      timeoutSeconds: 30,
+    }),
+    /simulated journal durability failure/u,
+  );
+
+  assert.deepEqual(order, [
+    "journal-start",
+    "journal-model-request",
+    "worker-proposal",
+    "journal-model-response",
+    "snapshot-durable",
+    "journal-mutation",
+  ]);
+});
+
+test("missing managed workspace is reconstructed from the latest durable journal snapshot and the same logical run continues", async (t) => {
+  const root = repository(t);
+  const workSession = session(root);
+  const checkpoint = enterDurableAttempt(root, workSession);
+  const gitDirectory = commonGitDirectory(root);
+  const runId = runIdForSession(workSession.sessionDigest);
+  appendRunEvent({
+    gitCommonDirectory: gitDirectory,
+    runId,
+    type: "run/started",
+    data: {
+      sessionDigest: workSession.sessionDigest,
+      workspaceId: checkpoint.workspace.workspaceId,
+      baseSnapshotOid: workSession.base.commit,
+    },
+  });
+
+  try {
+    assertEnteredPermitCapability({
+      stateDirectory: checkpoint.state.directory,
+      permit: checkpoint.permit,
+      attemptEntry: checkpoint.attemptEntry,
+      capability: "CONTROLLER_MATERIALIZE",
+    });
+    const materializedPaths = materializeWorkerOperations(
+      checkpoint.workspace.workspacePath,
+      [{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }],
+      workSession.allowedPaths,
+    );
+    const boundary = captureBoundary(checkpoint.workspace.workspacePath, workSession.allowedPaths);
+    persistMutationCheckpoint({
+      snapshotter: createImmutableRunSnapshot,
+      journalAppender: appendRunEvent,
+      journalReader: readRunJournal,
+      journalGitDirectory: gitDirectory,
+      runId,
+      repositoryIdentity: ensureRepositoryIdentity(gitDirectory),
+      runtimeDigest: runtimeCapabilityDigest({}),
+      workspace: checkpoint.workspace,
+      session: workSession,
+      boundary,
+      materializedPaths,
+      attemptEntry: checkpoint.attemptEntry,
+      source: "recovery-test",
+      env: {},
+    });
+  } finally {
+    releaseWorkspaceExecutionLease({ registryDir: checkpoint.registryDir, lease: checkpoint.lease });
+  }
+
+  const lostWorkspaceId = checkpoint.workspace.workspaceId;
+  const lostWorkspacePath = checkpoint.workspace.workspacePath;
+  git(root, ["worktree", "remove", "--force", lostWorkspacePath]);
+  assert.equal(fs.existsSync(lostWorkspacePath), false);
+
+  const resumedSession = loadLatestWorkSession(root);
+  assert.equal(resumedSession.sessionDigest, workSession.sessionDigest);
+  const replacementPlan = worktreePlan(root, resumedSession);
+  assert.equal(replacementPlan.resumed, true);
+  assert.notEqual(replacementPlan.workspaceId, lostWorkspaceId);
+  assert.equal(fs.readFileSync(path.join(replacementPlan.workspacePath, "src", "result.txt"), "utf8"), "delivered\n");
+  assert.equal(git(replacementPlan.workspacePath, ["rev-parse", "HEAD"]), workSession.base.commit);
+  assert.match(git(replacementPlan.workspacePath, ["status", "--short"]), /src\//u);
+
+  const events = readRunJournal({ gitCommonDirectory: gitDirectory, runId });
+  const restored = events.find((entry) => entry.type === "workspace/restored");
+  assert.ok(restored);
+  assert.equal(restored.data.previousWorkspaceId, lostWorkspaceId);
+  assert.equal(restored.data.workspaceId, replacementPlan.workspaceId);
+  assert.deepEqual(restored.data.materializedPaths, ["src/result.txt"]);
+
+  const result = await runWork({
+    repositoryPath: root,
+    session: resumedSession,
+    runner: async () => workerResult([]),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.productProof.state, "PROVEN");
+  assert.notEqual(result.workspace.workspaceId, lostWorkspaceId);
+  assert.equal(fs.readFileSync(path.join(result.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
+});
+
+test("corrupt derived custody after a durable mutation restores exact journaled bytes and continues", async (t) => {
+  const root = repository(t);
+  const workSession = session(root);
+  const checkpoint = enterDurableAttempt(root, workSession);
+  const gitDirectory = commonGitDirectory(root);
+  const runId = runIdForSession(workSession.sessionDigest);
+  appendRunEvent({
+    gitCommonDirectory: gitDirectory,
+    runId,
+    type: "run/started",
+    data: {
+      sessionDigest: workSession.sessionDigest,
+      workspaceId: checkpoint.workspace.workspaceId,
+      baseSnapshotOid: workSession.base.commit,
+    },
+  });
+
+  try {
+    const materializedPaths = materializeWorkerOperations(
+      checkpoint.workspace.workspacePath,
+      [{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }],
+      workSession.allowedPaths,
+    );
+    const boundary = captureBoundary(checkpoint.workspace.workspacePath, workSession.allowedPaths);
+    persistMutationCheckpoint({
+      snapshotter: createImmutableRunSnapshot,
+      journalAppender: appendRunEvent,
+      journalReader: readRunJournal,
+      journalGitDirectory: gitDirectory,
+      runId,
+      repositoryIdentity: ensureRepositoryIdentity(gitDirectory),
+      runtimeDigest: runtimeCapabilityDigest({}),
+      workspace: checkpoint.workspace,
+      session: workSession,
+      boundary,
+      materializedPaths,
+      attemptEntry: checkpoint.attemptEntry,
+      source: "custody-corruption-test",
+      env: {},
+    });
+  } finally {
+    releaseWorkspaceExecutionLease({ registryDir: checkpoint.registryDir, lease: checkpoint.lease });
+  }
+
+  const corruptWorkspaceId = checkpoint.workspace.workspaceId;
+  const custodyPath = path.join(checkpoint.registryDir, `${corruptWorkspaceId}.json`);
+  fs.writeFileSync(custodyPath, "{ corrupt derived custody\n", "utf8");
+
+  const resumedSession = loadLatestWorkSession(root);
+  assert.equal(resumedSession.sessionDigest, workSession.sessionDigest);
+  const replacementPlan = worktreePlan(root, resumedSession);
+  assert.equal(replacementPlan.resumed, true);
+  assert.notEqual(replacementPlan.workspaceId, corruptWorkspaceId);
+  assert.equal(fs.readFileSync(path.join(replacementPlan.workspacePath, "src", "result.txt"), "utf8"), "delivered\n");
+  assert.equal(git(replacementPlan.workspacePath, ["rev-parse", "HEAD"]), workSession.base.commit);
+
+  const events = readRunJournal({ gitCommonDirectory: gitDirectory, runId });
+  const restored = events.find((entry) => entry.type === "workspace/restored" && entry.data?.reason === "custody-corrupt");
+  assert.ok(restored);
+  assert.equal(restored.data.previousWorkspaceId, corruptWorkspaceId);
+  assert.equal(restored.data.workspaceId, replacementPlan.workspaceId);
+  assert.deepEqual(restored.data.materializedPaths, ["src/result.txt"]);
+
+  const result = await runWork({
+    repositoryPath: root,
+    session: resumedSession,
+    runner: async () => workerResult([]),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.productProof.state, "PROVEN");
+  assert.notEqual(result.workspace.workspaceId, corruptWorkspaceId);
+  assert.equal(fs.readFileSync(path.join(result.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
+});
+
+test("recovery reuses a replacement workspace created before a crash instead of spawning another", async (t) => {
+  const root = repository(t);
+  const workSession = session(root);
+  const checkpoint = enterDurableAttempt(root, workSession);
+  const gitDirectory = commonGitDirectory(root);
+  const runId = runIdForSession(workSession.sessionDigest);
+  appendRunEvent({
+    gitCommonDirectory: gitDirectory,
+    runId,
+    type: "run/started",
+    data: {
+      sessionDigest: workSession.sessionDigest,
+      workspaceId: checkpoint.workspace.workspaceId,
+      baseSnapshotOid: workSession.base.commit,
+    },
+  });
+
+  try {
+    const materializedPaths = materializeWorkerOperations(
+      checkpoint.workspace.workspacePath,
+      [{ type: "WRITE", path: "src/result.txt", content: "delivered\n" }],
+      workSession.allowedPaths,
+    );
+    const boundary = captureBoundary(checkpoint.workspace.workspacePath, workSession.allowedPaths);
+    persistMutationCheckpoint({
+      snapshotter: createImmutableRunSnapshot,
+      journalAppender: appendRunEvent,
+      journalReader: readRunJournal,
+      journalGitDirectory: gitDirectory,
+      runId,
+      repositoryIdentity: ensureRepositoryIdentity(gitDirectory),
+      runtimeDigest: runtimeCapabilityDigest({}),
+      workspace: checkpoint.workspace,
+      session: workSession,
+      boundary,
+      materializedPaths,
+      attemptEntry: checkpoint.attemptEntry,
+      source: "replacement-crash-test",
+      env: {},
+    });
+  } finally {
+    releaseWorkspaceExecutionLease({ registryDir: checkpoint.registryDir, lease: checkpoint.lease });
+  }
+
+  const alreadyCreated = prepareWorkspace(root, workSession, worktreePlan(root, workSession));
+  assert.equal(git(alreadyCreated.workspacePath, ["status", "--short"]), "");
+  const beforeIds = fs.readdirSync(checkpoint.registryDir)
+    .filter((name) => /^[0-9a-f-]{36}\.json$/u.test(name))
+    .sort();
+  assert.equal(beforeIds.length, 2);
+
+  const corruptWorkspaceId = checkpoint.workspace.workspaceId;
+  fs.writeFileSync(path.join(checkpoint.registryDir, `${corruptWorkspaceId}.json`), "{ crash left corrupt custody\n", "utf8");
+
+  const resumedSession = loadLatestWorkSession(root);
+  const replacementPlan = worktreePlan(root, resumedSession);
+  assert.equal(replacementPlan.workspaceId, alreadyCreated.workspaceId);
+  assert.equal(fs.readFileSync(path.join(replacementPlan.workspacePath, "src", "result.txt"), "utf8"), "delivered\n");
+  const afterIds = fs.readdirSync(checkpoint.registryDir)
+    .filter((name) => /^[0-9a-f-]{36}\.json$/u.test(name))
+    .sort();
+  assert.deepEqual(afterIds, beforeIds);
+
+  const restored = readRunJournal({ gitCommonDirectory: gitDirectory, runId })
+    .filter((entry) => entry.type === "workspace/restored" && entry.data?.previousWorkspaceId === corruptWorkspaceId);
+  assert.equal(restored.length, 1);
+  assert.equal(restored[0].data.workspaceId, alreadyCreated.workspaceId);
+
+  const again = loadLatestWorkSession(root);
+  assert.equal(worktreePlan(root, again).workspaceId, alreadyCreated.workspaceId);
+});
+
 test("validated work commits and pushes only the terminal worktree branch with sealed authority", async (t) => {
   const root = repository(t);
   const sourceBranch = addOrigin(root);
   const sourceHead = git(root, ["rev-parse", "HEAD"]);
+  const workSession = session(root, { delivery: { commit: true, push: true } });
   const result = await runWork({
     repositoryPath: root,
-    session: session(root, { delivery: { commit: true, push: true } }),
+    session: workSession,
     env: workerEnv(),
     timeoutSeconds: 30,
   });
@@ -480,6 +924,19 @@ test("validated work commits and pushes only the terminal worktree branch with s
   );
   assert.equal(git(result.workspace.path, ["diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"]), "src/result.txt");
   assert.equal(git(root, ["status", "--short"]), "");
+
+  const events = readRunJournal({
+    gitCommonDirectory: commonGitDirectory(root),
+    runId: runIdForSession(workSession.sessionDigest),
+  });
+  const intendedIndex = events.findIndex((event) => event.type === "effect/intended" && event.data?.kind === "GIT_PUSH");
+  const observedIndex = events.findIndex((event) => event.type === "effect/observed");
+  assert.ok(intendedIndex >= 0);
+  assert.ok(observedIndex > intendedIndex);
+  assert.equal(events[intendedIndex].data.commitSha, result.delivery.commit.sha);
+  assert.equal(events[intendedIndex].data.branch, result.workspace.branch);
+  assert.equal(events[observedIndex].data.effectId, events[intendedIndex].data.effectId);
+  assert.equal(events[observedIndex].data.result.status, "remote_equal");
 });
 
 test("worker-marked partial cannot veto controller acceptance", async (t) => {
@@ -509,7 +966,7 @@ test("passed controller validation completes without a worker-status repair roun
   assert.equal(result.outcome, "DONE");
   assert.equal(result.workspace.state, "TERMINAL_COMMITTED");
   assert.equal(result.attempts, 1);
-  assert.deepEqual(result.executionPermits.map((permit) => permit.generation), [1]);
+  assert.deepEqual(result.executionAttempts.map((attempt) => attempt.generation), [1]);
   assert.equal(result.validation[0].passed, true);
   assert.deepEqual(result.changedPaths, ["src/result.txt"]);
   assert.equal(fs.readFileSync(path.join(result.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
@@ -935,6 +1392,42 @@ test("failed product proof enters the existing bounded repair loop", async (t) =
   assert.equal(fs.readFileSync(path.join(result.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
 });
 
+test("identical product-proof failure opens a per-means circuit without consuming the emergency ceiling", async (t) => {
+  const root = repository(t);
+  fs.writeFileSync(path.join(root, ".meta-harness", "product-proof.js"), [
+    '"use strict";',
+    'const fs = require("node:fs");',
+    'const path = require("node:path");',
+    'const target = path.join(process.env.META_HARNESS_CANDIDATE_ROOT, "src", "result.txt");',
+    'if (!fs.existsSync(target) || fs.readFileSync(target, "utf8") !== "delivered\\n") process.exit(61);',
+    "",
+  ].join("\n"), "utf8");
+  git(root, ["add", ".meta-harness/product-proof.js"]);
+  git(root, ["commit", "-m", "circuit product proof fixture"]);
+  const workSession = session(root, {
+    maxAttempts: 8,
+    validation: [{ argv: [process.execPath, "-e", "process.exit(0)"], cwd: ".", timeoutSeconds: 30 }],
+  });
+  const result = await runWork({
+    repositoryPath: root,
+    session: workSession,
+    runner: async () => workerResult([{ type: "WRITE", path: "src/result.txt", content: "wrong\n" }]),
+    timeoutSeconds: 30,
+  });
+
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.equal(result.attempts, 2);
+  const events = readRunJournal({
+    gitCommonDirectory: commonGitDirectory(root),
+    runId: runIdForSession(workSession.sessionDigest),
+  });
+  const failures = events.filter((event) => event.type === "means/failure" && event.data.meansKind === "PRODUCT_PROOF");
+  const opened = events.filter((event) => event.type === "means/circuit-open" && event.data.meansKind === "PRODUCT_PROOF");
+  assert.equal(failures.length, 2);
+  assert.equal(opened.length, 1);
+  assert.equal(failures[0].data.fingerprint, failures[1].data.fingerprint);
+});
+
 test("candidate replacement of the apparent proof program cannot replace base-owned proof authority", async (t) => {
   const root = repository(t);
   fs.mkdirSync(path.join(root, "proof"));
@@ -1019,11 +1512,38 @@ test("publication failure does not downgrade a successfully banked local result"
   assert.notEqual(git(result.workspace.path, ["rev-parse", "HEAD"]), workSession.base.commit);
 });
 
-test("failed validation is returned to a fresh single-use permit for bounded repair", async (t) => {
+test("identical validation failure opens a per-means circuit before the emergency generation ceiling", async (t) => {
+  const root = repository(t);
+  const workSession = session(root, { maxAttempts: 8 });
+  const result = await runWork({
+    repositoryPath: root,
+    session: workSession,
+    runner: async () => workerResult([{ type: "WRITE", path: "src/result.txt", content: "wrong\n" }]),
+    timeoutSeconds: 30,
+  });
+
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.equal(result.attempts, 2);
+  assert.equal(result.workspace.generation, 2);
+  assert.equal(result.executionAttempts.length, 2);
+  const events = readRunJournal({
+    gitCommonDirectory: commonGitDirectory(root),
+    runId: runIdForSession(workSession.sessionDigest),
+  });
+  const failures = events.filter((event) => event.type === "means/failure");
+  const opened = events.filter((event) => event.type === "means/circuit-open");
+  assert.equal(failures.length, 2);
+  assert.equal(opened.length, 1);
+  assert.equal(failures[0].data.fingerprint, failures[1].data.fingerprint);
+  assert.equal(opened[0].data.fingerprint, failures[0].data.fingerprint);
+  assert.equal(opened[0].data.meansKind, "VALIDATE_CANDIDATE");
+});
+
+test("failed validation is returned to a fresh scoped run capability for a materially changed candidate", async (t) => {
   const root = repository(t);
   const result = await runWork({
     repositoryPath: root,
-    session: session(root, { maxAttempts: 2 }),
+    session: session(root, { maxAttempts: 8 }),
     env: workerEnv({ FAKE_WORKER_RETRY: "1" }),
     timeoutSeconds: 30,
   });
@@ -1034,10 +1554,12 @@ test("failed validation is returned to a fresh single-use permit for bounded rep
   assert.equal(result.metrics.attempts.length, 2);
   assert.ok(result.metrics.attempts.every((item) => item.operationCount === 1));
   assert.ok(result.metrics.workerMs >= result.metrics.firstProposalMs);
-  assert.deepEqual(result.executionPermits.map((permit) => permit.generation), [1, 2]);
-  assert.equal(new Set(result.executionPermits.map((permit) => permit.permitId)).size, 2);
-  assert.ok(result.executionPermits.every((permit) => permit.state === "ENTERED"));
-  assert.ok(result.executionPermits.every((permit) => /^sha256:[a-f0-9]{64}$/u.test(permit.attemptEntryDigest)));
+  assert.deepEqual(result.executionAttempts.map((attempt) => attempt.generation), [1, 2]);
+  assert.ok(result.executionAttempts.every((attempt) => attempt.mechanism === "RUN_CAPABILITY"));
+  assert.ok(result.executionAttempts.every((attempt) => attempt.permitId === null && attempt.permitDigest === null));
+  assert.equal(new Set(result.executionAttempts.map((attempt) => attempt.attemptInputKey)).size, 2);
+  assert.ok(result.executionAttempts.every((attempt) => attempt.state === "ENTERED"));
+  assert.ok(result.executionAttempts.every((attempt) => /^sha256:[a-f0-9]{64}$/u.test(attempt.attemptEntryDigest)));
 });
 
 test("direct worker writes invalidate the attempt generation before controller materialization", async (t) => {
@@ -1053,11 +1575,12 @@ test("direct worker writes invalidate the attempt generation before controller m
   );
 });
 
-test("live product-direction drift after permit consumption blocks before materialization", async (t) => {
+test("live product-direction drift after scoped attempt entry blocks before materialization", async (t) => {
   const root = repository(t);
   fs.writeFileSync(path.join(root, "README.md"), "unrelated owner dirtiness\n", "utf8");
-  const runner = async ({ executionPermit }) => {
-    assert.equal(executionPermit.state, "ISSUED");
+  const runner = async ({ executionPermit, attemptEntry }) => {
+    assert.equal(executionPermit, null);
+    assert.equal(attemptEntry.mechanism, "RUN_CAPABILITY");
     const productPath = path.join(root, "PRODUCT.md");
     const original = fs.readFileSync(productPath, "utf8");
     fs.writeFileSync(productPath, original.replace("product-direction-v1", "product-direction-v2"), "utf8");

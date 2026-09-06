@@ -16,7 +16,7 @@ const {
   compileRepoDecisionWork,
   loadRepoCharter,
   prepareAuthoritativeWorld,
-} = require("../lib/repo-decision-plane-v2");
+} = require("./fixtures/legacy-repo-decision-plane-v2");
 const {
   attemptEntriesRoot,
   attemptEntryPath,
@@ -371,25 +371,28 @@ function realityTransition(predecessorHeadDigest, successor) {
   return validateWorldTransition({ ...body, transitionDigest: computeWorldTransitionDigest(body) });
 }
 
-test("authoritative WorldHead compiles minimal work-session/v8 with Outcome claim provenance and sealed product proof", (t) => {
+test("authoritative WorldHead compiles claimless work-session/v9 with sealed product proof", (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { claims: ["repo-owned"], hypotheses: ["opaque"] });
   installDecision(root, initial.head.headDigest);
   const compiled = compileRepoDecisionWork(root);
   assert.equal(compiled.type, "DISPATCH");
-  assert.equal(compiled.session.schemaVersion, "work-session/v8");
+  assert.equal(compiled.session.schemaVersion, "work-session/v9");
   assert.equal(compiled.session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.equal(compiled.session.base.commit, git(root, ["rev-parse", "HEAD"]));
   assert.deepEqual(compiled.session.origin, {
-    type: "REPO_OUTCOME",
+    type: "REPO_RUN",
     outcomeDigest: compiled.outcomeDigest,
-    claimDigest: compiled.claimDigest,
+    originHeadDigest: initial.head.headDigest,
+    objectiveRevision: 0,
+    continuesFromTransitionDigests: [],
   });
+  assert.equal(compiled.claimDigest, null);
   assert.equal(compiled.session.origin.decisionDigest, undefined);
   assert.equal(compiled.session.origin.worldDigest, undefined);
 });
 
-test("authoritative World product direction must still match live owner direction", (t) => {
+test("current semantic projection product direction must still match live owner direction", (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { observations: ["projected-under-v1"] });
   const originalDirection = pinProductDirection(root);
@@ -401,7 +404,7 @@ test("authoritative World product direction must still match live owner directio
 
   assert.throws(
     () => compileRepoDecisionWork(root),
-    (error) => error.code === "MH_REPO_DECISION_STALE" && /authoritative World product direction/.test(error.message),
+    (error) => error.code === "MH_REPO_DECISION_STALE" && /current semantic projection product direction/.test(error.message),
   );
 });
 
@@ -557,7 +560,7 @@ test("ATTEMPT_LEARNING banks the admitted execution once and rejects wrong-prede
 
   const duplicateSuccessor = persistProjectionObjects(root, { observations: ["double-bank"] });
   const doubleBank = learningTransition(root, applied.head.headDigest, run.closure, duplicateSuccessor);
-  assert.throws(() => commitTransition(root, doubleBank), (error) => error.code === "MH_OUTCOME_CLAIM_RELEASED");
+  assert.throws(() => commitTransition(root, doubleBank), (error) => error.code === "MH_RUN_CLOSURE_ALREADY_APPLIED");
 });
 
 test("ATTEMPT_LEARNING fails closed when the referenced immutable work result is missing", async (t) => {
@@ -574,7 +577,11 @@ test("ATTEMPT_LEARNING fails closed when the referenced immutable work result is
 test("ATTEMPT_LEARNING fails closed when a referenced AttemptEntry is corrupted", async (t) => {
   const root = repository(t);
   const run = await completedDecisionRun(root);
-  const entryPath = attemptEntryPath(root, run.compiled.session.origin, 1);
+  const entryPath = attemptEntryPath(root, {
+    type: "REPO_RUN_WORKSPACE",
+    sessionDigest: run.compiled.session.sessionDigest,
+    workspaceId: run.result.workspace.workspaceId,
+  }, 1);
   const entry = JSON.parse(fs.readFileSync(entryPath, "utf8"));
   entry.enteredAt = new Date(Date.parse(entry.enteredAt) + 1000).toISOString();
   fs.writeFileSync(entryPath, `${JSON.stringify(entry, null, 2)}\n`, "utf8");

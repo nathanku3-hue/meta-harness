@@ -7,7 +7,7 @@ const test = require("node:test");
 
 const { automaticRequest, renderHuman } = require("../lib/commands/work");
 const { pinProductDirection } = require("../lib/product-direction");
-const { compileRepoDecision, loadRepoCharter } = require("../lib/repo-decision");
+const { compileRepoDecision, loadRepoCharter } = require("./fixtures/legacy-repo-decision");
 const { runRepoWorkWave } = require("../lib/repo-work-wave");
 const { assertTerminalEndgameCovered, terminalEndgameCoverage } = require("../lib/terminal-endgame");
 const { readCurrentWorldState } = require("../lib/world-transition");

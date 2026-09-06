@@ -61,18 +61,18 @@ test("router, decision gate, and scope selector preserve one complete functional
   assert.match(router, /`taskId` as the only required continuation input/i);
 });
 
-test("candidate AGENTS maps terminal classification to exact user-facing guidance", () => {
+test("candidate AGENTS maps terminal product state directly to exact user-facing guidance", () => {
   const agents = read("AGENTS.md");
-  assert.match(agents, /classify internally as `NO_BUILD` and `USE_PRODUCT`/);
+  assert.match(agents, /For shipped, value-confirmed, maintenance, or no-active-slice state with no complete continuation warrant, return exactly:/i);
   assert.match(agents, /```text\nNo active slice\.\nUse the product\.\nWait for observed real-use friction\.\n```/);
+  assert.doesNotMatch(agents, /classify internally as `NO_BUILD`/i);
 });
 
-test("candidate AGENTS keeps unsupported direct ChatGPT\/DevSpace entry diagnostic-only", () => {
+test("candidate AGENTS keeps unsealed direct ChatGPT\/DevSpace entry diagnostic-only", () => {
   const agents = read("AGENTS.md");
-  assert.match(agents, /ChatGPT\/DevSpace direct sessions are not a Meta-Harness execution membrane/i);
-  assert.match(agents, /read\/diagnostic only/i);
-  assert.match(agents, /never edit, reset, clean, stash, stage, commit, push/i);
-  assert.match(agents, /supported `meta-harness` or ACP entry/i);
+  assert.match(agents, /ChatGPT\/DevSpace direct sessions are read\/diagnostic until a sealed native\/Meta task defines bounded writable paths, validation, and Git effects/i);
+  assert.match(agents, /coding worker is read-only with respect to the workspace/i);
+  assert.match(agents, /controller owns materialization, snapshotting, validation, local banking, integration, and permitted external effects/i);
 });
 
 test("worker contract puts product evidence before internal metadata", () => {

@@ -10,7 +10,7 @@ const { pinProductDirection } = require("../../lib/product-direction");
 const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../../lib/semantic-authority");
 const { loadRepoCharter } = require("../../lib/repo-proposal-set");
 const { compileProductProofSpec } = require("../../lib/work-proof-compiler");
-const { WORK_SESSION_SCHEMA, sealWorkSession } = require("../../lib/work-session");
+const { LEGACY_WORK_SESSION_SCHEMA, sealWorkSession } = require("../../lib/work-session");
 const { computeRepoWorldDigest, computeWorldAttestationDigest, rawDigest } = require("../../lib/world-attestation");
 const { persistImmutableBytes, persistImmutableJson, readImmutableJson } = require("../../lib/world-authority");
 const {
@@ -57,7 +57,7 @@ function interpreterProgram() {
     'const payload=bad?{...i.currentWorld.payload,replans:[...replans,i.outcome.id]}:{...i.currentWorld.payload,learned:[...learned,i.outcome.id]};',
     'const successorWorld={schemaVersion:"repo-world/v2",productDirectionDigest:i.currentWorld.productDirectionDigest,payload}; const worldDigest=d("meta-harness-repo-world/v2",successorWorld);',
     'const b={schemaVersion:"world-attestation/v1",worldDigest,projectorDigest:i.currentAttestation.projectorDigest,sources:i.currentAttestation.sources,generatedAt:new Date().toISOString()}; const successorAttestation={...b,attestationDigest:d("meta-harness-world-attestation/v1",b)};',
-    'process.stdout.write(JSON.stringify({schemaVersion:"repo-closure-interpretation/v1",disposition:bad?"INVALIDATED_REPLAN":"APPLIED",interpretation:bad?{integrationFailure:i.integrationFailure}:{learnedOutcome:i.outcome.id},successorWorld,successorAttestation}));',
+    'process.stdout.write(JSON.stringify({schemaVersion:"repo-closure-interpretation/v1",disposition:bad?"REPLAN_REQUIRED":"APPLIED",interpretation:bad?{integrationFailure:i.integrationFailure}:{learnedOutcome:i.outcome.id},successorWorld,successorAttestation}));',
     "",
   ].join("\n");
 }
@@ -116,7 +116,7 @@ function monotonicNow() { let tick = Date.parse("2026-08-18T03:00:00.000Z"); ret
 function fakeInterpretation({ input, now }) {
   const learned = Array.isArray(input.currentWorld.payload.learned) ? [...input.currentWorld.payload.learned] : []; const replans = Array.isArray(input.currentWorld.payload.replans) ? [...input.currentWorld.payload.replans] : []; const bad = Boolean(input.integrationFailure);
   const payload = bad ? { ...input.currentWorld.payload, replans: [...replans, input.outcome.id] } : { ...input.currentWorld.payload, learned: [...learned, input.outcome.id] }; const successorWorld = { schemaVersion: "repo-world/v2", productDirectionDigest: input.currentWorld.productDirectionDigest, payload }; const worldDigest = computeRepoWorldDigest(successorWorld); const body = { schemaVersion: "world-attestation/v1", worldDigest, projectorDigest: input.currentAttestation.projectorDigest, sources: input.currentAttestation.sources, generatedAt: now.toISOString() };
-  return { schemaVersion: "repo-closure-interpretation/v1", disposition: bad ? "INVALIDATED_REPLAN" : "APPLIED", interpretation: bad ? { integrationFailure: input.integrationFailure } : { learnedOutcome: input.outcome.id }, successorWorld, successorAttestation: { ...body, attestationDigest: computeWorldAttestationDigest(body) } };
+  return { schemaVersion: "repo-closure-interpretation/v1", disposition: bad ? "REPLAN_REQUIRED" : "APPLIED", interpretation: bad ? { integrationFailure: input.integrationFailure } : { learnedOutcome: input.outcome.id }, successorWorld, successorAttestation: { ...body, attestationDigest: computeWorldAttestationDigest(body) } };
 }
 
 function runner({ breakSharedId = null } = {}) {
@@ -143,7 +143,7 @@ function legacySession(root, outcome, headDigest, id) {
     originWorldHeadDigest: headDigest,
     executionBoundary: { writePaths: value.allowedPaths },
     buildSession: (claim) => sealWorkSession({
-      schemaVersion: WORK_SESSION_SCHEMA,
+      schemaVersion: LEGACY_WORK_SESSION_SCHEMA,
       productDirection: direction,
       semanticState: semanticAuthority.semanticState,
       semanticProjection: semanticProjection(semanticAuthority),

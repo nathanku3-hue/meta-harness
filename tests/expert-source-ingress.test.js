@@ -13,7 +13,7 @@ const {
   reopenExpertSource,
   snapshotResourceLink,
 } = require("../lib/expert-source-ingress");
-const { readOwnerObjectiveState } = require("../lib/owner-objective-state");
+const { readOwnerObjectiveState, replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
 const {
   persistSourceBearingOwnerIngress,
   readSourceBearingOwnerIngress,
@@ -74,6 +74,24 @@ test("objective adoption preserves raw ingress identity and exact replay does no
   assert.notEqual(secondIngress.ingressDigest, ingress.ingressDigest);
   assert.deepEqual(automaticRequest(root, secondRawText, { ownerIngressDigest: secondIngress.ingressDigest }), { type: "REPO_WAVE" });
   assert.equal(readOwnerObjectiveState(root).revision, 2);
+});
+
+test("source-bearing turn with an established objective stays on ingress adoption rather than read-only interaction", (t) => {
+  const { root } = repository(t);
+  const filePath = externalFile(root, "established-objective-source.txt", "Established objective evidence.\n");
+  const [source] = captureExpertResourceLinks(root, [link("established.txt", filePath)]);
+  const rawText = "Use this attached evidence for the mission.";
+  const ingress = persistSourceBearingOwnerIngress(root, rawText, [source]);
+  const before = replaceOwnerObjectiveState(root, "mission M");
+
+  assert.deepEqual(
+    automaticRequest(root, rawText, { ownerIngressDigest: ingress.ingressDigest }),
+    { type: "REPO_WAVE" },
+  );
+  const after = readOwnerObjectiveState(root);
+  assert.equal(after.revision, before.revision + 1);
+  assert.equal(after.content, rawText);
+  assert.equal(after.ingressDigest, ingress.ingressDigest);
 });
 
 test("deleted GC ref is repaired from authoritative blob while missing blob fails closed", (t) => {

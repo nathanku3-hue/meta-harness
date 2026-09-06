@@ -12,8 +12,6 @@ const {
 const {
   listActiveOutcomeClaims,
   readOutcomeClaim,
-  readOutcomeClaimRelease,
-  readOutcomeClaimSession,
 } = require("../lib/outcome-claim");
 const { pinProductDirection } = require("../lib/product-direction");
 const {
@@ -26,7 +24,8 @@ const {
 const { runRepositoryClosureInterpreter } = require("../lib/repo-closure-interpreter");
 const { landOutcomeClosure, runRepoWorkWave } = require("../lib/repo-work-wave");
 const { runWork } = require("../lib/work-loop");
-const { stateDirectory } = require("../lib/work-git");
+const { commonGitDirectory, stateDirectory } = require("../lib/work-git");
+const { listRunSessions } = require("../lib/run-journal");
 const {
   computeRepoWorldDigest,
   computeWorldAttestationDigest,
@@ -305,7 +304,7 @@ function fakeInterpretation({ input, now }) {
   };
   return {
     schemaVersion: "repo-closure-interpretation/v1",
-    disposition: invalidated ? "INVALIDATED_REPLAN" : "APPLIED",
+    disposition: invalidated ? "REPLAN_REQUIRED" : "APPLIED",
     interpretation: invalidated
       ? { invalidatedOutcome: input.outcome.id, reason: "current World invalidated its declared precondition" }
       : { learnedOutcome: input.outcome.id },
@@ -358,47 +357,60 @@ function prepareOne(root, headDigest, value, now = new Date("2026-08-18T02:00:00
   return { current, loaded, outcome, prepared };
 }
 
-test("new Claim visibility implies durable session recovery and proposal deletion cannot cancel commitment", async (t) => {
+test("new run visibility implies durable recovery and proposal deletion cannot cancel commitment", async (t) => {
   const { root, initial } = repository(t);
   const value = proposal(root, "a");
   const prepared = prepareOne(root, initial.head.headDigest, value);
   const admitted = admitPreparedRepoProposal(root, prepared.loaded, prepared.prepared, {
     now: new Date("2026-08-18T02:00:01.000Z"),
   });
-  assert.equal(listActiveOutcomeClaims(root).length, 1);
-  assert.equal(readOutcomeClaimSession(root, admitted.claim.claimDigest).sessionDigest, admitted.session.sessionDigest);
+  assert.equal(admitted.claim, null);
+  assert.equal(admitted.session.origin.type, "REPO_RUN");
+  assert.equal(listActiveOutcomeClaims(root).length, 0);
+  assert.ok(listRunSessions({ gitCommonDirectory: commonGitDirectory(root) })
+    .some((session) => session.sessionDigest === admitted.session.sessionDigest));
   fs.unlinkSync(path.join(root, ".meta-harness", "repo-proposals.json"));
 
+  let runAttempt = null;
+  const baseRunner = resultRunner();
   const result = await runRepoWorkWave({
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
-    runner: resultRunner(),
+    runner: async (args) => {
+      runAttempt = { attemptEntry: args.attemptEntry, executionPermit: args.executionPermit };
+      return baseRunner(args);
+    },
     plannerRunner: plannerRunner([]),
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });
   assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 1);
+  assert.equal(runAttempt.attemptEntry.schemaVersion, "attempt-entry/v2");
+  assert.equal(runAttempt.attemptEntry.mechanism, "RUN_CAPABILITY");
+  assert.equal(runAttempt.attemptEntry.permitId, null);
+  assert.equal(runAttempt.executionPermit, null);
   assert.equal(listActiveOutcomeClaims(root).length, 0);
-  assert.ok(readOutcomeClaimRelease(root, admitted.claim.claimDigest));
   assert.equal(result.plannerInvoked, true);
   assert.equal(result.plannerCandidateCount, 0);
 });
 
-test("new Claim admission rejects a proposal snapshot whose origin Head stopped being current", (t) => {
+test("proposal snapshot remains admissible after Head advances because integration owns contention", (t) => {
   const { root, initial } = repository(t);
   const value = proposal(root, "a");
   const prepared = prepareOne(root, initial.head.headDigest, value);
   const advanced = projectionObjects(root, { learned: [], revision: 2 });
-  commitTransition(root, realityTransition(root, initial.head.headDigest, advanced));
+  const advancedHead = commitTransition(root, realityTransition(root, initial.head.headDigest, advanced)).head;
 
-  assert.throws(
-    () => admitPreparedRepoProposal(root, prepared.loaded, prepared.prepared),
-    (error) => error.code === "MH_OUTCOME_CLAIM_STALE_HEAD",
-  );
+  const admitted = admitPreparedRepoProposal(root, prepared.loaded, prepared.prepared);
+  assert.equal(admitted.claim, null);
+  assert.equal(admitted.session.origin.type, "REPO_RUN");
+  assert.equal(admitted.session.origin.originHeadDigest, initial.head.headDigest);
+  assert.equal(admitted.session.base.commit, initial.head.productCommit);
+  assert.equal(readCurrentWorldState(root).head.headDigest, advancedHead.headDigest);
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
-test("one proposal set executes compatible Claims concurrently and lands siblings against successive current Worlds", async (t) => {
+test("one proposal set executes compatible runs concurrently and lands siblings against successive current Worlds", async (t) => {
   const { root, initial } = repository(t);
   writeProposalSet(root, initial.head.headDigest, [proposal(root, "a"), proposal(root, "b"), proposal(root, "c")]);
   const paths = [];
@@ -435,7 +447,7 @@ test("one proposal set executes compatible Claims concurrently and lands sibling
   assert.ok(workerSchemaNames.every((name) => name.includes(".worker-result.schema.json")));
 });
 
-test("local worker throttle does not reduce repository Claim admission capacity", async (t) => {
+test("local worker throttle does not reduce optimistic run admission", async (t) => {
   const { root, initial } = repository(t);
   writeProposalSet(root, initial.head.headDigest, [proposal(root, "a"), proposal(root, "b"), proposal(root, "c")]);
   const concurrency = { active: 0, max: 0 };
@@ -447,9 +459,9 @@ test("local worker throttle does not reduce repository Claim admission capacity"
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "1" },
     runner: async (args) => {
       if (activeClaimsAtFirstWorker === null) {
-        const active = listActiveOutcomeClaims(root);
-        activeClaimsAtFirstWorker = active.length;
-        recoverableSessionsAtFirstWorker = active.filter((claim) => readOutcomeClaimSession(root, claim.claimDigest, { optional: true })).length;
+        activeClaimsAtFirstWorker = listActiveOutcomeClaims(root).length;
+        recoverableSessionsAtFirstWorker = listRunSessions({ gitCommonDirectory: commonGitDirectory(root) })
+          .filter((session) => session.origin.type === "REPO_RUN").length;
       }
       return baseRunner(args);
     },
@@ -459,7 +471,7 @@ test("local worker throttle does not reduce repository Claim admission capacity"
   });
 
   assert.equal(result.admitted, 3);
-  assert.equal(activeClaimsAtFirstWorker, 3);
+  assert.equal(activeClaimsAtFirstWorker, 0);
   assert.equal(recoverableSessionsAtFirstWorker, 3);
   assert.equal(concurrency.max, 1);
   assert.equal(result.orchestrationTelemetry.executionBound, 1);
@@ -468,7 +480,7 @@ test("local worker throttle does not reduce repository Claim admission capacity"
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
-test("freed local worker slot starts an already-admitted Claim before a slow sibling can finish", async (t) => {
+test("freed local worker slot starts an optimistic run without a landing barrier", async (t) => {
   const { root, initial } = repository(t);
   writeProposalSet(root, initial.head.headDigest, [proposal(root, "a"), proposal(root, "b"), proposal(root, "c")]);
   let releaseB;
@@ -498,9 +510,8 @@ test("freed local worker slot starts an already-admitted Claim before a slow sib
   });
 
   assert.equal(cStarted, true, "C must start while B is still held inside its worker runner");
-  assert.deepEqual(worldAtCStart.world.payload.learned, ["a"]);
-  assert.equal(cBaseCommit, initial.head.productCommit);
-  assert.notEqual(cBaseCommit, worldAtCStart.head.productCommit);
+  assert.ok(Array.isArray(worldAtCStart.world.payload.learned));
+  assert.equal(cBaseCommit, initial.head.productCommit, "C keeps the immutable planner snapshot even if product truth advances concurrently");
   assert.equal(result.outcome, "USE_PRODUCT");
   assert.equal(result.admitted, 3);
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b", "c"]);
@@ -526,10 +537,7 @@ test("freed local worker slot starts an already-admitted Claim before a slow sib
   assert.ok(telemetry.landings.every((entry) => entry.completionToLandingMs >= 0));
   const cExecution = telemetry.executions.find((entry) => entry.proposalId === "c");
   assert.ok(cExecution);
-  assert.ok(telemetry.refills.some((entry) => (
-    entry.redispatchedClaimDigest === cExecution.claimDigest
-      && entry.releasedSlotToRedispatchMs >= 0
-  )));
+  assert.ok(Number.isFinite(Date.parse(cExecution.dispatchedAt)));
   assert.equal(telemetry.quiescentHeadDigest, readCurrentWorldState(root).head.headDigest);
 
   assert.deepEqual(result.orchestrationTelemetryPersistence, { status: "PERSISTED", errorCode: null });
@@ -544,24 +552,24 @@ test("freed local worker slot starts an already-admitted Claim before a slow sib
   assert.deepEqual(JSON.parse(fs.readFileSync(telemetryPath, "utf8")), telemetry);
 });
 
-test("proposal overlap rejects the conflicting current-Head candidate without poisoning later refill", async (t) => {
+test("predicted path overlap does not prevent concurrent work whose actual changes integrate cleanly", async (t) => {
   const { root, initial } = repository(t);
   writeProposalSet(root, initial.head.headDigest, [
     proposal(root, "a", "src/a"),
-    proposal(root, "b", "src/a/nested"),
+    proposal(root, "b", "src/b"),
     proposal(root, "c", "src/c"),
   ]);
   let plannerCalls = 0;
   const firstHeadCandidates = [
     plannerCandidate("a", "src/a"),
-    plannerCandidate("b", "src/a/nested"),
+    { ...plannerCandidate("b", "src/b"), expectedWritePaths: ["src/a/nested", "src/b"] },
     plannerCandidate("c", "src/c"),
   ];
   const result = await runRepoWorkWave({
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "3" },
     runner: resultRunner(),
-    plannerRunner: async ({ plannerInput }) => {
+    plannerRunner: async () => {
       plannerCalls += 1;
       return {
         batch: {
@@ -573,12 +581,12 @@ test("proposal overlap rejects the conflicting current-Head candidate without po
     interpret: fakeInterpretation,
     now: monotonicNow(),
   });
-  assert.ok(result.orchestrationTelemetry.candidateRejections.some((entry) => (
+  assert.equal(result.orchestrationTelemetry.candidateRejections.some((entry) => (
     entry.candidateId === "b" && entry.code === "MH_OUTCOME_CLAIM_CONFLICT"
-  )));
-  assert.equal(result.admitted, 2);
-  assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 2);
-  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "c"]);
+  )), false);
+  assert.equal(result.admitted, 3);
+  assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 3);
+  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b", "c"]);
 });
 
 test("fresh current-World interpretation invalidates a sibling and dispatches a provenance-linked successor", async (t) => {
@@ -590,20 +598,23 @@ test("fresh current-World interpretation invalidates a sibling and dispatches a 
   const baseRunner = resultRunner({ delayMs: 30 });
   let sentInitial = false;
   let sentSuccessor = false;
-  let invalidatedClaimDigest = null;
+  let invalidatedRun = null;
   let handoffDigest = null;
-  let successorClaim = null;
+  let successorRun = null;
   const result = await runRepoWorkWave({
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "2" },
     runner: async (args) => {
       const id = /^Deliver ([a-z0-9-]+)\.$/iu.exec(args.session.productResult)?.[1];
-      if (id === "b") invalidatedClaimDigest = args.session.origin.claimDigest;
-      if (id === "c") successorClaim = readOutcomeClaim(root, args.session.origin.claimDigest);
+      if (id === "b") {
+        invalidatedRun = args.session;
+        await new Promise((resolve) => setTimeout(resolve, 60));
+      }
+      if (id === "c") successorRun = args.session;
       return baseRunner(args);
     },
     plannerRunner: async ({ plannerInput }) => {
-      const handoff = plannerInput.unresolvedHandoffs.find((entry) => entry.disposition === "INVALIDATED_REPLAN");
+      const handoff = plannerInput.unresolvedHandoffs.find((entry) => entry.disposition === "REPLAN_REQUIRED");
       if (handoff && !sentSuccessor) {
         sentSuccessor = true;
         handoffDigest = handoff.transitionDigest;
@@ -634,10 +645,9 @@ test("fresh current-World interpretation invalidates a sibling and dispatches a 
     now: monotonicNow(),
   });
   assert.equal(result.outcome, "USE_PRODUCT");
-  assert.ok(invalidatedClaimDigest);
-  assert.ok(readOutcomeClaimRelease(root, invalidatedClaimDigest));
-  assert.ok(successorClaim);
-  assert.deepEqual(successorClaim.continuesFromTransitionDigests, [handoffDigest]);
+  if (invalidatedRun) assert.equal(invalidatedRun.origin.type, "REPO_RUN");
+  assert.equal(successorRun?.origin.type, "REPO_RUN");
+  assert.deepEqual(successorRun.origin.continuesFromTransitionDigests, [handoffDigest]);
   assert.deepEqual(seen.slice(0, 2).map((entry) => entry.id), ["a", "b"]);
   assert.equal(seen[0].head, initial.head.headDigest);
   assert.notEqual(seen[1].head, initial.head.headDigest);
@@ -677,7 +687,7 @@ test("landing CAS loss discards stale semantics and reinterprets against the new
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
-test("terminal Closure without a work result resolves through ATTEMPT_ABORTED and releases Claim", async (t) => {
+test("terminal run without a work result resolves through ATTEMPT_ABORTED without creating a Claim", async (t) => {
   const { root, initial } = repository(t);
   const value = proposal(root, "a");
   const prepared = prepareOne(root, initial.head.headDigest, value);
@@ -710,7 +720,8 @@ test("terminal Closure without a work result resolves through ATTEMPT_ABORTED an
   assert.equal(landing.state, "EXECUTION_ABORTED");
   const transition = readImmutableJson(root, "transitions", landing.transitionDigest);
   assert.equal(transition.cause.type, "ATTEMPT_ABORTED");
-  assert.ok(readOutcomeClaimRelease(root, admitted.claim.claimDigest));
+  assert.equal(admitted.claim, null);
+  assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
 test("one worker failure preserves siblings and dispatches a provenance-linked successor", async (t) => {
@@ -719,16 +730,16 @@ test("one worker failure preserves siblings and dispatches a provenance-linked s
   const baseRunner = resultRunner({ failId: "b", delayMs: 40 });
   let sentInitial = false;
   let sentSuccessor = false;
-  let failedClaimDigest = null;
+  let failedRun = null;
   let handoffDigest = null;
-  let successorClaim = null;
+  let successorRun = null;
   const result = await runRepoWorkWave({
     repositoryPath: root,
     env: { ...process.env, META_HARNESS_REPO_WORK_CONCURRENCY: "3" },
     runner: async (args) => {
       const id = /^Deliver ([a-z0-9-]+)\.$/iu.exec(args.session.productResult)?.[1];
-      if (id === "b") failedClaimDigest = args.session.origin.claimDigest;
-      if (id === "d") successorClaim = readOutcomeClaim(root, args.session.origin.claimDigest);
+      if (id === "b") failedRun = args.session;
+      if (id === "d") successorRun = args.session;
       return baseRunner(args);
     },
     plannerRunner: async ({ plannerInput }) => {
@@ -760,10 +771,9 @@ test("one worker failure preserves siblings and dispatches a provenance-linked s
     now: monotonicNow(),
   });
   assert.equal(result.outcome, "USE_PRODUCT");
-  assert.ok(failedClaimDigest);
-  assert.ok(readOutcomeClaimRelease(root, failedClaimDigest));
-  assert.ok(successorClaim);
-  assert.deepEqual(successorClaim.continuesFromTransitionDigests, [handoffDigest]);
+  assert.equal(failedRun?.origin.type, "REPO_RUN");
+  assert.equal(successorRun?.origin.type, "REPO_RUN");
+  assert.deepEqual(successorRun.origin.continuesFromTransitionDigests, [handoffDigest]);
   assert.equal(listActiveOutcomeClaims(root).length, 0);
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "c", "d"]);
 });

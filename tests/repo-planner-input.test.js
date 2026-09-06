@@ -5,7 +5,6 @@ const test = require("node:test");
 
 const { findExecutionClosureForOrigin } = require("../lib/execution-closure");
 const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
-const { REPOSITORY_ACTIVE_CLAIM_BOUND } = require("../lib/outcome-claim");
 const { landOutcomeClosure } = require("../lib/repo-outcome-landing");
 const { compileRepoPlannerInput } = require("../lib/repo-planner-input");
 const { runWork } = require("../lib/work-loop");
@@ -94,7 +93,7 @@ test("planner input v3 puts exact owner intent first and excludes full PRODUCT p
   assert.equal(Object.hasOwn(input, "ownerDirective"), false);
 });
 
-test("running-elsewhere Claim consumes repository capacity without local execution bookkeeping", (t) => {
+test("running-elsewhere commitment stays visible without creating a planner admission-capacity gate", (t) => {
   const { root } = repository(t);
   const initial = persistInitial(root, "world-transition/v2");
   const durableOutcome = outcome(root);
@@ -107,9 +106,7 @@ test("running-elsewhere Claim consumes repository capacity without local executi
   }];
   const current = readCurrentWorldState(root);
   const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered });
-  assert.equal(input.capacity.repositoryActiveClaimBound, REPOSITORY_ACTIVE_CLAIM_BOUND);
-  assert.equal(input.capacity.occupiedSlots, 1);
-  assert.equal(input.capacity.availableSlots, REPOSITORY_ACTIVE_CLAIM_BOUND - 1);
+  assert.equal(Object.hasOwn(input, "capacity"), false);
   assert.equal(input.activeCommitments.length, 1);
   assert.equal(input.activeCommitments[0].state, "running_elsewhere");
 });

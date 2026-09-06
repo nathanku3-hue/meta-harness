@@ -8,7 +8,15 @@ const test = require("node:test");
 
 const { domainDigest } = require("../lib/contracts/digest");
 const {
+  assertWorkspaceCustodyExecutable,
+  computeWorkspaceCustodyDigest,
+} = require("../lib/workspace-custody");
+const {
   acceptCandidate,
+  captureWorkspaceBoundary,
+  commonGitDirectory,
+  createImmutableRunSnapshot,
+  createImmutableSourceSnapshot,
   deliverValidatedChanges,
   inspectWorkspace,
   latestWorkSessionState,
@@ -16,11 +24,14 @@ const {
   persistWorkSession,
   prepareWorkspace,
   publishBankedChanges,
+  publishBankedChangesJournaled,
   sealCandidate,
   worktreePlan,
 } = require("../lib/work-git");
+const { readRunJournal, runIdForSession } = require("../lib/run-journal");
 const { sealWorkSession } = require("../lib/work-session");
 const { publicRepositoryEntry, resolveRepositoryEntry } = require("../lib/repository-entry");
+const { ensureRepositoryIdentity } = require("../lib/runtime-identity");
 const { tempDir } = require("./helpers/cli");
 const { directionFromContent } = require("./helpers/product-direction");
 const { gapProofSpec } = require("./helpers/product-proof");
@@ -56,6 +67,221 @@ function repository(t) {
   return { parent, root, origin, branch };
 }
 
+test("workspace custody treats equivalent Windows and WSL paths as one identity without weakening other checks", () => {
+  const body = {
+    schemaVersion: "workspace-custody/v1",
+    workspaceId: "11111111-1111-4111-8111-111111111111",
+    sessionDigest: `sha256:${"1".repeat(64)}`,
+    repositoryRoot: "/mnt/e/code/meta-harness",
+    workspacePath: "/mnt/e/code/meta-harness/.worktrees/meta-harness-11111111-1111-4111-8111-111111111111",
+    baseHead: "a".repeat(40),
+    branch: "work/test",
+    gitWorktreeIdentityDigest: `sha256:${"2".repeat(64)}`,
+    state: "ACTIVE",
+    generation: 3,
+    expectedDirtyManifestDigest: `sha256:${"3".repeat(64)}`,
+    createdAt: "2026-09-05T00:00:00.000Z",
+    updatedAt: "2026-09-05T00:00:01.000Z",
+    terminal: null,
+  };
+  const custody = { ...body, recordDigest: computeWorkspaceCustodyDigest(body) };
+  const executable = assertWorkspaceCustodyExecutable({
+    custody,
+    sessionDigest: body.sessionDigest,
+    repositoryRoot: "E:\\Code\\meta-harness",
+    workspacePath: "E:\\Code\\meta-harness\\.worktrees\\meta-harness-11111111-1111-4111-8111-111111111111",
+    branch: body.branch,
+    baseHead: body.baseHead,
+    generation: body.generation,
+    dirtyManifestDigest: body.expectedDirtyManifestDigest,
+  });
+  assert.equal(executable.recordDigest, custody.recordDigest);
+
+  assert.throws(
+    () => assertWorkspaceCustodyExecutable({
+      custody,
+      sessionDigest: body.sessionDigest,
+      repositoryRoot: "E:\\Code\\other-repository",
+      workspacePath: "E:\\Code\\meta-harness\\.worktrees\\meta-harness-11111111-1111-4111-8111-111111111111",
+      branch: body.branch,
+      baseHead: body.baseHead,
+      generation: body.generation,
+      dirtyManifestDigest: body.expectedDirtyManifestDigest,
+    }),
+    (error) => error.code === "MH_WORKSPACE_CUSTODY_MISMATCH",
+  );
+  assert.throws(
+    () => assertWorkspaceCustodyExecutable({
+      custody,
+      sessionDigest: body.sessionDigest,
+      repositoryRoot: "E:\\Code\\meta-harness",
+      workspacePath: "E:\\Code\\meta-harness\\.worktrees\\meta-harness-11111111-1111-4111-8111-111111111111",
+      branch: body.branch,
+      baseHead: body.baseHead,
+      generation: body.generation + 1,
+      dirtyManifestDigest: body.expectedDirtyManifestDigest,
+    }),
+    (error) => error.code === "MH_WORKSPACE_CUSTODY_MISMATCH",
+  );
+});
+
+test("latest work-session recovery accepts retained WSL repository identity on Windows", { skip: process.platform !== "win32" }, (t) => {
+  const { root } = repository(t);
+  const session = isolatedSession(root);
+  const workspace = prepareWorkspace(root, session);
+  persistWorkSession(root, session, workspace);
+  const custodyPath = path.join(workspace.registryDir, `${workspace.workspaceId}.json`);
+  const current = JSON.parse(fs.readFileSync(custodyPath, "utf8"));
+  const toWsl = (value) => String(value).replace(/^([A-Za-z]):[\\/]/u, (_match, drive) => `/mnt/${drive.toLowerCase()}/`).replace(/\\/gu, "/");
+  const terminalizedAt = "2026-09-05T00:00:02.000Z";
+  const body = {
+    ...current,
+    repositoryRoot: toWsl(current.repositoryRoot),
+    workspacePath: toWsl(current.workspacePath),
+    state: "TERMINAL_BLOCKED",
+    updatedAt: terminalizedAt,
+    terminal: {
+      terminalState: "TERMINAL_BLOCKED",
+      resultDigest: `sha256:${"4".repeat(64)}`,
+      validationDigest: `sha256:${"5".repeat(64)}`,
+      finalDirtyManifestDigest: current.expectedDirtyManifestDigest,
+      changedPathHashes: {},
+      commitSha: null,
+      terminalizedAt,
+    },
+  };
+  delete body.recordDigest;
+  const retained = { ...body, recordDigest: computeWorkspaceCustodyDigest(body) };
+  fs.writeFileSync(custodyPath, `${JSON.stringify(retained, null, 2)}\n`, "utf8");
+
+  const latest = latestWorkSessionState(root);
+  assert.equal(latest.state, "TERMINAL");
+  assert.equal(latest.custodyState, "TERMINAL_BLOCKED");
+  const entry = resolveRepositoryEntry(root);
+  assert.deepEqual(publicRepositoryEntry(entry), {
+    schemaVersion: "meta-entry/v1",
+    action: "CONTINUE",
+    result: session.productResult,
+  });
+  assert.equal(entry.ingress.recovered, true);
+});
+
+test("immutable source snapshot captures only in-scope predecessor dirt without moving source HEAD, index, or working bytes", (t) => {
+  const { root } = repository(t);
+  fs.mkdirSync(path.join(root, "src"));
+  fs.writeFileSync(path.join(root, "src", "round3.txt"), "round 3 predecessor\n", "utf8");
+  fs.writeFileSync(path.join(root, "dirty.txt"), "unrelated owner dirt\n", "utf8");
+  const sourceHead = git(root, ["rev-parse", "HEAD"]);
+  const sourceStatus = git(root, ["status", "--porcelain=v1", "--untracked-files=all"]);
+  const sourceIndex = git(root, ["diff", "--cached", "--binary"]);
+  const unrelated = fs.readFileSync(path.join(root, "dirty.txt"), "utf8");
+
+  const snapshot = createImmutableSourceSnapshot({ repositoryPath: root, allowedPaths: ["src"], env: {} });
+  assert.ok(snapshot);
+  assert.deepEqual(snapshot.sourcePaths, ["src/round3.txt"]);
+  assert.equal(snapshot.parentOid, sourceHead);
+  assert.equal(git(root, ["show", `${snapshot.snapshotOid}:src/round3.txt`]), "round 3 predecessor");
+  assert.equal(git(root, ["show", `${snapshot.snapshotOid}:dirty.txt`]), "baseline dirty");
+  assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
+  assert.equal(git(root, ["status", "--porcelain=v1", "--untracked-files=all"]), sourceStatus);
+  assert.equal(git(root, ["diff", "--cached", "--binary"]), sourceIndex);
+  assert.equal(fs.readFileSync(path.join(root, "dirty.txt"), "utf8"), unrelated);
+});
+
+test("content-addressed source snapshot ref cannot be rebound to different bytes", (t) => {
+  const { root } = repository(t);
+  fs.mkdirSync(path.join(root, "src"));
+  fs.writeFileSync(path.join(root, "src", "round3.txt"), "round 3 predecessor\n", "utf8");
+  const snapshot = createImmutableSourceSnapshot({ repositoryPath: root, allowedPaths: ["src"], env: {} });
+  const sourceHead = git(root, ["rev-parse", "HEAD"]);
+  assert.notEqual(snapshot.snapshotOid, sourceHead);
+  git(root, ["update-ref", snapshot.ref, sourceHead]);
+
+  assert.throws(
+    () => createImmutableSourceSnapshot({ repositoryPath: root, allowedPaths: ["src"], env: {} }),
+    (error) => error.code === "MH_SOURCE_SNAPSHOT_REF_CONFLICT",
+  );
+  assert.equal(git(root, ["rev-parse", snapshot.ref]), sourceHead);
+});
+
+test("immutable run snapshot captures working bytes without moving source or workspace HEAD", (t) => {
+  const { root } = repository(t);
+  const workSession = isolatedSession(root);
+  const workspace = prepareWorkspace(root, workSession);
+  const sourceHead = git(root, ["rev-parse", "HEAD"]);
+  const sourceStatus = git(root, ["status", "--short"]);
+  const workspaceHead = git(workspace.workspacePath, ["rev-parse", "HEAD"]);
+
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "snapshotted mutation\n", "utf8");
+  const boundary = captureWorkspaceBoundary(workspace.workspacePath, workSession.allowedPaths);
+  const snapshot = createImmutableRunSnapshot({
+    repositoryPath: root,
+    workspacePath: workspace.workspacePath,
+    sessionDigest: workSession.sessionDigest,
+    workspaceId: workspace.workspaceId,
+    generation: workspace.generation,
+    treeOid: boundary.treeOid,
+    parentOid: workSession.base.commit,
+    env: {},
+  });
+  const repeated = createImmutableRunSnapshot({
+    repositoryPath: root,
+    workspacePath: workspace.workspacePath,
+    sessionDigest: workSession.sessionDigest,
+    workspaceId: workspace.workspaceId,
+    generation: workspace.generation,
+    treeOid: boundary.treeOid,
+    parentOid: workSession.base.commit,
+    env: {},
+  });
+
+  assert.equal(repeated.snapshotOid, snapshot.snapshotOid);
+  assert.equal(repeated.snapshotDigest, snapshot.snapshotDigest);
+  assert.equal(git(root, ["rev-parse", snapshot.ref]), snapshot.snapshotOid);
+  assert.equal(git(root, ["show", `${snapshot.snapshotOid}:accepted.txt`]), "snapshotted mutation");
+  assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
+  assert.equal(git(root, ["status", "--short"]), sourceStatus);
+  assert.equal(git(workspace.workspacePath, ["rev-parse", "HEAD"]), workspaceHead);
+  assert.match(git(workspace.workspacePath, ["status", "--short"]), /accepted\.txt/u);
+  assert.match(snapshot.snapshotDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.match(snapshot.runtimeCapabilityDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.equal(snapshot.repositoryId, ensureRepositoryIdentity(commonGitDirectory(root)).repositoryId);
+});
+
+test("content-addressed run snapshot ref cannot be rebound to a different commit", (t) => {
+  const { root } = repository(t);
+  const workSession = isolatedSession(root);
+  const workspace = prepareWorkspace(root, workSession);
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "snapshotted mutation\n", "utf8");
+  const boundary = captureWorkspaceBoundary(workspace.workspacePath, workSession.allowedPaths);
+  const snapshot = createImmutableRunSnapshot({
+    repositoryPath: root,
+    workspacePath: workspace.workspacePath,
+    sessionDigest: workSession.sessionDigest,
+    workspaceId: workspace.workspaceId,
+    generation: workspace.generation,
+    treeOid: boundary.treeOid,
+    parentOid: workSession.base.commit,
+    env: {},
+  });
+  git(root, ["update-ref", snapshot.ref, workSession.base.commit]);
+
+  assert.throws(
+    () => createImmutableRunSnapshot({
+      repositoryPath: root,
+      workspacePath: workspace.workspacePath,
+      sessionDigest: workSession.sessionDigest,
+      workspaceId: workspace.workspaceId,
+      generation: workspace.generation,
+      treeOid: boundary.treeOid,
+      parentOid: workSession.base.commit,
+      env: {},
+    }),
+    (error) => error.code === "MH_RUN_SNAPSHOT_REF_CONFLICT",
+  );
+  assert.equal(git(root, ["rev-parse", snapshot.ref]), workSession.base.commit);
+});
+
 function remoteHead(root, branch) {
   const output = git(root, ["ls-remote", "--heads", "origin", `refs/heads/${branch}`]);
   return output.split(/\s+/)[0];
@@ -85,7 +311,11 @@ function acceptedCandidate(session, seal) {
   });
 }
 
-function isolatedSession(root, base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) }) {
+function isolatedSession(
+  root,
+  base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
+  delivery = { commit: false, push: false },
+) {
   const productDirection = directionFromContent();
   const semanticAuthority = compileSemanticAuthority({ productDirection });
   const productResult = "Create the isolated result.";
@@ -111,7 +341,7 @@ function isolatedSession(root, base = { type: "EXACT_COMMIT", commit: git(root, 
     allowedPaths: ["accepted.txt"],
     validation: [{ argv: [process.execPath, "-e", "process.exit(0)"], cwd: ".", timeoutSeconds: 30 }],
     maxAttempts: 1,
-    delivery: { commit: false, push: false },
+    delivery,
   });
 }
 
@@ -182,6 +412,15 @@ test("resume binds repository, persisted workspace record, session identity, and
     () => loadLatestWorkSession(root),
     (error) => ["MH_WORK_RESUME", "MH_WORKSPACE_CUSTODY_MISMATCH", "MH_WORK_WORKTREE_MISSING"].includes(error.code),
   );
+  const recoveredEntry = resolveRepositoryEntry(root);
+  assert.deepEqual(publicRepositoryEntry(recoveredEntry), {
+    schemaVersion: "meta-entry/v1",
+    action: "CONTINUE",
+    result: session.productResult,
+  });
+  assert.equal(recoveredEntry.kind, "OWNER_GOAL_INGRESS");
+  assert.equal(recoveredEntry.ingress.recovered, true);
+  assert.equal(recoveredEntry.ingress.sessionDigest, session.sessionDigest);
 
   const pointerPath = path.join(state.directory, "latest.json");
   const pointer = JSON.parse(fs.readFileSync(pointerPath, "utf8"));
@@ -232,29 +471,45 @@ test("multiple ACTIVE direct custodories fail closed instead of guessing latest"
     (error) => error.code === "MH_WORK_RESUME_CONFLICT"
       && error.details?.workspaceIds?.length === 2,
   );
-  assert.deepEqual(publicRepositoryEntry(resolveRepositoryEntry(root)), {
+  const entry = resolveRepositoryEntry(root);
+  assert.deepEqual(publicRepositoryEntry(entry), {
     schemaVersion: "meta-entry/v1",
-    action: "INVALID",
+    action: "IDLE",
     result: null,
   });
+  assert.equal(entry.error?.code, "MH_WORK_RESUME_CONFLICT");
 });
 
-test("corrupt canonical custody fails closed even when latest.json looks valid", (t) => {
+test("corrupt derived custody self-stabilizes to a fresh workspace without renegotiating the product", (t) => {
   const { root } = repository(t);
   const session = isolatedSession(root);
   const workspace = prepareWorkspace(root, session);
   persistWorkSession(root, session, workspace);
   const custodyPath = path.join(root, ".git", "meta-harness", "workspaces", `${workspace.workspaceId}.json`);
   fs.writeFileSync(custodyPath, "{ corrupt canonical custody\n", "utf8");
-  assert.throws(
-    () => latestWorkSessionState(root),
-    (error) => error.code === "MH_WORKSPACE_CUSTODY_READ",
-  );
-  assert.deepEqual(publicRepositoryEntry(resolveRepositoryEntry(root)), {
+
+  const latest = latestWorkSessionState(root);
+  assert.equal(latest.state, "ACTIVE");
+  assert.equal(latest.session.sessionDigest, session.sessionDigest);
+  const plan = worktreePlan(root, latest.session);
+  assert.equal(plan.resumed, true);
+  assert.notEqual(plan.workspaceId, workspace.workspaceId);
+  assert.equal(plan.baseHead, session.base.commit);
+  assert.equal(git(plan.workspacePath, ["status", "--short"]), "");
+
+  const entry = resolveRepositoryEntry(root);
+  assert.deepEqual(publicRepositoryEntry(entry), {
     schemaVersion: "meta-entry/v1",
-    action: "INVALID",
-    result: null,
+    action: "CONTINUE",
+    result: session.productResult,
   });
+  assert.equal(entry.kind, "DIRECT_SESSION");
+  assert.equal(entry.error, null);
+
+  const again = latestWorkSessionState(root);
+  assert.equal(again.state, "ACTIVE");
+  assert.equal(again.session.sessionDigest, session.sessionDigest);
+  assert.equal(worktreePlan(root, again.session).workspaceId, plan.workspaceId);
 });
 
 test("resume keeps its sealed base when origin and the source branch advance", (t) => {
@@ -497,9 +752,80 @@ test("BANK commits the exact sealed Git tree and PUBLISH is a later operation", 
   assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
 });
 
-test("ACTIVE custody deterministically recovers an exact BANK completed before terminalization", (t) => {
+test("push intent survives a crash after remote success and replays the same observable effect identity", (t) => {
   const { root } = repository(t);
   const session = isolatedSession(root);
+  const workspace = prepareWorkspace(root, session);
+  const state = persistWorkSession(root, session, workspace);
+  fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "validated result\n", "utf8");
+  const inspected = inspectWorkspace(workspace.workspacePath, session.allowedPaths);
+  const seal = sealCandidate({
+    stateDirectory: state.directory,
+    session,
+    workspace,
+    boundary: { head: inspected.head, inspected },
+    materializedPaths: ["accepted.txt"],
+  });
+  const banked = deliverValidatedChanges({
+    repositoryRoot: root,
+    workspacePath: workspace.workspacePath,
+    session,
+    workspaceCustody: workspace.custody,
+    candidateSeal: seal,
+    candidateAcceptance: acceptedCandidate(session, seal),
+    stateDirectory: state.directory,
+    delivery: { commit: true, push: false },
+    productResult: "Write the validated result.",
+  });
+  const gitDirectory = commonGitDirectory(root);
+  const runId = runIdForSession(session.sessionDigest);
+
+  assert.throws(
+    () => publishBankedChangesJournaled({
+      workspacePath: workspace.workspacePath,
+      sessionDigest: session.sessionDigest,
+      commit: banked.commit,
+      push: true,
+      publisher: (input) => {
+        const result = publishBankedChanges(input);
+        assert.equal(result.status, "remote_equal");
+        assert.equal(remoteHead(root, workspace.branch), banked.commit.sha);
+        throw new Error("simulated crash after remote success");
+      },
+    }),
+    /simulated crash after remote success/u,
+  );
+
+  let events = readRunJournal({ gitCommonDirectory: gitDirectory, runId });
+  const intended = events.filter((event) => event.type === "effect/intended");
+  assert.equal(intended.length, 1);
+  assert.equal(intended[0].data.kind, "GIT_PUSH");
+  assert.equal(intended[0].data.replayClass, "OBSERVABLE");
+  assert.equal(intended[0].data.commitSha, banked.commit.sha);
+  assert.equal(intended[0].data.branch, workspace.branch);
+  assert.equal(events.filter((event) => event.type === "effect/observed").length, 0);
+
+  const replayed = publishBankedChangesJournaled({
+    workspacePath: workspace.workspacePath,
+    sessionDigest: session.sessionDigest,
+    commit: banked.commit,
+    push: true,
+  });
+  assert.equal(replayed.status, "remote_equal");
+  assert.equal(remoteHead(root, workspace.branch), banked.commit.sha);
+
+  events = readRunJournal({ gitCommonDirectory: gitDirectory, runId });
+  assert.equal(events.filter((event) => event.type === "effect/intended").length, 1);
+  const observed = events.filter((event) => event.type === "effect/observed");
+  assert.equal(observed.length, 1);
+  assert.equal(observed[0].data.effectId, intended[0].data.effectId);
+  assert.equal(observed[0].data.exactInputDigest, intended[0].data.exactInputDigest);
+  assert.equal(observed[0].data.result.status, "remote_equal");
+});
+
+test("ACTIVE custody recovery publishes an exact BANK from durable intent before terminalization", (t) => {
+  const { root } = repository(t);
+  const session = isolatedSession(root, undefined, { commit: true, push: true });
   const workspace = prepareWorkspace(root, session);
   const state = persistWorkSession(root, session, workspace);
   fs.writeFileSync(path.join(workspace.workspacePath, "accepted.txt"), "validated result\n", "utf8");
@@ -529,6 +855,19 @@ test("ACTIVE custody deterministically recovers an exact BANK completed before t
   assert.equal(recovered.state, "TERMINAL");
   assert.equal(recovered.custodyState, "TERMINAL_COMMITTED");
   assert.equal(git(workspace.workspacePath, ["status", "--short"]), "");
+  assert.equal(remoteHead(root, workspace.branch), banked.commit.sha);
+
+  const events = readRunJournal({
+    gitCommonDirectory: commonGitDirectory(root),
+    runId: runIdForSession(session.sessionDigest),
+  });
+  const intended = events.findIndex((event) => event.type === "effect/intended" && event.data?.kind === "GIT_PUSH");
+  const observed = events.findIndex((event) => event.type === "effect/observed");
+  assert.ok(intended >= 0);
+  assert.ok(observed > intended);
+  assert.equal(events[intended].data.commitSha, banked.commit.sha);
+  assert.equal(events[observed].data.effectId, events[intended].data.effectId);
+  assert.equal(events[observed].data.result.status, "remote_equal");
 });
 
 test("HEAD movement without an exact candidate-seal proof recovers as blocked, never committed", (t) => {

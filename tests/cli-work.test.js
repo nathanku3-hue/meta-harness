@@ -13,7 +13,7 @@ const { writePassingProductProof } = require("./helpers/product-proof");
 const { persistOwnerGoalIngress, persistWorkSession, prepareWorkspace } = require("../lib/work-git");
 const { createGoalWorkSession } = require("../lib/work-session");
 const { compileProductProofSpec } = require("../lib/work-proof-compiler");
-const { renderHuman } = require("../lib/commands/work");
+const { hostKind, renderHuman } = require("../lib/commands/work");
 const { protocolRoot } = require("../lib/world-authority");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
@@ -183,7 +183,9 @@ test("banked work with unresolved material product-proof claims is a truthful no
   const root = repo(t, { withProductProof: false });
   const result = runRaw(root, ["Create the delivered result file."], { env: env({ FAKE_PROOF_COMPILER_GAP: "1" }) });
   assert.equal(result.status, 1, result.stderr || result.stdout);
-  assert.match(result.stdout, /^Banked — repository validation passed, but material product-proof claims remain unresolved\.$/m);
+  assert.match(result.stdout, /Prepared src\/result\.txt/u);
+  assert.match(result.stdout, /requested result is not yet proven/u);
+  assert.doesNotMatch(result.stdout, /Banked —|product-proof claims/iu);
   const latest = JSON.parse(fs.readFileSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json"), "utf8"));
   assert.notEqual(git(latest.workspace.path, ["rev-parse", "HEAD"]), git(root, ["rev-parse", "HEAD"]));
   assert.equal(git(latest.workspace.path, ["status", "--short"]), "");
@@ -264,7 +266,7 @@ test("missing allow values fail before validation, workspace, worker, or reposit
   }
 });
 
-test("unsupported goal blocks before worker, workspace, or repository mutation", (t) => {
+test("unsupported validation route replans before worker, workspace, or repository mutation", (t) => {
   const root = repo(t, { withValidation: false });
   const result = runRaw(ROOT, [
     "work", root,
@@ -274,7 +276,7 @@ test("unsupported goal blocks before worker, workspace, or repository mutation",
   ], { env: env() });
   assert.equal(result.status, 1, result.stderr);
   const parsed = JSON.parse(result.stdout);
-  assert.equal(parsed.outcome, "BLOCKED");
+  assert.equal(parsed.outcome, "REPLAN_REQUIRED");
   assert.equal(parsed.workspace.mode, "not_created");
   assert.equal(parsed.attempts, 0);
   assert.deepEqual(parsed.changedPaths, []);
@@ -289,7 +291,8 @@ test("unsupported goal blocks before worker, workspace, or repository mutation",
     "--allow", "src",
   ], { env: env() });
   assert.equal(human.status, 1, human.stderr);
-  assert.match(human.stdout, /^Blocked:/m);
+  assert.match(human.stdout, /No deterministic validation command could be derived from the sealed base tree\./u);
+  assert.doesNotMatch(human.stdout, /^Blocked:/mu);
   assert.doesNotMatch(human.stdout, /Workspace:|Commit:|Push:|session|work-session/i);
   assert.doesNotMatch(human.stdout, /worker-reported/);
 });
@@ -343,6 +346,34 @@ test("dry run previews fresh isolation; completed terminal workspace cannot resu
   const secondResult = JSON.parse(second.stdout);
   assert.notEqual(secondResult.workspace.workspaceId, delivered.workspace.workspaceId);
   assert.notEqual(secondResult.workspace.path, delivered.workspace.path);
+});
+
+test("dirty predecessor bytes become the immutable base of a fresh run without source mutation", (t) => {
+  const root = repo(t);
+  fs.mkdirSync(path.join(root, "src"), { recursive: true });
+  fs.writeFileSync(path.join(root, "src", "round3.txt"), "round 3 predecessor\n", "utf8");
+  fs.writeFileSync(path.join(root, "README.md"), "unrelated owner dirt\n", "utf8");
+  const sourceHead = git(root, ["rev-parse", "HEAD"]);
+  const beforeStatus = git(root, ["status", "--porcelain=v1", "--untracked-files=all"]);
+  const beforeIndex = git(root, ["diff", "--cached", "--binary"]);
+
+  const result = runRaw(ROOT, [
+    "work", root,
+    "--goal", "Create the delivered result file.",
+    "--allow", "src",
+    "--json",
+  ], { env: env() });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.outcome, "DONE");
+  assert.notEqual(parsed.workspace.baseHead, sourceHead);
+  assert.equal(git(parsed.workspace.path, ["rev-parse", "HEAD^"]), parsed.workspace.baseHead);
+  assert.equal(git(parsed.workspace.path, ["rev-parse", "HEAD^^"]), sourceHead);
+  assert.equal(git(parsed.workspace.path, ["show", `${parsed.workspace.baseHead}:src/round3.txt`]), "round 3 predecessor");
+  assert.equal(git(parsed.workspace.path, ["show", `${parsed.workspace.baseHead}:README.md`]), "baseline");
+  assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
+  assert.equal(git(root, ["status", "--porcelain=v1", "--untracked-files=all"]), beforeStatus);
+  assert.equal(git(root, ["diff", "--cached", "--binary"]), beforeIndex);
 });
 
 test("dirty stale diverged source uses fresh remote authority and sealed-tree validation without source mutation", (t) => {
@@ -565,28 +596,159 @@ test("inspect is a coarse diagnostic surface without lifecycle identifiers", (t)
   assert.doesNotMatch(result.stdout, /workspace|session|generation|custody|sha256|uuid/i);
 });
 
-test("owner attention is proof-controlled rather than punctuation-controlled", () => {
+test("owner attention requires a deterministic controller gate rather than punctuation or forward-motion proof", () => {
   const render = (result) => {
     let output = "";
     renderHuman({ stdout: { write: (chunk) => { output += String(chunk); } } }, result);
     return output;
   };
-  assert.equal(render({
+  const punctuationOnly = render({
     outcome: "BLOCKED",
     blocker: "Date semantics require owner taste.",
     nextAction: "Should exported dates use local time or UTC?",
-  }), "Blocked: Date semantics require owner taste.\nNext: Should exported dates use local time or UTC?\n");
-  assert.equal(render({
+  });
+  assert.match(punctuationOnly, /Date semantics require owner taste\./u);
+  assert.match(punctuationOnly, /Next: Should exported dates use local time or UTC\?/u);
+  assert.doesNotMatch(punctuationOnly, /Need you:/u);
+
+  const legacyProofOwner = render({
     outcome: "OWNER_REQUIRED",
-    blocker: "A genuine product-taste decision remains.",
+    blocker: "A legacy forward-motion proof claimed product-taste authority.",
     nextAction: "Should exported dates use local time or UTC?",
     forwardMotionProofDigest: `sha256:${"a".repeat(64)}`,
-  }), "Need you: Should exported dates use local time or UTC?\n");
-  assert.equal(render({
+  });
+  assert.doesNotMatch(legacyProofOwner, /Need you:/u);
+  assert.match(legacyProofOwner, /legacy forward-motion proof claimed product-taste authority/i);
+
+  const command = render({
     outcome: "BLOCKED",
     blocker: "GitHub authentication is required.",
     nextAction: "gh auth login",
-  }), "Blocked: GitHub authentication is required.\nRun: gh auth login\n");
+  });
+  assert.match(command, /GitHub authentication is required\./u);
+  assert.match(command, /^Run: gh auth login$/mu);
+});
+
+test("normal work output projects product consequence instead of lifecycle labels", () => {
+  const render = (result) => {
+    let output = "";
+    renderHuman({ stdout: { write: (chunk) => { output += String(chunk); } } }, result);
+    return output;
+  };
+  const forbidden = /current repository truth|durable Claim authority|constitutional owner authority|REPLAN_REQUIRED|\bReplan:|hard blocked|repository planner|delegation gate/iu;
+
+  const done = render({
+    outcome: "DONE",
+    observableResult: "The parser now accepts the bounded valid input shape",
+    productResult: "Repair the parser.",
+  });
+  assert.match(done, /parser now accepts the bounded valid input shape/u);
+  assert.doesNotMatch(done, forbidden);
+
+  const banked = render({
+    outcome: "BANKED_UNPROVEN",
+    observableResult: "The candidate passes repository validation",
+    productResult: "Prove the requested behavior.",
+  });
+  assert.match(banked, /candidate passes repository validation/u);
+  assert.match(banked, /requested result is not yet proven/u);
+  assert.doesNotMatch(banked, /Banked —|product-proof claims/iu);
+  assert.doesNotMatch(banked, forbidden);
+
+  const ready = render({
+    outcome: "READY",
+    productResult: "Repair the parser.",
+    nextAction: "Run the same command without --dry-run.",
+  });
+  assert.match(ready, /Nothing changed yet/u);
+  assert.match(ready, /requested work can run/u);
+  assert.match(ready, /Run the same command without --dry-run\./u);
+  assert.doesNotMatch(ready, /Ready —|workflow decision/iu);
+  assert.doesNotMatch(ready, forbidden);
+
+  const exhausted = render({
+    outcome: "REPLAN_REQUIRED",
+    blocker: "All currently available implementation means failed.",
+    nextAction: "Replan the Outcome autonomously from the durable forward-motion evidence.",
+  });
+  assert.match(exhausted, /All currently available implementation means failed\./u);
+  assert.doesNotMatch(exhausted, /Replan the Outcome|durable forward-motion/u);
+  assert.doesNotMatch(exhausted, forbidden);
+});
+
+test("repo-wave egress uses product meaning and host owner attention agrees with Need you", () => {
+  const render = (result) => {
+    let output = "";
+    renderHuman({ stdout: { write: (chunk) => { output += String(chunk); } } }, result);
+    return output;
+  };
+  const result = {
+    schemaVersion: "repo-work-wave-result/v1",
+    outcome: "PARTIAL",
+    delegationGate: {
+      kind: "FORWARD_GATE",
+      statement: "Retained delegation is exhausted; the repository planner owns any fresh work.",
+      ownerRequest: null,
+    },
+    outcomes: [
+      { state: "LANDED", desiredState: "The parser accepts the bounded valid input shape." },
+      { state: "RUNNING_ELSEWHERE", desiredState: "The cache repair reaches validation." },
+      { state: "BLOCKED", desiredState: "The package is published." },
+      { state: "REPLAN_REQUIRED", desiredState: "The migration is generated." },
+    ],
+  };
+  const output = render(result);
+  for (const text of [
+    "The parser accepts the bounded valid input shape.",
+    "The cache repair reaches validation.",
+    "The package is published.",
+    "The migration is generated.",
+  ]) assert.match(output, new RegExp(text.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "u"));
+  assert.doesNotMatch(output, /current repository truth|Claim authority|constitutional owner authority|REPLAN_REQUIRED|\bReplan:|hard blocked|repository planner|delegation/iu);
+
+  const ownerResult = {
+    schemaVersion: "repo-work-wave-result/v1",
+    outcome: "REPLAN_REQUIRED",
+    delegationGate: {
+      kind: "OWNER_DECISION",
+      statement: "Legacy surfaced evidence only.",
+      ownerRequest: { question: "This legacy gate must not control owner attention." },
+    },
+    ownerEffect: {
+      kind: "MATERIAL_PRODUCT_CHOICE",
+      question: "Use UTC or local time?",
+    },
+    outcomes: [],
+  };
+  assert.equal(render(ownerResult), "Need you: Use UTC or local time?\n");
+  assert.equal(hostKind(ownerResult, []), "OWNER_REQUIRED");
+  assert.equal(hostKind(ownerResult, [`sha256:${"b".repeat(64)}`]), "EXTERNAL_OPEN");
+
+  const outcomeOwnerResult = {
+    schemaVersion: "repo-work-wave-result/v1",
+    outcome: "PARTIAL",
+    delegationGate: null,
+    outcomes: [{
+      state: "OWNER_REQUIRED",
+      desiredState: "The export date convention is selected.",
+      ownerRequest: { question: "Use UTC or local time?" },
+    }],
+  };
+  assert.doesNotMatch(render(outcomeOwnerResult), /Need you:/u);
+  assert.equal(hostKind(outcomeOwnerResult, []), "WORKING");
+
+  const legacyGateOnly = {
+    schemaVersion: "repo-work-wave-result/v1",
+    outcome: "OWNER_REQUIRED",
+    delegationGate: {
+      kind: "OWNER_DECISION",
+      statement: "Legacy surfaced evidence only.",
+      ownerRequest: { question: "Should this legacy gate interrupt the owner?" },
+    },
+    outcomes: [],
+  };
+  assert.doesNotMatch(render(legacyGateOnly), /Need you:/u);
+  assert.equal(hostKind(legacyGateOnly, []), "WORKING");
 });
 
 test("default help is one coding journey and diagnostic help hides internal commands", () => {

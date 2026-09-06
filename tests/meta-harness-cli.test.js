@@ -54,6 +54,23 @@ function validDecisionInbox() {
   };
 }
 
+test("inspect and product error surfaces fail forward instead of manufacturing global BLOCKED state", () => {
+  const cwd = tempDir("meta-harness-nonrepo-");
+  const inspected = runRaw(cwd, ["inspect", "--json"]);
+  assert.equal(inspected.status, 0, inspected.stderr);
+  assert.deepEqual(JSON.parse(inspected.stdout), {
+    schemaVersion: "meta-entry/v1",
+    action: "IDLE",
+    result: null,
+  });
+
+  const attempted = runRaw(cwd, ["Deliver the requested result."], { productSurface: true });
+  assert.notEqual(attempted.status, 0);
+  assert.match(attempted.stdout, /^Execution issue:/mu);
+  assert.match(attempted.stdout, /requested product result remains the goal/i);
+  assert.doesNotMatch(attempted.stdout, /^Blocked:/mu);
+});
+
 test("event validation fails closed for bad JSONL and CLI input", () => {
   const eventPath = (cwd) => path.join(cwd, ".meta-harness", "events.jsonl");
   const blankCwd = tempDir();

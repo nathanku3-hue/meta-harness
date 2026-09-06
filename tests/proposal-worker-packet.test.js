@@ -3,10 +3,8 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const {
-  enterExecutionAttempt,
-  issueExecutionPermit,
-} = require("../lib/execution-permit");
+const { attemptInputKey } = require("../lib/execution-identity");
+const { enterRunAttempt } = require("../lib/execution-permit");
 const {
   PROPOSAL_WORKER_PACKET_SCHEMA,
   compileProposalWorkerPacket,
@@ -24,6 +22,7 @@ const {
   acquireWorkspaceExecutionLease,
   releaseWorkspaceExecutionLease,
 } = require("../lib/workspace-custody");
+const { runtimeCapabilityDigest } = require("../lib/runtime-identity");
 const { readCurrentWorldState } = require("../lib/world-transition");
 const {
   persistInitial,
@@ -50,7 +49,7 @@ function candidate(id, paths = [`src/${id}`]) {
   };
 }
 
-function enteredClaimAttempt(t) {
+function enteredRepoRun(t) {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   const current = readCurrentWorldState(root);
@@ -67,28 +66,25 @@ function enteredClaimAttempt(t) {
   });
   const state = persistWorkSession(root, session, workspace);
   const boundary = captureWorkspaceBoundary(workspace.workspacePath, session.allowedPaths);
-  const permit = issueExecutionPermit({
-    repositoryRoot: workspace.repositoryRoot,
-    workspacePath: workspace.workspacePath,
+  const runtimeDigest = runtimeCapabilityDigest({});
+  const inputKey = attemptInputKey({
     session,
-    attempt: 1,
-    boundary,
-    workspaceCustody: workspace.custody,
-    workspaceLease: lease,
-    workspaceRegistryDir: workspace.registryDir,
-    stateDirectory: state.directory,
+    snapshotTreeOid: boundary.treeOid,
+    runtimeCapabilityDigest: runtimeDigest,
+    workspaceMode: workspace.mode,
   });
-  const attemptEntry = enterExecutionAttempt({
-    stateDirectory: state.directory,
-    permit,
+  const attemptEntry = enterRunAttempt({
+    repositoryPath: root,
     session,
-    entryCapability: "CODE_PROPOSE",
+    workspaceId: workspace.workspaceId,
+    generation: 1,
+    attemptInputKey: inputKey,
   });
-  return { root, session, workspace, lease, state, boundary, permit, attemptEntry };
+  return { root, session, workspace, lease, state, boundary, runtimeDigest, inputKey, attemptEntry };
 }
 
-test("entered Claim attempt derives one transport-only proposal worker packet", (t) => {
-  const fixture = enteredClaimAttempt(t);
+test("entered claimless run derives one transport-only proposal worker packet", (t) => {
+  const fixture = enteredRepoRun(t);
   const first = compileProposalWorkerPacket({
     repositoryPath: fixture.root,
     stateDirectory: fixture.state.directory,
@@ -96,9 +92,10 @@ test("entered Claim attempt derives one transport-only proposal worker packet", 
     workspace: fixture.workspace,
     workspaceLease: fixture.lease,
     boundary: fixture.boundary,
-    executionPermit: fixture.permit,
+    executionPermit: null,
     attemptEntry: fixture.attemptEntry,
     attempt: 1,
+    runtimeCapabilityDigest: fixture.runtimeDigest,
   });
   const second = compileProposalWorkerPacket({
     repositoryPath: fixture.root,
@@ -107,13 +104,15 @@ test("entered Claim attempt derives one transport-only proposal worker packet", 
     workspace: fixture.workspace,
     workspaceLease: fixture.lease,
     boundary: fixture.boundary,
-    executionPermit: fixture.permit,
+    executionPermit: null,
     attemptEntry: fixture.attemptEntry,
     attempt: 1,
+    runtimeCapabilityDigest: fixture.runtimeDigest,
   });
 
   assert.equal(first.packet.schemaVersion, PROPOSAL_WORKER_PACKET_SCHEMA);
-  assert.equal(first.packet.permitDigest, fixture.permit.permitDigest);
+  assert.equal(first.packet.attemptInputKey, fixture.inputKey);
+  assert.equal(Object.hasOwn(first.packet, "permitDigest"), false);
   assert.equal(first.packet.attemptEntryDigest, fixture.attemptEntry.entryDigest);
   assert.match(first.packet.promptDigest, /^sha256:[a-f0-9]{64}$/u);
   assert.match(first.packet.workerResultSchemaDigest, /^sha256:[a-f0-9]{64}$/u);
@@ -136,8 +135,8 @@ test("entered Claim attempt derives one transport-only proposal worker packet", 
   assert.deepEqual(after.inspected.entries, fixture.boundary.inspected.entries);
 });
 
-test("proposal packet rejects non-Claim sessions and stale workspace baselines", (t) => {
-  const fixture = enteredClaimAttempt(t);
+test("proposal packet rejects non-repository sessions and stale workspace baselines", (t) => {
+  const fixture = enteredRepoRun(t);
   const ownerSession = { ...fixture.session, origin: { type: "OWNER_GOAL" } };
   assert.throws(
     () => compileProposalWorkerPacket({
@@ -147,11 +146,12 @@ test("proposal packet rejects non-Claim sessions and stale workspace baselines",
       workspace: fixture.workspace,
       workspaceLease: fixture.lease,
       boundary: fixture.boundary,
-      executionPermit: fixture.permit,
+      executionPermit: null,
       attemptEntry: fixture.attemptEntry,
       attempt: 1,
+      runtimeCapabilityDigest: fixture.runtimeDigest,
     }),
-    /Claim-bound REPO_OUTCOME/u,
+    /repository Outcome run/u,
   );
 
   const staleBoundary = { ...fixture.boundary, head: "0".repeat(40) };
@@ -163,10 +163,11 @@ test("proposal packet rejects non-Claim sessions and stale workspace baselines",
       workspace: fixture.workspace,
       workspaceLease: fixture.lease,
       boundary: staleBoundary,
-      executionPermit: fixture.permit,
+      executionPermit: null,
       attemptEntry: fixture.attemptEntry,
       attempt: 1,
+      runtimeCapabilityDigest: fixture.runtimeDigest,
     }),
-    (error) => error?.code === "MH_EXECUTION_PERMIT_STALE",
+    /exact RUN_CAPABILITY attempt and baseline/u,
   );
 });

@@ -15,10 +15,9 @@ const {
   ensureOutcomeClaim,
   findActiveOutcomeClaimForOutcome,
   listActiveOutcomeClaims,
-  REPOSITORY_ACTIVE_CLAIM_BOUND,
 } = require("../lib/outcome-claim");
 const { pinProductDirection } = require("../lib/product-direction");
-const { validateRepoDecision } = require("../lib/repo-decision");
+const { validateRepoDecision } = require("./fixtures/legacy-repo-decision");
 const {
   commitTransition,
   computeInterpretationDigest,
@@ -49,7 +48,6 @@ const {
 const { tempDir } = require("./helpers/cli");
 const { writeProductMd } = require("./helpers/product-direction");
 const { gapProofSpec } = require("./helpers/product-proof");
-const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
 
 const CLAIM_RACE = path.join(__dirname, "fixtures", "outcome-claim-race.js");
 
@@ -168,16 +166,12 @@ function claim(root, headDigest, value, writePaths) {
 function workSession(root, value, claimed, allowedPaths) {
   const productDirection = pinProductDirection(root);
   const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
-  const semanticAuthority = compileSemanticAuthority({ productDirection });
   const productResult = value.desiredState;
   const newlyTrueBehavior = value.desiredState;
   const doneWhen = value.evidenceRequirement;
   return sealWorkSession({
     schemaVersion: WORK_SESSION_SCHEMA,
     productDirection,
-    semanticState: semanticAuthority.semanticState,
-    semanticProjection: semanticProjection(semanticAuthority),
-    endgameProjection: endgameProjection(semanticAuthority),
     origin: {
       type: "REPO_OUTCOME",
       outcomeDigest: value.outcomeDigest,
@@ -191,12 +185,10 @@ function workSession(root, value, claimed, allowedPaths) {
     doneWhen,
     productProofSpec: gapProofSpec({ productDirection, base, productResult, newlyTrueBehavior, doneWhen }),
     stopOnlyIf: ["The sealed write boundary is genuinely insufficient."],
-    authorizedReversibleActions: ["Edit only the claimed write boundary.", "Run validation."],
-    ownerOnlyActions: ["Expand product scope."],
     allowedPaths,
     validation: [{ argv: [process.execPath, "-e", "process.exit(0)"], cwd: ".", timeoutSeconds: 30 }],
     maxAttempts: 2,
-    delivery: { commit: false, push: false },
+    delivery: { push: false },
   });
 }
 
@@ -261,10 +253,8 @@ test("same World admits disjoint Outcome claims, attempts, and claim-addressed s
 
   const claimA = claim(root, initial.head.headDigest, a, ["src/a"]);
   const claimB = claim(root, initial.head.headDigest, b, ["src/b"]);
-  assert.throws(
-    () => claim(root, initial.head.headDigest, c, ["src/a/nested"]),
-    (error) => error.code === "MH_OUTCOME_CLAIM_CONFLICT",
-  );
+  const claimC = claim(root, initial.head.headDigest, c, ["src/a/nested"]);
+  assert.deepEqual(claimC.executionBoundary, { writePaths: ["src/a/nested"] });
   assert.throws(
     () => claim(root, initial.head.headDigest, a, ["src/a"]),
     (error) => error.code === "MH_OUTCOME_ALREADY_CLAIMED",
@@ -289,7 +279,7 @@ test("same World admits disjoint Outcome claims, attempts, and claim-addressed s
   ].join("")], { cwd: root, encoding: "utf8", windowsHide: true });
   assert.equal(child.status, 0, child.stderr || child.stdout);
   const recovered = JSON.parse(child.stdout);
-  assert.equal(recovered.count, 2);
+  assert.equal(recovered.count, 3);
   assert.equal(recovered.state, "ACTIVE");
   assert.equal(recovered.sessionDigest, enteredB.entry.sessionDigest);
 });
@@ -334,10 +324,10 @@ test("two fresh processes racing the same Outcome produce exactly one Claim winn
   assert.equal(findActiveOutcomeClaimForOutcome(root, value.outcomeDigest).outcomeDigest, value.outcomeDigest);
 });
 
-test("fresh processes racing disjoint Outcomes cannot exceed repository active Claim capacity", async (t) => {
+test("fresh processes racing disjoint Outcomes are not globally admission-gated by repository capacity", async (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { revision: 1 });
-  const contenderCount = REPOSITORY_ACTIVE_CLAIM_BOUND + 2;
+  const contenderCount = 5;
   const values = Array.from({ length: contenderCount }, (_, index) => outcome(
     root,
     `capacity-${index}`,
@@ -376,29 +366,21 @@ test("fresh processes racing disjoint Outcomes cannot exceed repository active C
   fs.unlinkSync(barrier);
   const results = await resultsPromise;
 
-  assert.equal(
-    results.filter((result) => result.ok).length,
-    REPOSITORY_ACTIVE_CLAIM_BOUND,
-    JSON.stringify(results),
-  );
-  assert.equal(
-    results.filter((result) => result.code === "MH_OUTCOME_CLAIM_CAPACITY").length,
-    contenderCount - REPOSITORY_ACTIVE_CLAIM_BOUND,
-    JSON.stringify(results),
-  );
-  assert.equal(listActiveOutcomeClaims(root).length, REPOSITORY_ACTIVE_CLAIM_BOUND);
+  assert.equal(results.filter((result) => result.ok).length, contenderCount, JSON.stringify(results));
+  assert.equal(results.some((result) => result.code === "MH_OUTCOME_CLAIM_CAPACITY"), false);
+  assert.equal(listActiveOutcomeClaims(root).length, contenderCount);
 });
 
-test("full repository capacity still permits idempotent existing Claim resolution", (t) => {
+test("existing Claim resolution stays idempotent while additional distinct Outcomes remain admissible", (t) => {
   const root = repository(t);
   const initial = persistWorld(root, { revision: 1 });
-  const values = Array.from({ length: REPOSITORY_ACTIVE_CLAIM_BOUND + 1 }, (_, index) => outcome(
+  const values = Array.from({ length: 5 }, (_, index) => outcome(
     root,
     `ensure-capacity-${index}`,
     `Ensure capacity result ${index} exists.`,
     `Ensure capacity input ${index} remains available.`,
   ));
-  const claims = values.slice(0, REPOSITORY_ACTIVE_CLAIM_BOUND).map((value, index) => claim(
+  const claims = values.slice(0, 4).map((value, index) => claim(
     root,
     initial.head.headDigest,
     value,
@@ -413,16 +395,14 @@ test("full repository capacity still permits idempotent existing Claim resolutio
   });
   assert.equal(existing.claimDigest, claims[0].claimDigest);
 
-  assert.throws(
-    () => ensureOutcomeClaim({
-      repositoryPath: root,
-      outcomeDigest: values.at(-1).outcomeDigest,
-      originWorldHeadDigest: initial.head.headDigest,
-      executionBoundary: { writePaths: ["src/b/ensure-new"] },
-    }),
-    (error) => error.code === "MH_OUTCOME_CLAIM_CAPACITY",
-  );
-  assert.equal(listActiveOutcomeClaims(root).length, REPOSITORY_ACTIVE_CLAIM_BOUND);
+  const additional = ensureOutcomeClaim({
+    repositoryPath: root,
+    outcomeDigest: values.at(-1).outcomeDigest,
+    originWorldHeadDigest: initial.head.headDigest,
+    executionBoundary: { writePaths: ["src/b/ensure-new"] },
+  });
+  assert.equal(additional.outcomeDigest, values.at(-1).outcomeDigest);
+  assert.equal(listActiveOutcomeClaims(root).length, 5);
 });
 
 test("A can bank H to H1 while disjoint B remains executable, and stale B learning cannot commit blindly", (t) => {

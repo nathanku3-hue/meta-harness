@@ -17,6 +17,7 @@ const { compileSemanticAuthority, endgameProjection, semanticProjection } = requ
 const {
   createGoalWorkSession,
   sealWorkSession,
+  WORK_SESSION_SCHEMA,
 } = require("../lib/work-session");
 const { loadLatestWorkSession, persistWorkSession, prepareWorkspace } = require("../lib/work-git");
 const { ROOT, run, runRaw, tempDir } = require("./helpers/cli");
@@ -131,11 +132,11 @@ test("planner PRODUCT projection slices exact CRLF section text without normaliz
   assert.equal(frame.version, direction.version);
 });
 
-test("created v7 session contains exact PRODUCT.md bytes, base, proof spec, and matching digest", (t) => {
+test("created current session contains exact PRODUCT.md bytes, base, proof spec, and matching digest", (t) => {
   const root = npmRepo(t);
   const live = pinProductDirection(root);
   const session = goalSession(root);
-  assert.equal(session.schemaVersion, "work-session/v8");
+  assert.equal(session.schemaVersion, WORK_SESSION_SCHEMA);
   assert.equal(session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.equal(session.productDirection.content, live.content);

@@ -4,17 +4,17 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const { domainDigest, isDigest } = require("./contracts/digest");
-const { ConfigError } = require("./errors");
-const { createOutcome, persistOutcome } = require("./outcome");
-const { ensureOutcomeClaim } = require("./outcome-claim");
-const { pinProductDirection } = require("./product-direction");
-const { persistImmutableBytes } = require("./world-authority");
-const { validateResolvedBase } = require("./work-base");
-const { WORK_SESSION_SCHEMA, sealWorkSession, validRelativePath } = require("./work-session");
-const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("./semantic-authority");
-const { compileProductProofSpec } = require("./work-proof-compiler");
-const { assertTerminalEndgameCovered } = require("./terminal-endgame");
+const { domainDigest, isDigest } = require("../../lib/contracts/digest");
+const { ConfigError } = require("../../lib/errors");
+const { createOutcome, persistOutcome } = require("../../lib/outcome");
+const { pinProductDirection } = require("../../lib/product-direction");
+const { persistRunSession } = require("../../lib/run-journal");
+const { commonGitDirectory } = require("../../lib/work-git");
+const { persistImmutableBytes } = require("../../lib/world-authority");
+const { validateResolvedBase } = require("../../lib/work-base");
+const { WORK_SESSION_SCHEMA, sealWorkSession, validRelativePath } = require("../../lib/work-session");
+const { compileProductProofSpec } = require("../../lib/work-proof-compiler");
+const { assertTerminalEndgameCovered } = require("../../lib/terminal-endgame");
 
 const REPO_DECISION_SCHEMA = "repo-decision/v3";
 const REPO_DECISION_DOMAIN = "meta-harness-repo-decision-bytes/v3";
@@ -197,10 +197,10 @@ function compileRepoDecision(repositoryPath, worldState) {
   const direction = pinProductDirection(repositoryPath);
   const charter = loadRepoCharter(repositoryPath);
   const decision = loadRepoDecision(repositoryPath);
-  assertBinding("authoritative World product direction", direction.digest, worldState.world.productDirectionDigest);
+  assertBinding("current semantic projection product direction", direction.digest, worldState.world.productDirectionDigest);
   assertBinding("product direction", direction.digest, decision.value.productDirectionDigest);
   assertBinding("repo charter", charter.digest, decision.value.charterDigest);
-  assertBinding("authoritative WorldHead", worldState.head.headDigest, decision.value.worldHeadDigest);
+  assertBinding("current semantic projection Head", worldState.head.headDigest, decision.value.worldHeadDigest);
   assertBinding("owner directive", ownerDirectiveDigest(repositoryPath), decision.value.ownerDirectiveDigest);
   persistImmutableBytes(repositoryPath, "decisions", decision.digest, decision.bytes, "MH_REPO_DECISION_WRITE");
 
@@ -224,13 +224,6 @@ function compileRepoDecision(repositoryPath, worldState) {
     preconditions: [action.journeyState],
     evidenceRequirement: action.doneWhen,
   }));
-  const claim = ensureOutcomeClaim({
-    repositoryPath,
-    outcomeDigest: outcome.outcomeDigest,
-    originWorldHeadDigest: worldState.head.headDigest,
-    executionBoundary: { writePaths: action.allowedPaths },
-  });
-  const semanticAuthority = compileSemanticAuthority({ productDirection: direction });
   const productProofSpec = compileProductProofSpec({
     repositoryPath,
     productDirection: direction,
@@ -243,13 +236,12 @@ function compileRepoDecision(repositoryPath, worldState) {
   const session = sealWorkSession({
     schemaVersion: WORK_SESSION_SCHEMA,
     productDirection: direction,
-    semanticState: semanticAuthority.semanticState,
-    semanticProjection: semanticProjection(semanticAuthority),
-    endgameProjection: endgameProjection(semanticAuthority),
     origin: {
-      type: "REPO_OUTCOME",
+      type: "REPO_RUN",
       outcomeDigest: outcome.outcomeDigest,
-      claimDigest: claim.claimDigest,
+      originHeadDigest: worldState.head.headDigest,
+      objectiveRevision: 0,
+      continuesFromTransitionDigests: [],
     },
     base: action.base,
     productResult: action.productResult,
@@ -259,31 +251,23 @@ function compileRepoDecision(repositoryPath, worldState) {
     doneWhen: action.doneWhen,
     productProofSpec,
     stopOnlyIf: action.stopOnlyIf,
-    authorizedReversibleActions: [
-      "Read repository instructions and relevant source files.",
-      "Edit files inside the allowed paths.",
-      "Run focused validation and repair failures inside scope.",
-      "Execute only inside the fresh controller-owned managed worktree for this session.",
-    ],
-    ownerOnlyActions: [
-      "Expand product scope or allowed paths.",
-      "Change product direction in PRODUCT.md.",
-      "Change repo policy, World projection, attestation, interpretation, or Decision authority.",
-      "Supply credentials or approve protected access.",
-      "Approve publication, destructive operations, or material risk.",
-    ],
     allowedPaths: action.allowedPaths,
     validation: action.validation,
     maxAttempts: action.maxAttempts,
-    delivery: action.delivery,
+    delivery: { push: action.delivery.push },
+  });
+  const persisted = persistRunSession({
+    gitCommonDirectory: commonGitDirectory(repositoryPath),
+    session,
   });
   return Object.freeze({
     type: "DISPATCH",
     decisionDigest: decision.digest,
     outcomeDigest: outcome.outcomeDigest,
-    claimDigest: claim.claimDigest,
+    claimDigest: null,
+    runId: persisted.runId,
     worldHeadDigest: worldState.head.headDigest,
-    session,
+    session: persisted.session,
   });
 }
 

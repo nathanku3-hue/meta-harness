@@ -23,7 +23,8 @@ test("normal surface rejects workflow controls while retained diagnostics keep t
   const productError = runRaw(ROOT, ["--not-a-normal-work-flag"]);
   assert.equal(productError.status, 2);
   assert.equal(productError.stderr, "");
-  assert.match(productError.stdout, /^Blocked: normal work accepts only a product result/i);
+  assert.match(productError.stdout, /^Execution issue: normal work accepts only a product result/i);
+  assert.match(productError.stdout, /requested product result remains the goal/i);
   assertCliError(runRaw(ROOT, ["work"], { productSurface: true }), "MH_USAGE", /'work' is internal; normal usage is meta-harness/i);
   assertCliError(runRaw(ROOT, ["sync"], { productSurface: true }), "MH_USAGE", /'sync' is internal; normal usage is meta-harness/i);
   assertCliError(runRaw(ROOT, ["merge"]), "MH_USAGE", /unknown merge action: missing/);

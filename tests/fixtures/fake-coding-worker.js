@@ -105,7 +105,7 @@ if (prompt.includes("FORWARD_MOTION_CHALLENGE_V1")) {
   process.exit(0);
 }
 
-const attempt = Number(prompt.match(/Attempt: (\d+) of/)?.[1] || "1");
+const attempt = Number(prompt.match(/Iteration: (\d+)/)?.[1] || prompt.match(/Attempt: (\d+) of/)?.[1] || "1");
 const relativePath = process.env.FAKE_WORKER_PATH || "src/result.txt";
 const content = process.env.FAKE_WORKER_RETRY === "1" && attempt === 1 ? "wrong\n" : "delivered\n";
 

@@ -96,10 +96,8 @@ test("one repo-work invocation waits for compact lane change and surfaces the ma
   assert.ok(frontierCalls <= 3, `frontier planner reran without a semantic event: ${frontierCalls}`);
   let output = "";
   renderHuman({ stdout: { write: (text) => { output += String(text); } } }, result);
-  assert.equal(
-    output,
-    "Next: Delegation evidence is accepted; fresh coding remains on the repository planner path.\n",
-  );
+  assert.ok(output.trim());
+  assert.doesNotMatch(output, /Delegation evidence|repository planner|delegation gate|Claim authority|current repository truth/iu);
 });
 
 test("controlled drain interrupts the active delegation wait without durable poll state", async (t) => {

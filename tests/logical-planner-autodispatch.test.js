@@ -7,8 +7,8 @@ const test = require("node:test");
 
 const { renderHuman } = require("../lib/commands/work");
 const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
-const { listActiveOutcomeClaims, readOutcomeClaim } = require("../lib/outcome-claim");
-const { createOutcome } = require("../lib/outcome");
+const { listActiveOutcomeClaims } = require("../lib/outcome-claim");
+const { createOutcome, readOutcome } = require("../lib/outcome");
 const { buildLogicalPlannerPrompt, createPlannerSnapshot, removePlannerSnapshot } = require("../lib/repo-logical-planner");
 const {
   admitPreparedPlannerCandidate,
@@ -16,6 +16,8 @@ const {
 } = require("../lib/repo-planner-admission");
 const { compileRepoPlannerInput } = require("../lib/repo-planner-input");
 const { runRepoWorkWave } = require("../lib/repo-work-wave");
+const { commonGitDirectory } = require("../lib/work-git");
+const { listRunSessions } = require("../lib/run-journal");
 const { protocolRoot } = require("../lib/world-authority");
 const { runWork } = require("../lib/work-loop");
 const { commitTransition, readCurrentWorldState } = require("../lib/world-transition");
@@ -214,7 +216,9 @@ test("terminal Closure lands before a fresh planner boot", async (t) => {
   assert.ok(plannerInput);
   assert.deepEqual(plannerInput.currentWorld.payload.learned, ["a"]);
   assert.notEqual(plannerInput.head.productCommit, initial.head.productCommit);
-  assert.equal(result.outcomes.filter((entry) => entry.state === "LANDED").length, 1);
+  const landed = result.outcomes.filter((entry) => entry.state === "LANDED");
+  assert.equal(landed.length, 1);
+  assert.equal(landed[0].desiredState, readOutcome(root, landed[0].outcomeDigest).desiredState);
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
@@ -225,7 +229,7 @@ test("autonomous REPLAN handoff dispatches a linked successor in the same work i
   await seedAutonomousReplan(root, "a");
 
   let handoffDigest = null;
-  let successorClaimDigest = null;
+  let successorRun = null;
   let successorStarts = 0;
   const baseRunner = runner();
   const result = await runRepoWorkWave({
@@ -234,7 +238,7 @@ test("autonomous REPLAN handoff dispatches a linked successor in the same work i
       const handoff = plannerInput.unresolvedHandoffs.find((entry) => entry.disposition === "REPLAN_REQUIRED");
       if (handoff && handoffDigest === null) {
         handoffDigest = handoff.transitionDigest;
-        assert.deepEqual(handoff.activeContinuationClaimDigests, []);
+        assert.deepEqual(handoff.activeContinuationOutcomeDigests, []);
         return {
           batch: {
             schemaVersion: "planner-candidate-batch/v3",
@@ -246,9 +250,9 @@ test("autonomous REPLAN handoff dispatches a linked successor in the same work i
     },
     runner: async (args) => {
       successorStarts += 1;
-      successorClaimDigest = args.session.origin.claimDigest;
-      const claim = readOutcomeClaim(root, successorClaimDigest);
-      assert.deepEqual(claim.continuesFromTransitionDigests, [handoffDigest]);
+      successorRun = args.session;
+      assert.equal(successorRun.origin.type, "REPO_RUN");
+      assert.deepEqual(successorRun.origin.continuesFromTransitionDigests, [handoffDigest]);
       return baseRunner(args);
     },
     interpret: require("./helpers/linear-product-head").fakeInterpretation,
@@ -256,7 +260,7 @@ test("autonomous REPLAN handoff dispatches a linked successor in the same work i
   });
 
   assert.match(handoffDigest, /^sha256:[a-f0-9]{64}$/u);
-  assert.match(successorClaimDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.match(successorRun.sessionDigest, /^sha256:[a-f0-9]{64}$/u);
   assert.equal(successorStarts, 1);
   assert.equal(result.admitted, 1);
   assert.equal(result.outcome, "USE_PRODUCT");
@@ -264,30 +268,28 @@ test("autonomous REPLAN handoff dispatches a linked successor in the same work i
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
-test("empty planner frontier cannot quiesce an uncovered autonomous REPLAN handoff", async (t) => {
+test("empty planner frontier preserves an uncovered autonomous REPLAN handoff as visible work", async (t) => {
   const { root } = repository(t);
   installRequiredEndgame(root);
   persistInitial(root, "world-transition/v2");
   await seedAutonomousReplan(root, "a");
   let sawAutonomousHandoff = false;
 
-  await assert.rejects(
-    runRepoWorkWave({
-      repositoryPath: root,
-      plannerRunner: async ({ plannerInput }) => {
-        sawAutonomousHandoff = sawAutonomousHandoff || plannerInput.unresolvedHandoffs.some((entry) => (
-          entry.disposition === "REPLAN_REQUIRED" && entry.activeContinuationClaimDigests.length === 0
-        ));
-        return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
-      },
-      runner: runner(),
-      interpret: require("./helpers/linear-product-head").fakeInterpretation,
-      now: monotonicNow(),
-    }),
-    (error) => error.code === "MH_FORWARD_PROGRESS_INVARIANT"
-      && /autonomous continuation obligation.*quiescence/iu.test(error.message),
-  );
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    plannerRunner: async ({ plannerInput }) => {
+      sawAutonomousHandoff = sawAutonomousHandoff || plannerInput.unresolvedHandoffs.some((entry) => (
+        entry.disposition === "REPLAN_REQUIRED" && entry.activeContinuationOutcomeDigests.length === 0
+      ));
+      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
+    },
+    runner: runner(),
+    interpret: require("./helpers/linear-product-head").fakeInterpretation,
+    now: monotonicNow(),
+  });
   assert.equal(sawAutonomousHandoff, true);
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.equal(result.endgameCoverage, null);
 });
 
 test("empty planner frontier cannot USE_PRODUCT an uncovered autonomous REPLAN without required destinations", async (t) => {
@@ -295,20 +297,18 @@ test("empty planner frontier cannot USE_PRODUCT an uncovered autonomous REPLAN w
   persistInitial(root, "world-transition/v2");
   await seedAutonomousReplan(root, "a");
 
-  await assert.rejects(
-    runRepoWorkWave({
-      repositoryPath: root,
-      plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } }),
-      runner: runner(),
-      interpret: require("./helpers/linear-product-head").fakeInterpretation,
-      now: monotonicNow(),
-    }),
-    (error) => error.code === "MH_FORWARD_PROGRESS_INVARIANT"
-      && /autonomous continuation obligation.*quiescence/iu.test(error.message),
-  );
+  const result = await runRepoWorkWave({
+    repositoryPath: root,
+    plannerRunner: async () => ({ batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } }),
+    runner: runner(),
+    interpret: require("./helpers/linear-product-head").fakeInterpretation,
+    now: monotonicNow(),
+  });
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.equal(result.endgameCoverage, null);
 });
 
-test("concurrent Claim admission covers a planner-snapshot handoff without false forward-progress failure", async (t) => {
+test("concurrent run admission covers a planner-snapshot handoff without false forward-progress failure", async (t) => {
   const { root } = repository(t);
   installRequiredEndgame(root);
   persistInitial(root, "world-transition/v2");
@@ -328,7 +328,8 @@ test("concurrent Claim admission covers a planner-snapshot handoff without false
         admittedDuringPlanner = admitPreparedPlannerCandidate(root, current, prepared, {
           objectiveRevision: plannerInput.ownerIntent.activeDirective?.revision || 0,
         });
-        assert.deepEqual(admittedDuringPlanner.claim.continuesFromTransitionDigests, [handoff.transitionDigest]);
+        assert.equal(admittedDuringPlanner.session.origin.type, "REPO_RUN");
+        assert.deepEqual(admittedDuringPlanner.session.origin.continuesFromTransitionDigests, [handoff.transitionDigest]);
       }
       return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
     },
@@ -343,14 +344,14 @@ test("concurrent Claim admission covers a planner-snapshot handoff without false
   assert.equal(result.endgameCoverage.complete, true);
 });
 
-test("one autonomous transition can provenance multiple parallel successor Claims", async (t) => {
+test("one autonomous transition can provenance multiple parallel successor runs", async (t) => {
   const { root } = repository(t);
   installRequiredEndgame(root);
   persistInitial(root, "world-transition/v2");
   await seedAutonomousReplan(root, "a");
   let handoffDigest = null;
   let sent = false;
-  const linkedClaims = [];
+  const linkedRuns = [];
   const baseRunner = runner();
 
   const result = await runRepoWorkWave({
@@ -374,8 +375,7 @@ test("one autonomous transition can provenance multiple parallel successor Claim
       return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
     },
     runner: async (args) => {
-      const claim = readOutcomeClaim(root, args.session.origin.claimDigest);
-      linkedClaims.push(claim);
+      linkedRuns.push(args.session);
       return baseRunner(args);
     },
     interpret: require("./helpers/linear-product-head").fakeInterpretation,
@@ -383,8 +383,9 @@ test("one autonomous transition can provenance multiple parallel successor Claim
   });
 
   assert.equal(result.admitted, 2);
-  assert.equal(linkedClaims.length, 2);
-  assert.ok(linkedClaims.every((claim) => JSON.stringify(claim.continuesFromTransitionDigests) === JSON.stringify([handoffDigest])));
+  assert.equal(linkedRuns.length, 2);
+  assert.ok(linkedRuns.every((session) => session.origin.type === "REPO_RUN"
+    && JSON.stringify(session.origin.continuesFromTransitionDigests) === JSON.stringify([handoffDigest])));
   assert.equal(result.outcome, "USE_PRODUCT");
 });
 
@@ -411,7 +412,7 @@ test("planner cannot invent continuation lineage absent from its exact handoff s
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
-test("capacity race rejection is normal Claim contention and stops the stale planner batch", async (t) => {
+test("existing commitments do not globally gate a fresh planner batch; local execution bound schedules the work", async (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   let filledCapacity = false;
@@ -443,42 +444,37 @@ test("capacity race rejection is normal Claim contention and stops the stale pla
 
   assert.equal(result.outcome, "USE_PRODUCT");
   assert.equal(result.recovered, 3);
-  assert.ok(result.orchestrationTelemetry.candidateRejections.some((entry) => (
-    entry.candidateId === "d" && entry.code === "MH_OUTCOME_CLAIM_CAPACITY"
-  )));
-  assert.equal(result.orchestrationTelemetry.candidateRejections.some((entry) => entry.candidateId === "e"), false);
-  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b", "c"]);
+  assert.equal(result.admitted, 2);
+  assert.equal(result.orchestrationTelemetry.candidateRejections.some((entry) => (
+    entry.code === "MH_OUTCOME_CLAIM_CAPACITY"
+  )), false);
+  assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b", "c", "d", "e"]);
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
-test("ordinary conflicting planner rejection leaves no orphan Outcome", (t) => {
+test("overlapping predicted planner footprints can coexist as speculative work", (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   const current = readCurrentWorldState(root);
   const admittedA = preparePlannerCandidate(root, current, candidate("a", ["src/a"], root));
-  admitPreparedPlannerCandidate(root, current, admittedA);
+  const first = admitPreparedPlannerCandidate(root, current, admittedA);
 
-  const rejected = candidate("b", ["src/a/nested"], root);
+  const overlapping = candidate("b", ["src/a/nested"], root);
   const prospective = createOutcome({
-    id: rejected.id,
-    desiredState: rejected.productResult,
-    preconditions: [rejected.journeyState],
-    evidenceRequirement: rejected.doneWhen,
+    id: overlapping.id,
+    desiredState: overlapping.productResult,
+    preconditions: [overlapping.journeyState],
+    evidenceRequirement: overlapping.doneWhen,
   });
-  const preparedB = preparePlannerCandidate(root, current, rejected);
-  assert.throws(
-    () => admitPreparedPlannerCandidate(root, current, preparedB),
-    (error) => error.code === "MH_OUTCOME_CLAIM_CONFLICT",
-  );
-  const outcomePath = path.join(
-    protocolRoot(root),
-    "outcomes",
-    `${prospective.outcomeDigest.slice("sha256:".length)}.json`,
-  );
-  assert.equal(fs.existsSync(outcomePath), false);
+  const preparedB = preparePlannerCandidate(root, current, overlapping);
+  const second = admitPreparedPlannerCandidate(root, current, preparedB);
+  assert.notEqual(second.session.sessionDigest, first.session.sessionDigest);
+  assert.deepEqual(second.session.allowedPaths, ["src/a/nested"]);
+  assert.equal(readOutcome(root, prospective.outcomeDigest).outcomeDigest, prospective.outcomeDigest);
+  assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
-test("conflict rejects the whole exact candidate rather than silently shrinking it", async (t) => {
+test("overlapping predicted footprints do not reject useful work before real integration", async (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   const result = await runRepoWorkWave({
@@ -495,12 +491,12 @@ test("conflict rejects the whole exact candidate rather than silently shrinking 
   });
   assert.equal(result.admitted, 3);
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b", "c"]);
-  assert.ok(result.orchestrationTelemetry.candidateRejections.some((entry) => (
+  assert.equal(result.orchestrationTelemetry.candidateRejections.some((entry) => (
     entry.candidateId === "b" && entry.code === "MH_OUTCOME_CLAIM_CONFLICT"
-  )));
+  )), false);
 });
 
-test("stale planner output is discarded and a changed Head gets a fresh planning epoch", async (t) => {
+test("planner output from an immutable snapshot remains admissible after Head advances", async (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   let advanced = false;
@@ -521,17 +517,18 @@ test("stale planner output is discarded and a changed Head gets a fresh planning
   assert.equal(plannerRunner.calls(), 3);
   assert.equal(result.plannerRetryCount, 0);
   assert.equal(result.admitted, 1);
-  assert.equal(result.stalePlanner, true);
+  assert.equal(result.stalePlanner, false);
 });
 
-test("partial stale admission preserves admitted Claims and replans only from the new Head", async (t) => {
+test("all candidates from one immutable planner snapshot remain admissible while Head advances", async (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   const clock = monotonicNow();
   let advanced = false;
   const now = () => {
     const value = clock();
-    if (!advanced && listActiveOutcomeClaims(root).length === 1) {
+    if (!advanced && listRunSessions({ gitCommonDirectory: commonGitDirectory(root) })
+      .filter((session) => session.origin.type === "REPO_RUN").length === 1) {
       const current = readCurrentWorldState(root, { now: value });
       const successor = projectionObjects(root, { learned: [], concurrentRevision: 2 }, value.toISOString());
       commitTransition(root, transition(root, current.head.headDigest, successor));
@@ -557,7 +554,7 @@ test("partial stale admission preserves admitted Claims and replans only from th
   );
   assert.equal(result.plannerRetryCount, 0);
   assert.equal(result.admitted, 2);
-  assert.equal(result.stalePlanner, true);
+  assert.equal(result.stalePlanner, false);
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b"]);
 });
 
@@ -570,12 +567,12 @@ test("planner renders owner objective as instruction and repository workflow as 
   const prompt = buildLogicalPlannerPrompt(input);
 
   assert.match(prompt, /^LOGICAL_PLANNER_AUTODISPATCH_V4/mu);
-  assert.ok(prompt.indexOf("OWNER / OPTIMIZATION") < prompt.indexOf("PLANNING LAWS"));
-  assert.ok(prompt.indexOf("PLANNING LAWS") < prompt.indexOf("FACTUAL / COMMITMENT DATA"));
+  assert.ok(prompt.indexOf("PRODUCT / OPTIMIZATION") < prompt.indexOf("PLANNING RULES"));
+  assert.ok(prompt.indexOf("PLANNING RULES") < prompt.indexOf("CURRENT PRODUCT STATE"));
   assert.equal((prompt.match(/fastest honest decision-changing evidence/gu) || []).length, 1);
   assert.doesNotMatch(prompt, /"ownerIntent"/u);
-  assert.match(prompt, /Capacity is a ceiling, not a quota/u);
-  assert.match(prompt, /AGENTS\.md.*repository material/u);
+  assert.doesNotMatch(prompt, /claimDigest|grantedWritePaths|activeContinuationClaimDigests|capacity|execution authority|workspace custody|constitutional/iu);
+  assert.match(prompt, /AGENTS text.*repository data/u);
   assert.match(prompt, /\.\.\/snapshot/u);
 });
 
@@ -587,17 +584,17 @@ test("planner treats validity constraints as decision-edge data rather than glob
   const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
   const prompt = buildLogicalPlannerPrompt(input);
 
-  assert.match(prompt, /validity constraints lose global priority/iu);
-  assert.match(prompt, /highest-value decision-relevant uncertainty reduction action available now/u);
-  assert.match(prompt, /measurement scheduler, measurement persistence service/u);
-  assert.match(prompt, /bounded blocker set.*remove a named blocker.*now-lawful result read.*terminal kill/iu);
-  assert.match(prompt, /stale Next, HOLD, Gate, or handoff prose must not re-expand superseded uncertainty/iu);
-  assert.match(prompt, /Governance, packaging, architecture, status, review, or evidence-hardening is inadmissible/iu);
+  assert.match(prompt, /Constraints are edge-scoped observations/iu);
+  assert.match(prompt, /highest-value uncertainty reduction available now/u);
+  assert.match(prompt, /measurement infrastructure for its own sake/u);
+  assert.match(prompt, /bounded blocker set.*removes a named blocker.*now-available result read.*specific route has no value/iu);
+  assert.match(prompt, /Stale process prose must not re-expand uncertainty/iu);
+  assert.match(prompt, /review, audit, documentation, cleanup, architecture, status, packaging, or control-plane Outcomes/iu);
   assert.match(prompt, /continuesFromTransitionDigests.*continuation lineage/iu);
-  assert.match(prompt, /Empty proposals is valid only when.*neither an uncovered autonomous continuation obligation/iu);
+  assert.match(prompt, /Empty proposals is valid only when.*neither an uncovered autonomous continuation/iu);
 });
 
-test("objective revision change kills unclaimed candidates but preserves admitted Claims and replans same Head", async (t) => {
+test("objective revision change kills unadmitted candidates but preserves admitted runs and replans same Head", async (t) => {
   const { root } = repository(t);
   const initial = persistInitial(root, "world-transition/v2");
   replaceOwnerObjectiveState(root, "objective revision one");
@@ -605,7 +602,8 @@ test("objective revision change kills unclaimed candidates but preserves admitte
   let objectiveChanged = false;
   const now = () => {
     const value = clock();
-    if (!objectiveChanged && listActiveOutcomeClaims(root).length === 1) {
+    if (!objectiveChanged && listRunSessions({ gitCommonDirectory: commonGitDirectory(root) })
+      .filter((session) => session.origin.type === "REPO_RUN").length === 1) {
       replaceOwnerObjectiveState(root, "objective revision two");
       objectiveChanged = true;
     }
@@ -624,7 +622,7 @@ test("objective revision change kills unclaimed candidates but preserves admitte
   assert.equal(objectiveChanged, true);
   assert.equal(result.stalePlanner, true);
   assert.ok(result.orchestrationTelemetry.candidateRejections.some((entry) => (
-    entry.code === "MH_OUTCOME_CLAIM_STALE_OBJECTIVE"
+    entry.code === "MH_OWNER_OBJECTIVE_STALE"
   )));
   const sameHeadBoots = result.orchestrationTelemetry.plannerBoots
     .filter((entry) => entry.headDigest === initial.head.headDigest);
@@ -633,7 +631,7 @@ test("objective revision change kills unclaimed candidates but preserves admitte
   assert.deepEqual([...readCurrentWorldState(root).world.payload.learned].sort(), ["a", "b"]);
 });
 
-test("planner failure before Claim leaves no execution authority and a fresh invocation can recompute", async (t) => {
+test("planner failure before run admission leaves no execution and a fresh invocation can recompute", async (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   await assert.rejects(

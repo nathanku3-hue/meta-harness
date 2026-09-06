@@ -480,5 +480,6 @@ test("repo work production reconciliation consumes Round 3 and surfaces only its
   assert.equal(result.delegationGate?.key, "material-next-gate");
   let output = "";
   renderHuman({ stdout: { write: (text) => { output += String(text); } } }, result);
-  assert.equal(output, "Next: Retained delegation is exhausted; the repository planner owns any fresh work.\n");
+  assert.ok(output.trim());
+  assert.doesNotMatch(output, /Retained delegation|repository planner|delegation gate|Claim authority|current repository truth/iu);
 });

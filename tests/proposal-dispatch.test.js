@@ -12,14 +12,22 @@ const {
   reconcileProposalDispatch,
 } = require("../lib/devspace-proposal-host");
 const { findExecutionClosureForOrigin } = require("../lib/execution-closure");
+const { resolveRepositoryEntry } = require("../lib/repository-entry");
+const { enterExecutionAttempt, issueExecutionPermit } = require("../lib/execution-permit");
 const { listActiveOutcomeClaims } = require("../lib/outcome-claim");
 const {
   admitPreparedPlannerCandidate,
   preparePlannerCandidate,
 } = require("../lib/repo-planner-admission");
-const { recoverClaimCommitment, runRepoWorkWave } = require("../lib/repo-work-wave");
+const { recoverRunCommitment, runRepoWorkWave } = require("../lib/repo-work-wave");
 const {
+  captureWorkspaceBoundary,
   claimWorkSessionState,
+  runWorkSessionState,
+  commonGitDirectory,
+  createImmutableRunSnapshot,
+  persistWorkSession,
+  prepareWorkspace,
   resolveActiveWorkspaceContinuation,
   workspaceRegistryDirectory,
 } = require("../lib/work-git");
@@ -29,8 +37,17 @@ const {
   readProposalDispatchIntent,
   readProposalDispatchResult,
 } = require("../lib/proposal-dispatch");
-const { runWork } = require("../lib/work-loop");
-const { readWorkspaceCustody, workspaceExecutionLeasesOwnedByPid } = require("../lib/workspace-custody");
+const { persistMutationCheckpoint, runWork } = require("../lib/work-loop");
+const { materializeWorkerOperations } = require("../lib/work-materializer");
+const { appendRunEvent, listRunSessions, readRunJournal, runIdForSession } = require("../lib/run-journal");
+const { ensureRepositoryIdentity, runtimeCapabilityDigest } = require("../lib/runtime-identity");
+const { attemptEntryPath } = require("../lib/world-authority");
+const {
+  acquireWorkspaceExecutionLease,
+  readWorkspaceCustody,
+  releaseWorkspaceExecutionLease,
+  workspaceExecutionLeasesOwnedByPid,
+} = require("../lib/workspace-custody");
 const { readCurrentWorldState } = require("../lib/world-transition");
 const {
   fakeInterpretation,
@@ -193,7 +210,122 @@ async function startFakeProposalBridge(token, onEnsure) {
   };
 }
 
-test("external proposal runner persists intent before host effect and leaves the entered Claim EXTERNAL_OPEN", async (t) => {
+test("repository entry recovers a neutral repo run even after planner enablement disappears", (t) => {
+  const fixture = admittedClaim(t, "a");
+  fs.rmSync(path.join(fixture.root, ".meta-harness", "repo-charter.json"));
+  const entry = resolveRepositoryEntry(fixture.root);
+  assert.equal(entry.action, "CONTINUE");
+  assert.equal(entry.kind, "REPO_WAVE");
+  assert.equal(entry.result, null);
+});
+
+test("pending repo-owned work is recoverable from its neutral run root without a Claim", (t) => {
+  const fixture = admittedClaim(t, "a");
+  const sessions = listRunSessions({ gitCommonDirectory: commonGitDirectory(fixture.root) });
+  const neutral = sessions.find((session) => session.sessionDigest === fixture.session.sessionDigest);
+  assert.ok(neutral);
+  assert.equal(neutral.origin.type, "REPO_RUN");
+  assert.equal(neutral.origin.outcomeDigest, fixture.session.origin.outcomeDigest);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
+  const recovered = runWorkSessionState(fixture.root, fixture.session);
+  assert.equal(recovered.state, "PENDING");
+  assert.equal(recovered.session.sessionDigest, fixture.session.sessionDigest);
+});
+
+test("repo-owned Outcome replaces a missing workspace from journaled Git state and continues the same logical run", async (t) => {
+  const fixture = admittedClaim(t, "a");
+  const workspace = prepareWorkspace(fixture.root, fixture.session);
+  const state = persistWorkSession(fixture.root, fixture.session, workspace);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0, "new repo run must not create Claim compatibility records");
+  const lease = acquireWorkspaceExecutionLease({
+    registryDir: workspace.registryDir,
+    workspaceId: workspace.workspaceId,
+  });
+  const gitDirectory = commonGitDirectory(fixture.root);
+  const runId = runIdForSession(fixture.session.sessionDigest);
+  const repositoryIdentity = ensureRepositoryIdentity(gitDirectory);
+  const runtimeDigest = runtimeCapabilityDigest({});
+  let firstEntry;
+  try {
+    appendRunEvent({
+      gitCommonDirectory: gitDirectory,
+      runId,
+      type: "run/started",
+      data: {
+        repositoryId: repositoryIdentity.repositoryId,
+        runtimeCapabilityDigest: runtimeDigest,
+        sessionDigest: fixture.session.sessionDigest,
+        workspaceId: workspace.workspaceId,
+        baseSnapshotOid: fixture.session.base.commit,
+      },
+    });
+    const before = captureWorkspaceBoundary(workspace.workspacePath, fixture.session.allowedPaths);
+    const permit = issueExecutionPermit({
+      repositoryRoot: workspace.repositoryRoot,
+      workspacePath: workspace.workspacePath,
+      session: fixture.session,
+      attempt: 1,
+      boundary: before,
+      workspaceCustody: workspace.custody,
+      workspaceLease: lease,
+      workspaceRegistryDir: workspace.registryDir,
+      stateDirectory: state.directory,
+    });
+    firstEntry = enterExecutionAttempt({ stateDirectory: state.directory, permit, session: fixture.session });
+    const materializedPaths = materializeWorkerOperations(workspace.workspacePath, [{
+      type: "WRITE",
+      path: "src/a/result.txt",
+      content: "checkpointed\n",
+    }], fixture.session.allowedPaths);
+    const after = captureWorkspaceBoundary(workspace.workspacePath, fixture.session.allowedPaths);
+    persistMutationCheckpoint({
+      snapshotter: createImmutableRunSnapshot,
+      journalAppender: appendRunEvent,
+      journalReader: readRunJournal,
+      journalGitDirectory: gitDirectory,
+      runId,
+      repositoryIdentity,
+      runtimeDigest,
+      workspace,
+      session: fixture.session,
+      boundary: after,
+      materializedPaths,
+      attemptEntry: firstEntry,
+      source: "coding-worker",
+      env: {},
+    });
+  } finally {
+    releaseWorkspaceExecutionLease({ registryDir: workspace.registryDir, lease });
+  }
+
+  const previousWorkspaceId = workspace.workspaceId;
+  fs.rmSync(workspace.workspacePath, { recursive: true, force: true });
+  const recovered = runWorkSessionState(fixture.root, fixture.session);
+  assert.equal(recovered.state, "ACTIVE");
+  assert.notEqual(recovered.workspaceId, previousWorkspaceId);
+  const replacement = readWorkspaceCustody(workspaceRegistryDirectory(fixture.root), recovered.workspaceId);
+  assert.equal(fs.readFileSync(path.join(replacement.workspacePath, "src", "a", "result.txt"), "utf8"), "checkpointed\n");
+
+  const result = await runWork({
+    repositoryPath: fixture.root,
+    session: recovered.session,
+    runner: async () => ({ worker: "replacement-test", stdout: "", stderr: "", result: externalWorkerResult("a") }),
+    timeoutSeconds: 30,
+  });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.workspace.workspaceId, recovered.workspaceId);
+  assert.notEqual(result.workspace.workspaceId, previousWorkspaceId);
+  const closure = findExecutionClosureForOrigin(fixture.root, fixture.session.origin);
+  assert.ok(closure);
+  assert.equal(closure.attemptEntries.length, 2);
+  assert.ok(closure.attemptEntries.includes(firstEntry.entryDigest));
+  const events = readRunJournal({ gitCommonDirectory: gitDirectory, runId });
+  const restored = events.find((event) => event.type === "workspace/restored" && event.data?.previousWorkspaceId === previousWorkspaceId);
+  assert.ok(restored);
+  assert.equal(restored.data.workspaceId, recovered.workspaceId);
+});
+
+test("external proposal runner persists intent before host effect and leaves the entered run EXTERNAL_OPEN", async (t) => {
   const fixture = admittedClaim(t);
   const requests = [];
   const proposalHost = {
@@ -224,24 +356,57 @@ test("external proposal runner persists intent before host effect and leaves the
   assert.equal(requests[0].packet.packetDigest, result.packetDigest);
   assert.equal(Object.hasOwn(requests[0], "dispatchId"), false);
   assert.equal(Object.hasOwn(requests[0], "requestId"), false);
-  assert.match(requests[0].prompt, /Delegated proposal authority/u);
-  assert.match(requests[0].prompt, /LIVE_PERMIT\s+the originating process-owned ExecutionPermit is provenance only/u);
+  assert.match(requests[0].prompt, /Available external operation \(controller-scoped\)/u);
+  assert.match(requests[0].prompt, /Operation\s+inspect this exact snapshot and return a code proposal/u);
+  assert.doesNotMatch(requests[0].prompt, /Delegated proposal authority|LIVE_PERMIT|ExecutionPermit|Claim release/u);
   assert.doesNotMatch(requests[0].prompt, /Execution authority \(compiled by the controller; valid for this attempt only\)/u);
-  assert.doesNotMatch(requests[0].prompt, /Treat the ExecutionPermit as the complete authority/u);
 
-  const state = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  const state = runWorkSessionState(fixture.root, fixture.session);
   assert.equal(state.state, "ACTIVE");
   const custody = readWorkspaceCustody(workspaceRegistryDirectory(fixture.root), state.workspaceId);
   assert.equal(custody.state, "ACTIVE");
   assert.equal(workspaceExecutionLeasesOwnedByPid(workspaceRegistryDirectory(fixture.root), process.pid).length, 0);
   assert.equal(findExecutionClosureForOrigin(fixture.root, fixture.session.origin), null);
-  assert.equal(listActiveOutcomeClaims(fixture.root).length, 1);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
 
-  const recovered = recoverClaimCommitment(fixture.root, fixture.claim);
+  const recovered = recoverRunCommitment(fixture.root, fixture.session);
   assert.equal(recovered.type, "EXTERNAL_OPEN");
   assert.equal(recovered.intent.intentDigest, result.intentDigest);
   assert.equal(recovered.receipt.receiptDigest, result.receiptDigest);
   assert.equal(recovered.intent.request.packet.packetDigest, result.packetDigest);
+});
+
+test("corrupt derived AttemptEntry self-stabilizes a claimless run onto a fresh workspace", async (t) => {
+  const fixture = admittedClaim(t, "a");
+  const seeded = await runWork({
+    repositoryPath: fixture.root,
+    session: fixture.session,
+    runner: createExternalProposalRunner({
+      ensureActivation: async (request) => hostBinding(request, "6"),
+    }),
+  });
+  assert.equal(seeded.control, "EXTERNAL_OPEN");
+  const before = runWorkSessionState(fixture.root, fixture.session);
+  assert.equal(before.state, "ACTIVE");
+  const entryPath = attemptEntryPath(fixture.root, {
+    type: "REPO_RUN_WORKSPACE",
+    sessionDigest: fixture.session.sessionDigest,
+    workspaceId: before.workspaceId,
+  }, 1);
+  fs.writeFileSync(entryPath, "{ corrupt derived attempt entry\n", "utf8");
+
+  const recovered = runWorkSessionState(fixture.root, fixture.session);
+  assert.equal(recovered.state, "ACTIVE");
+  assert.equal(recovered.session.sessionDigest, fixture.session.sessionDigest);
+  assert.notEqual(recovered.workspaceId, before.workspaceId);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
+  const events = readRunJournal({
+    gitCommonDirectory: commonGitDirectory(fixture.root),
+    runId: runIdForSession(fixture.session.sessionDigest),
+  });
+  assert.ok(events.some((event) => event.type === "workspace/replaced"
+    && event.data?.previousWorkspaceId === before.workspaceId
+    && event.data?.workspaceId === recovered.workspaceId));
 });
 
 test("durable external worker result fans in through materialization, validation, BANK, Closure, and World", async (t) => {
@@ -255,7 +420,7 @@ test("durable external worker result fans in through materialization, validation
     }),
   });
   assert.equal(seeded.control, "EXTERNAL_OPEN");
-  const active = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  const active = runWorkSessionState(fixture.root, fixture.session);
   assert.equal(active.state, "ACTIVE");
   const { host, releaseCount } = readyHostFor(
     { packetDigest: seeded.packetDigest },
@@ -318,7 +483,7 @@ test("Meta restart after durable result capture consumes the exact result withou
       ensureActivation: async (request) => hostBinding(request, digit),
     }),
   });
-  const active = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  const active = runWorkSessionState(fixture.root, fixture.session);
   const registryDir = workspaceRegistryDirectory(fixture.root);
   const intent = readProposalDispatchIntent({
     workspaceRegistryDir: registryDir,
@@ -334,7 +499,7 @@ test("Meta restart after durable result capture consumes the exact result withou
   assert.equal(capture.state, "RESULT_READY");
   assert.ok(capture.result);
   assert.equal(ready.releaseCount(), 1);
-  assert.equal(recoverClaimCommitment(fixture.root, fixture.claim).type, "EXECUTABLE");
+  assert.equal(recoverRunCommitment(fixture.root, fixture.session).type, "EXECUTABLE");
 
   let hostCallsAfterCapture = 0;
   const result = await runRepoWorkWave({
@@ -369,7 +534,7 @@ test("restart from mixed materialization bytes converges the durable Git target 
       ensureActivation: async (request) => hostBinding(request, digit),
     }),
   });
-  const active = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  const active = runWorkSessionState(fixture.root, fixture.session);
   const registryDir = workspaceRegistryDirectory(fixture.root);
   const intent = readProposalDispatchIntent({
     workspaceRegistryDir: registryDir,
@@ -437,7 +602,7 @@ test("external worker STOP enters the existing forward-motion challenger instead
       ensureActivation: async (request) => hostBinding(request, digit),
     }),
   });
-  const active = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  const active = runWorkSessionState(fixture.root, fixture.session);
   const registryDir = workspaceRegistryDirectory(fixture.root);
   const intent = readProposalDispatchIntent({
     workspaceRegistryDir: registryDir,
@@ -460,6 +625,9 @@ test("external worker STOP enters the existing forward-motion challenger instead
   assert.equal(result.outcome, "REPLAN_REQUIRED");
   assert.match(result.forwardMotionProofDigest, /^sha256:[a-f0-9]{64}$/u);
   assert.deepEqual(result.changedPaths, []);
+  const closure = findExecutionClosureForOrigin(fixture.root, fixture.session.origin);
+  assert.equal(closure.disposition, "INCOMPLETE");
+  assert.notEqual(closure.disposition, "BLOCKED");
   assert.equal(ready.releaseCount(), 1);
 });
 
@@ -521,7 +689,7 @@ test("failed external candidate validation advances to a fresh repair packet and
   assert.equal(repairEnsureCalls, 1);
   assert.match(repairPacketDigest, /^sha256:[a-f0-9]{64}$/u);
   assert.notEqual(repairPacketDigest, seeded.packetDigest);
-  const activeAfterFailure = claimWorkSessionState(fixture.root, fixture.claim.claimDigest);
+  const activeAfterFailure = runWorkSessionState(fixture.root, fixture.session);
   assert.equal(readWorkspaceCustody(workspaceRegistryDirectory(fixture.root), activeAfterFailure.workspaceId).generation, 2);
 
   const repairReady = readyHostFor(
@@ -563,7 +731,7 @@ test("host failure after durable intent stays EXTERNAL_OPEN and next repo invoca
   assert.equal(first.receiptDigest, null);
   assert.equal(first.hostError, "HOST_DOWN");
   assert.equal(failedCalls, 1);
-  assert.equal(recoverClaimCommitment(fixture.root, fixture.claim).type, "EXTERNAL_OPEN");
+  assert.equal(recoverRunCommitment(fixture.root, fixture.session).type, "EXTERNAL_OPEN");
   assert.equal(findExecutionClosureForOrigin(fixture.root, fixture.session.origin), null);
 
   const healthyRequests = [];
@@ -593,7 +761,7 @@ test("host failure after durable intent stays EXTERNAL_OPEN and next repo invoca
   assert.deepEqual(result.outcomes.map((entry) => entry.state), ["EXTERNAL_OPEN"]);
   assert.equal(result.endgameCoverage, null);
   assert.equal(findExecutionClosureForOrigin(fixture.root, fixture.session.origin), null);
-  assert.equal(listActiveOutcomeClaims(fixture.root).length, 1);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
 });
 
 test("controlled drain after durable external intent preserves the route instead of manufacturing ATTEMPT_ABORTED", async (t) => {
@@ -615,9 +783,9 @@ test("controlled drain after durable external intent preserves the route instead
   });
   assert.equal(result.control, "EXTERNAL_OPEN");
   assert.equal(result.receiptDigest, null);
-  assert.equal(recoverClaimCommitment(fixture.root, fixture.claim).type, "EXTERNAL_OPEN");
+  assert.equal(recoverRunCommitment(fixture.root, fixture.session).type, "EXTERNAL_OPEN");
   assert.equal(findExecutionClosureForOrigin(fixture.root, fixture.session.origin), null);
-  assert.equal(listActiveOutcomeClaims(fixture.root).length, 1);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
 });
 
 test("internal bridge secrets are stripped before any planner or model environment can receive them", () => {
@@ -672,7 +840,7 @@ test("private bridge environment drives the Meta HTTP client while planner/model
   }
 });
 
-test("repo wave fills independent Claim capacity with distinct external packets and re-entry never duplicates them", async (t) => {
+test("repo wave fills independent external work slots with distinct packets and re-entry never duplicates them", async (t) => {
   const fixture = admittedClaim(t, "a");
   const firstHost = {
     ensureActivation: async (request) => hostBinding(request, "4"),
@@ -720,7 +888,7 @@ test("repo wave fills independent Claim capacity with distinct external packets 
   assert.equal(localCalls, 0);
   assert.equal(firstWave.admitted, 2);
   assert.equal(firstWave.externalOpen, 3);
-  assert.equal(listActiveOutcomeClaims(fixture.root).length, 3);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
   assert.equal(firstWavePackets.length, 3);
   assert.equal(new Set(firstWavePackets).size, 3);
 
@@ -735,7 +903,7 @@ test("repo wave fills independent Claim capacity with distinct external packets 
       },
     },
     plannerRunner: async ({ plannerInput }) => {
-      assert.equal(plannerInput.capacity.availableSlots, 0);
+      assert.equal(Object.hasOwn(plannerInput, "capacity"), false);
       return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
     },
     runner: async () => {
@@ -747,13 +915,13 @@ test("repo wave fills independent Claim capacity with distinct external packets 
   });
   assert.equal(secondWave.admitted, 0);
   assert.equal(secondWave.externalOpen, 3);
-  assert.equal(listActiveOutcomeClaims(fixture.root).length, 3);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
   assert.equal(secondWavePackets.length, 3);
   assert.deepEqual(new Set(secondWavePackets), retainedPacketDigests);
   assert.equal(localCalls, 0);
 });
 
-test("three external Claims may settle out of dispatch order without duplicate workers or lost World integration", async (t) => {
+test("three external runs may settle out of dispatch order without duplicate workers or lost product integration", async (t) => {
   const fixture = admittedClaim(t, "a");
   const packetById = new Map();
   const digitById = new Map([["a", "1"], ["b", "2"], ["c", "3"]]);
@@ -855,7 +1023,7 @@ test("three external Claims may settle out of dispatch order without duplicate w
   assert.deepEqual(readCurrentWorldState(fixture.root).world.payload.learned, ["c", "a", "b"]);
 });
 
-test("receipt task substitution fails closed without aborting or releasing the external Claim", async (t) => {
+test("receipt task substitution fails closed without aborting the external run", async (t) => {
   const fixture = admittedClaim(t);
   const firstHost = {
     ensureActivation: async (request) => hostBinding(request, "9"),
@@ -880,7 +1048,7 @@ test("receipt task substitution fails closed without aborting or releasing the e
     (error) => error?.code === "MH_PROPOSAL_DISPATCH_RECEIPT_CONFLICT",
   );
 
-  assert.equal(recoverClaimCommitment(fixture.root, fixture.claim).type, "EXTERNAL_OPEN");
+  assert.equal(recoverRunCommitment(fixture.root, fixture.session).type, "EXTERNAL_OPEN");
   assert.equal(findExecutionClosureForOrigin(fixture.root, fixture.session.origin), null);
-  assert.equal(listActiveOutcomeClaims(fixture.root).length, 1);
+  assert.equal(listActiveOutcomeClaims(fixture.root).length, 0);
 });

@@ -6,20 +6,28 @@ const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
-const { enterExecutionAttempt, issueExecutionPermit } = require("../lib/execution-permit");
+const { enterRunAttempt } = require("../lib/execution-permit");
+const { attemptInputKey } = require("../lib/execution-identity");
 const {
+  commonGitDirectory,
   loadLatestWorkSession,
   persistWorkSession,
   prepareWorkspace,
   workspaceRegistryDirectory,
 } = require("../lib/work-git");
 const { captureBoundary, runWork } = require("../lib/work-loop");
+const { readRunJournal, runIdForSession } = require("../lib/run-journal");
+const { runtimeCapabilityDigest } = require("../lib/runtime-identity");
+const { persistImmutableJson } = require("../lib/world-authority");
 const {
+  FORWARD_MOTION_PROOF_SCHEMA,
+  computeForwardMotionProofDigest,
   findForwardMotionProofForStop,
   findWorkerStopForGeneration,
   recordForwardMotionProof,
   recordWorkerStop,
   stopBoundaryEvidence,
+  validateForwardMotionProof,
 } = require("../lib/work-forward-motion-record");
 const { sealWorkSession } = require("../lib/work-session");
 const { compileProductProofSpec } = require("../lib/work-proof-compiler");
@@ -164,18 +172,18 @@ function durableStop(root, workSession, { proof = null } = {}) {
   const registryDir = workspaceRegistryDirectory(root);
   const lease = acquireWorkspaceExecutionLease({ registryDir, workspaceId: workspace.workspaceId });
   const boundary = captureBoundary(workspace.workspacePath, workSession.allowedPaths);
-  const permit = issueExecutionPermit({
-    repositoryRoot: workspace.repositoryRoot,
-    workspacePath: workspace.workspacePath,
+  const attemptEntry = enterRunAttempt({
+    repositoryPath: workspace.repositoryRoot,
     session: workSession,
-    attempt: workspace.generation,
-    boundary,
-    workspaceCustody: workspace.custody,
-    workspaceLease: lease,
-    workspaceRegistryDir: registryDir,
-    stateDirectory: state.directory,
+    workspaceId: workspace.workspaceId,
+    generation: workspace.generation,
+    attemptInputKey: attemptInputKey({
+      session: workSession,
+      snapshotTreeOid: boundary.treeOid,
+      runtimeCapabilityDigest: runtimeCapabilityDigest(env()),
+      workspaceMode: workspace.mode,
+    }),
   });
-  const attemptEntry = enterExecutionAttempt({ stateDirectory: state.directory, permit, session: workSession });
   const stopResult = workerResult("STOP").result;
   const workerStop = recordWorkerStop({
     repositoryPath: root,
@@ -223,11 +231,42 @@ test("STOP can continue the same session and workspace with a fresh coding gener
   });
   assert.equal(result.outcome, "DONE");
   assert.equal(result.attempts, 2);
-  assert.deepEqual(result.executionPermits.map((permit) => permit.generation), [1, 2]);
+  assert.deepEqual(result.executionAttempts.map((attempt) => attempt.generation), [1, 2]);
+  assert.ok(result.executionAttempts.every((attempt) => attempt.mechanism === "RUN_CAPABILITY"));
   assert.equal(challengeCalls, 1);
   const workerStop = findWorkerStopForGeneration(root, workSession.sessionDigest, result.workspace.workspaceId, 1);
   const proof = findForwardMotionProofForStop(root, workerStop.stopDigest);
   assert.equal(proof.disposition, "CONTINUE_WITH_ALTERNATIVE");
+});
+
+test("identical worker STOP means opens a circuit before the emergency generation ceiling", async (t) => {
+  const root = repository(t);
+  const workSession = session(root, 8);
+  let challengeCalls = 0;
+  const result = await runWork({
+    repositoryPath: root,
+    session: workSession,
+    runner: async () => workerResult("STOP"),
+    forwardMotionRunner: async () => {
+      challengeCalls += 1;
+      return proofCandidate("CONTINUE_WITH_ALTERNATIVE");
+    },
+    env: env(),
+  });
+
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.equal(result.attempts, 2);
+  assert.equal(challengeCalls, 2);
+  const events = readRunJournal({
+    gitCommonDirectory: commonGitDirectory(root),
+    runId: runIdForSession(workSession.sessionDigest),
+  });
+  const failures = events.filter((event) => event.type === "means/failure" && event.data.meansKind === "WORKER_STOP");
+  const opened = events.filter((event) => event.type === "means/circuit-open" && event.data.meansKind === "WORKER_STOP");
+  assert.equal(failures.length, 2);
+  assert.equal(opened.length, 1);
+  assert.equal(failures[0].data.fingerprint, failures[1].data.fingerprint);
+  assert.equal(opened[0].data.fingerprint, failures[0].data.fingerprint);
 });
 
 test("arbitrary human roles cannot manufacture OWNER_REQUIRED", async (t) => {
@@ -250,7 +289,7 @@ test("arbitrary human roles cannot manufacture OWNER_REQUIRED", async (t) => {
   assert.notEqual(result.nextAction, "Ask the librarian?");
 });
 
-test("only typed constitutional authority reaches OWNER_REQUIRED", async (t) => {
+test("typed owner claims from the challenger cannot manufacture owner escalation", async (t) => {
   const root = repository(t);
   const result = await runWork({
     repositoryPath: root,
@@ -259,9 +298,64 @@ test("only typed constitutional authority reaches OWNER_REQUIRED", async (t) => 
     forwardMotionRunner: async () => proofCandidate("OWNER_REQUIRED"),
     env: env(),
   });
-  assert.equal(result.outcome, "OWNER_REQUIRED");
-  assert.equal(result.nextAction, "Provide the credential required by the sealed Outcome?");
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.notEqual(result.nextAction, "Provide the credential required by the sealed Outcome?");
   assert.match(result.forwardMotionProofDigest, /^sha256:[a-f0-9]{64}$/u);
+});
+
+test("hard-block claims from the challenger are observations for replan, not product terminal state", async (t) => {
+  const root = repository(t);
+  const result = await runWork({
+    repositoryPath: root,
+    session: session(root, 1),
+    runner: async () => workerResult("STOP"),
+    forwardMotionRunner: async () => proofCandidate("HARD_BLOCKED"),
+    env: env(),
+  });
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.match(result.forwardMotionProofDigest, /^sha256:[a-f0-9]{64}$/u);
+});
+
+test("legacy persisted OWNER_REQUIRED proof is reinterpreted as autonomous replan after upgrade", async (t) => {
+  const root = repository(t);
+  const original = session(root, 1);
+  const { workerStop } = durableStop(root, original);
+  const body = {
+    schemaVersion: FORWARD_MOTION_PROOF_SCHEMA,
+    workerStopDigest: workerStop.stopDigest,
+    disposition: "OWNER_REQUIRED",
+    failedMeans: workerStop.workerResult.stop.failedMeans,
+    alternatives: [],
+    hardConstraint: null,
+    ownerRequest: {
+      kind: "CREDENTIALS",
+      question: "Provide the credential named by the legacy proof?",
+      evidence: ["This proof predates deterministic controller-only owner escalation."],
+    },
+    disprovedAssertions: [],
+    evaluatedAt: "2026-09-01T00:00:00.000Z",
+  };
+  const legacy = validateForwardMotionProof({
+    ...body,
+    proofDigest: computeForwardMotionProofDigest(body),
+  });
+  persistImmutableJson(root, "forward-motion-proofs", legacy.proofDigest, legacy, "TEST_LEGACY_FORWARD_MOTION");
+
+  const resumed = loadLatestWorkSession(root);
+  let workerCalls = 0;
+  let challengerCalls = 0;
+  const result = await runWork({
+    repositoryPath: root,
+    session: resumed,
+    runner: async () => { workerCalls += 1; throw new Error("legacy STOP must not replay the worker"); },
+    forwardMotionRunner: async () => { challengerCalls += 1; throw new Error("durable proof must not be recomputed"); },
+    env: env(),
+  });
+  assert.equal(workerCalls, 0);
+  assert.equal(challengerCalls, 0);
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.notEqual(result.nextAction, legacy.ownerRequest.question);
+  assert.equal(result.forwardMotionProofDigest, legacy.proofDigest);
 });
 
 test("durable STOP recovers after interruption without replaying the worker", async (t) => {
@@ -301,5 +395,6 @@ test("durable CONTINUE proof recovers by advancing once, not by replaying the st
   assert.equal(result.outcome, "DONE");
   assert.deepEqual(workerAttempts, [2]);
   assert.equal(challengeCalls, 0);
-  assert.deepEqual(result.executionPermits.map((permit) => permit.generation), [1, 2]);
+  assert.deepEqual(result.executionAttempts.map((attempt) => attempt.generation), [1, 2]);
+  assert.ok(result.executionAttempts.every((attempt) => attempt.mechanism === "RUN_CAPABILITY"));
 });

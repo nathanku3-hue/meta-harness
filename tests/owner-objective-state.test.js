@@ -11,11 +11,24 @@ const {
   readOwnerObjectiveState,
   replaceOwnerObjectiveState,
 } = require("../lib/owner-objective-state");
-const { protocolRoot } = require("../lib/world-authority");
+const { persistOwnerGoalIngress, readOwnerGoalIngress } = require("../lib/work-git");
+const { protocolRoot, withWorldAuthorityLock } = require("../lib/world-authority");
 const { ROOT, runRaw } = require("./helpers/cli");
 const { git, persistInitial, repository } = require("./helpers/linear-product-head");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
+
+test("owner objective and owner-goal ingress do not coordinate through the World commit lock", (t) => {
+  const { root } = repository(t);
+  const result = withWorldAuthorityLock(root, () => ({
+    objective: replaceOwnerObjectiveState(root, "mission can advance independently"),
+    ingress: persistOwnerGoalIngress(root, "deliver the next useful result"),
+  }));
+  assert.equal(result.objective.revision, 1);
+  assert.equal(readOwnerObjectiveState(root).content, "mission can advance independently");
+  assert.equal(result.ingress.content, "deliver the next useful result");
+  assert.equal(readOwnerGoalIngress(root, { optional: false }).content, "deliver the next useful result");
+});
 
 test("pre-aborted normal work cannot revise owner objective state", (t) => {
   const { root } = repository(t);
@@ -29,7 +42,7 @@ test("pre-aborted normal work cannot revise owner objective state", (t) => {
   assert.equal(fs.existsSync(objectivePath(root)), false);
 });
 
-test("normal planner-enabled owner input changes only Git-common objective state", (t) => {
+test("plain planner-enabled mission establishes only Git-common objective state", (t) => {
   const { root } = repository(t);
   fs.writeFileSync(path.join(root, "src", "a", "baseline.txt"), "owner tracked dirt\n", "utf8");
   fs.writeFileSync(path.join(root, "owner-untracked.tmp"), "owner untracked bytes\n", "utf8");
@@ -92,6 +105,58 @@ test("product-surface objective capture leaves checkout unchanged end to end", (
   assert.equal(git(root, ["diff", "--cached", "--binary"]), before.index);
   assert.equal(fs.readFileSync(path.join(root, "src", "a", "baseline.txt"), "utf8"), before.tracked);
   assert.equal(fs.readFileSync(path.join(root, "owner-untracked.tmp"), "utf8"), before.untracked);
+});
+
+test("unknown conversational turns leave durable objective state bit-identical and route read-only", (t) => {
+  const { root } = repository(t);
+  const initial = replaceOwnerObjectiveState(root, "mission M", {
+    ingressDigest: `sha256:${"a".repeat(64)}`,
+  });
+  const before = {
+    revision: initial.revision,
+    content: initial.content,
+    contentDigest: initial.contentDigest,
+    ingressDigest: initial.ingressDigest,
+  };
+
+  for (const rawTurn of ["why?", "monitor", "does this matter?", "explain from ground up"]) {
+    assert.deepEqual(automaticRequest(root, rawTurn), { type: "READ_ONLY_INTERACTION", turn: rawTurn });
+    const current = readOwnerObjectiveState(root);
+    assert.deepEqual({
+      revision: current.revision,
+      content: current.content,
+      contentDigest: current.contentDigest,
+      ingressDigest: current.ingressDigest,
+    }, before);
+  }
+});
+
+test("explicit mission replacement persists only owner-authored mission bytes and revises exactly once", (t) => {
+  const { root } = repository(t);
+  const before = replaceOwnerObjectiveState(root, "mission M");
+
+  assert.deepEqual(
+    automaticRequest(root, "change the goal to mission M3"),
+    { type: "NO_DISPATCH" },
+  );
+  const after = readOwnerObjectiveState(root);
+  assert.equal(after.revision, before.revision + 1);
+  assert.equal(after.content, "mission M3");
+  assert.match(after.contentDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.notEqual(after.contentDigest, before.contentDigest);
+});
+
+test("mission change may independently authorize existing-mission dispatch", (t) => {
+  const { root } = repository(t);
+  const before = replaceOwnerObjectiveState(root, "mission M");
+
+  assert.deepEqual(
+    automaticRequest(root, "change the goal to mission M4 and go"),
+    { type: "REPO_WAVE" },
+  );
+  const after = readOwnerObjectiveState(root);
+  assert.equal(after.revision, before.revision + 1);
+  assert.equal(after.content, "mission M4");
 });
 
 test("objective revision advances across ABA even when final bytes match the original", (t) => {

@@ -5,7 +5,6 @@ const { createCommandContext, writeOut } = require("../lib/cli-context");
 const { normalizeHarnessError, UsageError } = require("../lib/errors");
 const { commandNames, renderHelp, resolveCommand } = require("../lib/command-registry");
 const { runAutomatic } = require("../lib/commands/work");
-const { repositoryRoot } = require("../lib/work-git");
 const {
   assertRepositoryEntryValid,
   publicRepositoryEntry,
@@ -62,9 +61,10 @@ function writeHumanError(error, context) {
 
 function writeProductError(error, context) {
   const harnessError = normalizeHarnessError(error);
-  const message = String(harnessError.message || "The requested result could not continue.").trim();
+  const message = String(harnessError.message || "This execution route could not continue.").trim();
   const punctuation = /[.!?]$/u.test(message) ? "" : ".";
-  writeOut(context, `Blocked: ${message}${punctuation}\n`);
+  writeOut(context, `Execution issue: ${message}${punctuation}\n`);
+  writeOut(context, "The requested product result remains the goal; retry to continue from durable state or another in-scope route.\n");
   if (context.env.META_HARNESS_DEBUG && harnessError.stack) {
     context.stderr.write(`${harnessError.stack}\n`);
   }
@@ -85,7 +85,7 @@ function writeJsonError(error, context) {
 }
 
 function renderInspection(context, { json = false } = {}) {
-  const entry = resolveRepositoryEntry(repositoryRoot(context.cwd));
+  const entry = resolveRepositoryEntry(context.cwd);
   if (json) {
     writeOut(context, `${JSON.stringify(publicRepositoryEntry(entry), null, 2)}\n`);
     return;

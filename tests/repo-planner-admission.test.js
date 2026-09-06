@@ -109,7 +109,7 @@ test("boundary compilation normalizes equivalent syntax but never widens or shri
   }
 });
 
-test("planner admission rejects stale objective revision before Claim visibility", (t) => {
+test("planner admission rejects stale objective revision before run visibility", (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   replaceOwnerObjectiveState(root, "objective one");
@@ -119,12 +119,12 @@ test("planner admission rejects stale objective revision before Claim visibility
 
   assert.throws(
     () => admitPreparedPlannerCandidate(root, current, prepared, { objectiveRevision: 1 }),
-    (error) => error.code === "MH_OUTCOME_CLAIM_STALE_OBJECTIVE",
+    (error) => error.code === "MH_OWNER_OBJECTIVE_STALE",
   );
   assert.equal(listActiveOutcomeClaims(root).length, 0);
 });
 
-test("T6 OWNER_GOAL and REPO_OUTCOME entry paths share standing authority across objective revisions", (t) => {
+test("T6 OWNER_GOAL and REPO_OUTCOME entry paths keep one pinned product direction without carrying authority topology", (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   const current = readCurrentWorldState(root);
@@ -138,14 +138,18 @@ test("T6 OWNER_GOAL and REPO_OUTCOME entry paths share standing authority across
   const secondDirect = directGoalSession(root, current);
 
   for (const value of [firstPrepared, secondPrepared]) {
-    assert.equal(value.semanticAuthority.productDirectionDigest, firstDirect.productDirection.digest);
-    assert.equal(value.semanticAuthority.semanticState, firstDirect.semanticState);
-    assert.deepEqual(value.semanticProjection, firstDirect.semanticProjection);
-    assert.deepEqual(value.endgameProjection, firstDirect.endgameProjection);
+    assert.equal(value.direction.digest, firstDirect.productDirection.digest);
+    assert.equal(Object.hasOwn(value, "semanticAuthority"), false);
+    assert.equal(Object.hasOwn(value, "semanticProjection"), false);
+    assert.equal(Object.hasOwn(value, "endgameProjection"), false);
   }
-  assert.equal(firstDirect.semanticState, secondDirect.semanticState);
-  assert.deepEqual(firstDirect.semanticProjection, secondDirect.semanticProjection);
-  assert.deepEqual(firstDirect.endgameProjection, secondDirect.endgameProjection);
+  assert.equal(firstDirect.productDirection.digest, secondDirect.productDirection.digest);
+  for (const session of [firstDirect, secondDirect]) {
+    assert.equal(session.schemaVersion, "work-session/v9");
+    assert.equal(Object.hasOwn(session, "semanticState"), false);
+    assert.equal(Object.hasOwn(session, "semanticProjection"), false);
+    assert.equal(Object.hasOwn(session, "endgameProjection"), false);
+  }
 });
 
 test("controller derives exact capability, base, validation, attempts, and local-only delivery", (t) => {
@@ -157,12 +161,15 @@ test("controller derives exact capability, base, validation, attempts, and local
   assert.equal(prepared.base.commit, current.head.productCommit);
   assert.ok(prepared.validation.length > 0);
 
+  const claimsBefore = listActiveOutcomeClaims(root).length;
   const admitted = admitPreparedPlannerCandidate(root, current, prepared);
-  assert.equal(admitted.claim.schemaVersion, "outcome-claim/v2");
-  assert.deepEqual(admitted.claim.continuesFromTransitionDigests, []);
-  assert.deepEqual(admitted.claim.executionBoundary, { writePaths: ["src/a"] });
+  assert.equal(admitted.session.origin.type, "REPO_RUN");
+  assert.equal(admitted.session.origin.outcomeDigest, admitted.outcome.outcomeDigest);
+  assert.equal(admitted.session.origin.originHeadDigest, current.head.headDigest);
+  assert.deepEqual(admitted.session.origin.continuesFromTransitionDigests, []);
+  assert.equal(listActiveOutcomeClaims(root).length, claimsBefore, "new planner admission must not create a Claim");
   assert.deepEqual(admitted.session.allowedPaths, ["src/a"]);
   assert.equal(admitted.session.base.commit, current.head.productCommit);
   assert.equal(admitted.session.maxAttempts, CONTROLLER_MAX_ATTEMPTS);
-  assert.deepEqual(admitted.session.delivery, { commit: true, push: false });
+  assert.deepEqual(admitted.session.delivery, { push: false });
 });

@@ -7,6 +7,7 @@ const test = require("node:test");
 
 const { buildCodingPrompt } = require("../lib/coding-worker");
 const {
+  LEGACY_WORK_SESSION_SCHEMA,
   WORK_SESSION_SCHEMA,
   computeWorkSessionDigest,
   createGoalWorkSession,
@@ -24,13 +25,9 @@ const TEST_BASE = Object.freeze({ type: "EXACT_COMMIT", commit: "1".repeat(40) }
 
 function explicitSession(overrides = {}) {
   const productDirection = directionFromContent();
-  const semanticAuthority = compileSemanticAuthority({ productDirection });
   const body = {
     schemaVersion: WORK_SESSION_SCHEMA,
     productDirection,
-    semanticState: semanticAuthority.semanticState,
-    semanticProjection: semanticProjection(semanticAuthority),
-    endgameProjection: endgameProjection(semanticAuthority),
     origin: { type: "OWNER_GOAL" },
     base: TEST_BASE,
     productResult: "Ship one product-facing coding command.",
@@ -38,6 +35,33 @@ function explicitSession(overrides = {}) {
     doNow: "Implement the primary work command.",
     newlyTrueBehavior: "One command carries the brief into code and validation.",
     doneWhen: "Focused tests pass and the default help is product-facing.",
+    stopOnlyIf: ["Protected access is required."],
+    allowedPaths: ["lib", "tests"],
+    validation: [{ argv: ["node", "--test"], cwd: ".", timeoutSeconds: 60 }],
+    maxAttempts: 2,
+    delivery: { push: false },
+    ...overrides,
+  };
+  if (!body.productProofSpec) body.productProofSpec = gapProofSpec(body);
+  return sealWorkSession(body);
+}
+
+function legacySession(overrides = {}) {
+  const productDirection = directionFromContent();
+  const semanticAuthority = compileSemanticAuthority({ productDirection });
+  const body = {
+    schemaVersion: LEGACY_WORK_SESSION_SCHEMA,
+    productDirection,
+    semanticState: semanticAuthority.semanticState,
+    semanticProjection: semanticProjection(semanticAuthority),
+    endgameProjection: endgameProjection(semanticAuthority),
+    origin: { type: "OWNER_GOAL" },
+    base: TEST_BASE,
+    productResult: "Resume one legacy coding command.",
+    journeyState: "A retained v8 execution may still resume.",
+    doNow: "Resume the retained work.",
+    newlyTrueBehavior: "The legacy result remains recoverable.",
+    doneWhen: "Legacy validation passes.",
     stopOnlyIf: ["Protected access is required."],
     authorizedReversibleActions: ["Edit allowed files.", "Run tests."],
     ownerOnlyActions: ["Publish a release."],
@@ -60,21 +84,32 @@ test("journey reducer keeps automatic continuation mechanically bounded", () => 
   assert.equal(reduceJourneyState({ compiledDecision: { type: "NO_DISPATCH", reason: "USE_PRODUCT" } }).next.operation, "STOP");
 });
 
-test("work-session/v8 seals product direction, semantic authority, product-proof spec, provenance, trusted base, and exact path/validation scope", () => {
+test("work-session/v9 seals only the product brief, exact execution surface, and external delivery effect", () => {
   const session = explicitSession();
-  assert.equal(session.schemaVersion, "work-session/v8");
+  assert.equal(session.schemaVersion, "work-session/v9");
   assert.equal(session.productProofSpec.schemaVersion, "product-proof-spec/v1");
   assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.deepEqual(session.base, TEST_BASE);
   assert.equal(session.sessionDigest, computeWorkSessionDigest(session));
   assert.equal(Object.isFrozen(validateWorkSession(session)), true);
   assert.equal(Object.isFrozen(session.delivery), true);
-  assert.deepEqual(session.delivery, { commit: true, push: false });
+  assert.deepEqual(session.delivery, { push: false });
   assert.deepEqual(session.allowedPaths, ["lib", "tests"]);
   assert.equal(session.productResult, "Ship one product-facing coding command.");
   assert.equal(session.productDirection.content, SAMPLE_PRODUCT_MD);
   assert.match(session.productDirection.digest, /^sha256:[a-f0-9]{64}$/);
-  assert.equal(session.intent, undefined);
+  for (const obsolete of ["semanticState", "semanticProjection", "endgameProjection", "authorizedReversibleActions", "ownerOnlyActions"]) {
+    assert.equal(Object.hasOwn(session, obsolete), false);
+  }
+});
+
+test("work-session/v8 remains a strict readable legacy contract", () => {
+  const session = legacySession();
+  assert.equal(session.schemaVersion, "work-session/v8");
+  assert.equal(session.sessionDigest, computeWorkSessionDigest(session));
+  assert.equal(Object.isFrozen(validateWorkSession(session)), true);
+  assert.deepEqual(session.delivery, { commit: true, push: false });
+  assert.equal(session.semanticState, compileSemanticAuthority({ productDirection: session.productDirection }).semanticState);
 });
 
 test("goal shorthand pins live PRODUCT.md into a complete low-friction brief", (t) => {
@@ -101,9 +136,9 @@ test("goal shorthand pins live PRODUCT.md into a complete low-friction brief", (
   assert.equal(session.doNow, "Add a visible result.");
   assert.equal(session.newlyTrueBehavior, "Add a visible result.");
   assert.equal(session.allowedPaths[0], "src");
-  assert.equal(session.maxAttempts, 2);
+  assert.equal(session.maxAttempts, 8);
   assert.deepEqual(session.validation, validation);
-  assert.deepEqual(session.delivery, { commit: false, push: false });
+  assert.deepEqual(session.delivery, { push: false });
   assert.equal(session.productDirection.digest, direction.digest);
   assert.equal(session.productDirection.content, direction.content);
   const changedValidation = createGoalWorkSession({
@@ -155,11 +190,15 @@ test("work session rejects digest drift, traversal, extra fields, and invalid at
     (error) => error.code === "MH_WORK_SESSION_SHAPE",
   );
   assert.throws(
-    () => sealWorkSession({ ...session, maxAttempts: 4 }),
+    () => sealWorkSession({ ...session, maxAttempts: 13 }),
     (error) => error.code === "MH_WORK_SESSION_ATTEMPTS",
   );
   assert.throws(
     () => sealWorkSession({ ...session, delivery: { commit: false, push: true } }),
+    (error) => error.code === "MH_WORK_SESSION_SHAPE",
+  );
+  assert.throws(
+    () => sealWorkSession({ ...session, delivery: { push: "yes" } }),
     (error) => error.code === "MH_WORK_SESSION_DELIVERY",
   );
   assert.throws(
