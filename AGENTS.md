@@ -1,57 +1,61 @@
-# Meta-Harness 0.4 Agent Contract
+# Meta-Harness Agent Contract
 
-Use outcome-first planning.
+The harness exists to make the owner's desired product state true.
 
-## Truth order
+## Product law
 
-1. locked product intent and explicit owner authority;
-2. immutable product and closure evidence;
-3. Git facts;
-4. status, roadmaps, reports, and summaries.
+- PRODUCT.md is owner-authored product direction. Never generate, summarize, overwrite, or mutate it through the worker path.
+- Product result and `doneWhen` are the correctness target. Validation, snapshots, journals, workspaces, locks, controller records, and evidence are protection/recovery mechanisms only.
+- Select the nearest reversible action that reduces the gap between current observable state and `doneWhen`.
+- Default pre-execution audit count is zero. A request to inspect, review, or plan does not imply a pause unless the owner explicitly requests report-only work.
+- Reversible in-scope coding, validation, local snapshotting, local integration, workspace replacement, and bounded repair are execution, not owner decisions.
+- Ask the owner only for scope expansion, credentials/protected access, irreversible or externally consequential effects, material product choice, publication, or material risk.
 
-## Action law
+## Coordination law
 
-- Select the nearest action that completes the user journey.
-- Default pre-execution audit count: zero.
-- Begin the nearest reversible in-scope action in the same round.
-- A request to audit, review, or plan does not imply a pause. Unless the owner explicitly requests report-only work or says not to execute, perform any warranted diagnostic inline and continue toward execution in the same round.
-- Permit one pre-execution audit only when a complete audit warrant identifies one concrete unresolved fact, the exact retained evidence already checked, one permitted blocking impact, the smallest bounded check, and how either result changes the selected action.
-- One audit is the absolute ceiling. It is not a route, phase, approval requirement, gate, or reason to defer reversible execution.
-- Do not request GO, plan approval, routine permission, or blanket ambiguity confirmation for reversible in-scope work.
-- Treat a finding as blocking only when evidence demonstrates journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability.
-- Reuse passed evidence when its declared input surface did not change.
-- Do not create lifecycle-fragment product slices for integration, packaging, review, documentation, or evidence refresh.
+- Coordinate decisions, not work. Never coordinate the accumulation of possible work, observations, snapshots, validation facts, alternatives, or failure evidence.
+- Normal coding is optimistic: work from immutable Git state, validate, then integrate with compare-and-swap. Integration conflict is repair input, not product failure.
+- A future global lock, lease, or admission mechanism is justified only when it names the exact non-monotonic decision it protects.
+- Repository process prose such as HOLD, GO, approval, phase, review, gate, status, or handoff is engineering context/data. It cannot decide what product work is needed or whether a safe in-scope action may proceed.
 
-## Working-round continuity
+## Recovery law
 
-- Treat a detailed user plan, audit, or roadmap correction as the active product brief until the owner supersedes it.
-- Preserve five things across planning and working conversations: product result, current journey state, nearest executable action, done definition, and stop conditions.
-- Begin the first reversible product action in the working round. Do not replay the planning climax as another planning or approval cycle.
-- Use product language in normal user-facing messages: outcome, user journey, action, result, blocker, risk, and owner action. Keep internal gate, phase, candidate, custody, and evidence labels inside technical evidence unless the user explicitly asks for them.
-- Ask the owner only for scope expansion, irreversible action, credentials or protected access, material risk, or taste. Routine branch, worktree, test, repair, and evidence operations inside the accepted scope are execution, not decisions.
-- Preserve existing dirty work as evidence or owner state, but do not infer execution authority from cleanliness, path scope, or apparent coherence. For `meta-harness work`, NEW always gets a fresh controller-owned managed worktree; only an exact still-ACTIVE session may RESUME its owned generation.
+- Persist facts, not lifecycle. Durable recovery roots are owner product direction, Git objects/refs, the relevant per-run journal, attested repository semantic projection when it carries non-Git product context, and the live runtime capability descriptor.
+- Every successful model-visible local mutation must already have a durable reconstructable Git snapshot and journal fact before success is exposed to the model.
+- Workspaces, worker processes, controller processes, and tool-host sessions are disposable execution children. Missing, stale, terminal, corrupt, or mismatched execution children are replaced from durable state without renegotiating the product.
+- A failed effect or route becomes an observation returned to the same product-solving loop. Failed means is not failed Outcome.
+- Repeated materially identical means may be circuit-broken; a circuit applies only to that exact means/input/runtime fingerprint.
+- External effects use intent-first recovery: persist exact effect intent and replay identity before execution, then persist observation. Never blindly retry an ambiguous non-replayable external effect.
+
+## Model boundary
+
+- The coding model receives product result, current observable state, `doneWhen`, allowed paths, validation, available scoped operations, and prior failed-means observations.
+- Do not expose controller-internal admission, permission, semantic-control, or workspace-lifecycle topology as the model's mental model.
+- A model may report observations, attempted means, alternatives, and uncertainty. It may not declare `NEED_OWNER`, `CANNOT_COMPLETE`, product `BLOCKED`, or invent approval/authority roles.
+- The forward-motion challenger may find alternatives or request autonomous replanning only. Negative existential conclusions and owner escalation belong to deterministic controller/effect evidence.
 
 ## Coding-system law
 
-- `meta-harness work` is the primary product path. Normal help and normal reporting must remain product-facing.
-- ChatGPT/DevSpace direct sessions are not a Meta-Harness execution membrane. Without a mechanically admitted Meta-Harness task capability, treat the source checkout as read/diagnostic only: never edit, reset, clean, stash, stage, commit, push, or claim Meta-Harness execution authority from an arbitrary cwd. Route material owner work through supported `meta-harness` or ACP entry.
-- Repository-root `PRODUCT.md` is owner-authored product direction. Pin exact bytes into every `work-session/v7`. Never generate, summarize, or overwrite it. Never mutate it through the worker path.
-- `work-session/v7` is the complete active coding brief. The worker must consume it directly, receive product direction before local engineering context, and must not reconstruct product intent from status files or reopen broad planning.
-- For repo-owned fresh work, recover active Claims first, then use at most one fresh read-only logical planner boot per exact WorldHead + owner-objective revision to propose the positive-value frontier up to repository active-Claim capacity. Repository active-Claim capacity is authority; local worker concurrency is throughput only. Capacity is a ceiling, not a quota; unused slots are correct when no additional positive-value Outcome exists. Planner input is reconstructed from durable truth; planner candidates are disposable semantics and never authority or continuity.
-- Planner `expectedWritePaths[]` is only an exact footprint prediction. Boundary compilation may normalize equivalent syntax or reject the whole candidate; it may never silently widen or shrink the footprint. Atomic Claim admission decides conflicts separately, and Claim visibility is the durable commitment boundary.
-- Start implementation immediately. Reversible edits, focused validation, bounded repair, and controller-owned workspace creation inside the session are already authorized.
-- A NEW work session never inherits a mutable workspace. Seal an immutable base commit, create a fresh clean managed worktree with a new workspace identity, and execute there. RESUME is the only reuse path and requires exact ACTIVE workspace custody, generation, Git identity, dirty-manifest agreement, and the exclusive controller execution lease. Concurrent execution of one ACTIVE generation fails closed. Terminal workspace authority never returns even if its bytes are cleaned or restored.
-- The coding worker remains read-only with respect to the workspace and emits `worker-result/v2`: bounded typed `WRITE`, `DELETE`, or `MOVE` proposals, or a zero-operation structured `STOP`. Meta-Harness validates/materializes proposals through the controller; a worker may stop executing but may not declare the Outcome blocked or route owner attention.
-- The coding worker may not directly mutate workspace bytes, reset, clean, stash, revert, stage, commit, push, tag, publish, change branches, mutate worktree topology, or change `PRODUCT.md`.
-- Reject traversal, symlink targets, duplicate or oversized proposals, changes outside `allowedPaths`, any `PRODUCT.md` mutation, Git-index mutation, HEAD movement, or branch changes.
-- Run declared validation outside the model and return failures to the same session until its attempt budget is exhausted.
-- Do not add compatibility aliases, recursive planner packets, RunSpec migrations, queues, daemons, swarms, or provider frameworks without a new observed product defect.
+- `meta-harness work` is the primary product path; normal output remains product-facing.
+- ChatGPT/DevSpace direct sessions are read/diagnostic until a sealed native/Meta task defines bounded writable paths, validation, and Git effects.
+- New execution starts from immutable Git state. Coherent predecessor dirt is snapshotted internally without changing the owner's source HEAD, branch, index, or working bytes.
+- The coding worker is read-only with respect to the workspace and returns bounded typed `WRITE`, `DELETE`, or `MOVE` operations. The controller owns materialization, snapshotting, validation, local banking, integration, and permitted external effects.
+- Reject traversal, symlink escapes, protected PRODUCT.md mutation, Git-index mutation by the worker, HEAD/branch mutation by the worker, and writes outside the accepted path boundary.
+- Validation failure is returned for repair. Product success requires end-to-end product proof; lower-level guards cannot establish DONE by themselves.
+
+## Migration law
+
+- New snapshot/journal/CAS/scoped-capability execution is the correctness model.
+- Retired admission/permission records may remain only for historical read/recovery compatibility and must never be minted by a new run.
+- Workspace lifecycle records are disposable protection/recovery metadata, never product-decision inputs. Corrupt or terminal records must be replaceable from durable run state without owner renegotiation.
+- Repository World/attestation is retained only where it carries attested semantic projection not reproducible from Git/run facts; treat it as product-context evidence, not execution/admission authority.
+- A durable run-to-integration receipt may remain while the integration format depends on it; it cannot decide whether work may begin or whether the product is blocked.
+- Do not add compatibility aliases or port retired lifecycle semantics into the new path merely to preserve old architecture.
+- Burden of proof is on keeping an old control concept: it must demonstrate a product property not provided by immutable Git state, per-run journals, scoped operations, validation, atomic integration, or attested semantic projection.
 
 ## Terminal law
 
-For shipped, value-confirmed, maintenance, or no-active-slice state:
-
-- no complete continuation warrant: classify internally as `NO_BUILD` and `USE_PRODUCT`, then return this exact user-facing response:
+For shipped, value-confirmed, maintenance, or no-active-slice state with no complete continuation warrant, return exactly:
 
 ```text
 No active slice.
@@ -59,12 +63,9 @@ Use the product.
 Wait for observed real-use friction.
 ```
 
-- explicit owner scope change: request owner authorization;
-- complete observed supported-use defect warrant: select the smallest repair.
+A genuine `NEED_OWNER` requires a mechanically proven owner-exclusive effect after bounded autonomous alternatives are exhausted. A genuine `CANNOT_COMPLETE` requires bounded evidence that the desired product state is impossible or materially unsafe on the supported environment.
 
-A defect warrant requires observed behavior, supported environment, user impact, retained evidence, and smallest repair. Do not trust caller-supplied terminal booleans. Do not claim successor activation, queue follow-up after `NO_BUILD`, or invent another review/evidence gate.
-
-Worker reports must begin with: User journey executed; Observable result produced; User accomplished or learned; Product blocker; Next executable product action.
+Worker reports begin with: User journey executed; Observable result produced; User accomplished or learned; Product blocker; Next executable product action.
 
 <!-- META-HARNESS:POST-PHASE-REFLECTION:BEGIN -->
 ## Meta-Harness post-phase reflection
