@@ -59,7 +59,13 @@ function addReadyChild(name, ready = readyJson()) {
   writeJson(path.join(child, ".meta-harness", "ready.json"), ready);
   return { name, path: child, role: "child" };
 }
-function run(cwd, args) { return childProcess.spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8" }); }
+function run(cwd, args) {
+  return childProcess.spawnSync(process.execPath, [BIN, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
+}
 function noOpBrief() {
   return { kind: "read_only_worker_brief", selected_candidate_id: null, selected_repo: null, priority: null, reason: null, source_state: null, source_warning_ids: [], source_check_ids: [], target_paths: [], selection_reason: "no next-action candidates", body: "No follow-up action is needed.", mutates: false };
 }
@@ -123,19 +129,21 @@ test("blocked gate includes failing validation check IDs", () => {
   assert.deepEqual(gate.blocking_check_ids, ["PROPOSAL_DIFF_001", "PROPOSAL_NO_FILE_OUTPUT_001"]);
 });
 
-test("review gate does not change top-level rollup ok", () => {
+test("production omission of review gate does not change top-level rollup ok", () => {
   const rollup = selectedFailedRollup();
   assert.equal(rollup.ok, false);
-  assert.equal(rollup.proposal_validation.ok, true);
-  assert.equal(rollup.proposal_review_gate.verdict, "ready_for_review");
+  assert.equal(Object.hasOwn(rollup, "proposal_validation"), false);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_gate"), false);
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
 });
 
-test("review gate does not change child repo readiness state", () => {
+test("production omission of review gate does not change child repo readiness state", () => {
   const rollup = selectedFailedRollup();
   assert.equal(rollup.summary.failed, 1);
   assert.equal(rollup.repos[0].state, "failed");
   assert.deepEqual(rollup.repos[0].failing_checks.map((item) => item.id), ["MH_SYNC_001"]);
-  assert.equal(rollup.proposal_review_gate.next_action, "review_proposal_draft");
+  assert.equal(Object.hasOwn(rollup, "proposal_review_gate"), false);
+  assert.equal(rollup.manual_work_packet.selected_candidate_id, "ACTION_REVIEW_FAILED_READINESS");
 });
 
 test("review gate generation and Markdown rendering do not mutate parent or child files", () => {
@@ -151,23 +159,24 @@ test("review gate generation and Markdown rendering do not mutate parent or chil
   assert.deepEqual(readSnapshot(child.path), childBefore);
 });
 
-test("JSON has no forbidden file output fields", () => {
+test("production JSON has no forbidden file fields or proposal review ceremony", () => {
   const json = JSON.stringify(selectedFailedRollup());
   for (const field of FORBIDDEN_FILE_FIELDS) assert.equal(json.includes(`"${field}"`), false, field);
-  assert.equal(json.includes("proposal_draft"), true);
-  assert.equal(json.includes("proposal_validation"), true);
-  assert.equal(json.includes("proposal_review_gate"), true);
+  assert.equal(json.includes("proposal_draft"), false);
+  assert.equal(json.includes("proposal_validation"), false);
+  assert.equal(json.includes("proposal_review_gate"), false);
+  assert.equal(json.includes("manual_work_packet"), true);
 });
 
 test("JSON has no patch_proposals", () => {
   assert.equal(JSON.stringify(selectedFailedRollup()).includes(["patch", "proposals"].join("_")), false);
 });
 
-test("Markdown renders Proposal Review Gate", () => {
+test("lean Markdown suppresses the Proposal Review Gate ceremony", () => {
   const markdown = renderRepoRollupMarkdown(selectedFailedRollup());
-  assert.match(markdown, /## Proposal Review Gate/);
-  assert.match(markdown, /- verdict: ready_for_review/);
-  assert.match(markdown, /- next_action: review_proposal_draft/);
+  assert.doesNotMatch(markdown, /## Proposal Review Gate/);
+  assert.match(markdown, /## Manual Work Packet/);
+  assert.match(markdown, /- verdict: ready_for_manual_work/);
   assert.match(markdown, /- mutates: false/);
   assert.match(markdown, /- selected: child-app ACTION_REVIEW_FAILED_READINESS/);
 });

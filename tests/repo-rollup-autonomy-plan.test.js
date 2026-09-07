@@ -98,7 +98,7 @@ function assertNonMutating(plan) {
   assert.equal(plan.creates_queues, false);
   assert.equal(plan.applies_patches, false);
   assert.equal(plan.refreshes_readiness, false);
-  assert.equal(plan.required_human_approval, true);
+  assert.equal(plan.required_human_approval, false);
 }
 
 test("hasAllowedDecision checks allowed decision objects by id", () => {
@@ -144,28 +144,23 @@ test("autonomy plan blocks when selected packet fields are missing", () => {
   assert.ok(blockerIds(plan).includes("AUTONOMY_PACKET_FIELDS_001"));
 });
 
-test("autonomy plan blocks when manual-work decision is absent", () => {
+test("autonomy plan does not gate non-mutating work on a human approval decision", () => {
   const setup = fullSetup();
   setup.proposalReviewOptions.allowed_decisions = setup.proposalReviewOptions.allowed_decisions.filter((decision) => decision.id !== "approve_for_manual_work");
   const plan = buildAutonomyPlan(setup);
-  assert.equal(plan.verdict, "blocked");
-  assert.ok(blockerIds(plan).includes("AUTONOMY_OPTIONS_APPROVAL_001"));
+  assert.equal(plan.verdict, "ready_for_human_approval");
+  assert.deepEqual(plan.blockers, []);
+  assert.equal(plan.required_human_approval, false);
 });
 
-test("autonomy plan blocks when receipt template records a decision", () => {
+test("autonomy plan ignores legacy approval receipt fields after downstream safety validation", () => {
   const setup = fullSetup();
   setup.proposalReviewReceiptTemplate.template.decision_id = "approve_for_manual_work";
-  const plan = buildAutonomyPlan(setup);
-  assert.equal(plan.verdict, "blocked");
-  assert.ok(blockerIds(plan).includes("AUTONOMY_RECEIPT_TEMPLATE_001"));
-});
-
-test("autonomy plan blocks when receipt validation fails", () => {
-  const setup = fullSetup();
   setup.proposalReviewReceiptValidation = { ok: false, verdict: "fail", mutates: false };
   const plan = buildAutonomyPlan(setup);
-  assert.equal(plan.verdict, "blocked");
-  assert.ok(blockerIds(plan).includes("AUTONOMY_RECEIPT_VALIDATION_001"));
+  assert.equal(plan.verdict, "ready_for_human_approval");
+  assert.deepEqual(plan.blockers, []);
+  assert.equal(plan.required_human_approval, false);
 });
 
 test("autonomy plan blocks when copy block validation fails", () => {
@@ -214,7 +209,7 @@ test("autonomy plan is ready only when the full proposal review chain passes", (
   assert.equal(plan.selected_repo, "child-app");
   assert.equal(plan.selected_candidate_id, "ACTION_REVIEW_FAILED_READINESS");
   assert.deepEqual(plan.blockers, []);
-  assert.equal(plan.planned_steps.length, 5);
+  assert.equal(plan.planned_steps.length, 3);
   assertNonMutating(plan);
 });
 
@@ -237,14 +232,15 @@ test("autonomy plan can derive inputs from rollup object", () => {
 test("autonomy plan markdown renders deterministic section", () => {
   const plan = buildAutonomyPlan(fullSetup());
   const markdown = renderAutonomyPlanMarkdown(plan).join("\n");
-  assert.match(markdown, /## Controlled Autonomy Dry-Run Plan/);
-  assert.match(markdown, /- verdict: ready_for_human_approval/);
-  assert.match(markdown, /- selected_action_type: review_approved_manual_work_packet/);
+  assert.match(markdown, /## Manual Work Safety Plan/);
+  assert.match(markdown, /- verdict: ready_for_manual_work/);
+  assert.match(markdown, /- selected_action_type: manual_work_packet/);
   assert.match(markdown, /- dry_run: true/);
   assert.match(markdown, /- mutates: false/);
-  assert.match(markdown, /- required_human_approval: true/);
+  assert.match(markdown, /- required_human_approval: false/);
   assert.match(markdown, /- blockers:\n  - none/);
   assert.match(markdown, /- planned steps:\n  1\. Review the existing proposal review packet\./);
+  assert.doesNotMatch(markdown, /approve_for_manual_work|human decision|approval receipt/iu);
 });
 
 test("autonomy plan markdown handles missing plan as blocked", () => {

@@ -82,7 +82,11 @@ function assertFailsCheck(validation, id) {
   assert.equal(validation.mutates, false);
 }
 function run(cwd, args) {
-  return childProcess.spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8" });
+  return childProcess.spawnSync(process.execPath, [BIN, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
 }
 
 test("valid ready_for_review receipt template validates pass", () => {
@@ -178,18 +182,19 @@ test("patch_proposals field fails validation in approved scan containers", () =>
   assertFailsCheck(validation, "RECEIPT_TEMPLATE_NO_PATCH_001");
 });
 
-test("validation does not change top-level rollup ok", () => {
+test("production omission of receipt validation does not change top-level rollup ok", () => {
   const rollup = failedRollup();
   assert.equal(rollup.ok, false);
-  assert.equal(rollup.proposal_review_receipt_validation.ok, true);
-  assert.equal(rollup.proposal_review_receipt_validation.verdict, "pass");
+  assert.equal(Object.hasOwn(rollup, "proposal_review_receipt_validation"), false);
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
 });
 
-test("validation does not change child repo readiness state", () => {
+test("production omission of receipt validation does not change child repo readiness state", () => {
   const rollup = failedRollup();
   assert.equal(rollup.summary.failed, 1);
   assert.equal(rollup.repos[0].state, "failed");
-  assert.equal(rollup.proposal_review_receipt_validation.mutates, false);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_receipt_validation"), false);
+  assert.equal(rollup.manual_work_packet.mutates, false);
 });
 
 test("generation and Markdown rendering do not mutate parent or child files", () => {
@@ -207,13 +212,15 @@ test("generation and Markdown rendering do not mutate parent or child files", ()
   assert.deepEqual(readSnapshot(child.path), childBefore);
 });
 
-test("Markdown renders Proposal Review Receipt Validation", () => {
+test("lean Markdown suppresses Proposal Review Receipt Validation", () => {
   const markdown = renderRepoRollupMarkdown(failedRollup());
-  assert.match(markdown, /## Proposal Review Receipt Validation/);
-  assert.match(markdown, /- verdict: pass/);
-  assert.match(markdown, /- ok: true/);
+  assert.doesNotMatch(markdown, /## Proposal Review Receipt Validation/);
+  assert.doesNotMatch(markdown, /## Manual Work Safety Validation/);
+  assert.match(markdown, /## Manual Work Packet/);
+  assert.match(markdown, /- verdict: ready_for_manual_work/);
   assert.match(markdown, /- mutates: false/);
-  assert.match(markdown, /- RECEIPT_TEMPLATE_KIND_001 pass/);
+  assert.match(markdown, /- records_decision: false/);
+  assert.match(markdown, /- records_approval: false/);
 });
 
 test("poll --rollup --write remains rejected and non-mutating", () => {

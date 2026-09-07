@@ -79,7 +79,11 @@ function failedRollup() {
   return buildRepoRollup(parent, { now: NOW });
 }
 function run(cwd, args) {
-  return childProcess.spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8" });
+  return childProcess.spawnSync(process.execPath, [BIN, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
 }
 
 test("ready_for_review options produce approve reject and defer receipt allowed IDs", () => {
@@ -142,19 +146,19 @@ test("receipt template references the same packet_id as proposal_review_options"
   assert.equal(receipt.template.packet_id, options.packet_id);
 });
 
-test("rollup includes receipt template without changing top-level ok or child readiness state", () => {
+test("production rollup omits receipt template without changing top-level ok or child readiness state", () => {
   const rollup = failedRollup();
   assert.equal(rollup.ok, false);
   assert.equal(rollup.summary.failed, 1);
   assert.equal(rollup.repos[0].state, "failed");
-  assert.equal(rollup.proposal_review_receipt_template.packet_id, rollup.proposal_review_options.packet_id);
-  assert.equal(rollup.proposal_review_receipt_template.verdict, rollup.proposal_review_options.verdict);
-  assert.deepEqual(rollup.proposal_review_receipt_template.allowed_decision_ids, ["approve_for_manual_work", "reject_packet", "defer_packet"]);
-  assert.equal(rollup.proposal_review_receipt_template.records_decision, false);
-  assert.equal(rollup.proposal_review_receipt_template.mutates, false);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_receipt_template"), false);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_options"), false);
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
+  assert.equal(rollup.manual_work_packet.records_decision, false);
+  assert.equal(rollup.manual_work_packet.records_approval, false);
 });
 
-test("rollup top-level field order includes proposal_review_receipt_template after options", () => {
+test("rollup top-level field order contains only the direct manual-work surface", () => {
   assert.deepEqual(Object.keys(failedRollup()), [
     "schema_version",
     "generated_from",
@@ -162,19 +166,6 @@ test("rollup top-level field order includes proposal_review_receipt_template aft
     "summary",
     "response_handoff",
     "next_action_brief",
-    "proposal_draft",
-    "proposal_validation",
-    "proposal_review_gate",
-    "proposal_review_packet",
-    "proposal_review_options",
-    "proposal_review_receipt_template",
-    "proposal_review_receipt_validation",
-    "proposal_review_copy_block",
-    "proposal_review_copy_block_validation",
-    "proposal_review_export_intent",
-    "proposal_review_export_safety_gate",
-    "autonomy_plan",
-    "autonomy_approval_receipt_validation",
     "manual_work_packet",
     "manual_work_packet_artifact_validation",
     "operator_execution_plan",
@@ -197,21 +188,23 @@ test("generation and Markdown rendering do not mutate parent or child files", ()
   assert.deepEqual(readSnapshot(child.path), childBefore);
 });
 
-test("JSON has no export proposal queue action output fields and no patch proposals", () => {
+test("production JSON has no receipt template ceremony or forbidden output fields", () => {
   const json = JSON.stringify(failedRollup());
   for (const field of FORBIDDEN_FILE_FIELDS) assert.equal(json.includes(`"${field}"`), false, field);
-  assert.equal(json.includes("proposal_review_receipt_template"), true);
+  assert.equal(json.includes("proposal_review_receipt_template"), false);
+  assert.equal(json.includes("manual_work_packet"), true);
 });
 
-test("Markdown renders Proposal Review Receipt Template", () => {
+test("lean Markdown suppresses the Proposal Review Receipt Template", () => {
   const markdown = renderRepoRollupMarkdown(failedRollup());
-  assert.match(markdown, /## Proposal Review Receipt Template/);
+  assert.doesNotMatch(markdown, /## Proposal Review Receipt Template/);
+  assert.doesNotMatch(markdown, /## Manual Work Safety Validation/);
+  assert.match(markdown, /## Manual Work Packet/);
   assert.match(markdown, /- packet_id: sha256:[a-f0-9]{64}/);
-  assert.match(markdown, /- verdict: ready_for_review/);
+  assert.match(markdown, /- verdict: ready_for_manual_work/);
   assert.match(markdown, /- records_decision: false/);
+  assert.match(markdown, /- records_approval: false/);
   assert.match(markdown, /- mutates: false/);
-  assert.match(markdown, /- allowed_decision_ids: approve_for_manual_work, reject_packet, defer_packet/);
-  assert.match(markdown, /- required_fields: packet_id, decision_id, reviewer, reviewed_at, reason/);
 });
 
 test("poll --rollup --write remains rejected and non-mutating", () => {

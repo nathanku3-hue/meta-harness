@@ -5,11 +5,7 @@ const { createCommandContext, writeOut } = require("../lib/cli-context");
 const { normalizeHarnessError, UsageError } = require("../lib/errors");
 const { commandNames, renderHelp, resolveCommand } = require("../lib/command-registry");
 const { runAutomatic } = require("../lib/commands/work");
-const {
-  assertRepositoryEntryValid,
-  publicRepositoryEntry,
-  resolveRepositoryEntry,
-} = require("../lib/repository-entry");
+const { renderRepositoryInspection } = require("../lib/repository-inspection");
 const packageJson = require("../package.json");
 
 function wantsHelp(argv) {
@@ -84,20 +80,6 @@ function writeJsonError(error, context) {
   return harnessError.exitCode || 1;
 }
 
-function renderInspection(context, { json = false } = {}) {
-  const entry = resolveRepositoryEntry(context.cwd);
-  if (json) {
-    writeOut(context, `${JSON.stringify(publicRepositoryEntry(entry), null, 2)}\n`);
-    return;
-  }
-  assertRepositoryEntryValid(entry);
-  if (entry.action === "CONTINUE") {
-    writeOut(context, `State: active\n${entry.result ? `Result: ${entry.result}\n` : ""}Next: continuation is automatic.\n`);
-    return;
-  }
-  writeOut(context, "State: idle\nNext: state a product result when something is worth changing.\n");
-}
-
 async function run(argv, context = createCommandContext(), { signal } = {}) {
   if (signal) context = { ...context, signal };
   if (wantsHelp(argv)) {
@@ -118,7 +100,7 @@ async function run(argv, context = createCommandContext(), { signal } = {}) {
     if (command === "inspect") {
       const json = argv.length === 2 && argv[1] === "--json";
       if (argv.length !== 1 && !json) throw new UsageError("usage: meta-harness inspect [--json]");
-      renderInspection(context, { json });
+      renderRepositoryInspection(context, { json });
       return 0;
     }
     if (!commandNames().includes(command)) {

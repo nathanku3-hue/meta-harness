@@ -131,14 +131,15 @@ test("all decisions are non-mutating and only no_action skips explicit human act
   }
 });
 
-test("rollup options reference the same packet_id as proposal_review_packet", () => {
+test("production rollup omits review options and packet ceremony", () => {
   const rollup = selectedFailedRollup();
-  assert.equal(rollup.proposal_review_packet.verdict, "ready_for_review");
-  assert.equal(rollup.proposal_review_options.packet_id, rollup.proposal_review_packet.packet_id);
-  assert.equal(rollup.proposal_review_options.verdict, "ready_for_review");
+  assert.equal(Object.hasOwn(rollup, "proposal_review_packet"), false);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_options"), false);
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
+  assert.equal(rollup.manual_work_packet.source, "next_action_brief");
 });
 
-test("rollup top-level field order includes proposal_review_options after proposal_review_packet", () => {
+test("rollup top-level field order contains only the direct manual-work surface", () => {
   const rollup = selectedFailedRollup();
   assert.deepEqual(Object.keys(rollup), [
     "schema_version",
@@ -147,19 +148,6 @@ test("rollup top-level field order includes proposal_review_options after propos
     "summary",
     "response_handoff",
     "next_action_brief",
-    "proposal_draft",
-    "proposal_validation",
-    "proposal_review_gate",
-    "proposal_review_packet",
-    "proposal_review_options",
-    "proposal_review_receipt_template",
-    "proposal_review_receipt_validation",
-    "proposal_review_copy_block",
-    "proposal_review_copy_block_validation",
-    "proposal_review_export_intent",
-    "proposal_review_export_safety_gate",
-    "autonomy_plan",
-    "autonomy_approval_receipt_validation",
     "manual_work_packet",
     "manual_work_packet_artifact_validation",
     "operator_execution_plan",
@@ -190,20 +178,19 @@ test("options generation and Markdown rendering do not mutate parent or child fi
   assert.deepEqual(readSnapshot(child.path), childBefore);
 });
 
-test("JSON has no forbidden write export queue action file fields", () => {
+test("production JSON has no forbidden fields or review options ceremony", () => {
   const json = JSON.stringify(selectedFailedRollup());
   for (const field of FORBIDDEN_FILE_FIELDS) assert.equal(json.includes(`"${field}"`), false, field);
-  assert.equal(json.includes("proposal_review_options"), true);
+  assert.equal(json.includes("proposal_review_options"), false);
+  assert.equal(json.includes("manual_work_packet"), true);
 });
 
-test("Markdown renders Proposal Review Options", () => {
+test("lean Markdown suppresses Proposal Review Options once manual work is safe", () => {
   const markdown = renderRepoRollupMarkdown(selectedFailedRollup());
-  assert.match(markdown, /## Proposal Review Options/);
+  assert.doesNotMatch(markdown, /## Proposal Review Options/);
+  assert.match(markdown, /## Manual Work Packet/);
   assert.match(markdown, /- packet_id: sha256:[a-f0-9]{64}/);
-  assert.match(markdown, /- verdict: ready_for_review/);
-  assert.match(markdown, /- default_decision: defer_packet/);
+  assert.match(markdown, /- verdict: ready_for_manual_work/);
   assert.match(markdown, /- mutates: false/);
-  assert.match(markdown, /- approve_for_manual_work — Approve for manual work/);
-  assert.match(markdown, /- reject_packet — Reject packet/);
-  assert.match(markdown, /- defer_packet — Defer packet/);
+  assert.match(markdown, /- records_approval: false/);
 });

@@ -29,7 +29,11 @@ function readJson(filePath) {
 }
 
 function run(cwd, args) {
-  return childProcess.spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8" });
+  return childProcess.spawnSync(process.execPath, [BIN, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
 }
 
 function failure(result, pattern) {
@@ -69,27 +73,11 @@ function setupFailedChild() {
   return { parent, child };
 }
 
-function receipt(parent) {
-  const initial = run(parent, ["poll", "--rollup", "--json"]);
-  assert.equal(initial.status, 0, initial.stderr);
-  const rollup = JSON.parse(initial.stdout);
-  assert.equal(rollup.manual_work_packet.verdict, "missing_approval");
-  return {
-    packet_id: rollup.autonomy_plan.packet_id,
-    decision_id: "approve_for_manual_work",
-    reviewer: "Runtime Reviewer",
-    reviewed_at: "2026-07-02T00:00:00.000Z",
-    reason: "Manual work packet reviewed and approved.",
-  };
-}
-
 function writeValidArtifact(parent) {
   const result = run(parent, [
     "poll",
     "--rollup",
     "--json",
-    "--autonomy-approval-receipt",
-    JSON.stringify(receipt(parent)),
     "--write-manual-work-packet",
     ".meta-harness/manual-work-packet.json",
   ]);
@@ -203,14 +191,14 @@ test("8. does not require approval receipt input", () => {
   assert.equal(rollup.operator_execution_plan.verdict, "ready_for_operator");
 });
 
-test("9. does not depend on current live manual_work_packet being ready", () => {
+test("9. verified artifact remains sufficient without a separately approved live packet", () => {
   const { parent } = setupFailedChild();
   writeValidArtifact(parent);
-  // Live manual_work_packet lacks approval receipt so it will be "missing_approval"
   const result = runVerify(parent);
   assert.equal(result.status, 0, result.stderr);
   const rollup = JSON.parse(result.stdout);
-  assert.equal(rollup.manual_work_packet.verdict, "missing_approval");
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
+  assert.equal(rollup.manual_work_packet.records_approval, false);
   assert.equal(rollup.operator_execution_plan.verdict, "ready_for_operator");
 });
 
@@ -259,7 +247,7 @@ test("12. stdout rollup behavior preserved", () => {
   const rollup = JSON.parse(result.stdout);
   assert.equal(rollup.summary.total, 1);
   assert.equal(rollup.ok, false);
-  assert.equal(rollup.manual_work_packet.verdict, "missing_approval");
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
   assert.equal(rollup.manual_work_packet_artifact_validation.verdict, "pass");
 });
 

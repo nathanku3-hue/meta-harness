@@ -77,36 +77,23 @@ function run(cwd, args) {
   return childProcess.spawnSync(process.execPath, [BIN, ...args], {
     cwd,
     encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
   });
 }
 
-test("empty and clean rollups emit a no-op read-only proposal draft", () => {
+test("empty and clean production rollups omit derivative proposal drafts", () => {
   const emptyParent = tempDir();
   configure(emptyParent, []);
-  assert.deepEqual(buildRepoRollup(emptyParent, { now: NOW }).proposal_draft, {
-    kind: "read_only_proposal_draft",
-    source: "next_action_brief",
-    selected_candidate_id: null,
-    selected_repo: null,
-    proposal_type: "review_brief",
-    title: "No proposal needed",
-    body: [
-      "No proposal draft is needed because the current rollup has no next-action candidates.",
-      "",
-      "Boundary: read-only proposal draft only. Do not write files, execute child commands, refresh readiness, or mutate parent/child repo truth.",
-    ].join("\n"),
-    target_paths: [],
-    diff: null,
-    mutates: false,
-  });
+  const empty = buildRepoRollup(emptyParent, { now: NOW });
+  assert.equal(Object.hasOwn(empty, "proposal_draft"), false);
+  assert.equal(empty.manual_work_packet.verdict, "not_needed");
 
   const cleanParent = tempDir();
   configure(cleanParent, [addReadyChild("clean-child")]);
   const clean = buildRepoRollup(cleanParent, { now: NOW });
   assert.equal(clean.next_action_brief.selected_candidate_id, null);
-  assert.equal(clean.proposal_draft.selected_candidate_id, null);
-  assert.equal(clean.proposal_draft.diff, null);
-  assert.equal(clean.proposal_draft.mutates, false);
+  assert.equal(Object.hasOwn(clean, "proposal_draft"), false);
+  assert.equal(clean.manual_work_packet.verdict, "not_needed");
 });
 
 test("next-action brief exposes structured candidate fields", () => {
@@ -130,7 +117,7 @@ test("next-action brief exposes structured candidate fields", () => {
   assert.deepEqual(brief.target_paths, [".meta-harness/ready.json"]);
 });
 
-test("selected next-action brief produces one proposal draft from structured fields", () => {
+test("selected next-action brief flows directly to the manual work packet", () => {
   const parent = tempDir();
   const child = addReadyChild("child-app", readyJson({
     ok: false,
@@ -140,24 +127,16 @@ test("selected next-action brief produces one proposal draft from structured fie
   configure(parent, [child]);
 
   const rollup = buildRepoRollup(parent, { now: NOW });
-  const draft = rollup.proposal_draft;
 
-  assert.equal(draft.kind, "read_only_proposal_draft");
-  assert.equal(draft.source, "next_action_brief");
-  assert.equal(draft.selected_candidate_id, "ACTION_REVIEW_FAILED_READINESS");
-  assert.equal(draft.selected_repo, "child-app");
-  assert.equal(draft.proposal_type, "review_brief");
-  assert.equal(draft.title, "Review rollup next action for child-app");
-  assert.deepEqual(draft.target_paths, [".meta-harness/ready.json"]);
-  assert.equal(draft.diff, null);
-  assert.equal(draft.mutates, false);
-  assert.match(draft.body, /Proposal: Review rollup next action for child-app\./);
-  assert.match(draft.body, /Source candidate: ACTION_REVIEW_FAILED_READINESS/);
-  assert.match(draft.body, /Priority: high/);
-  assert.match(draft.body, /Reason: review failed child readiness evidence/);
-  assert.match(draft.body, /Target paths: \.meta-harness\/ready\.json/);
-  assert.match(draft.body, /Boundary: read-only proposal draft only/);
-  assert.match(draft.body, new RegExp("apply " + "patches"));
+  assert.equal(Object.hasOwn(rollup, "proposal_draft"), false);
+  assert.equal(rollup.manual_work_packet.kind, "manual_work_packet");
+  assert.equal(rollup.manual_work_packet.source, "next_action_brief");
+  assert.equal(rollup.manual_work_packet.selected_candidate_id, "ACTION_REVIEW_FAILED_READINESS");
+  assert.equal(rollup.manual_work_packet.selected_repo, "child-app");
+  assert.deepEqual(rollup.manual_work_packet.target_paths, [".meta-harness/ready.json"]);
+  assert.equal(rollup.manual_work_packet.mutates, false);
+  assert.equal(rollup.manual_work_packet.records_decision, false);
+  assert.equal(rollup.manual_work_packet.records_approval, false);
 });
 
 test("proposal draft uses structured brief fields instead of parsing body text", () => {
@@ -181,7 +160,7 @@ test("proposal draft uses structured brief fields instead of parsing body text",
   assert.deepEqual(draft.target_paths, [".meta-harness/security-policy.json"]);
 });
 
-test("proposal draft does not change readiness state or top-level ok", () => {
+test("omitting proposal draft does not change readiness state or top-level ok", () => {
   const parent = tempDir();
   const child = addReadyChild("child-app", readyJson({
     ok: false,
@@ -195,7 +174,8 @@ test("proposal draft does not change readiness state or top-level ok", () => {
   assert.equal(rollup.ok, false);
   assert.equal(rollup.summary.failed, 1);
   assert.equal(rollup.repos[0].state, "failed");
-  assert.equal(rollup.proposal_draft.mutates, false);
+  assert.equal(Object.hasOwn(rollup, "proposal_draft"), false);
+  assert.equal(rollup.manual_work_packet.mutates, false);
 });
 
 test("proposal draft generation and Markdown rendering do not mutate parent or child files", () => {
@@ -229,31 +209,31 @@ test("JSON excludes legacy proposal, file, and queue fields", () => {
   assert.equal(json.includes("action_files"), false);
 });
 
-test("Markdown renders Proposal Draft section", () => {
+test("Markdown suppresses derivative Proposal Draft once non-mutating manual work is ready", () => {
   const parent = tempDir();
   configure(parent, [addReadyChild("child-app", readyJson({ ok: false, failed: 1, checks: [{ id: "FAIL_A", status: "fail" }] }))]);
 
   const markdown = renderRepoRollupMarkdown(buildRepoRollup(parent, { now: NOW }));
 
-  assert.match(markdown, new RegExp("## " + "Proposal Draft"));
+  assert.doesNotMatch(markdown, new RegExp("## " + "Proposal Draft"));
+  assert.doesNotMatch(markdown, /## Proposal Validation/);
+  assert.match(markdown, /## Manual Work Packet/);
   assert.match(markdown, /- selected: child-app ACTION_REVIEW_FAILED_READINESS/);
-  assert.match(markdown, /- type: review_brief/);
   assert.match(markdown, /- mutates: false/);
-  assert.match(markdown, /- diff: null/);
   assert.match(markdown, /- target_paths: \.meta-harness\/ready\.json/);
 });
 
-test("Markdown renders no-op Proposal Draft when no candidates exist", () => {
+test("Markdown omits Proposal Draft when no candidates exist", () => {
   const parent = tempDir();
   configure(parent, [addReadyChild("child-app")]);
 
   const markdown = renderRepoRollupMarkdown(buildRepoRollup(parent, { now: NOW }));
 
-  assert.match(markdown, new RegExp("## " + "Proposal Draft"));
+  assert.doesNotMatch(markdown, new RegExp("## " + "Proposal Draft"));
+  assert.match(markdown, /## Manual Work Packet/);
+  assert.match(markdown, /- verdict: not_needed/);
   assert.match(markdown, /- selected: none/);
   assert.match(markdown, /- mutates: false/);
-  assert.match(markdown, /- diff: null/);
-  assert.match(markdown, /- reason: no proposal needed/);
 });
 
 test("poll --rollup --write remains rejected and non-mutating", () => {

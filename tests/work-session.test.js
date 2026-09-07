@@ -12,7 +12,6 @@ const {
   computeWorkSessionDigest,
   createGoalWorkSession,
   loadWorkSession,
-  reduceJourneyState,
   sealWorkSession,
   validateWorkSession,
 } = require("../lib/work-session");
@@ -75,13 +74,8 @@ function legacySession(overrides = {}) {
   return sealWorkSession(body);
 }
 
-test("journey reducer keeps automatic continuation mechanically bounded", () => {
-  const active = explicitSession({ productResult: "Add CSV export." });
-  assert.equal(reduceJourneyState({ ownerResult: "Add CSV export." }).next.operation, "NEW");
-  assert.equal(reduceJourneyState({ activeSession: active }).next.operation, "RESUME");
-  assert.equal(reduceJourneyState({ ownerResult: "Add CSV export.", activeSession: active }).next.operation, "RESUME");
-  assert.equal(reduceJourneyState({ ownerResult: "Change the export format.", activeSession: active }).next.automatic, false);
-  assert.equal(reduceJourneyState({ compiledDecision: { type: "NO_DISPATCH", reason: "USE_PRODUCT" } }).next.operation, "STOP");
+test("work-session exposes execution facts without a conversational lifecycle reducer", () => {
+  assert.equal(Object.hasOwn(require("../lib/work-session"), "reduceJourneyState"), false);
 });
 
 test("work-session/v9 seals only the product brief, exact execution surface, and external delivery effect", () => {

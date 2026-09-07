@@ -167,17 +167,14 @@ test("poll: validation failure always emits execution_readiness", () => {
 
 test("poll: good artifact non-git child emits not_git_repo", () => {
   const { parent } = setupParent();
-  const initial = cli(parent, ["poll", "--rollup", "--json"]);
-  assert.equal(initial.status, 0, initial.stderr);
-  const receipt = {
-    packet_id: JSON.parse(initial.stdout).autonomy_plan.packet_id,
-    decision_id: "approve_for_manual_work",
-    reviewer: "R", reviewed_at: "2026-07-02T00:00:00.000Z", reason: "ok",
-  };
-  assert.equal(cli(parent, [
-    "poll", "--rollup", "--json", "--autonomy-approval-receipt", JSON.stringify(receipt),
+  const written = cli(parent, [
+    "poll", "--rollup", "--json",
     "--write-manual-work-packet", ".meta-harness/manual-work-packet.json",
-  ]).status, 0);
+  ]);
+  assert.equal(written.status, 0, written.stderr);
+  const directRollup = JSON.parse(written.stdout);
+  assert.equal(directRollup.manual_work_packet.verdict, "ready_for_manual_work");
+  assert.equal(Object.hasOwn(directRollup, "autonomy_plan"), false);
   assert.equal(cli(parent, [
     "poll", "--rollup", "--json",
     "--verify-manual-work-packet", ".meta-harness/manual-work-packet.json",

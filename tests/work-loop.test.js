@@ -551,6 +551,20 @@ test("work loop carries a product brief into a fresh isolated generation and exa
   assert.equal(fs.readFileSync(path.join(result.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
   assert.equal(git(root, ["rev-list", "--count", "HEAD"]), "1");
   assert.equal(git(root, ["diff", "--cached", "--name-only"]), "");
+
+  const events = readRunJournal({
+    gitCommonDirectory: commonGitDirectory(root),
+    runId: runIdForSession(result.sessionDigest),
+  });
+  const request = events.find((event) => event.type === "model/request");
+  const response = events.find((event) => event.type === "model/response");
+  assert.match(request.data.modelCommandDigest, /^sha256:[a-f0-9]{64}$/u);
+  assert.match(request.data.modelRequestKey, /^sha256:[a-f0-9]{64}$/u);
+  assert.equal(request.data.capabilityProjectionDigest, request.data.toolSurfaceDigest);
+  assert.equal(request.data.modelInvocation.reasoningEffort, "medium");
+  assert.equal(request.data.modelInvocation.requestedModel, null);
+  assert.equal(response.data.modelCommandDigest, request.data.modelCommandDigest);
+  assert.equal(response.data.modelRequestKey, request.data.modelRequestKey);
 });
 
 test("normal coding prompt exposes the product and available operations without authority topology", async (t) => {

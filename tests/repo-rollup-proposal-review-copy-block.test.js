@@ -91,7 +91,11 @@ function failedRollup() {
   return buildRepoRollup(parent, { now: NOW });
 }
 function run(cwd, args) {
-  return childProcess.spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8" });
+  return childProcess.spawnSync(process.execPath, [BIN, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
 }
 
 test("valid receipt validation produces a pass copy block", () => {
@@ -141,18 +145,19 @@ test("missing receipt validation produces blocked no-copy behavior", () => {
   assert.equal(block.reason, "proposal review receipt validation did not pass");
 });
 
-test("copy block references the same packet_id across packet options and receipt template", () => {
+test("isolated copy block retains packet identity while production rollup omits review ceremony", () => {
+  const block = copyBlockFor("ready_for_review");
+  assert.equal(block.packet_id, PACKET_ID);
   const rollup = failedRollup();
-  assert.equal(rollup.proposal_review_copy_block.packet_id, rollup.proposal_review_packet.packet_id);
-  assert.equal(rollup.proposal_review_copy_block.packet_id, rollup.proposal_review_options.packet_id);
-  assert.equal(rollup.proposal_review_copy_block.packet_id, rollup.proposal_review_receipt_template.packet_id);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_copy_block"), false);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_packet"), false);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_options"), false);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_receipt_template"), false);
 });
 
-test("copy text is deterministic across repeated rollup builds", () => {
-  const parent = tempDir();
-  configure(parent, [addReadyChild("child-app", readyJson({ ok: false, failed: 1, checks: [{ id: "MH_SYNC_001", name: "sync", status: "fail", reason: "templates missing" }] }))]);
-  const left = buildRepoRollup(parent, { now: NOW }).proposal_review_copy_block.copy_text;
-  const right = buildRepoRollup(parent, { now: NOW }).proposal_review_copy_block.copy_text;
+test("copy text is deterministic across repeated isolated builds", () => {
+  const left = copyBlockFor("ready_for_review").copy_text;
+  const right = copyBlockFor("ready_for_review").copy_text;
   assert.equal(left, right);
 });
 
@@ -174,7 +179,7 @@ test("copy text contains no generated diff", () => {
   assert.doesNotMatch(copyText, /^\+\+\+ /m);
 });
 
-test("rollup includes copy block after receipt validation without changing ok or child readiness", () => {
+test("production rollup omits copy-block ceremony without changing ok or child readiness", () => {
   const rollup = failedRollup();
   assert.deepEqual(Object.keys(rollup), [
     "schema_version",
@@ -183,19 +188,6 @@ test("rollup includes copy block after receipt validation without changing ok or
     "summary",
     "response_handoff",
     "next_action_brief",
-    "proposal_draft",
-    "proposal_validation",
-    "proposal_review_gate",
-    "proposal_review_packet",
-    "proposal_review_options",
-    "proposal_review_receipt_template",
-    "proposal_review_receipt_validation",
-    "proposal_review_copy_block",
-    "proposal_review_copy_block_validation",
-    "proposal_review_export_intent",
-    "proposal_review_export_safety_gate",
-    "autonomy_plan",
-    "autonomy_approval_receipt_validation",
     "manual_work_packet",
     "manual_work_packet_artifact_validation",
     "operator_execution_plan",
@@ -205,25 +197,24 @@ test("rollup includes copy block after receipt validation without changing ok or
   assert.equal(rollup.ok, false);
   assert.equal(rollup.summary.failed, 1);
   assert.equal(rollup.repos[0].state, "failed");
-  assert.equal(rollup.proposal_review_copy_block.validation_verdict, "pass");
-  assert.equal(rollup.proposal_review_copy_block.mutates, false);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_copy_block"), false);
+  assert.equal(rollup.manual_work_packet.mutates, false);
 });
 
-test("JSON has no forbidden proposal export queue action fields and no patch proposals", () => {
+test("production JSON has no proposal review ceremony or forbidden export fields", () => {
   const json = JSON.stringify(failedRollup());
   for (const field of FORBIDDEN_FILE_FIELDS) assert.equal(json.includes(`"${field}"`), false, field);
-  assert.equal(json.includes("proposal_review_copy_block"), true);
-  assert.equal(json.includes("\"export_target\":null"), true);
+  assert.equal(json.includes("proposal_review_copy_block"), false);
+  assert.equal(json.includes("proposal_review_export"), false);
+  assert.equal(json.includes("manual_work_packet"), true);
 });
 
-test("Markdown renders Proposal Review Copy Block pass and blocked states", () => {
+test("lean Markdown suppresses Proposal Review Copy Block while direct diagnostic rendering remains available", () => {
   const markdown = renderRepoRollupMarkdown(failedRollup());
-  assert.match(markdown, /## Proposal Review Copy Block/);
-  assert.match(markdown, /- validation_verdict: pass/);
-  assert.match(markdown, /- writes_files: false/);
+  assert.doesNotMatch(markdown, /## Proposal Review Copy Block/);
+  assert.match(markdown, /## Manual Work Packet/);
   assert.match(markdown, /- records_decision: false/);
   assert.match(markdown, /- records_approval: false/);
-  assert.match(markdown, /```text\nProposal Review Copy Block/);
 
   const blocked = renderProposalReviewCopyBlockMarkdown(buildProposalReviewCopyBlock());
   assert.match(blocked.join("\n"), /- validation_verdict: fail/);

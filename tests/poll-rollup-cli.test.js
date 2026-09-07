@@ -142,29 +142,30 @@ test("poll --rollup --json emits read-only local file rollup without mutating fi
     "parent_status",
     "parent_events",
   ]);
-  assert.equal(rollup.autonomy_plan.kind, "controlled_autonomy_dry_run_plan");
-  assert.equal(rollup.autonomy_plan.source, "proposal_review_export_safety_gate");
-  assert.equal(rollup.autonomy_plan.verdict, "not_needed");
-  assert.equal(rollup.autonomy_plan.selected_action_type, null);
-  assert.equal(rollup.autonomy_plan.dry_run, true);
-  assert.equal(rollup.autonomy_plan.mutates, false);
-  assert.equal(rollup.autonomy_plan.executes_child_commands, false);
-  assert.equal(rollup.autonomy_plan.writes_parent_files, false);
-  assert.equal(rollup.autonomy_plan.writes_child_files, false);
-  assert.equal(rollup.autonomy_plan.creates_tasks, false);
-  assert.equal(rollup.autonomy_plan.creates_queues, false);
-  assert.equal(rollup.autonomy_plan.applies_patches, false);
-  assert.equal(rollup.autonomy_plan.refreshes_readiness, false);
-  assert.equal(rollup.autonomy_plan.required_human_approval, true);
-  assert.deepEqual(rollup.autonomy_plan.blockers, []);
-  assert.deepEqual(rollup.autonomy_plan.planned_steps, []);
-  const approvalValidation = rollup.autonomy_approval_receipt_validation;
-  assert.equal(approvalValidation.kind, "controlled_autonomy_approval_receipt_validation");
-  assert.equal(approvalValidation.source, "autonomy_plan");
-  assert.equal(approvalValidation.verdict, "not_needed");
-  assert.equal(approvalValidation.ok, true);
-  for (const field of ["mutates", "records_decision", "records_approval", "executes_child_commands", "writes_parent_files", "writes_child_files", "creates_tasks", "creates_queues", "applies_patches", "refreshes_readiness"]) assert.equal(approvalValidation[field], false);
-  assert.equal(approvalValidation.receipt, null);
+  assert.deepEqual(Object.keys(rollup), [
+    "schema_version",
+    "generated_from",
+    "ok",
+    "summary",
+    "response_handoff",
+    "next_action_brief",
+    "manual_work_packet",
+    "manual_work_packet_artifact_validation",
+    "operator_execution_plan",
+    "repos",
+    "not_changed",
+  ]);
+  assert.equal(rollup.manual_work_packet.kind, "manual_work_packet");
+  assert.equal(rollup.manual_work_packet.source, "next_action_brief");
+  assert.equal(rollup.manual_work_packet.verdict, "not_needed");
+  assert.equal(rollup.manual_work_packet.selected_action_type, null);
+  assert.equal(rollup.manual_work_packet.packet_id, null);
+  assert.equal(rollup.manual_work_packet.mutates, false);
+  assert.equal(rollup.manual_work_packet.records_decision, false);
+  assert.equal(rollup.manual_work_packet.records_approval, false);
+  assert.equal(Object.hasOwn(rollup, "proposal_draft"), false);
+  assert.equal(Object.hasOwn(rollup, "autonomy_plan"), false);
+  assert.equal(Object.hasOwn(rollup, "autonomy_approval_receipt_validation"), false);
   assert.equal(rollup.repos[0].name, "child-app");
   assert.equal(rollup.repos[0].state, "ready");
   assert.equal(rollup.repos[0].source, ".meta-harness/ready.json");
@@ -249,18 +250,18 @@ test("poll --rollup Markdown prints failed check IDs and reasons without mutatin
   assert.match(result.stdout, /- child-app warn — child readiness failed/);
   assert.match(result.stdout, /  - readiness: MH_SYNC_001, MH_SECURITY_001/);
   assert.match(result.stdout, /  - mutates: false/);
-  assert.match(result.stdout, /## Controlled Autonomy Dry-Run Plan/);
-  assert.match(result.stdout, /- verdict: ready_for_human_approval/);
-  assert.match(result.stdout, /- selected_action_type: review_approved_manual_work_packet/);
-  assert.match(result.stdout, /- dry_run: true/);
-  assert.match(result.stdout, /- mutates: false/);
-  assert.match(result.stdout, /- blockers:\n  - none/);
-  assert.match(result.stdout, /## Controlled Autonomy Approval Receipt Validation/);
-  assert.match(result.stdout, /- verdict: missing/);
-  assert.match(result.stdout, /- ok: false/);
+  assert.match(result.stdout, /## Manual Work Packet/);
+  assert.match(result.stdout, /- verdict: ready_for_manual_work/);
+  assert.match(result.stdout, /- packet_id: sha256:[a-f0-9]{64}/u);
+  assert.match(result.stdout, /- selected_action_type: manual_work_packet/);
   assert.match(result.stdout, /- mutates: false/);
   assert.match(result.stdout, /- records_decision: false/);
-  assert.match(result.stdout, /- receipt: none/);
+  assert.match(result.stdout, /- records_approval: false/);
+  assert.match(result.stdout, /## Operator Execution Plan/);
+  assert.doesNotMatch(result.stdout, /## Approved Manual Work Packet/);
+  assert.doesNotMatch(result.stdout, /approve_for_manual_work|Controlled Autonomy|approval receipt/iu);
+  assert.doesNotMatch(result.stdout, /## Proposal (?:Draft|Validation|Review)/u);
+  assert.doesNotMatch(result.stdout, /## Manual Work Safety (?:Plan|Validation)/u);
   assert.deepEqual(after, before);
 });
 

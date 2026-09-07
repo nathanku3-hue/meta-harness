@@ -6,6 +6,7 @@ const path = require("node:path");
 const test = require("node:test");
 
 const { automaticRequest } = require("../lib/commands/work");
+const { ensureProjectHooks } = require("../lib/project-init");
 const {
   objectivePath,
   readOwnerObjectiveState,
@@ -78,6 +79,7 @@ test("plain planner-enabled mission establishes only Git-common objective state"
 test("product-surface objective capture leaves checkout unchanged end to end", (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
+  ensureProjectHooks({ cwd: root });
   fs.writeFileSync(path.join(root, "src", "a", "baseline.txt"), "owner tracked dirt\n", "utf8");
   fs.writeFileSync(path.join(root, "owner-untracked.tmp"), "owner untracked bytes\n", "utf8");
   const before = {

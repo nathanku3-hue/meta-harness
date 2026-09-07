@@ -62,7 +62,13 @@ function readSnapshot(root) {
   walk(root);
   return Object.fromEntries(files.map((filePath) => [path.relative(root, filePath), fs.readFileSync(filePath, "utf8")]));
 }
-function run(cwd, args) { return childProcess.spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8" }); }
+function run(cwd, args) {
+  return childProcess.spawnSync(process.execPath, [BIN, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
+}
 function selectedBrief(overrides = {}) {
   return { kind: "read_only_worker_brief", selected_candidate_id: "ACTION_REVIEW_FAILED_READINESS", selected_repo: "child-app", priority: "high", reason: "review failed child readiness evidence", source_state: "failed", source_warning_ids: [], source_check_ids: ["MH_SYNC_001"], target_paths: [".meta-harness/ready.json"], selection_reason: "selected highest-priority candidate using repo order and candidate order tie-breakers", body: "Review child repo evidence.", mutates: false, ...overrides };
 }
@@ -114,11 +120,9 @@ test("blocked gate produces blocked packet", () => {
   assert.equal(packet.mutates, false);
 });
 
-test("packet ID is deterministic across repeated rollup builds", () => {
-  const parent = tempDir();
-  configure(parent, [addReadyChild("child-app", readyJson({ ok: false, failed: 1, checks: [{ id: "MH_SYNC_001", status: "fail", reason: "templates missing" }] }))]);
-  const first = buildRepoRollup(parent, { now: NOW }).proposal_review_packet.packet_id;
-  const second = buildRepoRollup(parent, { now: NOW }).proposal_review_packet.packet_id;
+test("packet ID is deterministic across repeated isolated builds", () => {
+  const first = packetForBrief(selectedBrief()).packet_id;
+  const second = packetForBrief(selectedBrief()).packet_id;
   assert.equal(first, second);
 });
 
@@ -143,11 +147,12 @@ test("packet includes draft validation and gate sections", () => {
   assert.match(packet.sections[2].body, /verdict: ready_for_review/);
 });
 
-test("packet generation does not change top-level rollup ok", () => {
+test("production omission of review packet does not change top-level rollup ok", () => {
   const rollup = selectedFailedRollup();
   assert.equal(rollup.ok, false);
-  assert.equal(rollup.proposal_review_gate.verdict, "ready_for_review");
-  assert.equal(rollup.proposal_review_packet.verdict, "ready_for_review");
+  assert.equal(Object.hasOwn(rollup, "proposal_review_gate"), false);
+  assert.equal(Object.hasOwn(rollup, "proposal_review_packet"), false);
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
 });
 
 test("packet generation does not change child repo readiness state", () => {
@@ -170,25 +175,26 @@ test("packet generation and Markdown rendering do not mutate parent or child fil
   assert.deepEqual(readSnapshot(child.path), childBefore);
 });
 
-test("JSON has no forbidden write export queue action or patch proposal fields", () => {
+test("production JSON has no forbidden fields or review packet ceremony", () => {
   const json = JSON.stringify(selectedFailedRollup());
   for (const field of FORBIDDEN_FILE_FIELDS) assert.equal(json.includes(`"${field}"`), false, field);
-  assert.equal(json.includes("proposal_draft"), true);
-  assert.equal(json.includes("proposal_validation"), true);
-  assert.equal(json.includes("proposal_review_gate"), true);
-  assert.equal(json.includes("proposal_review_packet"), true);
+  assert.equal(json.includes("proposal_draft"), false);
+  assert.equal(json.includes("proposal_validation"), false);
+  assert.equal(json.includes("proposal_review_gate"), false);
+  assert.equal(json.includes("proposal_review_packet"), false);
+  assert.equal(json.includes("manual_work_packet"), true);
 });
 
-test("Markdown renders Proposal Review Packet", () => {
+test("lean Markdown suppresses the Proposal Review Packet ceremony", () => {
   const markdown = renderRepoRollupMarkdown(selectedFailedRollup());
-  assert.match(markdown, /## Proposal Review Packet/);
-  assert.match(markdown, /- verdict: ready_for_review/);
+  assert.doesNotMatch(markdown, /## Proposal Review Packet/);
+  assert.doesNotMatch(markdown, /### Proposal Draft/);
+  assert.doesNotMatch(markdown, /### Proposal Validation/);
+  assert.doesNotMatch(markdown, /### Proposal Review Gate/);
+  assert.match(markdown, /## Manual Work Packet/);
   assert.match(markdown, /- packet_id: sha256:[a-f0-9]{64}/);
   assert.match(markdown, /- mutates: false/);
   assert.match(markdown, /- selected: child-app ACTION_REVIEW_FAILED_READINESS/);
-  assert.match(markdown, /### Proposal Draft/);
-  assert.match(markdown, /### Proposal Validation/);
-  assert.match(markdown, /### Proposal Review Gate/);
 });
 
 test("poll --rollup --write remains rejected and non-mutating", () => {

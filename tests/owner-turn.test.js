@@ -15,8 +15,9 @@ test("internal continuation is distinct from literal GO when no objective exists
   assert.deepEqual(automaticRequest(root, null), { type: "REPO_WAVE" });
   assert.equal(fs.existsSync(objectivePath(root)), false);
 
-  assert.deepEqual(automaticRequest(root, "go"), { type: "NO_DISPATCH" });
-  assert.deepEqual(automaticRequest(root, "go next"), { type: "NO_DISPATCH" });
+  for (const turn of ["go", "go:", "go：", "go next", "continue"]) {
+    assert.deepEqual(automaticRequest(root, turn), { type: "NO_DISPATCH" }, turn);
+  }
   assert.equal(fs.existsSync(objectivePath(root)), false);
 });
 
@@ -26,8 +27,8 @@ test("literal GO activates an established mission without rewriting it", (t) => 
     ingressDigest: `sha256:${"a".repeat(64)}`,
   });
 
-  for (const turn of ["go", "go next"]) {
-    assert.deepEqual(automaticRequest(root, turn), { type: "REPO_WAVE" });
+  for (const turn of ["go", "go:", "go：", "go next", "continue", " GO "]) {
+    assert.deepEqual(automaticRequest(root, turn), { type: "REPO_WAVE" }, turn);
     assert.deepEqual(readOwnerObjectiveState(root), before);
   }
 });

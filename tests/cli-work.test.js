@@ -490,7 +490,7 @@ test("ghost journey accepts one result, shows coarse liveness, validates, and ba
   assert.equal(after.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
 });
 
-test("bare meta-harness resumes the exact active generation even when repo planning has since been enabled", (t) => {
+function activeSessionFixture(t) {
   const root = repo(t);
   const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
   const productDirection = require("../lib/product-direction").pinProductDirection(root);
@@ -521,14 +521,31 @@ test("bare meta-harness resumes the exact active generation even when repo plann
   persistWorkSession(root, session, workspace);
   fs.mkdirSync(path.join(root, ".meta-harness"), { recursive: true });
   fs.writeFileSync(path.join(root, ".meta-harness", "repo-charter.json"), "{}\n", "utf8");
+  return { root, session, workspace };
+}
 
-  const result = runRaw(root, [], { env: env() });
+for (const command of ["go:", "continue"]) {
+  test(`${command} resumes the exact active generation even when repo planning has since been enabled`, (t) => {
+    const { root, session, workspace } = activeSessionFixture(t);
+    const result = runRaw(root, [command], { env: env() });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.match(result.stdout, /^Working…$/m);
+    assert.match(result.stdout, /^Done — /m);
+    assert.doesNotMatch(result.stdout, /resume|session|workspace|generation|actor|custody/i);
+    assert.equal(git(workspace.workspacePath, ["status", "--short"]), "");
+    assert.notEqual(git(workspace.workspacePath, ["rev-parse", "HEAD"]), session.base.commit);
+  });
+}
+
+test("go advances retained owner-goal ingress instead of becoming a replacement request", (t) => {
+  const root = repo(t);
+  persistOwnerGoalIngress(root, "Create the delivered result file.");
+
+  const result = runRaw(root, ["go"], { env: env() });
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.match(result.stdout, /^Working…$/m);
   assert.match(result.stdout, /^Done — /m);
-  assert.doesNotMatch(result.stdout, /resume|session|workspace|generation|actor|custody/i);
-  assert.equal(git(workspace.workspacePath, ["status", "--short"]), "");
-  assert.notEqual(git(workspace.workspacePath, ["rev-parse", "HEAD"]), session.base.commit);
+  assert.doesNotMatch(result.stdout, /Need you|different result|replace/iu);
 });
 
 test("bare meta-harness stops cleanly when no active result exists", (t) => {

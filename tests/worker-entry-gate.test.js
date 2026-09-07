@@ -228,18 +228,8 @@ test("poll: good artifact non-git child → gate blocked not open", () => {
   });
   wj(path.join(ph, "repos.json"), { repos: [{ name: "child-app", path: child, role: "child" }] });
 
-  const initial = cli(parent, ["poll", "--rollup", "--json"]);
-  assert.equal(initial.status, 0, initial.stderr);
-  const receipt = {
-    packet_id: JSON.parse(initial.stdout).autonomy_plan.packet_id,
-    decision_id: "approve_for_manual_work",
-    reviewer: "R",
-    reviewed_at: "2026-07-02T00:00:00.000Z",
-    reason: "ok",
-  };
   assert.equal(cli(parent, [
     "poll", "--rollup", "--json",
-    "--autonomy-approval-receipt", JSON.stringify(receipt),
     "--write-manual-work-packet", ".meta-harness/manual-work-packet.json",
   ]).status, 0);
   assert.equal(cli(parent, [

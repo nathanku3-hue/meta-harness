@@ -41,7 +41,13 @@ function addReadyChild(name, ready = readyJson()) {
   writeJson(path.join(child, ".meta-harness", "ready.json"), ready);
   return { name, path: child, role: "child" };
 }
-function run(cwd, args) { return childProcess.spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8" }); }
+function run(cwd, args) {
+  return childProcess.spawnSync(process.execPath, [BIN, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
+}
 function noOpBrief() {
   return { kind: "read_only_worker_brief", selected_candidate_id: null, selected_repo: null, priority: null, reason: null, source_state: null, source_warning_ids: [], source_check_ids: [], target_paths: [], selection_reason: "no next-action candidates", body: "No follow-up action is needed.", mutates: false };
 }
@@ -69,14 +75,19 @@ test("valid no-op proposal draft validates pass", () => {
   assert.deepEqual(validation.checks.map((item) => item.status), Array(validation.checks.length).fill("pass"));
 });
 
-test("valid selected proposal draft validates pass", () => {
+test("valid selected proposal draft validates pass while production omits proposal ceremony", () => {
+  const brief = selectedBrief();
+  const validation = validationFor({ draft: buildProposalDraft(brief), brief });
+  assert.equal(validation.ok, true);
+  assert.equal(validation.verdict, "pass");
+  assert.equal(checkById(validation, "PROPOSAL_KIND_001").reason, "proposal_draft kind is read_only_proposal_draft");
+
   const parent = tempDir();
   configure(parent, [addReadyChild("child-app", readyJson({ ok: false, failed: 1, checks: [{ id: "MH_SYNC_001", name: "sync", status: "fail", reason: "templates missing" }] }))]);
   const rollup = buildRepoRollup(parent, { now: NOW });
-  assert.deepEqual(Object.keys(rollup), ["schema_version", "generated_from", "ok", "summary", "response_handoff", "next_action_brief", "proposal_draft", "proposal_validation", "proposal_review_gate", "proposal_review_packet", "proposal_review_options", "proposal_review_receipt_template", "proposal_review_receipt_validation", "proposal_review_copy_block", "proposal_review_copy_block_validation", "proposal_review_export_intent", "proposal_review_export_safety_gate", "autonomy_plan", "autonomy_approval_receipt_validation", "manual_work_packet", "manual_work_packet_artifact_validation", "operator_execution_plan", "repos", "not_changed"]);
-  assert.equal(rollup.proposal_validation.ok, true);
-  assert.equal(rollup.proposal_validation.verdict, "pass");
-  assert.equal(checkById(rollup.proposal_validation, "PROPOSAL_KIND_001").reason, "proposal_draft kind is read_only_proposal_draft");
+  assert.equal(Object.hasOwn(rollup, "proposal_draft"), false);
+  assert.equal(Object.hasOwn(rollup, "proposal_validation"), false);
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
 });
 
 test("invalid kind fails validation", () => {
@@ -124,12 +135,13 @@ test("validation detects forbidden proposal/action/queue file output fields", ()
   assertCheckFails(validationFor({ draft: buildProposalDraft(brief), brief, extra: { queue_file: ".meta-harness/local/queue.json" } }), "PROPOSAL_NO_FILE_OUTPUT_001");
 });
 
-test("validation does not change top-level rollup ok", () => {
+test("production omission of proposal validation does not change top-level rollup ok", () => {
   const parent = tempDir();
   configure(parent, [addReadyChild("child-app", readyJson({ ok: false, failed: 1, checks: [{ id: "MH_READY_001", status: "fail" }] }))]);
   const rollup = buildRepoRollup(parent, { now: NOW });
   assert.equal(rollup.ok, false);
-  assert.equal(rollup.proposal_validation.ok, true);
+  assert.equal(Object.hasOwn(rollup, "proposal_validation"), false);
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
 });
 
 test("validation does not change child repo readiness state", () => {
@@ -154,15 +166,16 @@ test("validation generation and Markdown rendering do not mutate parent or child
   assert.deepEqual(readSnapshot(child.path), childBefore);
 });
 
-test("Markdown renders Proposal Validation", () => {
+test("lean Markdown suppresses Proposal Validation once non-mutating manual work is ready", () => {
   const parent = tempDir();
   configure(parent, [addReadyChild("child-app", readyJson({ ok: false, failed: 1, checks: [{ id: "FAIL_A", status: "fail" }] }))]);
   const markdown = renderRepoRollupMarkdown(buildRepoRollup(parent, { now: NOW }));
-  assert.match(markdown, /## Proposal Validation/);
-  assert.match(markdown, /- verdict: pass/);
-  assert.match(markdown, /- ok: true/);
+  assert.doesNotMatch(markdown, /## Proposal Validation/);
+  assert.doesNotMatch(markdown, /## Manual Work Safety Validation/);
+  assert.match(markdown, /## Manual Work Packet/);
+  assert.match(markdown, /- verdict: ready_for_manual_work/);
   assert.match(markdown, /- mutates: false/);
-  assert.match(markdown, /- PROPOSAL_KIND_001 pass — proposal_draft kind is read_only_proposal_draft/);
+  assert.match(markdown, /- records_approval: false/);
 });
 
 test("poll --rollup --write remains rejected and non-mutating", () => {

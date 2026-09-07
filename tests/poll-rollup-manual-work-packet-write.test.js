@@ -23,7 +23,11 @@ function writeJson(filePath, value) {
 }
 
 function run(cwd, args) {
-  return childProcess.spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8" });
+  return childProcess.spawnSync(process.execPath, [BIN, ...args], {
+    cwd,
+    encoding: "utf8",
+    env: { ...process.env, META_HARNESS_INTERNAL_CLI: "1" },
+  });
 }
 
 function snapshot(paths) {
@@ -70,33 +74,17 @@ function setupFailedChild(options = {}) {
   return { parent, child, watched };
 }
 
-function receipt(parent) {
-  const initial = run(parent, ["poll", "--rollup", "--json"]);
-  assert.equal(initial.status, 0, initial.stderr);
-  const rollup = JSON.parse(initial.stdout);
-  assert.equal(rollup.manual_work_packet.verdict, "missing_approval");
-  return {
-    packet_id: rollup.autonomy_plan.packet_id,
-    decision_id: "approve_for_manual_work",
-    reviewer: "Runtime Reviewer",
-    reviewed_at: "2026-07-02T00:00:00.000Z",
-    reason: "Manual work packet reviewed and approved.",
-  };
-}
-
 function failure(result, pattern) {
   assert.notEqual(result.status, 0);
   assert.equal(result.stderr, "");
   assert.match(JSON.parse(result.stdout).error.message, pattern);
 }
 
-function runWrite(parent, approval, extra = []) {
+function runWrite(parent, extra = []) {
   return run(parent, [
     "poll",
     "--rollup",
     "--json",
-    "--autonomy-approval-receipt",
-    JSON.stringify(approval),
     "--write-manual-work-packet",
     ".meta-harness/manual-work-packet.json",
     ...extra,
@@ -108,27 +96,28 @@ test("no narrow write flag means no packet artifact", () => {
   const output = path.join(parent, ".meta-harness", "manual-work-packet.json");
   watched.push(output);
   const before = snapshot(watched);
-  const result = run(parent, ["poll", "--rollup", "--json", "--autonomy-approval-receipt", JSON.stringify(receipt(parent))]);
+  const result = run(parent, ["poll", "--rollup", "--json"]);
   assert.equal(result.status, 0, result.stderr);
   assert.equal(fs.existsSync(output), false);
   assert.deepEqual(snapshot(watched), before);
 });
 
-test("write requires ready manual packet", () => {
-  const { parent, watched } = setupFailedChild();
+test("write does not require an approval receipt for a non-mutating packet", () => {
+  const { parent } = setupFailedChild();
   const output = path.join(parent, ".meta-harness", "manual-work-packet.json");
-  watched.push(output);
-  const before = snapshot(watched);
   const result = run(parent, ["poll", "--rollup", "--json", "--write-manual-work-packet", ".meta-harness/manual-work-packet.json"]);
-  failure(result, /ready_for_manual_work/);
-  assert.deepEqual(snapshot(watched), before);
+  assert.equal(result.status, 0, result.stderr);
+  const rollup = JSON.parse(result.stdout);
+  assert.equal(rollup.manual_work_packet.verdict, "ready_for_manual_work");
+  assert.equal(rollup.manual_work_packet.records_approval, false);
+  assert.equal(fs.existsSync(output), true);
 });
 
-test("valid approval writes one parent artifact with honest wrapper safety", () => {
+test("direct manual packet writes one parent artifact with honest wrapper safety", () => {
   const { parent, watched } = setupFailedChild();
   const output = path.join(parent, ".meta-harness", "manual-work-packet.json");
   const before = snapshot(watched);
-  const result = runWrite(parent, receipt(parent));
+  const result = runWrite(parent);
   assert.equal(result.status, 0, result.stderr);
   const rollup = JSON.parse(result.stdout);
   const artifact = JSON.parse(fs.readFileSync(output, "utf8"));
@@ -154,11 +143,10 @@ test("valid approval writes one parent artifact with honest wrapper safety", () 
 
 test("rejects unsafe output paths", () => {
   const { parent, child } = setupFailedChild({ childInsideHarness: true });
-  const approval = receipt(parent);
-  failure(run(parent, ["poll", "--rollup", "--json", "--autonomy-approval-receipt", JSON.stringify(approval), "--write-manual-work-packet", "manual-work-packet.json"]), /under \.meta-harness\//);
-  failure(run(parent, ["poll", "--rollup", "--json", "--autonomy-approval-receipt", JSON.stringify(approval), "--write-manual-work-packet", path.join(parent, ".meta-harness", "manual-work-packet.json")]), /relative/);
-  failure(run(parent, ["poll", "--rollup", "--json", "--autonomy-approval-receipt", JSON.stringify(approval), "--write-manual-work-packet", ".meta-harness"]), /file path/);
-  failure(run(parent, ["poll", "--rollup", "--json", "--autonomy-approval-receipt", JSON.stringify(approval), "--write-manual-work-packet", ".meta-harness/child-repo/manual-work-packet.json"]), /child repo/);
+  failure(run(parent, ["poll", "--rollup", "--json", "--write-manual-work-packet", "manual-work-packet.json"]), /under \.meta-harness\//);
+  failure(run(parent, ["poll", "--rollup", "--json", "--write-manual-work-packet", path.join(parent, ".meta-harness", "manual-work-packet.json")]), /relative/);
+  failure(run(parent, ["poll", "--rollup", "--json", "--write-manual-work-packet", ".meta-harness"]), /file path/);
+  failure(run(parent, ["poll", "--rollup", "--json", "--write-manual-work-packet", ".meta-harness/child-repo/manual-work-packet.json"]), /child repo/);
   assert.equal(fs.existsSync(path.join(child, "manual-work-packet.json")), false);
 });
 
@@ -166,12 +154,11 @@ test("force is required for deterministic overwrite", () => {
   const { parent } = setupFailedChild();
   const output = path.join(parent, ".meta-harness", "manual-work-packet.json");
   writeFile(output, "existing\n");
-  const approval = receipt(parent);
-  failure(runWrite(parent, approval), /already exists/);
-  const first = runWrite(parent, approval, ["--force"]);
+  failure(runWrite(parent), /already exists/);
+  const first = runWrite(parent, ["--force"]);
   assert.equal(first.status, 0, first.stderr);
   const firstText = fs.readFileSync(output, "utf8");
-  const second = runWrite(parent, approval, ["--force"]);
+  const second = runWrite(parent, ["--force"]);
   assert.equal(second.status, 0, second.stderr);
   assert.equal(fs.readFileSync(output, "utf8"), firstText);
 });
@@ -179,7 +166,7 @@ test("force is required for deterministic overwrite", () => {
 test("artifact excludes legacy output field names and generic write stays rejected", () => {
   const { parent } = setupFailedChild();
   const output = path.join(parent, ".meta-harness", "manual-work-packet.json");
-  const result = runWrite(parent, receipt(parent));
+  const result = runWrite(parent);
   assert.equal(result.status, 0, result.stderr);
   const artifactText = fs.readFileSync(output, "utf8");
   for (const field of ["patch_" + "proposals", "proposal_" + "files", "export_" + "files", "queue_" + "files", "action_" + "files"]) {

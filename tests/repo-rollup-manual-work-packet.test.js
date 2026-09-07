@@ -3,7 +3,10 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const { buildManualWorkPacket } = require("../lib/repo-rollup-manual-work-packet");
+const {
+  buildManualWorkPacket,
+  renderManualWorkPacketMarkdown,
+} = require("../lib/repo-rollup-manual-work-packet");
 
 const PACKET_ID = "sha256:manual-work-packet";
 const SELECTED_CANDIDATE_ID = "ACTION_REVIEW_FAILED_READINESS";
@@ -53,7 +56,7 @@ function autonomyPlan(overrides = {}) {
     creates_queues: false,
     applies_patches: false,
     refreshes_readiness: false,
-    required_human_approval: true,
+    required_human_approval: false,
     packet_id: PACKET_ID,
     selected_repo: "child-app",
     selected_candidate_id: SELECTED_CANDIDATE_ID,
@@ -135,13 +138,31 @@ test("manual work packet is explicit not_needed when autonomy plan is not needed
   assertNonMutating(packet);
 });
 
-test("manual work packet is missing_approval when plan is ready but receipt is absent", () => {
+test("manual work packet is ready when non-mutating safety validation needs no receipt", () => {
   const packet = build({
+    autonomyApprovalReceiptValidation: { verdict: "approved_for_manual_work", ok: true, receipt: null },
+  });
+
+  assert.equal(packet.verdict, "ready_for_manual_work");
+  assert.equal(packet.selected_candidate_id, SELECTED_CANDIDATE_ID);
+  assert.equal(packet.reviewer, null);
+  assert.equal(packet.reviewed_at, null);
+  assert.equal(packet.approval_reason, null);
+  assert.equal(packet.instructions.length > 0, true);
+  assertNonMutating(packet);
+
+  const markdown = renderManualWorkPacketMarkdown(packet).join("\n");
+  assert.match(markdown, /## Manual Work Packet/);
+  assert.doesNotMatch(markdown, /Approved Manual Work Packet|reviewer:|approval_reason:/u);
+});
+
+test("manual work packet preserves missing_approval for an explicit legacy approval plan", () => {
+  const packet = build({
+    autonomyPlan: { required_human_approval: true },
     autonomyApprovalReceiptValidation: { verdict: "missing", ok: false, receipt: null },
   });
 
   assert.equal(packet.verdict, "missing_approval");
-  assert.equal(packet.selected_candidate_id, SELECTED_CANDIDATE_ID);
   assert.deepEqual(packet.instructions, []);
   assertNonMutating(packet);
 });

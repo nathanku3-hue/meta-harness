@@ -26,7 +26,7 @@ function readyPlan(overrides = {}) {
     creates_queues: false,
     applies_patches: false,
     refreshes_readiness: false,
-    required_human_approval: true,
+    required_human_approval: false,
     packet_id: PACKET_ID,
     selected_repo: "child-app",
     selected_candidate_id: "ACTION_REVIEW_FAILED_READINESS",
@@ -122,12 +122,23 @@ test("approval receipt validation blocks when autonomy plan is not ready", () =>
   assertNonMutating(validation);
 });
 
-test("approval receipt validation is missing when plan is ready but no receipt is supplied", () => {
+test("approval receipt validation auto-passes a provably non-mutating plan without a receipt", () => {
   const validation = buildAutonomyApprovalReceiptValidation({ autonomyPlan: readyPlan() });
-  assert.equal(validation.verdict, "missing");
-  assert.equal(validation.ok, false);
+  assert.equal(validation.verdict, "approved_for_manual_work");
+  assert.equal(validation.ok, true);
   assert.equal(validation.packet_id, PACKET_ID);
   assert.equal(validation.selected_action_type, "review_approved_manual_work_packet");
+  assert.equal(validation.receipt, null);
+  assert.deepEqual(checkIds(validation), ["AUTONOMY_APPROVAL_NOT_REQUIRED_001"]);
+  assertNonMutating(validation);
+});
+
+test("approval receipt validation still requires a receipt for an explicit legacy approval plan", () => {
+  const validation = buildAutonomyApprovalReceiptValidation({
+    autonomyPlan: readyPlan({ required_human_approval: true }),
+  });
+  assert.equal(validation.verdict, "missing");
+  assert.equal(validation.ok, false);
   assert.equal(validation.receipt, null);
   assert.deepEqual(validation.checks.map((item) => item.status), ["pass", "fail"]);
   assertNonMutating(validation);
@@ -227,7 +238,18 @@ test("approval receipt validation can derive plan and receipt from rollup object
   assert.equal(validation.ok, true);
 });
 
-test("approval receipt validation markdown renders deterministic section", () => {
+test("approval receipt validation markdown renders auto-safe plans without approval language", () => {
+  const validation = buildAutonomyApprovalReceiptValidation({ autonomyPlan: readyPlan() });
+  const markdown = renderAutonomyApprovalReceiptValidationMarkdown(validation).join("\n");
+  assert.match(markdown, /## Manual Work Safety Validation/);
+  assert.match(markdown, /- verdict: ready_for_manual_work/);
+  assert.match(markdown, /- ok: true/);
+  assert.match(markdown, /- receipt: none/);
+  assert.match(markdown, /AUTONOMY_APPROVAL_NOT_REQUIRED_001 pass/);
+  assert.doesNotMatch(markdown, /approval receipt is required|human decision/iu);
+});
+
+test("approval receipt validation markdown preserves optional legacy receipt evidence", () => {
   const validation = buildAutonomyApprovalReceiptValidation({
     autonomyPlan: readyPlan(),
     autonomyApprovalReceipt: receipt(),
