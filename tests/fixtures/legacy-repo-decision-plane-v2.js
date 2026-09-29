@@ -13,8 +13,8 @@ const {
   admissionForHead,
   persistImmutableBytes,
   persistImmutableJson,
-  workspaceExecutionLeaseAppearsActive,
 } = require("../../lib/world-authority");
+const { readWorkspaceExecutionLease } = require("../helpers/legacy-workspace-lease");
 const worldAttestation = require("../../lib/world-attestation");
 const worldTransition = require("../../lib/world-transition");
 
@@ -30,6 +30,23 @@ function decisionPlaneEnabled(repositoryPath) {
   } catch (error) {
     if (error?.code === "ENOENT") return false;
     fail("MH_REPO_CHARTER_READ", `repo charter is unreadable: ${error.message}`);
+  }
+}
+
+function workspaceExecutionLeaseAppearsActive(repositoryPath, workspaceId) {
+  const registryDir = path.join(path.resolve(repositoryPath, ".git"), "meta-harness", "workspaces");
+  let lease;
+  try {
+    lease = readWorkspaceExecutionLease(registryDir, workspaceId);
+  } catch (error) {
+    if (/unreadable/u.test(String(error?.message || ""))) return false;
+    throw error;
+  }
+  try {
+    process.kill(lease.pid, 0);
+    return true;
+  } catch (error) {
+    return error?.code !== "ESRCH";
   }
 }
 
