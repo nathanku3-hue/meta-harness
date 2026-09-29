@@ -4,20 +4,19 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { spawn, spawnSync } = require("node:child_process");
+const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const { CLI, ROOT, runRaw, tempDir } = require("./helpers/cli");
 const { writeProductMd } = require("./helpers/product-direction");
-const { writePassingProductProof } = require("./helpers/product-proof");
 const { persistOwnerGoalIngress, persistWorkSession, prepareWorkspace } = require("../lib/work-git");
+const { readOwnerObjectiveState } = require("../lib/owner-objective-state");
 const { createGoalWorkSession } = require("../lib/work-session");
-const { compileProductProofSpec } = require("../lib/work-proof-compiler");
 const { hostKind, renderHuman } = require("../lib/commands/work");
-const { protocolRoot } = require("../lib/world-authority");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
-const OWNER_GOAL_PROOF_COMPILER = path.join(ROOT, "tests", "fixtures", "owner-goal-proof-compiler.js");
+const OPTIONAL_INTELLIGENCE_BLOCKER = path.join(ROOT, "tests", "fixtures", "block-optional-repo-intelligence.js");
+const LEGACY_EXECUTION_PERMIT_BLOCKER = path.join(ROOT, "tests", "fixtures", "block-legacy-execution-permit.js");
 
 function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
@@ -25,13 +24,7 @@ function git(cwd, args) {
   return String(result.stdout || "").trim();
 }
 
-function persistedSession(root) {
-  const directory = path.join(root, ".git", "meta-harness", "work-sessions");
-  const pointer = JSON.parse(fs.readFileSync(path.join(directory, "latest.json"), "utf8"));
-  return JSON.parse(fs.readFileSync(path.join(directory, pointer.sessionFile), "utf8"));
-}
-
-function repo(t, { withValidation = true, withOrigin = true, withProductProof = true, tempParent = null } = {}) {
+function repo(t, { withValidation = true, withOrigin = true, tempParent = null } = {}) {
   const fixtureParent = tempParent || (process.platform === "linux" && os.tmpdir().startsWith("/mnt/") ? "/tmp" : null);
   const parent = fixtureParent
     ? fs.mkdtempSync(path.join(fixtureParent, "cli-work-"))
@@ -46,7 +39,6 @@ function repo(t, { withValidation = true, withOrigin = true, withProductProof = 
   fs.writeFileSync(path.join(root, ".gitignore"), ".worktrees/\n", "utf8");
   fs.writeFileSync(path.join(root, "README.md"), "baseline\n", "utf8");
   writeProductMd(root);
-  if (withProductProof) writePassingProductProof(root);
   if (withValidation) {
     fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({
       scripts: { test: "node verify.js" },
@@ -80,32 +72,17 @@ function env(extra = {}) {
   };
 }
 
-function waitForFile(filePath, timeoutMs = 10_000) {
-  const deadline = Date.now() + timeoutMs;
-  return new Promise((resolve, reject) => {
-    const poll = () => {
-      if (fs.existsSync(filePath)) return resolve();
-      if (Date.now() >= deadline) return reject(new Error(`timed out waiting for ${filePath}`));
-      setTimeout(poll, 20);
-    };
-    poll();
-  });
-}
+test("close on an untouched repository is a zero-side-effect detach before harness bootstrap", (t) => {
+  const root = repo(t);
+  const before = git(root, ["status", "--porcelain=v1", "--untracked-files=all"]);
+  assert.equal(fs.existsSync(path.join(root, ".meta-harness")), false);
 
-function runAsync(cwd, args, options = {}) {
-  const selectedEnv = { ...(options.env || process.env), META_HARNESS_INTERNAL_CLI: "1" };
-  const child = spawn(process.execPath, [CLI, ...args], {
-    cwd,
-    stdio: ["ignore", "pipe", "pipe"],
-    env: selectedEnv,
-    ...options,
-  });
-  let stdout = "";
-  let stderr = "";
-  child.stdout.on("data", (chunk) => { stdout += String(chunk); });
-  child.stderr.on("data", (chunk) => { stderr += String(chunk); });
-  return { child, result: new Promise((resolve) => child.on("close", (status, signal) => resolve({ status, signal, stdout, stderr }))) };
-}
+  const result = runRaw(root, ["close"], { env: env() });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(result.stdout, "Stopped safely — continuation is automatic next time.\n");
+  assert.equal(fs.existsSync(path.join(root, ".meta-harness")), false);
+  assert.equal(git(root, ["status", "--porcelain=v1", "--untracked-files=all"]), before);
+});
 
 test("primary work command executes in a fresh workspace and reports product fields before evidence", (t) => {
   const root = repo(t);
@@ -115,7 +92,7 @@ test("primary work command executes in a fresh workspace and reports product fie
     "--allow", "src",
     "--json",
   ], { env: env({ FAKE_WORKER_RETRY: "1" }) });
-  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.outcome, "DONE");
   assert.equal(parsed.productResult, "Create the delivered result file.");
@@ -124,90 +101,24 @@ test("primary work command executes in a fresh workspace and reports product fie
   assert.equal(parsed.attempts, 2);
   assert.equal(parsed.validation.length, 1);
   assert.equal(parsed.validation[0].passed, true);
-  assert.equal(parsed.productProof.state, "PROVEN");
+  assert.equal(Object.hasOwn(parsed, "productProof"), false);
   assert.deepEqual(parsed.changedPaths, ["src/result.txt"]);
   assert.equal(parsed.delivery.commit.status, "committed");
   assert.deepEqual(parsed.delivery.commit.paths, ["src/result.txt"]);
-  assert.deepEqual(parsed.delivery.push, { status: "not_authorized" });
+  assert.deepEqual(parsed.delivery.push, { status: "not_requested" });
   assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
   assert.equal(fs.readFileSync(path.join(parsed.workspace.path, "src", "result.txt"), "utf8"), "delivered\n");
 });
 
-test("bare invocation continues a direct owner goal after proof compilation is interrupted", async (t) => {
-  const root = repo(t, { withProductProof: false, withOrigin: false, tempParent: os.tmpdir() === "/mnt/c/Users/Lenovo/AppData/Local/Temp" ? "/tmp" : null });
-  const marker = path.join(root, "proof-compiler-started.txt");
-  const commandEnv = env({
-    META_HARNESS_WORKER_COMMAND_JSON: JSON.stringify([process.execPath, OWNER_GOAL_PROOF_COMPILER]),
-    META_HARNESS_PROOF_COMPILER_MARKER: marker,
+test("direct work completes with optional repo intelligence and legacy execution permits unavailable", (t) => {
+  const root = repo(t);
+  const result = runRaw(root, ["Create the delivered result file."], {
+    env: env({
+      NODE_OPTIONS: `--require=${OPTIONAL_INTELLIGENCE_BLOCKER} --require=${LEGACY_EXECUTION_PERMIT_BLOCKER}`,
+    }),
   });
-  const first = runAsync(root, ["Create the delivered result file."], { env: commandEnv });
-  t.after(() => {
-    if (first.child.exitCode === null) first.child.kill("SIGKILL");
-  });
-  await waitForFile(marker);
-  first.child.kill("SIGINT");
-  const interrupted = await first.result;
-  assert.equal(interrupted.status, 0, interrupted.stderr || interrupted.stdout);
-  assert.match(interrupted.stdout, /Stopped safely/u);
-  assert.equal(fs.existsSync(path.join(protocolRoot(root), "owner-goal-ingress.json")), true);
-  assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json")), false);
-
-  const resumed = runRaw(root, [], { env: commandEnv });
-  assert.equal(resumed.status, 0, resumed.stderr || resumed.stdout);
-  assert.match(resumed.stdout, /Done —/u);
-  assert.equal(fs.existsSync(path.join(protocolRoot(root), "owner-goal-ingress.json")), false);
-  const latest = persistedSession(root);
-  assert.equal(latest.productResult, "Create the delivered result file.");
-});
-
-test("pre-worker compiled proof can establish DONE without a pre-existing repository verifier", (t) => {
-  const root = repo(t, { withProductProof: false });
-  const result = runRaw(ROOT, [
-    "work", root,
-    "--goal", "Create the delivered result file.",
-    "--allow", "src",
-    "--json",
-  ], { env: env() });
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  const parsed = JSON.parse(result.stdout);
-  assert.equal(parsed.outcome, "DONE");
-  assert.equal(parsed.productProof.state, "PROVEN");
-  assert.equal(parsed.productProof.claims[0].state, "PASSED");
-  const session = persistedSession(root);
-  assert.equal(session.productProofSpec.source.type, "COMPILED");
-  assert.deepEqual(session.productProofSpec.calibration, [{ claimId: "delivered-result", expected: "FAIL", observed: "FAIL" }]);
-  assert.deepEqual(session.productProofSpec.claims[0].covers, ["productResult", "newlyTrueBehavior", "doneWhen"]);
-});
-
-test("banked work with unresolved material product-proof claims is a truthful non-success", (t) => {
-  const root = repo(t, { withProductProof: false });
-  const result = runRaw(root, ["Create the delivered result file."], { env: env({ FAKE_PROOF_COMPILER_GAP: "1" }) });
-  assert.equal(result.status, 1, result.stderr || result.stdout);
-  assert.match(result.stdout, /Prepared src\/result\.txt/u);
-  assert.match(result.stdout, /requested result is not yet proven/u);
-  assert.doesNotMatch(result.stdout, /Banked —|product-proof claims/iu);
-  const latest = JSON.parse(fs.readFileSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json"), "utf8"));
-  assert.notEqual(git(latest.workspace.path, ["rev-parse", "HEAD"]), git(root, ["rev-parse", "HEAD"]));
-  assert.equal(git(latest.workspace.path, ["status", "--short"]), "");
-});
-
-test("miscalibrated generated proof is downgraded to a visible GAP instead of authorizing DONE", (t) => {
-  const root = repo(t, { withProductProof: false });
-  const result = runRaw(ROOT, [
-    "work", root,
-    "--goal", "Create the delivered result file.",
-    "--allow", "src",
-    "--json",
-  ], { env: env({ FAKE_PROOF_COMPILER_BAD_CALIBRATION: "1" }) });
-  assert.equal(result.status, 1, result.stderr || result.stdout);
-  const parsed = JSON.parse(result.stdout);
-  assert.equal(parsed.outcome, "BANKED_UNPROVEN");
-  assert.equal(parsed.productProof.state, "GAP");
-  const session = persistedSession(root);
-  assert.equal(session.productProofSpec.source.type, "COMPILED");
-  assert.equal(session.productProofSpec.program, null);
-  assert.equal(session.productProofSpec.claims[0].disposition, "UNVERIFIABLE");
-  assert.match(session.productProofSpec.claims[0].reason, /calibration/i);
+  assert.match(result.stdout, /^Done — /m);
 });
 
 test("duplicate normalized allow paths fail before workspace or worker activity", (t) => {
@@ -479,30 +390,25 @@ test("ghost journey accepts one result, shows coarse liveness, validates, and ba
   assert.match(result.stdout, /^Done — /m);
   assert.doesNotMatch(result.stdout, /Outcome:|Workspace:|Commit:|Push:|sessionDigest|workspaceId|sha256:/i);
 
-  const latest = JSON.parse(fs.readFileSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json"), "utf8"));
+  const managedWorktrees = fs.readdirSync(path.join(root, ".worktrees"), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(root, ".worktrees", entry.name));
+  assert.equal(managedWorktrees.length, 1);
   assert.equal(git(root, ["rev-parse", "HEAD"]), sourceHead);
-  assert.notEqual(git(latest.workspace.path, ["rev-parse", "HEAD"]), sourceHead);
-  assert.equal(git(latest.workspace.path, ["status", "--short"]), "");
+  assert.notEqual(git(managedWorktrees[0], ["rev-parse", "HEAD"]), sourceHead);
+  assert.equal(git(managedWorktrees[0], ["status", "--short"]), "");
   assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
+  assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json")), false);
 
   const after = runRaw(root, [], { env: env() });
   assert.equal(after.status, 0, after.stderr);
-  assert.equal(after.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
+  assert.equal(after.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
 });
 
 function activeSessionFixture(t) {
   const root = repo(t);
   const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
   const productDirection = require("../lib/product-direction").pinProductDirection(root);
-  const productProofSpec = compileProductProofSpec({
-    repositoryPath: root,
-    productDirection,
-    base,
-    productResult: "Create the delivered result file.",
-    newlyTrueBehavior: "Create the delivered result file.",
-    doneWhen: "The requested behavior works in the repository and relevant validation passes.",
-    allowModel: false,
-  });
   const session = createGoalWorkSession({
     goal: "Create the delivered result file.",
     repositoryPath: root,
@@ -510,12 +416,11 @@ function activeSessionFixture(t) {
     base,
     allowedPaths: ["."],
     validation: [{
-      argv: [process.execPath, "-e", "const fs=require('fs'); if(fs.readFileSync('src/result.txt','utf8')!=='delivered\\n') process.exit(7)"],
+      argv: ["node", "-e", "const fs=require('fs'); if(fs.readFileSync('src/result.txt','utf8')!=='delivered\\n') process.exit(7)"],
       cwd: ".",
       timeoutSeconds: 30,
     }],
-    delivery: { commit: true, push: false },
-    productProofSpec,
+    delivery: { push: false },
   });
   const workspace = prepareWorkspace(root, session);
   persistWorkSession(root, session, workspace);
@@ -525,17 +430,73 @@ function activeSessionFixture(t) {
 }
 
 for (const command of ["go:", "continue"]) {
-  test(`${command} resumes the exact active generation even when repo planning has since been enabled`, (t) => {
+  test(`${command} continues the active product result through disposable workspace recovery even when repo planning is enabled`, (t) => {
     const { root, session, workspace } = activeSessionFixture(t);
-    const result = runRaw(root, [command], { env: env() });
+    const result = runRaw(root, [command], {
+      env: env({ NODE_OPTIONS: `--require=${LEGACY_EXECUTION_PERMIT_BLOCKER}` }),
+    });
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.match(result.stdout, /^Working…$/m);
     assert.match(result.stdout, /^Done — /m);
     assert.doesNotMatch(result.stdout, /resume|session|workspace|generation|actor|custody/i);
-    assert.equal(git(workspace.workspacePath, ["status", "--short"]), "");
-    assert.notEqual(git(workspace.workspacePath, ["rev-parse", "HEAD"]), session.base.commit);
+
+    const worktrees = fs.readdirSync(path.join(root, ".worktrees"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => path.join(root, ".worktrees", entry.name));
+    const delivered = worktrees.filter((candidatePath) =>
+      fs.existsSync(path.join(candidatePath, "src", "result.txt"))
+        && fs.readFileSync(path.join(candidatePath, "src", "result.txt"), "utf8") === "delivered\n"
+        && git(candidatePath, ["rev-parse", "HEAD"]) !== session.base.commit);
+    assert.equal(delivered.length, 1);
+    assert.equal(git(delivered[0], ["status", "--short"]), "");
+    assert.equal(git(workspace.workspacePath, ["rev-parse", "HEAD"]), session.base.commit);
+
+    const after = runRaw(root, [], {
+      env: env({ NODE_OPTIONS: `--require=${LEGACY_EXECUTION_PERMIT_BLOCKER}` }),
+    });
+    assert.equal(after.status, 0, after.stderr || after.stdout);
+    assert.equal(after.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
   });
 }
+
+test("close detaches without dispatch and the next bare invocation resumes the same result", (t) => {
+  const { root, session, workspace } = activeSessionFixture(t);
+  const closed = runRaw(root, ["close"], { env: env() });
+  assert.equal(closed.status, 0, closed.stderr || closed.stdout);
+  assert.equal(closed.stdout, "Stopped safely — continuation is automatic next time.\n");
+  assert.equal(git(workspace.workspacePath, ["rev-parse", "HEAD"]), session.base.commit);
+  assert.equal(fs.existsSync(path.join(workspace.workspacePath, "src", "result.txt")), false);
+
+  const resumed = runRaw(root, [], { env: env() });
+  assert.equal(resumed.status, 0, resumed.stderr || resumed.stdout);
+  assert.match(resumed.stdout, /^Working…$/m);
+  assert.match(resumed.stdout, /^Done — /m);
+});
+
+test("unexpected direct-workspace bytes are preserved while continuation self-heals in a fresh child", (t) => {
+  const { root, session, workspace } = activeSessionFixture(t);
+  const foreign = path.join(workspace.workspacePath, "foreign.tmp");
+  fs.writeFileSync(foreign, "foreign live bytes\n", "utf8");
+
+  const resumed = runRaw(root, ["go"], { env: env() });
+  assert.equal(resumed.status, 0, resumed.stderr || resumed.stdout);
+  assert.match(resumed.stdout, /^Done — /m);
+  assert.equal(fs.readFileSync(foreign, "utf8"), "foreign live bytes\n");
+  assert.equal(git(workspace.workspacePath, ["rev-parse", "HEAD"]), session.base.commit);
+
+  const worktrees = fs.readdirSync(path.join(root, ".worktrees"), { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(root, ".worktrees", entry.name));
+  const delivered = worktrees.filter((candidatePath) =>
+    candidatePath !== workspace.workspacePath
+      && fs.existsSync(path.join(candidatePath, "src", "result.txt"))
+      && fs.readFileSync(path.join(candidatePath, "src", "result.txt"), "utf8") === "delivered\n");
+  assert.equal(delivered.length, 1);
+
+  const after = runRaw(root, [], { env: env() });
+  assert.equal(after.status, 0, after.stderr || after.stdout);
+  assert.equal(after.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
+});
 
 test("go advances retained owner-goal ingress instead of becoming a replacement request", (t) => {
   const root = repo(t);
@@ -548,11 +509,11 @@ test("go advances retained owner-goal ingress instead of becoming a replacement 
   assert.doesNotMatch(result.stdout, /Need you|different result|replace/iu);
 });
 
-test("bare meta-harness stops cleanly when no active result exists", (t) => {
+test("bare meta-harness reports quiescent product observation when no result is active", (t) => {
   const root = repo(t);
   const result = runRaw(root, [], { env: env() });
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
+  assert.equal(result.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
 });
 
 test("private host projection preserves human result text without exposing lifecycle topology", (t) => {
@@ -563,7 +524,7 @@ test("private host projection preserves human result text without exposing lifec
     schemaVersion: "meta-host-result/v1",
     kind: "USE_PRODUCT",
     externalPacketDigests: [],
-    text: "No active slice.\nUse the product.\nWait for observed real-use friction.",
+    text: "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.",
   });
   assert.doesNotMatch(result.stdout, /workspaceId|sessionDigest|claimDigest|generation/u);
 });
@@ -591,7 +552,7 @@ test("inspect JSON exposes only semantic entry action and retained owner-goal re
   assert.doesNotMatch(active.stdout, /workspace|session|claim|generation|sha256|OWNER_GOAL|REPO_WAVE/i);
 });
 
-test("planner-managed repository entry stays topology-blind to the host", (t) => {
+test("planner capability alone is idle and stays topology-blind to the host", (t) => {
   const root = repo(t);
   fs.mkdirSync(path.join(root, ".meta-harness"), { recursive: true });
   fs.writeFileSync(path.join(root, ".meta-harness", "repo-charter.json"), "{}\n", "utf8");
@@ -599,10 +560,31 @@ test("planner-managed repository entry stays topology-blind to the host", (t) =>
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.deepEqual(JSON.parse(result.stdout), {
     schemaVersion: "meta-entry/v1",
-    action: "CONTINUE",
+    action: "IDLE",
     result: null,
   });
   assert.doesNotMatch(result.stdout, /planner|repo.wave|claim|workspace|session/i);
+});
+
+test("planner objective is temporary continuity and clears after a quiescent no-candidate pass", (t) => {
+  const root = repo(t);
+  fs.mkdirSync(path.join(root, ".meta-harness"), { recursive: true });
+  fs.writeFileSync(path.join(root, ".meta-harness", "repo-charter.json"), "{}\n", "utf8");
+
+  const result = runRaw(root, ["Deliver the next useful product change."], {
+    env: env({ FAKE_PLANNER_CANDIDATES_JSON: "[]" }),
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(result.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
+  assert.equal(readOwnerObjectiveState(root, { optional: true }), null);
+
+  const after = runRaw(root, ["inspect", "--json"], { env: env() });
+  assert.equal(after.status, 0, after.stderr || after.stdout);
+  assert.deepEqual(JSON.parse(after.stdout), {
+    schemaVersion: "meta-entry/v1",
+    action: "IDLE",
+    result: null,
+  });
 });
 
 test("inspect is a coarse diagnostic surface without lifecycle identifiers", (t) => {
@@ -662,16 +644,6 @@ test("normal work output projects product consequence instead of lifecycle label
   assert.match(done, /parser now accepts the bounded valid input shape/u);
   assert.doesNotMatch(done, forbidden);
 
-  const banked = render({
-    outcome: "BANKED_UNPROVEN",
-    observableResult: "The candidate passes repository validation",
-    productResult: "Prove the requested behavior.",
-  });
-  assert.match(banked, /candidate passes repository validation/u);
-  assert.match(banked, /requested result is not yet proven/u);
-  assert.doesNotMatch(banked, /Banked —|product-proof claims/iu);
-  assert.doesNotMatch(banked, forbidden);
-
   const ready = render({
     outcome: "READY",
     productResult: "Repair the parser.",
@@ -682,6 +654,19 @@ test("normal work output projects product consequence instead of lifecycle label
   assert.match(ready, /Run the same command without --dry-run\./u);
   assert.doesNotMatch(ready, /Ready —|workflow decision/iu);
   assert.doesNotMatch(ready, forbidden);
+
+  for (const internalSchedulingNext of [
+    "Decision needed: choose lane A or B.",
+    "Choose a lane for the sibling handoff.",
+    "Select lane B after the producer finishes.",
+  ]) {
+    const projected = render({
+      outcome: "READY",
+      productResult: "Close the requested product gap.",
+      nextAction: internalSchedulingNext,
+    });
+    assert.doesNotMatch(projected, /Decision needed|choose lane|choose a lane|select lane|sibling handoff/iu);
+  }
 
   const exhausted = render({
     outcome: "REPLAN_REQUIRED",
@@ -700,7 +685,7 @@ test("repo-wave egress uses product meaning and host owner attention agrees with
     return output;
   };
   const result = {
-    schemaVersion: "repo-work-wave-result/v1",
+    schemaVersion: "repo-work-wave-result/v2",
     outcome: "PARTIAL",
     delegationGate: {
       kind: "FORWARD_GATE",
@@ -724,7 +709,7 @@ test("repo-wave egress uses product meaning and host owner attention agrees with
   assert.doesNotMatch(output, /current repository truth|Claim authority|constitutional owner authority|REPLAN_REQUIRED|\bReplan:|hard blocked|repository planner|delegation/iu);
 
   const ownerResult = {
-    schemaVersion: "repo-work-wave-result/v1",
+    schemaVersion: "repo-work-wave-result/v2",
     outcome: "REPLAN_REQUIRED",
     delegationGate: {
       kind: "OWNER_DECISION",
@@ -742,7 +727,7 @@ test("repo-wave egress uses product meaning and host owner attention agrees with
   assert.equal(hostKind(ownerResult, [`sha256:${"b".repeat(64)}`]), "EXTERNAL_OPEN");
 
   const outcomeOwnerResult = {
-    schemaVersion: "repo-work-wave-result/v1",
+    schemaVersion: "repo-work-wave-result/v2",
     outcome: "PARTIAL",
     delegationGate: null,
     outcomes: [{
@@ -755,7 +740,7 @@ test("repo-wave egress uses product meaning and host owner attention agrees with
   assert.equal(hostKind(outcomeOwnerResult, []), "WORKING");
 
   const legacyGateOnly = {
-    schemaVersion: "repo-work-wave-result/v1",
+    schemaVersion: "repo-work-wave-result/v2",
     outcome: "OWNER_REQUIRED",
     delegationGate: {
       kind: "OWNER_DECISION",

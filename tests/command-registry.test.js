@@ -14,14 +14,14 @@ test("command registry tracks canonical commands separately from aliases", () =>
   const names = commandNames();
   assert.deepEqual(new Set(names).size, names.length);
   assert.equal(names.includes("work"), true);
-  assert.equal(names.includes("execute"), true);
-  assert.equal(names.filter((name) => name === "execute").length, 1);
+  for (const retired of ["execute", "release", "authority"]) {
+    assert.equal(names.includes(retired), false, retired);
+  }
   assert.equal(names.includes("ready"), true);
   assert.equal(names.includes("sync"), true);
   assert.equal(names.includes("brief"), true);
   assert.equal(names.includes("skill"), true);
   assert.equal(names.includes("merge"), true);
-  assert.equal(names.includes("release"), true);
   assert.equal(names.includes("context"), true);
   assert.equal(names.includes("governance"), true);
   assert.equal(commandSpecs.some((spec) => Array.isArray(spec.aliases) && spec.aliases.length > 0), false);

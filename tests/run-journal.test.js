@@ -9,7 +9,9 @@ const test = require("node:test");
 const {
   appendRunEvent,
   journalDirectory,
+  readRunEventsForSession,
   readRunJournal,
+  runIdForExecution,
   runIdForSession,
 } = require("../lib/run-journal");
 
@@ -45,6 +47,40 @@ test("run journal is append-only, ordered, and reconstructable after restart", (
   assert.deepEqual(restarted.map((entry) => entry.type), ["run/started", "mutation/result"]);
   assert.equal(restarted[1].data.snapshotOid, "b".repeat(40));
   assert.equal(restarted[1].previousDigest, restarted[0].eventDigest);
+});
+
+test("one logical session can have independent physical execution journals", (t) => {
+  const { root } = fixture(t);
+  const sessionDigest = `sha256:${"b".repeat(64)}`;
+  const workspaceA = "00000000-0000-4000-8000-000000000001";
+  const workspaceB = "00000000-0000-4000-8000-000000000002";
+  const runA = runIdForExecution(sessionDigest, workspaceA);
+  const runB = runIdForExecution(sessionDigest, workspaceB);
+
+  assert.notEqual(runA, runB);
+  const firstA = appendRunEvent({
+    gitCommonDirectory: root,
+    runId: runA,
+    type: "run/started",
+    data: { sessionDigest, workspaceId: workspaceA },
+  });
+  const firstB = appendRunEvent({
+    gitCommonDirectory: root,
+    runId: runB,
+    type: "run/started",
+    data: { sessionDigest, workspaceId: workspaceB },
+  });
+
+  assert.equal(firstA.sequence, 1);
+  assert.equal(firstB.sequence, 1);
+  assert.equal(firstA.previousDigest, null);
+  assert.equal(firstB.previousDigest, null);
+
+  const aggregate = readRunEventsForSession({ gitCommonDirectory: root, sessionDigest });
+  assert.deepEqual(
+    aggregate.map((event) => [event.runId, event.sequence, event.data.workspaceId]).sort(),
+    [[runA, 1, workspaceA], [runB, 1, workspaceB]].sort(),
+  );
 });
 
 test("orphan temporary journal files are not durable events", (t) => {

@@ -11,8 +11,8 @@ const test = require("node:test");
 const {
   staticRelativeRequires,
   verifyPackageClosure,
-} = require("../lib/semantic-kernel/package-closure");
-const { scanText } = require("../lib/semantic-kernel/release-negative-scan");
+} = require("../lib/package-closure");
+const { scanText } = require("../lib/package-negative-scan");
 const { ROOT } = require("./helpers/cli");
 
 function npmInvocation(args) {
@@ -109,6 +109,10 @@ test("0.4 tarball ships the product path without the historical command console"
     "lib/semantic-kernel/certification.js",
     "lib/semantic-kernel/package-closure.js",
     "lib/semantic-kernel/release-negative-scan.js",
+    "lib/work-forward-motion.js",
+    ".agents/skills/meta-harness-runtime/forward-motion/SKILL.md",
+    ".agents/skills/meta-harness-runtime/coding-worker/proposal/SKILL.md",
+    ".agents/skills/meta-harness-runtime/professional-skill-selector/SKILL.md",
   ]) assert.equal(dryFiles.includes(sourceOnly), false, sourceOnly);
 
   const packed = JSON.parse(runNpm([
@@ -143,17 +147,13 @@ test("0.4 tarball ships the product path without the historical command console"
   const installedRoot = path.join(projectRoot, "node_modules", "@nkgss", "meta-harness");
   const installedPackage = JSON.parse(fs.readFileSync(path.join(installedRoot, "package.json"), "utf8"));
   assert.equal(installedPackage.version, "0.4.0");
-  assert.equal(fs.existsSync(path.join(installedRoot, "lib", "semantic-kernel", "certification.js")), false);
-  const installedExecutable = [
-    "lib/execution-custody/execute.js",
-    "lib/semantic-kernel/evidence-runtime.js",
-    "lib/semantic-kernel/semantic-controller.js",
-    "lib/semantic-kernel/slice-authorization.js",
-    "lib/semantic-kernel/slice-state.js",
-  ].map((relativePath) => fs.readFileSync(path.join(installedRoot, relativePath), "utf8")).join("\n");
-  for (const token of ["CERTIFICATION_PREPARE", "CERTIFICATION_ASSESS", "CERTIFICATION_VERIFIED", "produceCertificationEvidence", "repository-application"]) {
-    assert.equal(installedExecutable.includes(token), false, token);
-  }
+  for (const sourceOnly of [
+    "lib/execution-custody",
+    "lib/semantic-kernel",
+    "lib/contracts/index.js",
+    "lib/contracts/run-spec.js",
+    "lib/contracts/mechanics-assessment.js",
+  ]) assert.equal(fs.existsSync(path.join(installedRoot, sourceOnly)), false, sourceOnly);
   const installedHandlers = fs.readdirSync(path.join(installedRoot, "lib", "commands")).sort();
   assert.deepEqual(installedHandlers, ["work.js"]);
   const registry = require(path.join(installedRoot, "lib", "command-registry.js"));

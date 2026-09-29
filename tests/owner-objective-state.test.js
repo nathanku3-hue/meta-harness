@@ -8,27 +8,29 @@ const test = require("node:test");
 const { automaticRequest } = require("../lib/commands/work");
 const { ensureProjectHooks } = require("../lib/project-init");
 const {
+  clearOwnerObjectiveState,
   objectivePath,
   readOwnerObjectiveState,
   replaceOwnerObjectiveState,
 } = require("../lib/owner-objective-state");
 const { persistOwnerGoalIngress, readOwnerGoalIngress } = require("../lib/work-git");
-const { protocolRoot, withWorldAuthorityLock } = require("../lib/world-authority");
+const { protocolRoot } = require("../lib/protocol-store");
 const { ROOT, runRaw } = require("./helpers/cli");
 const { git, persistInitial, repository } = require("./helpers/linear-product-head");
 
 const FAKE_WORKER = path.join(ROOT, "tests", "fixtures", "fake-coding-worker.js");
 
-test("owner objective and owner-goal ingress do not coordinate through the World commit lock", (t) => {
+test("owner objective and owner-goal ingress do not require a World publication lock", (t) => {
   const { root } = repository(t);
-  const result = withWorldAuthorityLock(root, () => ({
+  const result = {
     objective: replaceOwnerObjectiveState(root, "mission can advance independently"),
     ingress: persistOwnerGoalIngress(root, "deliver the next useful result"),
-  }));
+  };
   assert.equal(result.objective.revision, 1);
   assert.equal(readOwnerObjectiveState(root).content, "mission can advance independently");
   assert.equal(result.ingress.content, "deliver the next useful result");
   assert.equal(readOwnerGoalIngress(root, { optional: false }).content, "deliver the next useful result");
+  assert.equal(fs.existsSync(path.join(protocolRoot(root), "world-authority.lock")), false);
 });
 
 test("pre-aborted normal work cannot revise owner objective state", (t) => {
@@ -76,7 +78,7 @@ test("plain planner-enabled mission establishes only Git-common objective state"
   assert.equal(fs.readFileSync(path.join(root, "owner-untracked.tmp"), "utf8"), before.untracked);
 });
 
-test("product-surface objective capture leaves checkout unchanged end to end", (t) => {
+test("product-surface no-candidate completion clears temporary objective and leaves checkout unchanged", (t) => {
   const { root } = repository(t);
   persistInitial(root, "world-transition/v2");
   ensureProjectHooks({ cwd: root });
@@ -98,10 +100,8 @@ test("product-surface objective capture leaves checkout unchanged end to end", (
     },
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.equal(result.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
-  const state = readOwnerObjectiveState(root);
-  assert.equal(state.revision, 1);
-  assert.equal(state.content, "fastest honest decision-changing evidence");
+  assert.equal(result.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
+  assert.equal(readOwnerObjectiveState(root, { optional: true }), null);
   assert.equal(git(root, ["rev-parse", "HEAD"]), before.head);
   assert.equal(git(root, ["status", "--porcelain=v1", "--untracked-files=all"]), before.status);
   assert.equal(git(root, ["diff", "--cached", "--binary"]), before.index);
@@ -159,6 +159,20 @@ test("mission change may independently authorize existing-mission dispatch", (t)
   const after = readOwnerObjectiveState(root);
   assert.equal(after.revision, before.revision + 1);
   assert.equal(after.content, "mission M4");
+});
+
+test("terminal objective cleanup is compare-and-delete by exact revision", (t) => {
+  const { root } = repository(t);
+  const first = replaceOwnerObjectiveState(root, "mission M");
+  const second = replaceOwnerObjectiveState(root, "mission M2");
+
+  assert.throws(
+    () => clearOwnerObjectiveState(root, { expectedRevision: first.revision }),
+    (error) => error.code === "MH_OWNER_OBJECTIVE_STALE",
+  );
+  assert.deepEqual(readOwnerObjectiveState(root), second);
+  assert.equal(clearOwnerObjectiveState(root, { expectedRevision: second.revision }), true);
+  assert.equal(readOwnerObjectiveState(root, { optional: true }), null);
 });
 
 test("objective revision advances across ABA even when final bytes match the original", (t) => {

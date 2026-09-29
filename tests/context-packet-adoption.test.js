@@ -87,7 +87,7 @@ test("worker packets are retired while review packets inspect blocked gates with
 
   const worker = runRaw(cwd, ["context", "packet", "ROUND-001", "--for", "worker", "--json"]);
   assert.notEqual(worker.status, 0);
-  assert.match(`${worker.stdout}\n${worker.stderr}`, /single-use ExecutionPermit/);
+  assert.match(`${worker.stdout}\n${worker.stderr}`, /sealed session, exact snapshot, and scoped run capability/);
 
   const review = run(cwd, ["context", "packet", "ROUND-001", "--for", "review", "--json"]);
   const packet = JSON.parse(review);

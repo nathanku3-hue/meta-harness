@@ -1,6 +1,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
@@ -41,6 +42,14 @@ function writeState(root, updatedAt = new Date().toISOString()) {
     updated_at: updatedAt,
     process: { loop_phase: "ANALYZE", next_phase: "WAIT" },
   }, null, 2)}\n`);
+}
+
+function fileFingerprint(target) {
+  const bytes = fs.readFileSync(target);
+  return {
+    sizeBytes: bytes.length,
+    sha256: crypto.createHash("sha256").update(bytes).digest("hex"),
+  };
 }
 
 test("fresh project hook completion is atomic-facing and installs only runtime structural hooks", () => {
@@ -85,7 +94,7 @@ test("normal bare journey silently completes fresh repository hooks without an i
 
   const result = runRaw(root, []);
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.equal(result.stdout, "No active slice.\nUse the product.\nWait for observed real-use friction.\n");
+  assert.equal(result.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
   assert.equal(fs.existsSync(path.join(root, ".meta-harness", "status.md")), true);
   assert.equal(fs.existsSync(path.join(root, ".meta-harness", "events.jsonl")), true);
   assert.equal(fs.existsSync(path.join(root, ".meta-harness", "templates")), false);
@@ -154,6 +163,7 @@ test("project startup projection validates declared canonical sources and freshn
   writeState(root, "2026-09-07T14:01:05Z");
 
   const startup = inspectProjectStartup(root, { nowMs: Date.parse("2026-09-07T15:00:00Z") });
+  const fingerprint = fileFingerprint(path.join(root, "docs/context/state.json"));
   assert.deepEqual(startup, {
     schemaVersion: "project-startup-context/v1",
     status: "READY",
@@ -162,10 +172,34 @@ test("project startup projection validates declared canonical sources and freshn
       id: "loop",
       path: "docs/context/state.json",
       status: "fresh",
+      sizeBytes: fingerprint.sizeBytes,
+      sha256: fingerprint.sha256,
       observedAt: "2026-09-07T14:01:05.000Z",
     }],
     blockers: [],
   });
+});
+
+test("declared startup source byte budget rejects bloated current-truth surfaces", () => {
+  const root = tempDir("meta-harness-project-budget-");
+  writeDeclaration(root, declaration({
+    startupContext: {
+      sources: [{
+        id: "loop",
+        path: "docs/context/state.json",
+        required: true,
+        maxBytes: 64,
+      }],
+      projection: [{ label: "Loop", source: "loop", jsonPointer: "/process/loop_phase" }],
+    },
+  }));
+  writeState(root, "2026-09-07T14:01:05Z");
+
+  const startup = inspectProjectStartup(root, { nowMs: Date.parse("2026-09-07T15:00:00Z") });
+  assert.equal(startup.status, "BLOCKED");
+  assert.equal(startup.sources[0].status, "invalid");
+  assert.ok(startup.sources[0].sizeBytes > 64);
+  assert.match(startup.blockers.join("\n"), /source exceeds declared maxBytes 64/);
 });
 
 test("stale required source blocks startup instead of falling back to chat or another file", () => {

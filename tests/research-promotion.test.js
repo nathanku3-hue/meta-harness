@@ -7,8 +7,8 @@ const test = require("node:test");
 const { pathToFileURL } = require("node:url");
 
 const { captureExpertResourceLinks } = require("../lib/expert-source-ingress");
-const { listActiveOutcomeClaims } = require("../lib/outcome-claim");
 const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
+const { compareAndSwapIntegrationHead, readIntegrationHead } = require("../lib/optimistic-integration");
 const { compileRepoPlannerInput } = require("../lib/repo-planner-input");
 const { buildLogicalPlannerPrompt } = require("../lib/repo-logical-planner");
 const {
@@ -22,9 +22,7 @@ const {
 const { readResearchPromotion } = require("../lib/research-evidence-store");
 const { runRepoWorkWave } = require("../lib/repo-work-wave");
 const { persistSourceBearingOwnerIngress } = require("../lib/source-bearing-owner-ingress");
-const { readCurrentWorldState } = require("../lib/world-transition");
 const {
-  fakeInterpretation,
   git,
   persistInitial,
   repository,
@@ -51,10 +49,21 @@ function researchRepository(t, files, { outside = null } = {}) {
   return root;
 }
 
-function currentAtProductCommit(baseCurrent, productCommit) {
+function advanceProductHead(root, candidateHead) {
+  const expectedHead = readIntegrationHead(root);
+  const result = compareAndSwapIntegrationHead({
+    repositoryPath: root,
+    expectedHead,
+    candidateHead,
+  });
+  assert.equal(result.state, "LANDED");
+  return result.observedHead;
+}
+
+function current(root) {
+  const productCommit = readIntegrationHead(root);
   return Object.freeze({
-    ...baseCurrent,
-    head: Object.freeze({ ...baseCurrent.head, productCommit }),
+    head: Object.freeze({ productCommit, headDigest: productCommit }),
   });
 }
 
@@ -78,9 +87,6 @@ function modelRunner(resultFactory, identity = "test-research-promoter") {
   return run;
 }
 
-function current(root) {
-  return readCurrentWorldState(root);
-}
 
 test("promoter result stays disposable when drain wins before canonical persistence", async (t) => {
   const root = researchRepository(t, {
@@ -140,7 +146,6 @@ test("research sources come only from exact committed conventional-root blobs", 
   await ensureCurrentResearchPromotions({ repositoryPath: root, current: authoritative, modelRunner: runner });
   assert.equal(runner.calls(), 1);
   assert.equal(current(root).head.headDigest, beforeHead);
-  assert.deepEqual(listActiveOutcomeClaims(root), []);
   assert.equal(git(root, ["status", "--porcelain"]), beforeStatus);
 
   const projected = projectCurrentPromotedResearch({ repositoryPath: root, productCommit: authoritative.head.productCommit });
@@ -244,7 +249,8 @@ test("same exact content is promoted once across path rename and current path st
 
   fs.renameSync(path.join(root, "docs", "research", "a.md"), path.join(root, "docs", "research", "b.md"));
   const renamedCommit = commitAll(root, "rename research without changing bytes");
-  const secondCurrent = currentAtProductCommit(firstCurrent, renamedCommit);
+  advanceProductHead(root, renamedCommit);
+  const secondCurrent = current(root);
   await ensureCurrentResearchPromotions({ repositoryPath: root, current: secondCurrent, modelRunner: runner });
   const secondProjection = projectCurrentPromotedResearch({ repositoryPath: root, productCommit: secondCurrent.head.productCommit });
 
@@ -319,7 +325,8 @@ test("source edit replaces current projection while deletion removes it and hist
 
   writeFile(root, "docs/research/versioned.md", "Version two evidence.\n");
   const secondCommit = commitAll(root, "edit research source");
-  const secondCurrent = currentAtProductCommit(firstCurrent, secondCommit);
+  advanceProductHead(root, secondCommit);
+  const secondCurrent = current(root);
   await ensureCurrentResearchPromotions({ repositoryPath: root, current: secondCurrent, modelRunner: runner });
   const secondProjection = projectCurrentPromotedResearch({ repositoryPath: root, productCommit: secondCurrent.head.productCommit });
   assert.equal(runner.calls(), 2);
@@ -329,7 +336,8 @@ test("source edit replaces current projection while deletion removes it and hist
 
   fs.unlinkSync(path.join(root, "docs", "research", "versioned.md"));
   const thirdCommit = commitAll(root, "delete research source");
-  const thirdCurrent = currentAtProductCommit(secondCurrent, thirdCommit);
+  advanceProductHead(root, thirdCommit);
+  const thirdCurrent = current(root);
   await ensureCurrentResearchPromotions({ repositoryPath: root, current: thirdCurrent, modelRunner: runner });
   assert.equal(projectCurrentPromotedResearch({ repositoryPath: root, productCommit: thirdCurrent.head.productCommit }).length, 0);
   assert.equal(runner.calls(), 2);
@@ -399,9 +407,9 @@ test("expert ingress promotes from retained Git blob and projects truthful EXPER
   assert.equal(projected[0].source.contentDigest, descriptor.contentDigest);
   assert.equal(Object.prototype.hasOwnProperty.call(projected[0].source, "path"), false);
 
-  const plannerInput = compileRepoPlannerInput({ repositoryPath: root, current: authoritative, recovered: [] });
+  const plannerInput = compileRepoPlannerInput({ repositoryPath: root, recovered: [], evidence: projected });
   assert.equal(plannerInput.ownerIntent.activeDirective.ingressDigest, ingress.ingressDigest);
-  assert.deepEqual(plannerInput.promotedResearch, projected);
+  assert.deepEqual(plannerInput.evidence, projected);
   const prompt = buildLogicalPlannerPrompt(plannerInput);
   assert.match(prompt, /advisory evidence, not kernel truth/u);
 });
@@ -431,9 +439,13 @@ test("F1E expert artifact to promoted planner evidence passes three fresh trials
 
     await ensureCurrentResearchPromotions({ repositoryPath: root, current: authoritative, modelRunner: runner });
     assert.equal(runner.calls(), 1);
-    const plannerInput = compileRepoPlannerInput({ repositoryPath: root, current: authoritative, recovered: [] });
-    assert.equal(plannerInput.promotedResearch.length, 1);
-    const evidence = plannerInput.promotedResearch[0];
+    const projected = projectCurrentPromotedResearch({
+      repositoryPath: root,
+      productCommit: authoritative.head.productCommit,
+    });
+    const plannerInput = compileRepoPlannerInput({ repositoryPath: root, recovered: [], evidence: projected });
+    assert.equal(plannerInput.evidence.length, 1);
+    const evidence = plannerInput.evidence[0];
     assert.equal(evidence.kind, "CONSTRAINT");
     assert.equal(evidence.source.kind, "EXPERT_INGRESS");
     assert.equal(evidence.source.ingressDigest, ingress.ingressDigest);
@@ -538,15 +550,14 @@ test("repo work auto-promotes before fresh planner boot and transports compact a
     researchModelRunner: runner,
     plannerRunner: async ({ plannerInput: input }) => {
       plannerInput = input;
-      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
+      return { batch: { schemaVersion: "planner-candidate-batch/v4", proposals: [] } };
     },
-    interpret: fakeInterpretation,
   });
   assert.equal(result.plannerInvoked, true);
   assert.equal(runner.calls(), 1);
   assert.ok(plannerInput);
-  assert.equal(plannerInput.schemaVersion, "repo-planner-input/v3");
-  assert.equal(plannerInput.promotedResearch.length, 2);
+  assert.equal(plannerInput.schemaVersion, "repo-planner-input/v5");
+  assert.equal(plannerInput.evidence.length, 2);
   const serialized = JSON.stringify(plannerInput);
   assert.equal(serialized.includes(rawTail), false);
   assert.equal(serialized.includes("research promoter"), false);
@@ -570,12 +581,11 @@ test("no current research source has zero promotion tax", async (t) => {
     researchModelRunner: runner,
     plannerRunner: async ({ plannerInput: input }) => {
       plannerInput = input;
-      return { batch: { schemaVersion: "planner-candidate-batch/v3", proposals: [] } };
+      return { batch: { schemaVersion: "planner-candidate-batch/v4", proposals: [] } };
     },
-    interpret: fakeInterpretation,
   });
   assert.equal(runner.calls(), 0);
-  assert.deepEqual(plannerInput.promotedResearch, []);
+  assert.deepEqual(plannerInput.evidence, []);
 });
 
 test("promoted research context fails explicitly instead of truncating", async (t) => {
@@ -595,10 +605,6 @@ test("promoted research context fails explicitly instead of truncating", async (
   assert.equal(runner.calls(), 1);
   assert.throws(
     () => projectCurrentPromotedResearch({ repositoryPath: root, productCommit: authoritative.head.productCommit }),
-    (error) => error.code === "MH_RESEARCH_CONTEXT_BUDGET",
-  );
-  assert.throws(
-    () => compileRepoPlannerInput({ repositoryPath: root, current: authoritative, recovered: [] }),
     (error) => error.code === "MH_RESEARCH_CONTEXT_BUDGET",
   );
 });

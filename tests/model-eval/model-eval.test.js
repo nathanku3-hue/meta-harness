@@ -28,22 +28,17 @@ function candidate(id, path, overrides = {}) {
   return {
     id,
     productResult: overrides.productResult || `Create the result through ${path}.`,
-    objectRefs: [],
-    hypothesisRef: null,
-    criterionRefs: [],
-    metricRefs: [],
     journeyState: overrides.journeyState || "The result is not true yet.",
     doNow: overrides.doNow || `Act through ${path}.`,
     newlyTrueBehavior: overrides.newlyTrueBehavior || `The requested result is observable through ${path}.`,
     doneWhen: overrides.doneWhen || `The bounded result through ${path} is complete.`,
     stopOnlyIf: overrides.stopOnlyIf || ["A real hard constraint prevents this exact action."],
     expectedWritePaths: [path],
-    continuesFromTransitionDigests: [],
   };
 }
 
 function batch(...proposals) {
-  return { schemaVersion: "planner-candidate-batch/v3", proposals };
+  return { schemaVersion: "planner-candidate-batch/v4", proposals };
 }
 
 function idealBatch(fixture) {

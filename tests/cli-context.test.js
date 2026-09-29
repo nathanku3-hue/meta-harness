@@ -85,13 +85,13 @@ test("context packet emits a JSON envelope with compact review packet markdown",
   assert.equal(data.packet_markdown.length < 12000, true);
 });
 
-test("standalone worker context packet is retired in favor of ExecutionPermit authority", () => {
+test("standalone worker context packet is retired in favor of scoped run capability", () => {
   const cwd = copyFixture("complete");
   writePrebuiltGate(cwd);
 
   const result = runRaw(cwd, ["context", "packet", "ROUND-001", "--for", "worker", "--json"]);
   assert.notEqual(result.status, 0);
-  assert.match(`${result.stdout}\n${result.stderr}`, /single-use ExecutionPermit/);
+  assert.match(`${result.stdout}\n${result.stderr}`, /sealed session, exact snapshot, and scoped run capability/);
 });
 
 test("context ask returns at most three blocker-clearing questions", () => {

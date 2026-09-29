@@ -3,189 +3,126 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const { findExecutionClosureForOrigin } = require("../lib/execution-closure");
 const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
-const { landOutcomeClosure } = require("../lib/repo-outcome-landing");
+const { initializeIntegrationHead, readIntegrationHead } = require("../lib/optimistic-integration");
 const { compileRepoPlannerInput } = require("../lib/repo-planner-input");
-const { runWork } = require("../lib/work-loop");
-const { readCurrentWorldState } = require("../lib/world-transition");
-const {
-  createOutcome,
-  fakeInterpretation,
-  legacySession,
-  monotonicNow,
-  persistInitial,
-  persistOutcome,
-  repository,
-  runner,
-} = require("./helpers/linear-product-head");
+const { preparePlannerCandidate } = require("../lib/repo-planner-candidate");
+const { git, repository } = require("./helpers/linear-product-head");
 
-function stoppedWorker() {
+function initialize(root, baseline) {
+  initializeIntegrationHead({ repositoryPath: root, baseCommit: baseline });
+  return readIntegrationHead(root);
+}
+
+function candidate(id = "a") {
   return {
-    worker: "handoff-test-worker",
-    stdout: "",
-    stderr: "",
-    result: {
-      schemaVersion: "worker-result/v2",
-      status: "STOP",
-      observableResult: "The preferred API exposed only partial coverage.",
-      operations: [],
-      validation: [],
-      stop: {
-        unsatisfiedRequirement: "Implementation validity still requires a complete source route.",
-        failedMeans: [{
-          means: "preferred API/source",
-          evidence: ["The preferred route exposed only partial coverage."],
-        }],
-        alternativesConsidered: [{
-          means: "in-repository evidence route",
-          disposition: "RULED_OUT",
-          evidence: ["The current session decomposition did not include that route."],
-        }],
-        assertedConstraint: "A fictional librarian approval is required.",
-      },
-    },
+    id,
+    productResult: `Deliver ${id}.`,
+    journeyState: `${id} is not delivered.`,
+    doNow: `Implement ${id}.`,
+    newlyTrueBehavior: `${id} is delivered.`,
+    doneWhen: `${id} works and validation passes.`,
+    stopOnlyIf: ["A concrete owner-exclusive effect is required."],
+    expectedWritePaths: [`src/${id}`],
   };
 }
 
-function replanProof() {
-  return {
-    disposition: "REPLAN_REQUIRED",
-    failedMeans: [{
-      means: "preferred API/source",
-      evidence: ["The preferred route exposed only partial coverage."],
-    }],
-    alternatives: [{
-      means: "Use a different bounded evidence route in a new Outcome decomposition.",
-      disposition: "AVAILABLE",
-      evidence: ["The failure is route-specific, not an Outcome-level impossibility."],
-      requiredPaths: [],
-    }],
-    hardConstraint: null,
-    ownerRequest: null,
-    disprovedAssertions: ["Rejected fictional librarian authority; it is not constitutional owner authority."],
-  };
-}
-
-function outcome(root) {
-  return persistOutcome(root, createOutcome({
-    id: "a",
-    desiredState: "Deliver a.",
-    preconditions: ["Outcome a is not delivered yet."],
-    evidenceRequirement: "src/a/result.txt exists and controller validation passes.",
-  }));
-}
-
-test("planner input v3 puts exact owner intent first and excludes full PRODUCT prose", (t) => {
-  const { root } = repository(t);
-  persistInitial(root, "world-transition/v2");
+test("planner input v5 is PRODUCT + Git + active runs + factual observations", (t) => {
+  const { root, baseline } = repository(t);
+  initialize(root, baseline);
   replaceOwnerObjectiveState(root, "fastest honest decision-changing evidence");
-  const current = readCurrentWorldState(root);
-  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
+  const input = compileRepoPlannerInput({
+    repositoryPath: root,
+    recovered: [],
+    observations: [{
+      sessionDigest: `sha256:${"1".repeat(64)}`,
+      outcomeDigest: `sha256:${"2".repeat(64)}`,
+      productResult: "Deliver prior result.",
+      outcome: "REPLAN_REQUIRED",
+      observableResult: "Preferred route was incomplete.",
+      blocker: "source route incomplete",
+      failedMeans: ["preferred API"],
+    }],
+  });
 
-  assert.equal(input.schemaVersion, "repo-planner-input/v3");
+  assert.equal(input.schemaVersion, "repo-planner-input/v5");
   assert.equal(Object.keys(input)[1], "ownerIntent");
   assert.equal(input.ownerIntent.activeDirective.revision, 1);
   assert.equal(input.ownerIntent.activeDirective.content, "fastest honest decision-changing evidence");
   assert.match(input.ownerIntent.activeDirective.contentDigest, /^sha256:[a-f0-9]{64}$/u);
   assert.equal(input.ownerIntent.productFrame.targetUser.includes("Solo developer"), true);
-  assert.equal(Object.hasOwn(input, "productDirection"), false);
-  assert.equal(Object.hasOwn(input, "ownerDirective"), false);
-});
+  assert.equal(input.product.commit, baseline);
+  assert.deepEqual(input.activeCommitments, []);
+  assert.equal(input.observations.length, 1);
+  assert.deepEqual(input.observations[0].failedMeans, ["preferred API"]);
 
-test("running-elsewhere commitment stays visible without creating a planner admission-capacity gate", (t) => {
-  const { root } = repository(t);
-  const initial = persistInitial(root, "world-transition/v2");
-  const durableOutcome = outcome(root);
-  const admitted = legacySession(root, durableOutcome, initial.head.headDigest, "a");
-  const recovered = [{
-    type: "RUNNING_ELSEWHERE",
-    claim: admitted.claim,
-    session: admitted.session,
-    workspaceId: "external-workspace",
-  }];
-  const current = readCurrentWorldState(root);
-  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered });
-  assert.equal(Object.hasOwn(input, "capacity"), false);
-  assert.equal(input.activeCommitments.length, 1);
-  assert.equal(input.activeCommitments[0].state, "running_elsewhere");
-});
-
-test("fresh planner input reconstructs unresolved durable handoff without chat or execution internals", async (t) => {
-  const { root } = repository(t);
-  const initial = persistInitial(root, "world-transition/v2");
-  const durableOutcome = outcome(root);
-  const admitted = legacySession(root, durableOutcome, initial.head.headDigest, "a");
-  const workResult = await runWork({
-    repositoryPath: root,
-    session: admitted.session,
-    runner: async () => stoppedWorker(),
-    forwardMotionRunner: async () => replanProof(),
-  });
-  assert.equal(workResult.outcome, "REPLAN_REQUIRED");
-  const closure = findExecutionClosureForOrigin(root, admitted.session.origin);
-  const landing = landOutcomeClosure({
-    repositoryPath: root,
-    claim: admitted.claim,
-    closure,
-    interpret: fakeInterpretation,
-    now: monotonicNow(),
-  });
-  assert.equal(landing.state, "REPLAN_REQUIRED");
-
-  const current = readCurrentWorldState(root);
-  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
-  assert.equal(input.unresolvedHandoffs.length, 1);
-  const handoff = input.unresolvedHandoffs[0];
-  assert.equal(handoff.outcomeDigest, durableOutcome.outcomeDigest);
-  assert.equal(handoff.disposition, "REPLAN_REQUIRED");
-  assert.equal(handoff.unsatisfiedRequirement, "Implementation validity still requires a complete source route.");
-  assert.equal(handoff.failedMeans[0].means, "preferred API/source");
-  assert.match(handoff.closureDigest, /^sha256:[a-f0-9]{64}$/u);
-  assert.match(handoff.workResultDigest, /^sha256:[a-f0-9]{64}$/u);
-  assert.match(handoff.forwardMotionProofDigest, /^sha256:[a-f0-9]{64}$/u);
-  assert.match(handoff.transitionDigest, /^sha256:[a-f0-9]{64}$/u);
-  assert.match(handoff.disprovedAssertions.join("\n"), /librarian authority/u);
   const serialized = JSON.stringify(input);
-  for (const forbidden of ["workspaceId", "executionPermit", "attemptEntry", "candidateSeal", "workerPrompt"]) {
+  for (const forbidden of [
+    "currentWorld",
+    "worldHeadDigest",
+    "semanticContext",
+    "unresolvedHandoffs",
+    "claimDigest",
+    "executionPermit",
+    "workspaceId",
+    "candidateSeal",
+  ]) {
     assert.equal(serialized.includes(forbidden), false, forbidden);
   }
 });
 
-test("later authoritative success supersedes older unresolved handoff", async (t) => {
-  const { root } = repository(t);
-  const initial = persistInitial(root, "world-transition/v2");
-  const durableOutcome = outcome(root);
-  const first = legacySession(root, durableOutcome, initial.head.headDigest, "a");
-  const stopped = await runWork({
-    repositoryPath: root,
-    session: first.session,
-    runner: async () => stoppedWorker(),
-    forwardMotionRunner: async () => replanProof(),
-  });
-  assert.equal(stopped.outcome, "REPLAN_REQUIRED");
-  landOutcomeClosure({
-    repositoryPath: root,
-    claim: first.claim,
-    closure: findExecutionClosureForOrigin(root, first.session.origin),
-    interpret: fakeInterpretation,
-    now: monotonicNow(),
-  });
+test("planner input follows the Git product head directly", (t) => {
+  const { root, baseline } = repository(t);
+  const h0 = initialize(root, baseline);
+  const tree = git(root, ["rev-parse", `${h0}^{tree}`]);
+  const h1 = git(root, ["commit-tree", tree, "-p", h0, "-m", "advance product head"]);
+  git(root, ["update-ref", "refs/meta-harness/product-head", h1, h0]);
 
-  const afterReplan = readCurrentWorldState(root);
-  const second = legacySession(root, durableOutcome, afterReplan.head.headDigest, "a");
-  const done = await runWork({ repositoryPath: root, session: second.session, runner: runner() });
-  assert.equal(done.outcome, "DONE");
-  const landing = landOutcomeClosure({
-    repositoryPath: root,
-    claim: second.claim,
-    closure: findExecutionClosureForOrigin(root, second.session.origin),
-    interpret: fakeInterpretation,
-    now: monotonicNow(),
-  });
-  assert.equal(landing.state, "LANDED");
+  const input = compileRepoPlannerInput({ repositoryPath: root, recovered: [] });
+  assert.equal(input.product.commit, h1);
+  assert.equal(Object.hasOwn(input, "head"), false);
+  assert.equal(Object.hasOwn(input, "currentWorld"), false);
+});
 
-  const current = readCurrentWorldState(root);
-  const input = compileRepoPlannerInput({ repositoryPath: root, current, recovered: [] });
-  assert.equal(input.unresolvedHandoffs.some((entry) => entry.outcomeDigest === durableOutcome.outcomeDigest), false);
+test("planner candidate base is exactly the current Git product head", (t) => {
+  const { root, baseline } = repository(t);
+  const h0 = initialize(root, baseline);
+  const tree = git(root, ["rev-parse", `${h0}^{tree}`]);
+  const h1 = git(root, ["commit-tree", tree, "-p", h0, "-m", "published before candidate preparation"]);
+  git(root, ["update-ref", "refs/meta-harness/product-head", h1, h0]);
+
+  const prepared = preparePlannerCandidate(root, null, candidate("a"), { expectedProductCommit: h1 });
+  assert.equal(prepared.base.commit, h1);
+});
+
+test("active commitments expose product work but not controller topology", (t) => {
+  const { root, baseline } = repository(t);
+  initialize(root, baseline);
+  const recovered = [{
+    type: "RUNNING_ELSEWHERE",
+    runKey: `sha256:${"3".repeat(64)}`,
+    outcomeDigest: `sha256:${"4".repeat(64)}`,
+    session: {
+      sessionDigest: `sha256:${"3".repeat(64)}`,
+      origin: { type: "REPO_RUN", outcomeDigest: `sha256:${"4".repeat(64)}`, objectiveRevision: 0 },
+      productResult: "Deliver a.",
+      doneWhen: "a works",
+      allowedPaths: ["src/a"],
+    },
+  }];
+  const input = compileRepoPlannerInput({ repositoryPath: root, recovered });
+  assert.equal(input.activeCommitments.length, 1);
+  assert.deepEqual(input.activeCommitments[0], {
+    runKey: `sha256:${"3".repeat(64)}`,
+    sessionDigest: `sha256:${"3".repeat(64)}`,
+    outcomeDigest: `sha256:${"4".repeat(64)}`,
+    state: "running_elsewhere",
+    productResult: "Deliver a.",
+    doneWhen: "a works",
+    allowedPaths: ["src/a"],
+  });
+  const serialized = JSON.stringify(input.activeCommitments);
+  assert.equal(serialized.includes("claim"), false);
+  assert.equal(serialized.includes("workspace"), false);
+  assert.equal(serialized.includes("permit"), false);
 });

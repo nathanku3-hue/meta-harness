@@ -88,6 +88,23 @@ test("Git target tree is durable before mutation and mixed baseline/target paths
   assert.equal(replay.boundary.treeOid, plan.targetTreeOid);
 });
 
+test("candidate compilation rejects writes to a bound repository-contract path", (t) => {
+  const { root, stateDirectory } = fixture(t);
+  const baseline = captureWorkspaceBoundary(root, ["src"]);
+  assert.throws(
+    () => compileCandidateMaterialization({
+      stateDirectory,
+      workspacePath: root,
+      allowedPaths: ["src"],
+      protectedPaths: ["src/write.txt"],
+      ...identities(),
+      baselineTreeOid: baseline.treeOid,
+      operations: [{ type: "WRITE", path: "src/write.txt", content: "after\n" }],
+    }),
+    (error) => error?.code === "MH_REPOSITORY_CONTRACT_PROTECTED",
+  );
+});
+
 test("materialization recovery fails closed on an unexplained touched-path state", (t) => {
   const { root, stateDirectory } = fixture(t);
   const baseline = captureWorkspaceBoundary(root, ["src"]);

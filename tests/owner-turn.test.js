@@ -9,14 +9,14 @@ const { objectivePath, readOwnerObjectiveState, replaceOwnerObjectiveState } = r
 const { parseExplicitGoalChange } = require("../lib/owner-turn");
 const { repository } = require("./helpers/linear-product-head");
 
-test("internal continuation is distinct from literal GO when no objective exists", (t) => {
+test("continuation commands stop cleanly when no active slice exists", (t) => {
   const { root } = repository(t);
 
-  assert.deepEqual(automaticRequest(root, null), { type: "REPO_WAVE" });
+  assert.deepEqual(automaticRequest(root, null), { type: "STOP" });
   assert.equal(fs.existsSync(objectivePath(root)), false);
 
   for (const turn of ["go", "go:", "go：", "go next", "continue"]) {
-    assert.deepEqual(automaticRequest(root, turn), { type: "NO_DISPATCH" }, turn);
+    assert.deepEqual(automaticRequest(root, turn), { type: "STOP" }, turn);
   }
   assert.equal(fs.existsSync(objectivePath(root)), false);
 });
@@ -29,6 +29,20 @@ test("literal GO activates an established mission without rewriting it", (t) => 
 
   for (const turn of ["go", "go:", "go：", "go next", "continue", " GO "]) {
     assert.deepEqual(automaticRequest(root, turn), { type: "REPO_WAVE" }, turn);
+    assert.deepEqual(readOwnerObjectiveState(root), before);
+  }
+});
+
+test("close is a deterministic detach that never rewrites or dispatches product state", (t) => {
+  const { root } = repository(t);
+  assert.deepEqual(automaticRequest(root, "close"), { type: "CLOSE" });
+  assert.equal(readOwnerObjectiveState(root, { optional: true }), null);
+
+  const before = replaceOwnerObjectiveState(root, "mission M", {
+    ingressDigest: `sha256:${"b".repeat(64)}`,
+  });
+  for (const turn of ["close", " CLOSE "]) {
+    assert.deepEqual(automaticRequest(root, turn), { type: "CLOSE" }, turn);
     assert.deepEqual(readOwnerObjectiveState(root), before);
   }
 });

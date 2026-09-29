@@ -61,10 +61,12 @@ test("router, decision gate, and scope selector preserve one complete functional
   assert.match(router, /`taskId` as the only required continuation input/i);
 });
 
-test("candidate AGENTS maps terminal product state directly to exact user-facing guidance", () => {
+test("candidate AGENTS models quiescence as observation rather than terminal authority", () => {
   const agents = read("AGENTS.md");
-  assert.match(agents, /For shipped, value-confirmed, maintenance, or no-active-slice state with no complete continuation warrant, return exactly:/i);
-  assert.match(agents, /```text\nNo active slice\.\nUse the product\.\nWait for observed real-use friction\.\n```/);
+  assert.match(agents, /## Quiescence law/i);
+  assert.match(agents, /Quiescence is an Observation, never a terminal authority state/i);
+  assert.match(agents, /do not make waiting a prerequisite for future product work/i);
+  assert.doesNotMatch(agents, /No active slice\.\s*Use the product\.\s*Wait for observed real-use friction\./i);
   assert.doesNotMatch(agents, /classify internally as `NO_BUILD`/i);
 });
 

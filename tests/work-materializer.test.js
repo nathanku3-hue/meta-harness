@@ -88,7 +88,7 @@ test("materializer rejects files outside the allowed boundary", (t) => {
   assert.equal(fs.existsSync(path.join(root, "docs", "outside.txt")), false);
 });
 
-test("materializer rejects Decision Plane control-state mutations even under broad scope", (t) => {
+test("materializer rejects controller-state mutations even under broad scope", (t) => {
   const { root } = workspace(t);
 
   for (const controlPath of [
@@ -100,7 +100,7 @@ test("materializer rejects Decision Plane control-state mutations even under bro
   ]) {
     assert.throws(
       () => materializeWorkerOperations(root, [{ type: "WRITE", path: controlPath, content: "mutated\n" }], ["."]),
-      (error) => error.code === "MH_REPO_DECISION_PROTECTED" && /Decision Plane control state/.test(error.message),
+      (error) => error.code === "MH_WORK_CONTROL_PATH",
     );
     assert.equal(fs.existsSync(path.join(root, ...controlPath.split("/"))), false);
   }

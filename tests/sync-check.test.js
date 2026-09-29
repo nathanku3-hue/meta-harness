@@ -314,11 +314,12 @@ test("templates install/upgrade round-trip integration test", () => {
   const resultCheck3 = runInternalCli(targetRoot, ["sync", "check", "--target", targetRoot]);
   assert.equal(resultCheck3.status, 0);
 
-  // 7. Init remains advisory and does not mint canonical authority.
+  // 7. Init remains advisory and records observation language only.
   const eventsContent = fs.readFileSync(path.join(targetRoot, ".meta-harness", "events.jsonl"), "utf8");
   const statusContent = fs.readFileSync(path.join(targetRoot, ".meta-harness", "status.md"), "utf8");
   assert.equal(eventsContent, "");
-  assert.match(statusContent, /Product acceptance:\nNot evaluated\./);
+  assert.match(statusContent, /Observation state:\nNo repository-local advisory status is recorded\./);
+  assert.match(statusContent, /Product completion:\nEvaluate current product evidence, validation, and integration facts\./);
 });
 
 test("templates install failure rollback test", () => {

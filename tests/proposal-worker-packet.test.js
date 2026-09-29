@@ -4,26 +4,21 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 
 const { attemptInputKey } = require("../lib/execution-identity");
-const { enterRunAttempt } = require("../lib/execution-permit");
+const { enterRunAttempt } = require("../lib/execution-attempt");
 const {
   PROPOSAL_WORKER_PACKET_SCHEMA,
   compileProposalWorkerPacket,
 } = require("../lib/proposal-worker-packet");
 const {
   preparePlannerCandidate,
-  admitPreparedPlannerCandidate,
-} = require("../lib/repo-planner-admission");
+  materializePreparedPlannerRun,
+} = require("../lib/repo-planner-candidate");
 const {
   captureWorkspaceBoundary,
   persistWorkSession,
   prepareWorkspace,
 } = require("../lib/work-git");
-const {
-  acquireWorkspaceExecutionLease,
-  releaseWorkspaceExecutionLease,
-} = require("../lib/workspace-custody");
 const { runtimeCapabilityDigest } = require("../lib/runtime-identity");
-const { readCurrentWorldState } = require("../lib/world-transition");
 const {
   persistInitial,
   proposal,
@@ -35,36 +30,23 @@ function candidate(id, paths = [`src/${id}`]) {
   return {
     id: value.id,
     productResult: value.productResult,
-    objectRefs: [],
-    hypothesisRef: null,
-    criterionRefs: [],
-    metricRefs: [],
     journeyState: value.journeyState,
     doNow: value.doNow,
     newlyTrueBehavior: value.newlyTrueBehavior,
     doneWhen: value.doneWhen,
     stopOnlyIf: value.stopOnlyIf,
     expectedWritePaths: paths,
-    continuesFromTransitionDigests: [],
   };
 }
 
 function enteredRepoRun(t) {
   const { root } = repository(t);
-  persistInitial(root, "world-transition/v2");
-  const current = readCurrentWorldState(root);
-  const prepared = preparePlannerCandidate(root, current, candidate("a"));
-  const admitted = admitPreparedPlannerCandidate(root, current, prepared);
-  const session = admitted.session;
+  persistInitial(root);
+  const prepared = preparePlannerCandidate(root, null, candidate("a"));
+  const materialized = materializePreparedPlannerRun(root, null, prepared);
+  const session = materialized.session;
   const workspace = prepareWorkspace(root, session);
-  const lease = acquireWorkspaceExecutionLease({
-    registryDir: workspace.registryDir,
-    workspaceId: workspace.workspaceId,
-  });
-  t.after(() => {
-    releaseWorkspaceExecutionLease({ registryDir: workspace.registryDir, lease });
-  });
-  const state = persistWorkSession(root, session, workspace);
+  persistWorkSession(root, session, workspace);
   const boundary = captureWorkspaceBoundary(workspace.workspacePath, session.allowedPaths);
   const runtimeDigest = runtimeCapabilityDigest({});
   const inputKey = attemptInputKey({
@@ -80,39 +62,25 @@ function enteredRepoRun(t) {
     generation: 1,
     attemptInputKey: inputKey,
   });
-  return { root, session, workspace, lease, state, boundary, runtimeDigest, inputKey, attemptEntry };
+  return { root, session, workspace, boundary, runtimeDigest, inputKey, attemptEntry };
 }
 
-test("entered claimless run derives one transport-only proposal worker packet", (t) => {
+test("entered REPO_RUN derives one transport-only proposal worker packet", { skip: process.platform !== "linux" }, (t) => {
   const fixture = enteredRepoRun(t);
-  const first = compileProposalWorkerPacket({
+  const args = {
     repositoryPath: fixture.root,
-    stateDirectory: fixture.state.directory,
     session: fixture.session,
     workspace: fixture.workspace,
-    workspaceLease: fixture.lease,
     boundary: fixture.boundary,
-    executionPermit: null,
     attemptEntry: fixture.attemptEntry,
     attempt: 1,
     runtimeCapabilityDigest: fixture.runtimeDigest,
-  });
-  const second = compileProposalWorkerPacket({
-    repositoryPath: fixture.root,
-    stateDirectory: fixture.state.directory,
-    session: fixture.session,
-    workspace: fixture.workspace,
-    workspaceLease: fixture.lease,
-    boundary: fixture.boundary,
-    executionPermit: null,
-    attemptEntry: fixture.attemptEntry,
-    attempt: 1,
-    runtimeCapabilityDigest: fixture.runtimeDigest,
-  });
+  };
+  const first = compileProposalWorkerPacket(args);
+  const second = compileProposalWorkerPacket(args);
 
   assert.equal(first.packet.schemaVersion, PROPOSAL_WORKER_PACKET_SCHEMA);
   assert.equal(first.packet.attemptInputKey, fixture.inputKey);
-  assert.equal(Object.hasOwn(first.packet, "permitDigest"), false);
   assert.equal(first.packet.attemptEntryDigest, fixture.attemptEntry.entryDigest);
   assert.match(first.packet.promptDigest, /^sha256:[a-f0-9]{64}$/u);
   assert.match(first.packet.workerResultSchemaDigest, /^sha256:[a-f0-9]{64}$/u);
@@ -123,9 +91,9 @@ test("entered claimless run derives one transport-only proposal worker packet", 
   assert.match(first.prompt, /worker-result\/v2/u);
   assert.equal(first.packet.baseline.head, fixture.boundary.head);
   assert.equal(first.packet.baseline.treeOid, fixture.boundary.treeOid);
-  assert.equal(Object.hasOwn(first.packet, "claimDigest"), false);
-  assert.equal(Object.hasOwn(first.packet, "sessionDigest"), false);
-  assert.equal(Object.hasOwn(first.packet, "workspaceId"), false);
+  for (const retired of ["permitDigest", "claimDigest", "sessionDigest", "workspaceId"]) {
+    assert.equal(Object.hasOwn(first.packet, retired), false, retired);
+  }
 
   const after = captureWorkspaceBoundary(fixture.workspace.workspacePath, fixture.session.allowedPaths);
   assert.equal(after.head, fixture.boundary.head);
@@ -135,35 +103,29 @@ test("entered claimless run derives one transport-only proposal worker packet", 
   assert.deepEqual(after.inspected.entries, fixture.boundary.inspected.entries);
 });
 
-test("proposal packet rejects non-repository sessions and stale workspace baselines", (t) => {
+test("proposal packet rejects non-repository sessions and stale workspace baselines", { skip: process.platform !== "linux" }, (t) => {
   const fixture = enteredRepoRun(t);
   const ownerSession = { ...fixture.session, origin: { type: "OWNER_GOAL" } };
   assert.throws(
     () => compileProposalWorkerPacket({
       repositoryPath: fixture.root,
-      stateDirectory: fixture.state.directory,
       session: ownerSession,
       workspace: fixture.workspace,
-      workspaceLease: fixture.lease,
       boundary: fixture.boundary,
-      executionPermit: null,
       attemptEntry: fixture.attemptEntry,
       attempt: 1,
       runtimeCapabilityDigest: fixture.runtimeDigest,
     }),
-    /repository Outcome run/u,
+    /current REPO_RUN session/u,
   );
 
   const staleBoundary = { ...fixture.boundary, head: "0".repeat(40) };
   assert.throws(
     () => compileProposalWorkerPacket({
       repositoryPath: fixture.root,
-      stateDirectory: fixture.state.directory,
       session: fixture.session,
       workspace: fixture.workspace,
-      workspaceLease: fixture.lease,
       boundary: staleBoundary,
-      executionPermit: null,
       attemptEntry: fixture.attemptEntry,
       attempt: 1,
       runtimeCapabilityDigest: fixture.runtimeDigest,

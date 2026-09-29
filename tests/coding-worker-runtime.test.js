@@ -1,6 +1,8 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 
 const {
@@ -9,6 +11,9 @@ const {
   windowsPathToWsl,
   wslPathToWindows,
 } = require("../lib/coding-worker");
+const { FILES, readRuntimeSkill } = require("../lib/runtime-skills");
+
+const ROOT = path.resolve(__dirname, "..");
 
 test("WSL worker paths translate to native Windows paths", () => {
   assert.equal(wslPathToWindows("/mnt/e/Code/repo/file.json"), "E:\\Code\\repo\\file.json");
@@ -36,6 +41,78 @@ test("WSL worker paths translate to native Windows paths", () => {
   assert.ok(args.indexOf("--ignore-rules") > execAt);
   assert.ok(args.includes("E:\\Code\\repo\\.git\\schema.json"));
   assert.ok(args.includes("E:\\Code\\repo\\.git\\output.json"));
+});
+
+test("package-owned runtime skills are explicit while ambient Codex skills stay disabled", () => {
+  assert.deepEqual(Object.keys(FILES), [
+    "root",
+    "coding-worker",
+    "logical-planner",
+    "read-only-interaction",
+    "research-promotion",
+  ]);
+  const rootSkill = readRuntimeSkill("root");
+  const codingWorkerSkill = readRuntimeSkill("coding-worker");
+  assert.match(rootSkill, /META_HARNESS_RUNTIME_SKILL_V1/u);
+  assert.match(rootSkill, /ENDGAME_LOOP_LAW/u);
+  assert.match(rootSkill, /Scope is a safety\/capability boundary, not a value function/u);
+  assert.match(rootSkill, /cheap, bounded, reversible, observable, and consistent with invariants/u);
+  assert.match(rootSkill, /Scale validation pressure with uncertainty, consequence, and irreversibility/u);
+  assert.match(rootSkill, /proxy metric cannot establish product success by itself/iu);
+  assert.match(rootSkill, /SIDE_EFFECT_MEMBRANE_LAW/u);
+  assert.match(rootSkill, /Outcome -> current Observation\/gap -> nearest reversible in-scope Action -> execute -> exact effect-boundary check/u);
+  assert.match(rootSkill, /cannot by themselves make a physically available reversible action unavailable/u);
+  assert.match(rootSkill, /Domain-specific authority vocabularies belong to the repository/u);
+  assert.match(rootSkill, /RESULT_VELOCITY_LAW/u);
+  assert.match(rootSkill, /Repository-declared deterministic procedures are executable domain context/u);
+  assert.match(rootSkill, /smallest reusable failed-means\/counterexample observation/u);
+  assert.doesNotMatch(rootSkill, /\b(?:permission|authorization|approval|approver|owner\s+(?:gate|authority|question|work)|owner-escalation)\b/iu);
+  assert.match(codingWorkerSkill, /CODING_WORKER_SKILL_V1/u);
+  assert.match(codingWorkerSkill, /bound repository contract exposes a deterministic procedure or worker verb/u);
+  assert.doesNotMatch(codingWorkerSkill, /nearest reversible in-scope Action|pre-execution control-state audit|proxy metric/u);
+  const logicalPlannerSkill = readRuntimeSkill("logical-planner");
+  assert.match(logicalPlannerSkill, /immutable discovery index/u);
+  assert.match(logicalPlannerSkill, /existing declared deterministic procedure/u);
+  assert.match(logicalPlannerSkill, /planner-candidate-batch\/v4/u);
+  assert.doesNotMatch(logicalPlannerSkill, /Scope is a safety\/capability boundary|Scale validation pressure|proxy metric/u);
+  assert.throws(() => readRuntimeSkill("execution-custody"), /unknown packaged runtime skill/u);
+  assert.match(readRuntimeSkill("logical-planner"), /LOGICAL_PLANNER_AUTODISPATCH_V4/u);
+  assert.throws(() => readRuntimeSkill("forward-motion"), /unknown packaged runtime skill/u);
+  assert.throws(() => readRuntimeSkill("coding-worker/proposal"), /unknown packaged runtime skill/u);
+  assert.match(readRuntimeSkill("read-only-interaction"), /READ_ONLY_INTERACTION_V1/u);
+  assert.match(readRuntimeSkill("research-promotion"), /RESEARCH_PROMOTION_V1/u);
+  assert.throws(() => readRuntimeSkill("professional-skill-selector"), /unknown packaged runtime skill/u);
+  assert.throws(() => readRuntimeSkill("pre-go-experiment"), /unknown packaged runtime skill/u);
+  assert.throws(() => readRuntimeSkill("../outside"), /unknown packaged runtime skill/u);
+
+  const packaged = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  assert.ok(packaged.files.includes(".agents/skills/meta-harness-runtime/**/*.md"));
+  assert.equal(packaged.files.includes("!.agents/skills/meta-harness-runtime/forward-motion/**"), false);
+  assert.equal(packaged.files.includes("!.agents/skills/meta-harness-runtime/coding-worker/proposal/**"), false);
+  assert.equal(packaged.files.includes("!lib/work-forward-motion.js"), false);
+  assert.equal(fs.existsSync(path.join(ROOT, "lib", "work-forward-motion.js")), false);
+  assert.equal(fs.existsSync(path.join(ROOT, ".agents", "skills", "meta-harness-runtime", "forward-motion", "SKILL.md")), false);
+  assert.equal(fs.existsSync(path.join(ROOT, ".agents", "skills", "meta-harness-runtime", "coding-worker", "proposal", "SKILL.md")), false);
+
+  for (const relativePath of [
+    "lib/coding-worker.js",
+    "lib/repo-logical-planner.js",
+    "lib/read-only-interaction.js",
+    "lib/repo-research-promotion.js",
+  ]) {
+    const source = fs.readFileSync(path.join(ROOT, relativePath), "utf8");
+    assert.match(source, /renderRuntimeSkill/u, `${relativePath} must render a package-owned runtime skill`);
+    assert.doesNotMatch(
+      source,
+      /CODING_WORKER_SKILL_V1|LOGICAL_PLANNER_AUTODISPATCH_V4|READ_ONLY_INTERACTION_V1|RESEARCH_PROMOTION_V1/u,
+    );
+  }
+
+  for (const relativePath of ["lib/work-loop.js", "lib/proposal-worker-packet.js"]) {
+    const source = fs.readFileSync(path.join(ROOT, relativePath), "utf8");
+    assert.match(source, /renderProfessionalSkillBodies/u, `${relativePath} must inject committed professional procedures`);
+    assert.match(source, /session\.base\.commit/u, `${relativePath} must bind professional procedures to the sealed product commit`);
+  }
 });
 
 test("WSL resolves the existing Windows Codex launcher without installing another runtime", () => {

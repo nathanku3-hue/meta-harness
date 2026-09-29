@@ -8,21 +8,28 @@ const test = require("node:test");
 
 const { buildCodingPrompt } = require("../lib/coding-worker");
 const {
-  PRODUCT_DIRECTION_BLOCKED,
   pinProductDirection,
   projectProductDirectionForPlanner,
 } = require("../lib/product-direction");
 const { materializeWorkerOperations } = require("../lib/work-materializer");
-const { compileSemanticAuthority, endgameProjection, semanticProjection } = require("../lib/semantic-authority");
+const { resolveRepositoryEntry } = require("../lib/repository-entry");
 const {
+  bindWorkSessionToRepository,
   createGoalWorkSession,
-  sealWorkSession,
   WORK_SESSION_SCHEMA,
 } = require("../lib/work-session");
-const { loadLatestWorkSession, persistWorkSession, prepareWorkspace } = require("../lib/work-git");
-const { ROOT, run, runRaw, tempDir } = require("./helpers/cli");
+const {
+  captureWorkspaceBoundary,
+  loadLatestWorkSession,
+  persistWorkSession,
+  prepareWorkspace,
+} = require("../lib/work-git");
+const {
+  readWorkspaceCustody,
+  terminalizeWorkspaceCustody,
+} = require("../lib/workspace-custody");
+const { runRaw, tempDir } = require("./helpers/cli");
 const { SAMPLE_PRODUCT_MD, writeProductMd } = require("./helpers/product-direction");
-const { gapProofSpec } = require("./helpers/product-proof");
 
 function git(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
@@ -50,54 +57,15 @@ function npmRepo(t) {
   return root;
 }
 
-function goalSession(root, goal = "Add a visible result.") {
-  const productDirection = pinProductDirection(root);
-  const base = { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) };
-  const productProofSpec = gapProofSpec({
-    productDirection,
-    base,
-    productResult: goal,
-    newlyTrueBehavior: goal,
-    doneWhen: "The requested behavior works in the repository and relevant validation passes.",
-  });
+function goalSession(root, goal = "Add a visible result.", allowedPaths = ["src"]) {
   return createGoalWorkSession({
     goal,
     repositoryPath: root,
-    productDirection,
-    base,
-    allowedPaths: ["src"],
-    validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
-    productProofSpec,
-  });
-}
-
-function sealedSession(root, overrides = {}) {
-  const productDirection = pinProductDirection(root);
-  const semanticAuthority = compileSemanticAuthority({ productDirection });
-  const body = {
-    schemaVersion: "work-session/v8",
-    productDirection,
-    semanticState: semanticAuthority.semanticState,
-    semanticProjection: semanticProjection(semanticAuthority),
-    endgameProjection: endgameProjection(semanticAuthority),
-    origin: { type: "OWNER_GOAL" },
+    productDirection: pinProductDirection(root),
     base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
-    productResult: "Create src/result.txt with delivered content.",
-    journeyState: "Direction is pinned; coding may begin.",
-    doNow: "Write src/result.txt.",
-    newlyTrueBehavior: "src/result.txt exists.",
-    doneWhen: "Validation passes.",
-    stopOnlyIf: ["Allowed paths are insufficient."],
-    authorizedReversibleActions: ["Edit src.", "Run validation."],
-    ownerOnlyActions: ["Change PRODUCT.md."],
-    allowedPaths: ["src", "PRODUCT.md"],
+    allowedPaths,
     validation: [{ argv: ["npm", "test"], cwd: ".", timeoutSeconds: 30 }],
-    maxAttempts: 2,
-    delivery: { commit: false, push: false },
-    ...overrides,
-  };
-  if (!body.productProofSpec) body.productProofSpec = gapProofSpec(body);
-  return sealWorkSession(body);
+  });
 }
 
 test("--goal rejects missing PRODUCT.md before workspace or worker activity", (t) => {
@@ -105,7 +73,7 @@ test("--goal rejects missing PRODUCT.md before workspace or worker activity", (t
   fs.rmSync(path.join(root, "PRODUCT.md"));
   const result = runRaw(root, ["work", root, "--goal", "Add a visible result.", "--dry-run", "--json"]);
   assert.notEqual(result.status, 0);
-  assert.match(String(result.stderr || result.stdout || ""), /PRODUCT\.md/i);
+  assert.match(String(result.stderr || result.stdout || ""), /PRODUCT\.md/iu);
   assert.equal(fs.existsSync(path.join(root, ".worktrees")), false);
 });
 
@@ -114,10 +82,10 @@ test("--goal rejects malformed PRODUCT.md before workspace activity", (t) => {
   fs.writeFileSync(path.join(root, "PRODUCT.md"), "# incomplete\n\n## Version\n\nv1\n", "utf8");
   const result = runRaw(root, ["work", root, "--goal", "Add a visible result.", "--dry-run", "--json"]);
   assert.notEqual(result.status, 0);
-  assert.match(String(result.stderr || result.stdout || ""), /heading|PRODUCT\.md|section/i);
+  assert.match(String(result.stderr || result.stdout || ""), /heading|PRODUCT\.md|section/iu);
 });
 
-test("planner PRODUCT projection slices exact CRLF section text without normalization", (t) => {
+test("planner PRODUCT projection preserves exact CRLF section text", (t) => {
   const root = npmRepo(t);
   const crlf = SAMPLE_PRODUCT_MD.replace(/\n/gu, "\r\n");
   fs.writeFileSync(path.join(root, "PRODUCT.md"), crlf, "utf8");
@@ -127,30 +95,30 @@ test("planner PRODUCT projection slices exact CRLF section text without normaliz
   const endgameEnd = crlf.indexOf("## Target user\r\n");
   assert.equal(frame.endgame, crlf.slice(endgameStart, endgameEnd));
   assert.match(frame.endgame, /\r\n/u);
-  assert.equal(frame.targetUser.includes("Solo developer using Meta-Harness work sessions."), true);
   assert.equal(frame.productDirectionDigest, direction.digest);
   assert.equal(frame.version, direction.version);
 });
 
-test("created current session contains exact PRODUCT.md bytes, base, proof spec, and matching digest", (t) => {
+test("current session pins exact PRODUCT bytes and carries no semantic or proof authority", (t) => {
   const root = npmRepo(t);
   const live = pinProductDirection(root);
   const session = goalSession(root);
   assert.equal(session.schemaVersion, WORK_SESSION_SCHEMA);
-  assert.equal(session.productProofSpec.schemaVersion, "product-proof-spec/v1");
-  assert.deepEqual(session.origin, { type: "OWNER_GOAL" });
   assert.equal(session.productDirection.content, live.content);
   assert.equal(session.productDirection.digest, live.digest);
   assert.equal(session.productDirection.content, SAMPLE_PRODUCT_MD);
+  for (const retired of ["productProofSpec", "semanticState", "semanticProjection", "endgameProjection"]) {
+    assert.equal(Object.hasOwn(session, retired), false, retired);
+  }
 });
 
-test("fake-worker prompt receives exact direction bytes before result and context", (t) => {
+test("coding prompt receives exact owner direction before product result", (t) => {
   const root = npmRepo(t);
   const session = goalSession(root);
   const prompt = buildCodingPrompt(session, {
     attempt: 1,
     priorFailure: "previous validation failed",
-    workspaceMode: "current",
+    workspaceMode: "isolated",
   });
   const directionAt = prompt.indexOf(session.productDirection.content);
   const resultAt = prompt.indexOf(`Product result: ${session.productResult}`);
@@ -160,84 +128,64 @@ test("fake-worker prompt receives exact direction bytes before result and contex
   assert.ok(failureAt > resultAt);
 });
 
-test("validation repair prompt reuses unchanged product-direction snapshot bytes", (t) => {
+test("resume binds unchanged PRODUCT bytes and rejects live direction drift", (t) => {
   const root = npmRepo(t);
   const session = goalSession(root);
-  const first = buildCodingPrompt(session, { attempt: 1, priorFailure: "", workspaceMode: "current" });
-  const second = buildCodingPrompt(session, {
-    attempt: 2,
-    priorFailure: "npm test failed",
-    workspaceMode: "current",
-  });
+  const workspace = prepareWorkspace(root, session);
+  persistWorkSession(root, session, workspace);
+  assert.equal(loadLatestWorkSession(root).sessionDigest, session.sessionDigest);
+
+  fs.appendFileSync(path.join(root, "PRODUCT.md"), "\nOwner changed direction.\n", "utf8");
+  assert.throws(
+    () => bindWorkSessionToRepository(session, root),
+    (error) => /PRODUCT|direction|digest/iu.test(String(error.message)),
+  );
+});
+
+test("direct owner-goal recovery uses run journal without a latest-session pointer", (t) => {
+  const root = npmRepo(t);
+  const session = goalSession(root);
+  const workspace = prepareWorkspace(root, session);
+  persistWorkSession(root, session, workspace);
+
+  const sessionStem = session.sessionDigest.slice("sha256:".length);
   assert.equal(
-    first.slice(first.indexOf("Product direction"), first.indexOf("Product result:")),
-    second.slice(second.indexOf("Product direction"), second.indexOf("Product result:")),
+    fs.existsSync(path.join(root, ".git", "meta-harness", "runs", `run-${sessionStem}`, "session.json")),
+    true,
   );
-  assert.ok(second.includes(session.productDirection.content));
-  assert.ok(second.includes("npm test failed"));
+  assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json")), false);
+
+  const custody = readWorkspaceCustody(workspace.registryDir, workspace.workspaceId);
+  const boundary = captureWorkspaceBoundary(workspace.workspacePath, session.allowedPaths);
+  terminalizeWorkspaceCustody({
+    registryDir: workspace.registryDir,
+    custody,
+    terminalState: "TERMINAL_ABANDONED",
+    resultDigest: `sha256:${"1".repeat(64)}`,
+    validationDigest: `sha256:${"2".repeat(64)}`,
+    finalDirtyManifestDigest: boundary.dirtyManifestDigest,
+    changedPathHashes: {},
+    commitSha: null,
+  });
+
+  const entry = resolveRepositoryEntry(root);
+  assert.equal(entry.action, "CONTINUE");
+  assert.equal(entry.kind, "OWNER_GOAL_INGRESS");
+  assert.equal(entry.result, session.productResult);
+  assert.equal(entry.ingress.sessionDigest, session.sessionDigest);
+  assert.equal(entry.ingress.source, "RUN_JOURNAL_INTENT");
 });
 
-test("fresh --resume keeps unchanged bytes when live PRODUCT.md is unchanged", (t) => {
+test("PRODUCT.md mutation is rejected even when a caller includes it in allowed paths", (t) => {
   const root = npmRepo(t);
-  const session = sealedSession(root, { allowedPaths: ["src"] });
+  const session = goalSession(root, "Create src/result.txt.", ["src", "PRODUCT.md"]);
   const workspace = prepareWorkspace(root, session);
-  persistWorkSession(root, session, workspace);
-  const resumed = loadLatestWorkSession(root);
-  assert.equal(resumed.sessionDigest, session.sessionDigest);
-  assert.equal(resumed.productDirection.content, session.productDirection.content);
-  assert.equal(resumed.productDirection.digest, session.productDirection.digest);
-});
-
-test("mid-session live PRODUCT.md change including deletion returns product-facing BLOCKED", (t) => {
-  const root = npmRepo(t);
-  const session = sealedSession(root, { allowedPaths: ["src"] });
-  const workspace = prepareWorkspace(root, session);
-  persistWorkSession(root, session, workspace);
-
-  fs.writeFileSync(path.join(root, "PRODUCT.md"), SAMPLE_PRODUCT_MD.replace("product-direction-v1", "product-direction-v2"), "utf8");
   assert.throws(
-    () => loadLatestWorkSession(root),
-    (error) => error.code === "MH_PRODUCT_DIRECTION_DRIFT"
-      && String(error.message).includes("Product direction changed since this work session was created."),
+    () => materializeWorkerOperations(
+      workspace.workspacePath,
+      [{ type: "WRITE", path: "PRODUCT.md", content: "worker rewrite\n" }],
+      session.allowedPaths,
+    ),
+    (error) => /PRODUCT|protected/iu.test(String(error.message)),
   );
-
-  writeProductMd(root);
-  const restored = sealedSession(root, { allowedPaths: ["src"] });
-  const restoredWorkspace = prepareWorkspace(root, restored);
-  persistWorkSession(root, restored, restoredWorkspace);
-  fs.rmSync(path.join(root, "PRODUCT.md"));
-  assert.throws(
-    () => loadLatestWorkSession(root),
-    (error) => error.code === "MH_PRODUCT_DIRECTION_DRIFT"
-      && String(error.message) === PRODUCT_DIRECTION_BLOCKED,
-  );
-});
-
-test("worker proposal to mutate PRODUCT.md is rejected even when listed as allowed", (t) => {
-  const root = npmRepo(t);
-  assert.throws(
-    () => materializeWorkerOperations(root, [{
-      type: "WRITE",
-      path: "PRODUCT.md",
-      content: SAMPLE_PRODUCT_MD.replace("Solo developer", "rewritten by worker"),
-    }], ["src", "PRODUCT.md"]),
-    (error) => error.code === "MH_PRODUCT_DIRECTION_PROTECTED",
-  );
-  assert.equal(fs.readFileSync(path.join(root, "PRODUCT.md"), "utf8"), SAMPLE_PRODUCT_MD);
-});
-
-test("new init does not generate phase-map and absence does not break retained consumers", (t) => {
-  const cwd = tempDir("init-no-phase-");
-  t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
-  git(cwd, ["init"]);
-  run(cwd, ["init"]);
-  const harness = path.join(cwd, ".meta-harness");
-  assert.equal(fs.existsSync(path.join(harness, "status.md")), true);
-  assert.equal(fs.existsSync(path.join(harness, "phase-map.md")), false);
-
-  const { readHarnessState } = require("../lib/context-gate-state");
-  const state = readHarnessState(cwd);
-  assert.equal(state.files.phaseMap, false);
-  assert.equal(state.phaseMapText, "");
-  assert.ok(ROOT);
 });

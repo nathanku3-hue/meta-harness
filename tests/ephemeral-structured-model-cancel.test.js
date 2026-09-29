@@ -215,3 +215,88 @@ test("OUTPUT_CAP then DRAIN preserves the first output-cap termination cause", a
   );
   assert.deepEqual(observed, ["OUTPUT_CAP"]);
 });
+
+test("real Codex adapters stream large prompts over stdin instead of argv", async (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mh-structured-stdin-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const script = path.join(root, "capture-stdin.js");
+  fs.writeFileSync(script, [
+    '"use strict";',
+    'const fs = require("node:fs");',
+    'const args = process.argv.slice(2);',
+    'const outputAt = args.indexOf("-o");',
+    'const outputPath = outputAt >= 0 ? args[outputAt + 1] : null;',
+    'let input = "";',
+    'process.stdin.setEncoding("utf8");',
+    'process.stdin.on("data", (chunk) => { input += chunk; });',
+    'process.stdin.on("end", () => {',
+    '  if (!outputPath) process.exit(2);',
+    '  fs.writeFileSync(outputPath, JSON.stringify({',
+    '    receivedBytes: Buffer.byteLength(input, "utf8"),',
+    '    lastArg: args.at(-1),',
+    '    promptWasArg: args.includes(input),',
+    '  }));',
+    '});',
+    "",
+  ].join("\n"), "utf8");
+
+  const prompt = "large-promoter-input-".repeat(8192);
+  const outputPath = path.join(root, "output.json");
+  const produced = await runEphemeralStructuredModel({
+    cwd: root,
+    prompt,
+    outputSchema: { type: "object" },
+    schemaPath: path.join(root, "schema.json"),
+    outputPath,
+    timeoutSeconds: 10,
+    codePrefix: "MH_STDIN",
+    label: "stdin transport model",
+    resolvedCommand: {
+      executable: process.execPath,
+      prefixArgs: [script],
+      identity: "codex-cli",
+      pathStyle: "native",
+    },
+  });
+
+  assert.equal(produced.result.receivedBytes, Buffer.byteLength(prompt, "utf8"));
+  assert.equal(produced.result.lastArg, "-");
+  assert.equal(produced.result.promptWasArg, false);
+});
+
+test("structured Codex stdout exposes the real failure when stderr is empty", async (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "mh-structured-error-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const script = path.join(root, "stdout-error.js");
+  fs.writeFileSync(script, [
+    '"use strict";',
+    'process.stdin.resume();',
+    'process.stdin.on("end", () => {',
+    '  process.stdout.write(JSON.stringify({ type: "error", message: "quota exhausted for test" }) + "\\n");',
+    '  process.stdout.write(JSON.stringify({ type: "turn.failed", error: { message: "quota exhausted for test" } }) + "\\n");',
+    '  process.exit(1);',
+    '});',
+    "",
+  ].join("\n"), "utf8");
+
+  await assert.rejects(
+    runEphemeralStructuredModel({
+      cwd: root,
+      prompt: "trigger failure",
+      outputSchema: { type: "object" },
+      schemaPath: path.join(root, "schema.json"),
+      outputPath: path.join(root, "output.json"),
+      timeoutSeconds: 10,
+      codePrefix: "MH_STDOUT_ERROR",
+      label: "stdout error model",
+      resolvedCommand: {
+        executable: process.execPath,
+        prefixArgs: [script],
+        identity: "codex-cli",
+        pathStyle: "native",
+      },
+    }),
+    (error) => error.code === "MH_STDOUT_ERROR_EXIT"
+      && /quota exhausted for test/u.test(error.message),
+  );
+});

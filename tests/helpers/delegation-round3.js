@@ -1,15 +1,15 @@
 "use strict";
 
 const { compileDelegationRound2Contract } = require("../../lib/delegation-round2-contract");
-const { createOutcome, persistOutcome } = require("../../lib/outcome");
+const { createOutcome } = require("../../lib/outcome");
 
-function laneOutcome(root, id) {
-  return persistOutcome(root, createOutcome({
+function laneOutcome(_root, id) {
+  return createOutcome({
     id,
     desiredState: `Delegated outcome ${id} is acceptance-ready.`,
     preconditions: [`Delegated outcome ${id} is not yet acceptance-ready.`],
     evidenceRequirement: `Evidence ${id} proves the delegated outcome.`,
-  }));
+  });
 }
 
 function resultCard(lane, letter = "a", submittedAt = "2026-08-27T17:00:00.000Z") {

@@ -14,11 +14,16 @@ const {
   snapshotResourceLink,
 } = require("../lib/expert-source-ingress");
 const { readOwnerObjectiveState, replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
+const { compileRepoPlannerInput } = require("../lib/repo-planner-input");
+const {
+  RESEARCH_PROMOTION_CANDIDATE_SCHEMA_VERSION,
+  ensureCurrentResearchPromotions,
+} = require("../lib/repo-research-promotion");
 const {
   persistSourceBearingOwnerIngress,
   readSourceBearingOwnerIngress,
 } = require("../lib/source-bearing-owner-ingress");
-const { git, repository } = require("./helpers/linear-product-head");
+const { git, persistInitial, repository } = require("./helpers/linear-product-head");
 
 function externalFile(root, name, content) {
   const filePath = path.join(path.dirname(root), name);
@@ -52,7 +57,7 @@ test("source-bearing ingress digest is deterministic and excludes receipt time",
   assert.equal(readSourceBearingOwnerIngress(root, first.ingressDigest).rawText, rawText);
 });
 
-test("objective adoption preserves raw ingress identity and exact replay does not increment revision", (t) => {
+test("objective adoption preserves raw ingress identity and exact replay does not increment revision", async (t) => {
   const { root } = repository(t);
   const filePath = externalFile(root, "objective-source.txt", "Use interval overlap as indeterminate.\n");
   const [source] = captureExpertResourceLinks(root, [link("procedure.txt", filePath)]);
@@ -69,11 +74,40 @@ test("objective adoption preserves raw ingress identity and exact replay does no
   assert.deepEqual(automaticRequest(root, rawText, { ownerIngressDigest: ingress.ingressDigest }), { type: "REPO_WAVE" });
   assert.equal(readOwnerObjectiveState(root).revision, 1);
 
+  persistInitial(root);
+  const beforeGo = readOwnerObjectiveState(root);
+  assert.deepEqual(automaticRequest(root, "go"), { type: "REPO_WAVE" });
+  assert.deepEqual(readOwnerObjectiveState(root), beforeGo);
+  assert.deepEqual(
+    automaticRequest(root, "go", { ownerIngressDigest: ingress.ingressDigest }),
+    { type: "REPO_WAVE" },
+  );
+  assert.deepEqual(readOwnerObjectiveState(root), beforeGo);
+  await ensureCurrentResearchPromotions({
+    repositoryPath: root,
+    modelRunner: async () => ({
+      model: "expert-ingress-promotion-fixture",
+      result: { schemaVersion: RESEARCH_PROMOTION_CANDIDATE_SCHEMA_VERSION, findings: [] },
+      stdout: "",
+      stderr: "",
+    }),
+  });
+  const plannerInput = compileRepoPlannerInput({
+    repositoryPath: root,
+    recovered: [],
+  });
+  assert.deepEqual(plannerInput.ownerIntent.activeDirective, {
+    revision: beforeGo.revision,
+    content: beforeGo.content,
+    contentDigest: beforeGo.contentDigest,
+    ingressDigest: beforeGo.ingressDigest,
+  });
+
   const secondRawText = "Apply the attached procedure.";
   const secondIngress = persistSourceBearingOwnerIngress(root, secondRawText, [source]);
   assert.notEqual(secondIngress.ingressDigest, ingress.ingressDigest);
   assert.deepEqual(automaticRequest(root, secondRawText, { ownerIngressDigest: secondIngress.ingressDigest }), { type: "REPO_WAVE" });
-  assert.equal(readOwnerObjectiveState(root).revision, 2);
+  assert.equal(readOwnerObjectiveState(root).revision, 1);
 });
 
 test("source-bearing turn with an established objective stays on ingress adoption rather than read-only interaction", (t) => {
@@ -89,9 +123,10 @@ test("source-bearing turn with an established objective stays on ingress adoptio
     { type: "REPO_WAVE" },
   );
   const after = readOwnerObjectiveState(root);
-  assert.equal(after.revision, before.revision + 1);
-  assert.equal(after.content, rawText);
-  assert.equal(after.ingressDigest, ingress.ingressDigest);
+  assert.equal(after.revision, before.revision);
+  assert.equal(after.content, "mission M");
+  assert.equal(after.contentDigest, before.contentDigest);
+  assert.equal(after.ingressDigest, before.ingressDigest);
 });
 
 test("deleted GC ref is repaired from authoritative blob while missing blob fails closed", (t) => {

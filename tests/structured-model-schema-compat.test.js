@@ -3,24 +3,14 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const {
-  FRONTIER_CANDIDATE_JSON_SCHEMA,
-  GRILL_CANDIDATE_JSON_SCHEMA,
-} = require("../lib/delegation-round3-frontier");
-const { PLANNER_CANDIDATE_BATCH_SCHEMA } = require("../lib/repo-planner-admission");
+const { PLANNER_CANDIDATE_BATCH_SCHEMA } = require("../lib/repo-planner-candidate");
 const { RESEARCH_PROMOTION_CANDIDATE_SCHEMA } = require("../lib/repo-research-promotion");
-const { FORWARD_MOTION_CANDIDATE_SCHEMA } = require("../lib/work-forward-motion");
-const { PROOF_COMPILER_SCHEMA } = require("../lib/work-proof-compiler");
 const { WORKER_RESULT_SCHEMA } = require("../lib/worker-result");
 
 const PROVIDER_SCHEMAS = Object.freeze([
   ["research promotion", RESEARCH_PROMOTION_CANDIDATE_SCHEMA],
   ["logical planner", PLANNER_CANDIDATE_BATCH_SCHEMA],
   ["coding worker", WORKER_RESULT_SCHEMA],
-  ["forward motion", FORWARD_MOTION_CANDIDATE_SCHEMA],
-  ["product proof compiler", PROOF_COMPILER_SCHEMA],
-  ["delegation frontier", FRONTIER_CANDIDATE_JSON_SCHEMA],
-  ["delegation grill", GRILL_CANDIDATE_JSON_SCHEMA],
 ]);
 
 function declaredTypes(schema) {

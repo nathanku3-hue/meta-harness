@@ -146,6 +146,9 @@ test("package dry-run excludes repo-local control-plane files", () => {
   assert.equal(result.status, 0);
   const [pack] = JSON.parse(result.stdout);
   const packedFiles = pack.files.map((file) => file.path);
-  const leaked = packedFiles.filter((file) => file.includes(".meta-harness") || file.startsWith(".agents/"));
+  const leaked = packedFiles.filter((file) => (
+    file.includes(".meta-harness")
+      || (file.startsWith(".agents/") && !file.startsWith(".agents/skills/meta-harness-runtime/"))
+  ));
   assert.deepEqual(leaked, [], `Tarball contains leaked repo-local files: ${leaked.join(", ")}`);
 });

@@ -30,7 +30,7 @@ function writePassingProductProof(root, { programPath = ".meta-harness/product-p
   fs.writeFileSync(path.join(metaDir, "product-proof.json"), `${JSON.stringify({
     schemaVersion: "product-proof-policy/v2",
     programPath,
-    runtime: process.execPath,
+    runtime: "node",
     timeoutSeconds: 30,
     claims: [{
       id: "delivered-result",

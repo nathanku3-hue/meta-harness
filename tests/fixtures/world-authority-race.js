@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 
-const { enterExecutionAttempt } = require("../../lib/execution-permit");
+const { enterExecutionAttempt } = require("./legacy-execution-permit");
 const { commitTransition } = require("../../lib/world-transition");
 
 const sleeper = new Int32Array(new SharedArrayBuffer(4));

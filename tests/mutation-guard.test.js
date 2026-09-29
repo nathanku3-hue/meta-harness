@@ -48,7 +48,7 @@ test("mutation guard evaluates the actual target, not the opened parent workspac
   );
 });
 
-test("mutation guard resolves symlink aliases before deciding managed identity", (t) => {
+test("mutation guard resolves symlink aliases before deciding managed identity", { skip: process.platform === "win32" }, (t) => {
   const { parent, root } = managedRepository(t);
   const alias = path.join(parent, "alias");
   fs.symlinkSync(root, alias, "dir");
@@ -59,7 +59,7 @@ test("mutation guard resolves symlink aliases before deciding managed identity",
   );
 });
 
-test("mutation guard fails closed when canonicalization cannot resolve the target", (t) => {
+test("mutation guard fails closed when canonicalization cannot resolve the target", { skip: process.platform === "win32" }, (t) => {
   const { parent } = managedRepository(t);
   const broken = path.join(parent, "broken-link");
   fs.symlinkSync(path.join(parent, "does-not-exist"), broken, "file");
