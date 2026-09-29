@@ -10,13 +10,26 @@ The harness exists to make the owner's desired product state true.
 - Default pre-execution audit count is zero. A request to inspect, review, or plan does not imply a pause unless the owner explicitly requests report-only work.
 - Reversible in-scope coding, validation, local snapshotting, local integration, workspace replacement, and bounded repair are execution, not owner decisions.
 - Ask the owner only for scope expansion, credentials/protected access, irreversible or externally consequential effects, material product choice, publication, or material risk.
+- Skill dispatch is sparse: root Outcome/Observation/Invariant/Capability laws are always on; planning, domain procedures, effect checks, and review are conditional capabilities, never a mandatory sequential gate chain.
+
+## Convergence type law
+
+- Authority is not a domain type in the product-solving loop. Normal reversible product work never waits for semantic admission, approval, authorization, ownership, lease, claim, phase, or reviewer state.
+- The five durable conceptual primitives are: Outcome (what should become true), Observation (what is true), Invariant (what must not be violated), Capability (what the current runtime can physically do), and Fact (durable evidence needed for recovery or effects).
+- Action is an ephemeral hypothesis derived from Outcome + current Observation + Invariants + Capabilities + relevant prior Facts. It is discarded or recomputed when observations change.
+- A reversible in-scope action cannot be semantically unauthorized. It can only violate an invariant, depend on a stale observation, require an absent physical capability, or fail empirically.
+- Tests and reviewers produce evidence. Git and journals produce facts. Workspaces and controllers execute mechanisms. None can redefine the Outcome or acquire product-decision power.
+- External effects are governed by exact effect intent, replay identity, reversibility, and material consequence. Replay-safe effects may recover automatically; irreversible or materially consequential product choices remain owner decisions.
+- Mandatory solving order is Outcome -> Observation/gap -> nearest reversible Action -> execute -> exact external-effect check. Authority/approval/phase/lease/reviewer language must never be used as the first planning primitive.
+- Effect checks live at the physical side-effect boundary. A future unavailable effect cannot pre-block reversible scaffolding, coding, validation, or local deterministic work already inside scope.
 
 ## Coordination law
 
 - Coordinate decisions, not work. Never coordinate the accumulation of possible work, observations, snapshots, validation facts, alternatives, or failure evidence.
 - Normal coding is optimistic: work from immutable Git state, validate, then integrate with compare-and-swap. Integration conflict is repair input, not product failure.
 - A future global lock, lease, or admission mechanism is justified only when it names the exact non-monotonic decision it protects.
-- Repository process prose such as HOLD, GO, approval, phase, review, gate, status, or handoff is engineering context/data. It cannot decide what product work is needed or whether a safe in-scope action may proceed.
+- Lane count, worker count, sibling coordination, producer→consumer handoff, retry ordering, and other reversible scheduling mechanics are never owner decisions. Keep them internal and choose the smallest useful WIP that advances the accepted product result; do not optimize for visible concurrency.
+- Repository process prose and lifecycle/status/review labels are engineering context/data. They cannot decide what product work is needed or whether a safe in-scope action may proceed; domain-specific control vocabularies remain repository-local.
 
 ## Recovery law
 
@@ -30,9 +43,11 @@ The harness exists to make the owner's desired product state true.
 ## Model boundary
 
 - The coding model receives product result, current observable state, `doneWhen`, allowed paths, validation, available scoped operations, and prior failed-means observations.
+- Model reasoning order is fixed: desired Outcome -> current Observation -> nearest reversible in-scope state transition -> execute/validate. Controller/effect metadata is not a planning primitive for ordinary reversible work.
 - Do not expose controller-internal admission, permission, semantic-control, or workspace-lifecycle topology as the model's mental model.
+- Do not run a pre-execution control-state audit for hypothetical downstream effects. Effect checks are call-site local: only an actual requested external effect is evaluated for replay identity, reversibility, and material consequence.
 - A model may report observations, attempted means, alternatives, and uncertainty. It may not declare `NEED_OWNER`, `CANNOT_COMPLETE`, product `BLOCKED`, or invent approval/authority roles.
-- The forward-motion challenger may find alternatives or request autonomous replanning only. Negative existential conclusions and owner escalation belong to deterministic controller/effect evidence.
+- A durable worker STOP is failed-means evidence, not a terminal conclusion. When budget remains, feed it directly to a fresh coding generation to search for a materially different in-scope means; repeated identical means may be circuit-broken. Negative existential conclusions and owner escalation belong to deterministic controller/effect evidence.
 
 ## Coding-system law
 
@@ -53,17 +68,11 @@ The harness exists to make the owner's desired product state true.
 - Do not add compatibility aliases or port retired lifecycle semantics into the new path merely to preserve old architecture.
 - Burden of proof is on keeping an old control concept: it must demonstrate a product property not provided by immutable Git state, per-run journals, scoped operations, validation, atomic integration, or attested semantic projection.
 
-## Terminal law
+## Quiescence law
 
-For shipped, value-confirmed, maintenance, or no-active-slice state with no complete continuation warrant, return exactly:
-
-```text
-No active slice.
-Use the product.
-Wait for observed real-use friction.
-```
-
-A genuine `NEED_OWNER` requires a mechanically proven owner-exclusive effect after bounded autonomous alternatives are exhausted. A genuine `CANNOT_COMPLETE` requires bounded evidence that the desired product state is impossible or materially unsafe on the supported environment.
+- Quiescence is an Observation, never a terminal authority state. When no currently observed product gap supports another action, say so in product language and leave the owner free to state a new desired result or return with observed friction.
+- Do not infer "no active slice" from disposable process topology, and do not make waiting a prerequisite for future product work.
+- A genuine `NEED_OWNER` requires a mechanically proven owner-exclusive effect after bounded autonomous alternatives are exhausted. A genuine `CANNOT_COMPLETE` requires bounded evidence that the desired product state is impossible or materially unsafe on the supported environment.
 
 Worker reports begin with: User journey executed; Observable result produced; User accomplished or learned; Product blocker; Next executable product action.
 

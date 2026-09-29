@@ -4,6 +4,24 @@ Status: append-only
 Started: 2026-05-02
 Current direction locked: 2026-07-19
 
+## D-RV-001: Repository Procedures Become Execution Compression, Not New Ontology
+
+Decision:
+
+Keep Meta-Harness domain-agnostic while reducing repeated methodology reconstruction. The planner now receives immutable metadata for repository-declared professional skills at the exact product Git head. Coding workers continue to receive model-visible repository-contract bytes and are explicitly instructed to reuse/wire relevant deterministic repository procedures rather than reimplement them. Runtime guidance optimizes time to the nearest observable decision-changing result and permits process artifacts only when they enable that result, seal a required invariant, or persist concrete reusable failure evidence.
+
+Failure remains an Observation: compress it to the smallest reusable failed-means/counterexample signature, then recompute another reversible action or close the bounded attempt. Do not turn failure into a narrative workflow phase.
+
+This decision adds no domain-specific authority vocabulary, research ontology, gate type, workflow engine, or new controller state. Repositories own procedure semantics; Meta-Harness only discovers immutable metadata and injects bound procedure text through its existing generic contract surface.
+
+Rationale:
+
+The product already has the correct Outcome -> Observation -> reversible Action -> exact effect-boundary law. The remaining friction was that repository methodology could exist yet remain inert from the planner/worker perspective, causing models to reread prose or recreate deterministic methods. Exposing declared procedures through existing immutable surfaces increases execution velocity without creating a second control plane.
+
+Evidence:
+
+`lib/repo-planner-input.js`, `.agents/skills/meta-harness-runtime/{SKILL.md,coding-worker/SKILL.md,logical-planner/SKILL.md}`, `tests/repo-professional-context.test.js`, and `tests/coding-worker-runtime.test.js`.
+
 ## G-AUTHORITY-001: One-Way Authority Epoch-2 Migration and S001-SHIP-E2
 
 Decision:
@@ -3407,3 +3425,65 @@ Closure state:
 Reopen conditions:
 
 Reopen this decision only for an observed structural false-negative, a repository-policy applicability defect, an integration-lineage regression, or evidence that the current tree-relative structural fact set is too weak or too expensive. Do not reopen merely because the historical maintenance baseline is stale.
+
+## D086: Bind Repo-Owned Semantic Contracts Without Importing Repo Ontology
+
+Decision:
+
+Add one opt-in generic repository-contract binding seam. Meta-Harness may bind exact repo-owned semantic artifact bytes from the sealed Git base, persist that binding by work-session identity, inject the bound content read-only into the coding worker, revalidate exact bytes before proposal, and reject mutation of bound contract paths during candidate materialization.
+
+The harness does not interpret the contract schema or domain terms. It does not learn Alpha, research stages, PARK/KILL, strategy responsibilities, or any repository-specific ontology. Repository validators, when declared, remain repository-owned. A failed validator or byte drift is a failed execution means/input identity, not a new product decision.
+
+This preserves the boundary:
+
+```text
+repository owns meaning
+Meta-Harness owns exact identity / immutability / execution transport
+worker owns implementation means
+```
+
+No PRODUCT.md change, scheduler, semantic turn classifier, lifecycle taxonomy, provider framework, or repository-specific scientific law is added.
+
+Evidence:
+
+- `lib/repository-contract-binding.js`
+- planner admission persists exact session binding
+- proposal worker rechecks and injects bound contract bytes
+- materialization rejects bound-path mutation
+- focused binding tests 2/2 PASS
+- focused candidate materialization tests 4/4 PASS
+- broader mixed planner-admission test failures remain the existing Windows namespace verifier limitation, not a binding regression.
+
+Reopen conditions:
+
+Reopen only for a demonstrated case where exact repo meaning can drift between planning and worker execution despite the binding, or where an opaque repo-owned validator cannot express the necessary contract check without teaching Meta-Harness the domain ontology.
+
+## D087: Keep Internal Lane Scheduling Out of Owner Attention
+
+Decision:
+
+Owner-facing execution optimizes for product progress, not visible concurrency. Internal lane IDs, sibling-lane coordination, WIP topology, and routine producer→consumer handoff are execution mechanics. They must not create a user-facing decision merely because a worker phrases its next action as `Decision needed`, `choose lane`, `select lane`, or `sibling handoff`.
+
+`Need you:` remains exclusively tied to the existing typed `ownerEffect` boundary for genuine owner-exclusive choices such as material scope/product choice, credentials/protected access, destructive/external effects, publication, or explicit material-risk acceptance. The normal continuation renderer suppresses internal lane-scheduling pseudo-decisions instead of forwarding them as owner work.
+
+This adds no scheduler, lane authority system, fixed maximum concurrency, provider framework, or domain-specific WIP policy. Repositories remain free to choose their own bounded concurrency; Meta-Harness only keeps those mechanics off the owner-facing control surface.
+
+Evidence:
+
+- `lib/commands/work.js`
+- `tests/cli-work.test.js`
+- `docs/product/product-spec.md`
+
+## D088: Default Local Execution To Minimum-Useful WIP=2
+
+Decision:
+
+The repository work wave defaults to a local execution bound of two. The default is a velocity policy, not a maximum-lane product model: it overlaps one current blocker/producer with one independent nearest consumer or sibling outcome without filling capacity merely because more proposals exist. The existing internal bounded override remains available from 1 through 8 for measured runtime cases where a different bound independently shortens the critical path.
+
+The owner never chooses this bound. Lane count, worker count, sibling ordering, and routine handoff remain internal reversible execution mechanics under D087. No queue, daemon, scheduler, fairness policy, provider framework, or persistent worker pool is added.
+
+Evidence:
+
+- `lib/repo-work-wave.js`
+- `tests/logical-planner-autodispatch.test.js`
+- `AGENTS.md`

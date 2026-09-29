@@ -1,23 +1,24 @@
 ---
 name: ship-fast-decision-router
-description: Route directly to the nearest user outcome while preserving authority and terminal stop conditions.
+description: Route directly to the nearest user outcome while preserving exact effect boundaries and terminal stop conditions.
 ---
 
 # Outcome-First Ship-Fast Router
 
 ## Route order
 
-1. Reconcile locked intent and explicit owner authority; read status and summaries last because they cannot create work.
-2. Determine whether the complete user journey has run.
-3. Choose the nearest reversible action that produces the observable result.
-4. Retain only demonstrated blockers.
-5. Reuse unaffected passed evidence.
-6. Stop when the product is shipped or value-confirmed.
+1. Lock the desired product result from locked product intent and the current owner objective; retain owner authority only for decisions that are actually owner-exclusive.
+2. Observe the current product gap; read status and summaries last because they cannot create work.
+3. Choose the nearest reversible action that produces a decision-changing observable result.
+4. Execute reversible in-scope work in the same round.
+5. Only when the next physical call creates an external/protected/irreversible/material effect, evaluate that exact boundary and reuse any exact prior decision.
+6. Retain only demonstrated blockers and reuse unaffected passed evidence.
+7. Stop when the product is shipped or value-confirmed.
 
 ## Routes
 
-- `EXECUTE_NOW`: begin the nearest reversible authorized action in the same round and carry it through the complete journey.
-- `OWNER_ACTION_REQUIRED`: product direction, scope, taste, credentials, protected access, irreversible action, publication, or material-risk acceptance requires the owner.
+- `EXECUTE_NOW`: begin the nearest reversible action in the same round and carry it through the complete journey.
+- `OWNER_ACTION_REQUIRED`: an exact product-direction, scope, credential/protected-access, irreversible, publication, or material-risk choice is required at the physical boundary now.
 - `BLOCKED`: retained evidence demonstrates journey prevention, material conclusion invalidation, credible irreversible loss, or supported-platform unusability.
 - `NO_BUILD`: the product is already complete or no valid continuation warrant exists; primary action `USE_PRODUCT`.
 
@@ -39,6 +40,8 @@ One pre-execution audit is permitted only when a complete audit warrant contains
 
 Missing any field means no audit. One audit is the absolute ceiling. It is not a route, phase, approval requirement, gate, or reason to defer reversible execution. Do not request GO, plan approval, routine permission, or blanket ambiguity confirmation.
 
+A future unavailable external effect is not a planning blocker. Continue all reversible work until that effect is the next physical call. If an exact prior owner decision already covers the call, consume it without another conversation.
+
 ## Fresh worker handoff
 
 When direct fresh-conversation launch capability is available and requested, launch exactly one worker conversation with the exact sealed task brief. Do not ask the owner to copy or paste the brief. Require the worker to begin one reversible in-scope change in its first round and retain `taskId` as the only required continuation input.
@@ -57,9 +60,9 @@ A passed gate remains passed while its input surface is unchanged. Rerun only th
 
 After completion:
 
-- default → `NO_BUILD`, `USE_PRODUCT`;
-- owner changes scope → `OWNER_ACTION_REQUIRED`;
-- complete observed supported-use defect warrant → `EXECUTE_NOW` with the smallest repair.
+- default -> `NO_BUILD`, `USE_PRODUCT`;
+- owner changes scope -> `OWNER_ACTION_REQUIRED`;
+- complete observed supported-use defect warrant -> `EXECUTE_NOW` with the smallest repair.
 
 Do not emit `FOLLOW_UP_QUEUED` after `NO_BUILD`, claim successor activation, or add review/evidence gates after closure.
 

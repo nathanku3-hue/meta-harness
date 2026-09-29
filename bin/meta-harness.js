@@ -108,7 +108,6 @@ async function run(argv, context = createCommandContext(), { signal } = {}) {
       return result?.exitCode || 0;
     }
     const maintenanceContext = context.env.META_HARNESS_INTERNAL_CLI === "1"
-      || (context.env.npm_lifecycle_event === "prepublishOnly" && command === "release")
       || isRepoAdoptionCommand(argv);
     if (!maintenanceContext) {
       throw new UsageError(`'${command}' is internal; normal usage is meta-harness \"<result>\" or meta-harness`);

@@ -77,3 +77,14 @@ data-output/
 
 # Local backup / archive directories
 archive/
+
+# Local accidental/install artifacts; preserve bytes but keep them out of repository truth
+/C*Tempmh-install-*/
+/NUL
+/fbe27b81ab5f2952bbd50a32f70e3039efc65c92
+
+# Local, undeclared professional-skill experiments (not package/runtime skills)
+/.agents/skills/quant-data-fallback/
+/.agents/skills/quant-insight-boundary/
+/.agents/skills/quant-pre-go/
+/.agents/skills/quant-result-grill/

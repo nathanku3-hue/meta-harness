@@ -22,7 +22,10 @@ The installed planner shall:
 10. keep implementation through closure inside one functional slice;
 11. expose the user journey and result as the first five worker-report fields;
 12. ship DELIVERY authority only;
-13. stop with `NO_BUILD` and `USE_PRODUCT` after shipped or value-confirmed completion unless explicit owner scope change or a complete observed supported-use defect warrant exists.
+13. stop with `NO_BUILD` and `USE_PRODUCT` after shipped or value-confirmed completion unless explicit owner scope change or a complete observed supported-use defect warrant exists;
+14. expose immutable metadata for repository-declared professional procedures to the planner at the exact product Git head without importing their domain ontology;
+15. prefer reuse/wiring of applicable bound deterministic repository procedures over duplicate methodology implementation in coding workers;
+16. optimize time to the nearest observable decision-changing result, allowing process artifacts only when they enable that result, seal a required invariant, or persist concrete reusable failure evidence.
 
 ## Acceptance fixtures
 

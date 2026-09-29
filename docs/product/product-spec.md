@@ -62,7 +62,19 @@ external blocker      → blocker plus smallest corrective action
 no active result      → terminal product guidance
 ```
 
-Normal output must not expose workspace IDs, UUIDs, generations, custody digests, session digests, actors, handoffs, commit hashes, permit IDs, phase names, or validation counters.
+Normal output must not expose workspace IDs, UUIDs, generations, custody digests, session digests, actors, handoffs, commit hashes, permit IDs, phase names, validation counters, lane IDs, sibling-lane coordination, or internal WIP topology. Routine reversible continuation, automatic producer→consumer handoff, and internal lane selection are execution mechanics, not owner decisions; only an explicit typed `ownerEffect` may produce `Need you:`.
+
+### Reasoning / external-effect boundary
+
+The model solves in this order: requested product Outcome -> current Observation/gap -> nearest reversible in-scope Action -> execute/validate -> exact external-effect check. Controller lifecycle, admission, permission, reviewer, or repository-domain authority vocabulary is not a planning primitive for ordinary reversible work.
+
+A downstream effect that is unavailable or owner-exclusive does not pre-block reversible scaffolding, coding, validation, or local deterministic repair. The controller evaluates replay identity, reversibility, material consequence, protected access, publication, or other owner-exclusive requirements only when execution reaches the exact effect invocation. Repository-specific authority semantics remain repository context and are not promoted into Meta-Harness's generic ontology.
+
+### Result velocity / repository procedure law
+
+Meta-Harness optimizes time to the nearest observable decision-changing result rather than production of process artifacts. At the exact product Git head, repository-declared professional-skill metadata may be exposed to the planner. Model-visible repository-contract bindings may expose exact immutable procedure bodies to coding workers. These surfaces are execution context only: Meta-Harness does not interpret or promote the repository's domain vocabulary.
+
+When an applicable deterministic repository procedure exists, the planner should prefer reuse over proposing a duplicate methodology implementation, and the coding worker should wire/reuse the bound procedure unless the product result explicitly changes that procedure. A process artifact is justified only when it directly enables the nearest result, seals an invariant required for that result, or persists concrete reusable failure evidence. Failed routes should be compressed to the smallest action-changing failed-means/counterexample observation.
 
 The exact no-active result is:
 
@@ -216,13 +228,13 @@ RESUME is selected automatically from persisted state; the owner does not say `-
 
 Reuse requires exact still-ACTIVE custody with matching repository root, workspace identity, physical path, Git administrative marker, branch, sealed base, current HEAD, generation, and live product direction. The controller also requires the exclusive execution lease.
 
-Byte continuity is seal-first, not dirty-status-first. For generation 1, an unsealed baseline must be the exact clean sealed base. For repair generation N > 1, previous-generation continuity is either exact durable candidate seal N-1, or an exact `worker-stop/v1` boundary plus a separately bound `forward-motion-proof/v1` authorizing `CONTINUE_WITH_ALTERNATIVE`. The stop—not the semantic proof—owns mechanical continuity through exact HEAD, branch, index digest, dirty-manifest digest, and Git tree identity. If candidate seal N already exists, that seal must exactly prove the live tree, index, and path set before continuation. The dirty-manifest digest remains a cheap custody consistency check but is not proof of file contents.
+Byte continuity is seal-first, not dirty-status-first. For generation 1, an unsealed baseline must be the exact clean sealed base. For repair generation N > 1, previous-generation continuity is either exact durable candidate seal N-1 or an exact zero-operation `worker-stop/v1` boundary. The stop itself owns mechanical continuity through exact HEAD, branch, index digest, dirty-manifest digest, and Git tree identity; no second model proof is required to make a fresh coding attempt. If candidate seal N already exists, that seal must exactly prove the live tree, index, and path set before continuation. The dirty-manifest digest remains a cheap custody consistency check but is not proof of file contents.
 
-A current-generation sealed candidate resumes controller work in the same generation: reacquire the controller lease, re-prove the seal, then continue validation, product proof, and BANK without invoking the coding worker again. A current-generation durable `worker-stop/v1` also resumes without replaying the coding worker: if no forward-motion proof exists, run the one bounded challenger; if a terminal proof exists, close from it; if `CONTINUE_WITH_ALTERNATIVE` exists and budget remains, re-prove the stop boundary and advance exactly once.
+A current-generation sealed candidate resumes controller work in the same generation: reacquire the controller lease, re-prove the seal, then continue validation, product proof, and BANK without invoking the coding worker again. A current-generation durable `worker-stop/v1` resumes by re-proving the stop boundary and, when attempt budget remains and the exact failed means is not circuit-broken, advancing exactly once into a fresh CODE generation with the STOP evidence as prior-failure context. No reviewer/challenger model sits between STOP and the next coding attempt.
 
 For a repo-owned external proposal, an entered generation may instead retain an exact proposal dispatch keyed by `packetDigest`. DevSpace durably settles one schema-validated `worker-result/v2`; Meta captures that result create-only, reacquires the current workspace lease, and derives only the ephemeral permission to materialize that exact result. Before the first workspace mutation Meta compiles and persists an immutable Git target tree (`baselineTreeOid + targetTreeOid + touchedPaths`). Restart may converge any touched path that is still exactly at its known baseline or target state toward the target tree; unexplained or foreign state fails closed. Once the ordinary candidate seal exists, the existing validation, product-proof, BANK, Closure, and World recovery path takes over. If an AttemptEntry has neither candidate/STOP evidence nor an exact retained external proposal route, that coding generation is not replayed.
 
-A mismatch fails closed. Terminal workspace authority never returns, even when bytes are manually cleaned or restored. A lease left by a controller process that is no longer live may be recovered immediately after its exact lock bytes are rechecked; a live controller lease still excludes concurrent execution.
+A live execution-child mismatch invalidates that physical workspace; it does not invalidate the product result. The controller keeps the strict HEAD/index/path/tree checks, preserves the mismatched workspace bytes, allocates a fresh managed worktree, reconstructs the latest durable Git snapshot plus journaled mutation fact, re-proves the reconstructed boundary, and continues automatically. Only a mismatch in the durable reconstruction roots themselves fails closed. Terminal workspace custody never becomes executable again, even when bytes are manually cleaned or restored. A lease left by a controller process that is no longer live may be recovered immediately after its exact lock bytes are rechecked; a live controller lease still excludes concurrent execution.
 
 ### Terminalization
 
@@ -327,9 +339,9 @@ After controller materialization:
 6. if product proof is `PROVEN`, the candidate is eligible for `DONE`;
 7. do not ask the owner to choose the repair actor, session, validation command, or generation.
 
-Candidate seals are the durable provenance chain across code-producing repair generations. Generation N+1 normally begins from exact seal N bytes; a zero-operation `STOP` generation instead carries exact mechanical continuity through `worker-stop/v1` and can advance only with a separate `CONTINUE_WITH_ALTERNATIVE` proof. The next candidate seal retains paths from the most recent actual candidate plus paths changed by the new typed controller operations. Cross-generation provenance is not reconstructed from an in-memory path accumulator.
+Candidate seals are the durable provenance chain across code-producing repair generations. Generation N+1 normally begins from exact seal N bytes; a zero-operation `STOP` generation instead carries exact mechanical continuity through `worker-stop/v1` and may advance directly to one fresh CODE attempt after its boundary is re-proven and its exact failed means is not circuit-broken. The next candidate seal retains paths from the most recent actual candidate plus paths changed by the new typed controller operations. Cross-generation provenance is not reconstructed from an in-memory path accumulator.
 
-A `STOP` invokes one fresh read-only challenger and no universal reviewer. The challenger has no ExecutionPermit or material/owner/Git authority. It tries to falsify terminality and returns semantic evidence for exactly one of `CONTINUE_WITH_ALTERNATIVE`, `REPLAN_REQUIRED`, `HARD_BLOCKED`, or `OWNER_REQUIRED`. Only `PRODUCT_TASTE`, `SCOPE_EXPANSION`, `CREDENTIALS`, `PROTECTED_ACCESS`, `DESTRUCTIVE_ACTION`, `PUBLICATION`, or `MATERIAL_RISK` may inhabit `OWNER_REQUIRED`; unsupported roles fail toward autonomous replan, never human routing. The challenger itself does not consume a coding attempt; a new coding generation does.
+A `STOP` invokes no reviewer or challenger. It is durable failed-means evidence from CODE. When budget remains, the controller gives that evidence directly to one fresh CODE generation, which must search for a materially different reversible in-scope means. Repeated materially identical STOP means are circuit-broken. Owner-required effects can still arise only from concrete deterministic controller/effect evidence at the exact effect boundary, never from a worker STOP assertion.
 
 The product result, product-direction snapshot, scope, Claim, and stop conditions do not change when only implementation means change. Exhausted implementation/validation without typed owner proof becomes `REPLAN_REQUIRED`, not implicit owner escalation.
 
@@ -480,6 +492,12 @@ A durable `PARTIAL`/`BLOCKED` work result still lands through `ATTEMPT_LEARNING`
 The one-time v1→v2 migration traverses authoritative legacy World lineage. Every code-producing accepted Phase-2 learning is resolved to its exact Closure/work result/BANK commit and cumulatively integrated/re-proven in transition order before the first v2 Head is activated. If accepted semantic history cannot be reconstructed as code, migration fails closed rather than seed a semantically inconsistent product commit.
 
 The World authority lock protects only short authority operations: current-Head admission checks, compatibility checks, session/Claim visibility ordering, transition CAS, and Claim release. Product-proof compilation, repository semantic interpretation, Git integration, and cumulative retained-proof execution occur outside that lock.
+
+## Velocity-first local execution bound
+
+Repository work optimizes wall-clock progress toward the current owner objective, not visible worker count. The default local execution bound is two: enough to overlap one blocking/producer path with one independent nearest consumer or sibling outcome while avoiding speculative WIP accumulation. This is a default capacity bound, not a fixed lane topology or user-facing control.
+
+An internal bounded runtime override may select 1..8 only when operational evidence justifies a different capacity for the current environment. The owner is never asked to choose lane count, worker count, producer→consumer handoff, or sibling ordering. Increasing the bound does not widen Outcome scope, provider authority, effect authority, or Git integration authority, and it does not create a scheduler/queue/daemon/persistent worker pool.
 
 ## Human diagnostic boundary
 
