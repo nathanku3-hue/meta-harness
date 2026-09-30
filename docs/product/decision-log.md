@@ -3487,3 +3487,24 @@ Evidence:
 - `lib/repo-work-wave.js`
 - `tests/logical-planner-autodispatch.test.js`
 - `AGENTS.md`
+
+## D-RV-002: Repository Control Is Context, Not Coding Admission
+
+Decision:
+
+Repository-declared contract bytes remain immutable execution context reconstructed from the sealed Git base, but live repository-control drift and repository-owned validators no longer participate in the pre-code admission path. Coding and proposal generation proceed from the sealed product brief and immutable base. Repository validators run only when an explicit validation path asks for them, and exact protected/external-effect checks remain at the concrete side-effect boundary.
+
+Repository-local catalogs, mutable status projections, hash parity and file-mtime stability are observation/audit surfaces. They cannot suspend reversible in-scope work or create a quiet-window requirement. Integration safety remains enforced by immutable Git base, typed operations, protected paths, post-mutation validation and Git CAS.
+
+Rationale:
+
+A repository-local semantic/control validator can otherwise recreate the retired authority-first architecture by turning domain freshness into a generic Meta-Harness execution gate. This adds latency and cross-lane coupling without protecting an actual irreversible consequence. The correct split is immutable context before work, validation after materialization, and exact effect checks at the physical consequence boundary.
+
+Evidence:
+
+- `lib/repository-contract-binding.js`
+- `lib/work-loop.js`
+- `lib/proposal-worker-packet.js`
+- `.agents/skills/meta-harness-runtime/SKILL.md`
+- `tests/repository-contract-binding.test.js`
+- `tests/vnext-cutover.test.js`

@@ -63,6 +63,9 @@ test("package-owned runtime skills are explicit while ambient Codex skills stay 
   assert.match(rootSkill, /Outcome -> current Observation\/gap -> nearest reversible in-scope Action -> execute -> exact effect-boundary check/u);
   assert.match(rootSkill, /cannot by themselves make a physically available reversible action unavailable/u);
   assert.match(rootSkill, /Domain-specific authority vocabularies belong to the repository/u);
+  assert.match(rootSkill, /catalogs, derived indexes, hash-parity checks, mutable status projections, and file mtime stability are observation\/audit surfaces/u);
+  assert.match(rootSkill, /Never sleep, poll, or wait for a quiet\/stable window/u);
+  assert.match(rootSkill, /Exact-byte binding belongs at the concrete protected or irreversible effect call/u);
   assert.match(rootSkill, /RESULT_VELOCITY_LAW/u);
   assert.match(rootSkill, /Repository-declared deterministic procedures are executable domain context/u);
   assert.match(rootSkill, /smallest reusable failed-means\/counterexample observation/u);

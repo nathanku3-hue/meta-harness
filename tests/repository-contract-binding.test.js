@@ -20,7 +20,7 @@ function git(cwd, args) {
   return String(result.stdout || "").trim();
 }
 
-function fixture(t) {
+function fixture(t, { validatorExitCode = 0 } = {}) {
   const root = tempDir("repository-contract-binding-");
   fs.mkdirSync(path.join(root, ".meta-harness"), { recursive: true });
   fs.mkdirSync(path.join(root, "docs", "context"), { recursive: true });
@@ -45,7 +45,7 @@ function fixture(t) {
         path: contractPath,
         visibility: "MODEL",
         validator: {
-          argv: [process.execPath, "-e", "process.exit(0)"],
+          argv: [process.execPath, "-e", `process.exit(${validatorExitCode})`],
           cwd: ".",
           timeoutSeconds: 30,
         },
@@ -101,17 +101,30 @@ test("repository contract projection reconstructs deterministically from immutab
   assert.deepEqual(second, first);
 });
 
-test("repository contract binding fails closed on live drift from the sealed base", (t) => {
+test("sealed repository contract compilation ignores live control drift", (t) => {
   const { root, head, contractPath } = fixture(t);
   const compiled = compileRepositoryContractBindings({ repositoryPath: root, baseCommit: head });
   fs.writeFileSync(path.join(root, contractPath), "{\"drift\":true}\n", "utf8");
 
+  const replay = compileRepositoryContractBindings({ repositoryPath: root, baseCommit: head });
+  assert.deepEqual(replay, compiled);
   assert.throws(
-    () => compileRepositoryContractBindings({ repositoryPath: root, baseCommit: head }),
-    (error) => error?.code === "MH_REPOSITORY_CONTRACT_STALE",
-  );
-  assert.throws(
-    () => assertRepositoryContractBindingsCurrent({ repositoryPath: root, compiled }),
+    () => assertRepositoryContractBindingsCurrent({ repositoryPath: root, compiled, runValidators: false }),
     (error) => error?.code === "MH_REPOSITORY_CONTRACT_DRIFT",
+  );
+});
+
+test("repository validators are explicit checks, not coding admission", (t) => {
+  const { root, head } = fixture(t, { validatorExitCode: 9 });
+  const compiled = compileRepositoryContractBindings({ repositoryPath: root, baseCommit: head });
+  assert.ok(compiled);
+  assert.doesNotThrow(() => assertRepositoryContractBindingsCurrent({
+    repositoryPath: root,
+    compiled,
+    runValidators: false,
+  }));
+  assert.throws(
+    () => assertRepositoryContractBindingsCurrent({ repositoryPath: root, compiled, runValidators: true }),
+    (error) => error?.code === "MH_REPOSITORY_CONTRACT_VALIDATOR",
   );
 });

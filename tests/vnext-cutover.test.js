@@ -233,11 +233,13 @@ test("direct recovery has one sealed-session source and no duplicate current-tru
   assert.doesNotMatch(workLoop, /state\.resultPath|\.result\.json/u);
 });
 
-test("repository contracts are reconstructed from sealed Git instead of persisted as per-run truth", () => {
+test("repository contracts are sealed context, not pre-execution admission", () => {
   const binding = read("lib/repository-contract-binding.js");
   assert.match(binding, /compileRepositoryContractBindings/u);
   assert.doesNotMatch(binding, /repository-contract-binding-record|persistRepositoryContractBindingRecord|readRepositoryContractBindingRecord|journalDirectory/u);
   assert.doesNotMatch(read("lib/repo-planner-candidate.js"), /repositoryContracts|persistRepositoryContractBindingRecord/u);
+  assert.doesNotMatch(read("lib/work-loop.js"), /assertRepositoryContractBindingsCurrent/u);
+  assert.doesNotMatch(read("lib/proposal-worker-packet.js"), /assertRepositoryContractBindingsCurrent/u);
 });
 
 test("production semantic projection code does not describe World as execution authority", () => {
