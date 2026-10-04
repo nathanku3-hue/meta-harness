@@ -94,7 +94,10 @@ test("normal bare journey silently completes fresh repository hooks without an i
 
   const result = runRaw(root, []);
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.equal(result.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
+  assert.match(result.stdout, /^Status: No product gap is currently observed\.$/mu);
+  assert.match(result.stdout, /^Why:/mu);
+  assert.match(result.stdout, /^Next:/mu);
+  assert.match(result.stdout, /^- Where:/mu);
   assert.equal(fs.existsSync(path.join(root, ".meta-harness", "status.md")), true);
   assert.equal(fs.existsSync(path.join(root, ".meta-harness", "events.jsonl")), true);
   assert.equal(fs.existsSync(path.join(root, ".meta-harness", "templates")), false);

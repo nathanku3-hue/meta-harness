@@ -129,5 +129,5 @@ test("ops contracts are short, SOP-linked, and fail closed", () => {
   assert.match(read(ops[2]), /Status-only artifacts, expert packets, and approval packets do not count as shipped progress/i);
   assert.match(read(ops[2]), /Three information channels stay distinct/i);
   assert.match(read(ops[2]), /Requested audits, reviews, and safety evidence are separate surfaces/i);
-  assert.match(read(ops[2]), /Final chat answers use the adaptive closure, not the worker-report artifact or orchestrator handover/i);
+  assert.match(read(ops[2]), /Final chat answers use the validated PM closure, not the worker-report artifact or orchestrator handover/i);
 });

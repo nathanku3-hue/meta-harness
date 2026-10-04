@@ -165,6 +165,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(list, /contracts\s+pm-brief-scan-contract\.md/);
   assert.match(list, /contracts\s+post-phase-reflection-contract\.md/);
   assert.match(list, /contracts\s+worker-done-contract\.md/);
+  assert.match(list, /contracts\s+human-handoff-contract\.md/);
 
   run(cwd, ["templates", "install", "--allow-dirty"]);
   const harness = path.join(cwd, ".meta-harness");
@@ -182,6 +183,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   const pmBriefScanContract = path.join(harness, "templates", "contracts", "pm-brief-scan-contract.md");
   const postPhaseReflectionContract = path.join(harness, "templates", "contracts", "post-phase-reflection-contract.md");
   const workerDone = path.join(harness, "templates", "contracts", "worker-done-contract.md");
+  const humanHandoff = path.join(harness, "templates", "contracts", "human-handoff-contract.md");
 
   assert.equal(fs.existsSync(expertFrontCard), true);
   assert.equal(fs.existsSync(scopeSelector), true);
@@ -197,6 +199,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.equal(fs.existsSync(pmBriefScanContract), true);
   assert.equal(fs.existsSync(postPhaseReflectionContract), true);
   assert.equal(fs.existsSync(workerDone), true);
+  assert.equal(fs.existsSync(humanHandoff), true);
   const agentsText = fs.readFileSync(path.join(cwd, "AGENTS.md"), "utf8");
   assert.match(agentsText, /META-HARNESS:POST-PHASE-REFLECTION:BEGIN/);
   assert.match(agentsText, /Record only durable cross-repository lessons/);
@@ -222,7 +225,7 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(scopeSelectorText, /Product result:/);
   assert.match(scopeSelectorText, /Primary action:/);
   assert.match(scopeSelectorText, /`NO_BUILD`, `USE_PRODUCT`/);
-  assert.match(scopeSelectorText, /Never claim successor activation/);
+  assert.match(scopeSelectorText, /Never claim post-closure successor activation/);
   const postWorkerText = fs.readFileSync(postWorkerGithubActions, "utf8");
   assert.match(postWorkerText, /Outcome-First Post-Worker GitHub Actions/);
   assert.match(postWorkerText, /Reuse passed jobs whose inputs are byte-identical/);
@@ -237,6 +240,12 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(workerDoneText, /Next executable product action:/);
   assert.match(workerDoneText, /Only after those five lines may the report include:/);
   assert.match(workerDoneText, /Outcome: <DONE\|PARTIAL_WITH_EXPLICIT_SCOPE\|REJECTED>/);
+  const humanHandoffText = fs.readFileSync(humanHandoff, "utf8");
+  assert.match(humanHandoffText, /HumanHandoffEnvelope/);
+  assert.match(humanHandoffText, /NORMAL_COMPLETION/);
+  assert.match(humanHandoffText, /RESUME_COMPLETION/);
+  assert.match(humanHandoffText, /SUBAGENT_AGGREGATION/);
+  assert.match(humanHandoffText, /There is no direct raw-worker-to-user path/);
   assert.match(workerDoneText, /Reuse passed evidence when its declared dependency surface is unchanged/);
   assert.match(workerDoneText, /return `USE_PRODUCT`/);
   assert.doesNotMatch(workerDoneText, /^# Worker PM Brief$/m);

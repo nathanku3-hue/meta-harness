@@ -52,6 +52,7 @@ The harness exists to make the owner's desired product state true.
 ## Coding-system law
 
 - `meta-harness work` is the primary product path; normal output remains product-facing.
+- Human work-completion output is an egress contract, not a worker-report format: normal, resumed, aggregated, quiescent/USE_PRODUCT, and controlled drain completion must render through the schema-first HumanHandoffEnvelope and PM_CLOSURE validator. Raw WORKER_REPORT, SAW, retry/resume narration, lifecycle state, accountability dumps, and special-exit shortcuts never bypass that gate.
 - ChatGPT/DevSpace direct sessions are read/diagnostic until a sealed native/Meta task defines bounded writable paths, validation, and Git effects.
 - New execution starts from immutable Git state. Coherent predecessor dirt is snapshotted internally without changing the owner's source HEAD, branch, index, or working bytes.
 - The coding worker is read-only with respect to the workspace and returns bounded typed `WRITE`, `DELETE`, or `MOVE` operations. The controller owns materialization, snapshotting, validation, local banking, integration, and permitted external effects.

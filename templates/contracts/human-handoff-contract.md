@@ -1,0 +1,118 @@
+# Human Handoff Contract
+
+Status: Meta-Harness 0.4 distributable contract
+
+Purpose: define the cross-repository human-facing completion envelope. Domain repositories fill business semantics; Meta-Harness owns the generic shape, deterministic rendering boundary, and leakage rules.
+
+## Separation of responsibility
+
+Meta-Harness owns:
+- the generic `HumanHandoffEnvelope` schema;
+- deterministic rendering;
+- PM-closure leakage checks;
+- the normal / resume / aggregation egress source contract;
+- the distinction between human closure and machine evidence.
+
+Domain repositories own:
+- domain-specific `status` and `why`;
+- end-to-end meaning for `where`, `locks`, and `why_not_others`;
+- the deterministic computation of `human_stop_required` from their local effect membrane or business rules.
+
+Meta-Harness must not infer domain authority from repository-local lifecycle vocabulary.
+
+## Envelope
+
+A valid human handoff contains:
+
+```text
+status
+why
+next.action
+next.where
+next.why_now
+next.locks[]
+next.done_when
+next.unlocks
+next.why_not_others[1..3]
+human_stop_required
+human_stop_reason
+decision_question
+egress_source
+```
+
+`egress_source` is one of:
+- `NORMAL_COMPLETION`
+- `RESUME_COMPLETION`
+- `SUBAGENT_AGGREGATION`
+
+The source is machine provenance only. It is never rendered into PM chat.
+
+A handoff may also contain a non-authoritative `presentation` hint with `kind`, `shape`, `itemCount`, `hasBranches`, and `hasEvidence`. These fields describe information shape only. They cannot change status, next action, human-stop state, product truth, or validation. Missing presentation hints normalize to conservative text-first defaults.
+
+## Render law
+
+Normal PM closure renders exactly one decision surface:
+
+```text
+Status: ...
+
+Why: ...
+
+Next: ...
+- Where: ...
+- Why now: ...
+- Lock: ...
+- Done when: ... After that: ...
+- Why not other candidates: ...
+
+Decision needed: ...   # only when human_stop_required=true
+```
+
+`Decision needed` is forbidden when `human_stop_required=false`.
+
+## Evidence boundary
+
+`WORKER_REPORT`, SAW, closure packets, hashes, validator output, reviewer availability, retry/resume narration, and raw state counters are machine/audit evidence. They do not appear in PM closure unless the user explicitly requests audit evidence.
+
+Audit mode is explicit. It does not weaken PM-closure validation by default.
+
+## Anti-leakage law
+
+PM closure rejects:
+- lifecycle headings such as `Outcome:`, `Round:`, `Progress:`, `Confidence:`;
+- worker-accountability or validation sections;
+- SAW/ClosurePacket tokens;
+- `OWNER_DECISION`, `NO_AUTO_OPEN`, and `auto_open=false`;
+- bureaucratic stalls such as `wait for owner`, `awaiting owner`, or `if you want to proceed`;
+- resume narration such as `On resume I detected`, `during the interruption`, or `I did not rerun`;
+- raw machine-state dumps such as `provider calls=0`, `broker=false`, or `real capital=NONE`.
+
+Business counts such as `4 clear / 0 reject` remain valid.
+
+## Egress law
+
+Normal completion, resumed completion, and subagent aggregation must all follow:
+
+```text
+raw result
+-> HumanHandoffEnvelope
+-> deterministic renderer
+-> PM_CLOSURE validator
+-> user
+```
+
+Completion-like special exits are not exemptions. `USE_PRODUCT`/quiescence and controlled drain/stop output must use the same envelope and validator before user-visible text. Explicit JSON and read-only conversational answers are separate machine/advisory surfaces, not PM completion closures.
+
+There is no direct raw-worker-to-user path. There is no direct special-exit-to-user path.
+
+Rich presentation follows a second projection-only boundary:
+
+```text
+validated HumanHandoffEnvelope
+-> deterministic Presentation Router
+-> TEXT | DIAGRAM | APP projection
+```
+
+The text rendering is always retained as the universal fallback. DIAGRAM and APP payloads are renderer-neutral and disposable; they are not persisted as product truth and cannot create owner gates or alter the canonical handoff.
+
+A failed PM-closure validation is an egress failure and must not silently fall back to the raw worker report.

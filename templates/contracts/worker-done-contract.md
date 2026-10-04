@@ -48,4 +48,4 @@ Those compatibility values do not grant product, planner, Outcome, Claim, work-s
 
 ## Supporting sections
 
-After metadata, include only useful sections: what changed, why it matters, blocker, next action, validation/evidence, and accountability. The normal chat closure remains concise and must not paste the full report unless requested.
+After metadata, include only useful sections: what changed, why it matters, blocker, next action, validation/evidence, and accountability. This file is machine/audit evidence only. Normal chat closure follows `templates/contracts/human-handoff-contract.md` and must never paste or lightly paraphrase the full worker report unless the user explicitly requests audit evidence.

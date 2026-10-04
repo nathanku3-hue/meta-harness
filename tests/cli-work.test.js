@@ -72,6 +72,30 @@ function env(extra = {}) {
   };
 }
 
+function assertStructuredHandoff(output) {
+  assert.match(output, /^Status:/mu);
+  assert.match(output, /^Why:/mu);
+  assert.match(output, /^Next:/mu);
+  assert.match(output, /^- Where:/mu);
+  assert.match(output, /^- Why now:/mu);
+  assert.match(output, /^- Lock:/mu);
+  assert.match(output, /^- Done when:/mu);
+  assert.match(output, /^- Why not other candidates:/mu);
+  assert.doesNotMatch(output, /Outcome:|Worker accountability|On resume I detected|Validation \/ evidence/iu);
+}
+
+function assertQuiescentHandoff(output) {
+  assertStructuredHandoff(output);
+  assert.match(output, /^Status: No product gap is currently observed\.$/mu);
+  assert.match(output, /^Next: Use the product and continue only when new friction or a new desired result appears\.$/mu);
+}
+
+function assertDrainHandoff(output) {
+  assertStructuredHandoff(output);
+  assert.match(output, /^Status: Execution stopped safely; the current durable product state is preserved\.$/mu);
+  assert.match(output, /^Next: Continue the same product objective when execution resumes\.$/mu);
+}
+
 test("close on an untouched repository is a zero-side-effect detach before harness bootstrap", (t) => {
   const root = repo(t);
   const before = git(root, ["status", "--porcelain=v1", "--untracked-files=all"]);
@@ -79,7 +103,7 @@ test("close on an untouched repository is a zero-side-effect detach before harne
 
   const result = runRaw(root, ["close"], { env: env() });
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.equal(result.stdout, "Stopped safely — continuation is automatic next time.\n");
+  assertDrainHandoff(result.stdout);
   assert.equal(fs.existsSync(path.join(root, ".meta-harness")), false);
   assert.equal(git(root, ["status", "--porcelain=v1", "--untracked-files=all"]), before);
 });
@@ -402,7 +426,7 @@ test("ghost journey accepts one result, shows coarse liveness, validates, and ba
 
   const after = runRaw(root, [], { env: env() });
   assert.equal(after.status, 0, after.stderr);
-  assert.equal(after.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
+  assertQuiescentHandoff(after.stdout);
 });
 
 function activeSessionFixture(t) {
@@ -455,7 +479,7 @@ for (const command of ["go:", "continue"]) {
       env: env({ NODE_OPTIONS: `--require=${LEGACY_EXECUTION_PERMIT_BLOCKER}` }),
     });
     assert.equal(after.status, 0, after.stderr || after.stdout);
-    assert.equal(after.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
+    assertQuiescentHandoff(after.stdout);
   });
 }
 
@@ -463,7 +487,7 @@ test("close detaches without dispatch and the next bare invocation resumes the s
   const { root, session, workspace } = activeSessionFixture(t);
   const closed = runRaw(root, ["close"], { env: env() });
   assert.equal(closed.status, 0, closed.stderr || closed.stdout);
-  assert.equal(closed.stdout, "Stopped safely — continuation is automatic next time.\n");
+  assertDrainHandoff(closed.stdout);
   assert.equal(git(workspace.workspacePath, ["rev-parse", "HEAD"]), session.base.commit);
   assert.equal(fs.existsSync(path.join(workspace.workspacePath, "src", "result.txt")), false);
 
@@ -495,7 +519,7 @@ test("unexpected direct-workspace bytes are preserved while continuation self-he
 
   const after = runRaw(root, [], { env: env() });
   assert.equal(after.status, 0, after.stderr || after.stdout);
-  assert.equal(after.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
+  assertQuiescentHandoff(after.stdout);
 });
 
 test("go advances retained owner-goal ingress instead of becoming a replacement request", (t) => {
@@ -513,19 +537,23 @@ test("bare meta-harness reports quiescent product observation when no result is 
   const root = repo(t);
   const result = runRaw(root, [], { env: env() });
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
+  assertQuiescentHandoff(result.stdout);
 });
 
 test("private host projection preserves human result text without exposing lifecycle topology", (t) => {
   const root = repo(t);
   const result = runRaw(root, [], { env: env({ META_HARNESS_INTERNAL_HOST_RESULT: "1" }) });
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.deepEqual(JSON.parse(result.stdout), {
-    schemaVersion: "meta-host-result/v1",
-    kind: "USE_PRODUCT",
-    externalPacketDigests: [],
-    text: "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.",
-  });
+  const parsed = JSON.parse(result.stdout);
+  assert.equal(parsed.schemaVersion, "meta-host-result/v2");
+  assert.equal(parsed.kind, "USE_PRODUCT");
+  assert.deepEqual(parsed.externalPacketDigests, []);
+  assert.equal(parsed.handoff.status, "No product gap is currently observed.");
+  assert.equal(parsed.handoff.presentation.kind, "AUTO");
+  assert.equal(parsed.presentation.schemaVersion, "human-presentation/v1");
+  assert.equal(parsed.presentation.kind, "TEXT");
+  assert.equal(parsed.presentation.text, parsed.text);
+  assertQuiescentHandoff(parsed.text);
   assert.doesNotMatch(result.stdout, /workspaceId|sessionDigest|claimDigest|generation/u);
 });
 
@@ -575,7 +603,7 @@ test("planner objective is temporary continuity and clears after a quiescent no-
     env: env({ FAKE_PLANNER_CANDIDATES_JSON: "[]" }),
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.equal(result.stdout, "No product gap is currently observed.\nUse the product and continue when observed friction or a new desired result appears.\n");
+  assertQuiescentHandoff(result.stdout);
   assert.equal(readOwnerObjectiveState(root, { optional: true }), null);
 
   const after = runRaw(root, ["inspect", "--json"], { env: env() });
@@ -625,7 +653,8 @@ test("owner attention requires a deterministic controller gate rather than punct
     nextAction: "gh auth login",
   });
   assert.match(command, /GitHub authentication is required\./u);
-  assert.match(command, /^Run: gh auth login$/mu);
+  assert.match(command, /^Next: gh auth login$/mu);
+  assert.doesNotMatch(command, /Decision needed:/u);
 });
 
 test("normal work output projects product consequence instead of lifecycle labels", () => {
@@ -650,7 +679,7 @@ test("normal work output projects product consequence instead of lifecycle label
     nextAction: "Run the same command without --dry-run.",
   });
   assert.match(ready, /Nothing changed yet/u);
-  assert.match(ready, /requested work can run/u);
+  assert.match(ready, /reversible execution path/u);
   assert.match(ready, /Run the same command without --dry-run\./u);
   assert.doesNotMatch(ready, /Ready —|workflow decision/iu);
   assert.doesNotMatch(ready, forbidden);
@@ -722,7 +751,14 @@ test("repo-wave egress uses product meaning and host owner attention agrees with
     },
     outcomes: [],
   };
-  assert.equal(render(ownerResult), "Need you: Use UTC or local time?\n");
+  const ownerOutput = render(ownerResult);
+  assert.match(ownerOutput, /^Status:/u);
+  assert.match(ownerOutput, /^Decision needed: Use UTC or local time\?$/mu);
+  assert.match(ownerOutput, /^- Where:/mu);
+  assert.match(ownerOutput, /^- Why now:/mu);
+  assert.match(ownerOutput, /^- Lock:/mu);
+  assert.match(ownerOutput, /^- Done when:/mu);
+  assert.match(ownerOutput, /^- Why not other candidates:/mu);
   assert.equal(hostKind(ownerResult, []), "OWNER_REQUIRED");
   assert.equal(hostKind(ownerResult, [`sha256:${"b".repeat(64)}`]), "EXTERNAL_OPEN");
 

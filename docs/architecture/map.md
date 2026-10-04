@@ -30,3 +30,15 @@ templates/ are data, not imported code
 The public CLI surface is defined by `lib/command-registry.js`.
 The check-ID surface is defined by `lib/check-id-registry.js`.
 Architecture changes that add commands or check families must update this map and the owning registry together.
+
+## Human Presentation Boundary
+
+Human-facing completion follows one-way dependency flow:
+
+```text
+product facts -> HumanHandoffEnvelope -> presentation-router -> renderer/host
+```
+
+`lib/presentation-router.js` is a pure projection layer. It may read a validated human handoff and emit TEXT, DIAGRAM, or APP presentation data. It must not import command handlers, mutate repository state, create owner decisions, alter validation, or persist presentation output as product truth. Normal CLI output remains the deterministic text projection; structured hosts may consume the richer renderer-neutral projection.
+
+The implementation contract for this boundary is `docs/product/presentation-router-cut.md`.
