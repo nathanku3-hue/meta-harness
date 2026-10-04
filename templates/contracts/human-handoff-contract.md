@@ -47,28 +47,51 @@ egress_source
 
 The source is machine provenance only. It is never rendered into PM chat.
 
-A handoff may also contain a non-authoritative `presentation` hint with `kind`, `shape`, `itemCount`, `hasBranches`, and `hasEvidence`. These fields describe information shape only. They cannot change status, next action, human-stop state, product truth, or validation. Missing presentation hints normalize to conservative text-first defaults.
+A handoff may also contain a non-authoritative `presentation` hint with `kind`, `shape`, `itemCount`, `hasBranches`, `hasEvidence`, and `textMode`. These fields describe information shape and projection mode only. They cannot change status, next action, human-stop state, product truth, or validation. Missing presentation hints normalize to conservative text-first defaults.
 
 ## Render law
 
-Normal PM closure renders exactly one decision surface:
+The complete `HumanHandoffEnvelope` remains the semantic payload. Normal PM text is a deterministic compressed projection of that envelope, not a second summary authored by a model.
+
+Normal text uses one of these shapes:
 
 ```text
-Status: ...
-
-Why: ...
-
-Next: ...
-- Where: ...
-- Why now: ...
-- Lock: ...
-- Done when: ... After that: ...
-- Why not other candidates: ...
-
-Decision needed: ...   # only when human_stop_required=true
+Done — <observable result>
+Next — <next action>
 ```
 
-`Decision needed` is forbidden when `human_stop_required=false`.
+```text
+No current product gap.
+Next — <next action>
+```
+
+```text
+Not done — <current result>
+Next — <next action>
+```
+
+```text
+Blocked — <current blocker>
+Next — <next action>
+```
+
+```text
+Need input — <one concrete owner question>
+Why — <deterministic product-facing reason>
+Then — The same work continues.
+```
+
+```text
+Update — <aggregate product status>
+Next — <next action>
+```
+
+```text
+Stopped safely — current product state is preserved.
+Next — <next action>
+```
+
+Normal PM text contains at most four non-empty lines. `Where`, `Why now`, `Lock`, `Done when`, and `Why not other candidates` remain in the envelope for structured hosts and diagnostics but are not rendered by default. `Decision needed` is never the normal user-facing label; genuine owner input uses exactly one `Need input` line.
 
 ## Evidence boundary
 
@@ -96,8 +119,8 @@ Normal completion, resumed completion, and subagent aggregation must all follow:
 ```text
 raw result
 -> HumanHandoffEnvelope
--> deterministic renderer
--> PM_CLOSURE validator
+-> deterministic Text Presentation Compiler
+-> PM_CLOSURE / text-egress validator
 -> user
 ```
 
@@ -113,6 +136,6 @@ validated HumanHandoffEnvelope
 -> TEXT | DIAGRAM | APP projection
 ```
 
-The text rendering is always retained as the universal fallback. DIAGRAM and APP payloads are renderer-neutral and disposable; they are not persisted as product truth and cannot create owner gates or alter the canonical handoff.
+The compact text projection is always retained as the universal fallback. DIAGRAM and APP payloads are renderer-neutral and disposable; they are not persisted as product truth and cannot create owner gates or alter the canonical handoff. Cut 2 remains text-first and does not add or activate any visualization runtime.
 
 A failed PM-closure validation is an egress failure and must not silently fall back to the raw worker report.

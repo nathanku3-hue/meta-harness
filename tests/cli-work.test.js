@@ -72,28 +72,29 @@ function env(extra = {}) {
   };
 }
 
-function assertStructuredHandoff(output) {
-  assert.match(output, /^Status:/mu);
-  assert.match(output, /^Why:/mu);
-  assert.match(output, /^Next:/mu);
-  assert.match(output, /^- Where:/mu);
-  assert.match(output, /^- Why now:/mu);
-  assert.match(output, /^- Lock:/mu);
-  assert.match(output, /^- Done when:/mu);
-  assert.match(output, /^- Why not other candidates:/mu);
-  assert.doesNotMatch(output, /Outcome:|Worker accountability|On resume I detected|Validation \/ evidence/iu);
+function assertCompactHandoff(output) {
+  const lines = output.split(/\r?\n/u).map((line) => line.trim()).filter(Boolean);
+  assert.ok(lines.length >= 1 && lines.length <= 4);
+  assert.doesNotMatch(output, /^Status:|^Why:|^- Where:|^- Why now:|^- Lock:|^- Done when:|^- Why not other candidates:/mu);
+  assert.doesNotMatch(output, /Outcome:|Worker accountability|On resume I detected|Validation \/ evidence|Decision needed:/iu);
 }
 
 function assertQuiescentHandoff(output) {
-  assertStructuredHandoff(output);
-  assert.match(output, /^Status: No product gap is currently observed\.$/mu);
-  assert.match(output, /^Next: Use the product and continue only when new friction or a new desired result appears\.$/mu);
+  assertCompactHandoff(output);
+  assert.equal(output, [
+    "No current product gap.",
+    "Next — Use the product and continue only when new friction or a new desired result appears.",
+    "",
+  ].join("\n"));
 }
 
 function assertDrainHandoff(output) {
-  assertStructuredHandoff(output);
-  assert.match(output, /^Status: Execution stopped safely; the current durable product state is preserved\.$/mu);
-  assert.match(output, /^Next: Continue the same product objective when execution resumes\.$/mu);
+  assertCompactHandoff(output);
+  assert.equal(output, [
+    "Stopped safely — current product state is preserved.",
+    "Next — Continue the same product objective when execution resumes.",
+    "",
+  ].join("\n"));
 }
 
 test("close on an untouched repository is a zero-side-effect detach before harness bootstrap", (t) => {
@@ -549,7 +550,8 @@ test("private host projection preserves human result text without exposing lifec
   assert.equal(parsed.kind, "USE_PRODUCT");
   assert.deepEqual(parsed.externalPacketDigests, []);
   assert.equal(parsed.handoff.status, "No product gap is currently observed.");
-  assert.equal(parsed.handoff.presentation.kind, "AUTO");
+  assert.equal(parsed.handoff.presentation.kind, "TEXT");
+  assert.equal(parsed.handoff.presentation.textMode, "QUIESCENT");
   assert.equal(parsed.presentation.schemaVersion, "human-presentation/v1");
   assert.equal(parsed.presentation.kind, "TEXT");
   assert.equal(parsed.presentation.text, parsed.text);
@@ -635,7 +637,7 @@ test("owner attention requires a deterministic controller gate rather than punct
     nextAction: "Should exported dates use local time or UTC?",
   });
   assert.match(punctuationOnly, /Date semantics require owner taste\./u);
-  assert.match(punctuationOnly, /Next: Should exported dates use local time or UTC\?/u);
+  assert.match(punctuationOnly, /Next — Should exported dates use local time or UTC\?/u);
   assert.doesNotMatch(punctuationOnly, /Need you:/u);
 
   const legacyProofOwner = render({
@@ -653,7 +655,7 @@ test("owner attention requires a deterministic controller gate rather than punct
     nextAction: "gh auth login",
   });
   assert.match(command, /GitHub authentication is required\./u);
-  assert.match(command, /^Next: gh auth login$/mu);
+  assert.match(command, /^Next — gh auth login$/mu);
   assert.doesNotMatch(command, /Decision needed:/u);
 });
 
@@ -752,13 +754,13 @@ test("repo-wave egress uses product meaning and host owner attention agrees with
     outcomes: [],
   };
   const ownerOutput = render(ownerResult);
-  assert.match(ownerOutput, /^Status:/u);
-  assert.match(ownerOutput, /^Decision needed: Use UTC or local time\?$/mu);
-  assert.match(ownerOutput, /^- Where:/mu);
-  assert.match(ownerOutput, /^- Why now:/mu);
-  assert.match(ownerOutput, /^- Lock:/mu);
-  assert.match(ownerOutput, /^- Done when:/mu);
-  assert.match(ownerOutput, /^- Why not other candidates:/mu);
+  assert.equal(ownerOutput, [
+    "Need input — Use UTC or local time?",
+    "Why — This choice changes product behavior.",
+    "Then — The same work continues.",
+    "",
+  ].join("\n"));
+  assertCompactHandoff(ownerOutput);
   assert.equal(hostKind(ownerResult, []), "OWNER_REQUIRED");
   assert.equal(hostKind(ownerResult, [`sha256:${"b".repeat(64)}`]), "EXTERNAL_OPEN");
 

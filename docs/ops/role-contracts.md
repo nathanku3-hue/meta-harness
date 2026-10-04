@@ -13,7 +13,7 @@ Three information channels stay distinct: `PM_CLOSURE` is the human-facing statu
 
 `PM_CLOSURE` is schema-first and uses the distributable `templates/contracts/human-handoff-contract.md` plus runtime `lib/human-handoff.js`. Normal completion, resumed completion, subagent aggregation, quiescent/`USE_PRODUCT`, and controlled drain completion must all become a HumanHandoffEnvelope, render deterministically, and pass the egress validator before user-visible output.
 
-User-visible closure contains `Status`, `Why`, and one `Next` block with `Where / Why now / Lock / Done when / Why not other candidates`. `Decision needed` appears only when deterministic controller/effect evidence establishes a genuine owner-exclusive boundary. Resume state, worker state, review state, lifecycle labels, and ordinary reversible scheduling cannot manufacture owner attention.
+The complete HumanHandoffEnvelope retains status, reason, next-action context, locks, completion conditions, and rejected alternatives for structured hosts. Default user-visible text is a 2-4 line deterministic projection: result/blocker/action first, then the exact next action. Genuine owner input uses one `Need input — <question>` line plus a deterministic product-facing reason; `Decision needed` and the expanded `Where / Why now / Lock / Done when / Why not other candidates` form are not normal chat output. Resume state, worker state, review state, lifecycle labels, and ordinary reversible scheduling cannot manufacture owner attention.
 
 Requested audits, reviews, and safety evidence are separate surfaces; they do not expand a PM closure into an audit packet. Workers may produce `REVIEW_SPECIMEN` or authorized `MATERIALIZED_IMPLEMENTATION`, never hide either inside a PM closure.
 

@@ -42,7 +42,7 @@ test("init creates per-repo markdown harness state", () => {
   assert.match(workerReportTemplate, /## Validation \/ evidence/);
   assert.match(workerReportTemplate, /This template is a WORKER_REPORT evidence surface/);
   assert.match(workerReportTemplate, /Final chat answers use the schema-first PM_CLOSURE contract/);
-  assert.match(workerReportTemplate, /Normal completion, resumed completion, and subagent aggregation use the same deterministic renderer and egress validator/i);
+  assert.match(workerReportTemplate, /Normal completion, resumed completion, subagent aggregation, quiescence, and controlled stop use the same deterministic Text Presentation Compiler and egress validator/i);
   assert.doesNotMatch(workerReportTemplate, /^Phase:/m);
   assert.doesNotMatch(workerReportTemplate, /^Ship gate tier:/m);
   assert.doesNotMatch(workerReportTemplate, /^Task resolution:/m);

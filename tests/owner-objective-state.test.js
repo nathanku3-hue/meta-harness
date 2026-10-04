@@ -100,10 +100,11 @@ test("product-surface no-candidate completion clears temporary objective and lea
     },
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.match(result.stdout, /^Status: No product gap is currently observed\.$/mu);
-  assert.match(result.stdout, /^Why:/mu);
-  assert.match(result.stdout, /^Next:/mu);
-  assert.match(result.stdout, /^- Where:/mu);
+  assert.equal(result.stdout, [
+    "No current product gap.",
+    "Next — Use the product and continue only when new friction or a new desired result appears.",
+    "",
+  ].join("\n"));
   assert.equal(readOwnerObjectiveState(root, { optional: true }), null);
   assert.equal(git(root, ["rev-parse", "HEAD"]), before.head);
   assert.equal(git(root, ["status", "--porcelain=v1", "--untracked-files=all"]), before.status);

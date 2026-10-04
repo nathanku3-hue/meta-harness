@@ -39,6 +39,6 @@ Human-facing completion follows one-way dependency flow:
 product facts -> HumanHandoffEnvelope -> presentation-router -> renderer/host
 ```
 
-`lib/presentation-router.js` is a pure projection layer. It may read a validated human handoff and emit TEXT, DIAGRAM, or APP presentation data. It must not import command handlers, mutate repository state, create owner decisions, alter validation, or persist presentation output as product truth. Normal CLI output remains the deterministic text projection; structured hosts may consume the richer renderer-neutral projection.
+`lib/text-presentation.js` is the default user-facing projection. It compresses a validated human handoff into 2-4 deterministic text lines and may not mutate or reinterpret semantic fields. `lib/presentation-router.js` remains a pure projection layer for renderer-neutral TEXT/DIAGRAM/APP data; it must not import command handlers, mutate repository state, create owner decisions, alter validation, or persist presentation output as product truth. Normal CLI output is text-only. Structured hosts retain the full envelope alongside the compact text projection.
 
-The implementation contract for this boundary is `docs/product/presentation-router-cut.md`.
+The implementation contracts for this boundary are `docs/product/presentation-router-cut.md` and `docs/product/text-presentation-cut.md`.

@@ -185,7 +185,7 @@ test("renderHuman cannot bypass the PM egress validator with raw worker leakage"
       productResult: "Ship result.",
       nextAction: "Use the result.",
     }),
-    (error) => error && error.code === "MH_HUMAN_HANDOFF_EGRESS",
+    (error) => error && error.code === "MH_TEXT_PRESENTATION_EGRESS",
   );
 });
 
@@ -193,20 +193,22 @@ test("USE_PRODUCT completion cannot bypass the PM egress gate", () => {
   const rendered = capture({
     outcome: "USE_PRODUCT",
   });
-  assert.match(rendered, /^Status: No product gap is currently observed\.$/mu);
-  assert.match(rendered, /^Why:/mu);
-  assert.match(rendered, /^Next:/mu);
-  assert.match(rendered, /^- Where:/mu);
-  assert.doesNotMatch(rendered, /Outcome:|Worker accountability|On resume/iu);
+  assert.equal(rendered, [
+    "No current product gap.",
+    "Next — Use the product and continue only when new friction or a new desired result appears.",
+    "",
+  ].join("\n"));
+  assert.doesNotMatch(rendered, /Status:|Why:|Where:|Outcome:|Worker accountability|On resume/iu);
 });
 
 test("drain completion cannot bypass the PM egress gate", () => {
   const rendered = capture(DRAIN_COMPLETE, { source: "RESUME_COMPLETION" });
-  assert.match(rendered, /^Status: Execution stopped safely;/mu);
-  assert.match(rendered, /^Why:/mu);
-  assert.match(rendered, /^Next:/mu);
-  assert.match(rendered, /^- Where:/mu);
-  assert.doesNotMatch(rendered, /Outcome:|Worker accountability|On resume I detected/iu);
+  assert.equal(rendered, [
+    "Stopped safely — current product state is preserved.",
+    "Next — Continue the same product objective when execution resumes.",
+    "",
+  ].join("\n"));
+  assert.doesNotMatch(rendered, /Status:|Why:|Where:|Outcome:|Worker accountability|On resume I detected/iu);
 });
 
 test("repo-wave aggregation cannot surface legacy owner-decision prose without controller ownerEffect", () => {
@@ -221,5 +223,7 @@ test("repo-wave aggregation cannot surface legacy owner-decision prose without c
     }],
   });
   assert.doesNotMatch(rendered, /Decision needed|Need you|ownerRequest/iu);
-  assert.match(rendered, /Status:/u);
+  assert.match(rendered, /^Update — Completed: The parser is fixed\.$/mu);
+  assert.match(rendered, /^Next — /mu);
+  assert.doesNotMatch(rendered, /^Status:|^Why:|^- Where:/mu);
 });

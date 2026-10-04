@@ -31,7 +31,7 @@ The canonical envelope remains the semantic boundary. Renderers consume it. Rend
 2. Projection is non-authoritative. A route or renderer cannot change status, next action, owner-stop state, validation, Git state, or any durable product fact.
 3. Text remains universal fallback. Every valid envelope has a deterministic text rendering. Rich presentation may supplement it; it may never be required to recover meaning.
 4. No persistent dashboard. Interactive output is disposable result UI, not a new repository or lifecycle surface.
-5. No hidden owner gate. Presentation complexity cannot create a decision request. Decision needed remains legal only when humanStopRequired=true was already established before routing.
+5. No hidden owner gate. Presentation complexity cannot create a decision request. `humanStopRequired=true` must already be established before routing; Cut 2 renders genuine owner input as `Need input`, not `Decision needed`.
 6. No evidence laundering. Machine evidence can be referenced by a rich view only when supplied as bounded presentation evidence; a renderer cannot invent support.
 7. Deterministic route from declared cues. The first cut does not ask another model which medium to use.
 
@@ -44,6 +44,7 @@ The existing business fields stay canonical. Presentation adds one optional, non
     presentation.itemCount    = integer >= 0
     presentation.hasBranches  = boolean
     presentation.hasEvidence  = boolean
+    presentation.textMode     = AUTO in Cut 1; specialized by Cut 2
 
 Absence means AUTO with conservative text routing.
 
@@ -77,7 +78,7 @@ Every route returns:
     text
     model
 
-text is always the validated PM-closure text. model is null for TEXT. DIAGRAM model contains only presentation nodes and edges derived from envelope fields. APP model contains only display sections and items derived from envelope fields.
+text is always the validated PM-closure text. Cut 2 replaces the expanded form-style text with the compact Text Presentation Compiler while preserving the same envelope. model is null for TEXT. DIAGRAM model contains only presentation nodes and edges derived from envelope fields. APP model contains only display sections and items derived from envelope fields.
 
 No route output is persisted as canonical product state.
 

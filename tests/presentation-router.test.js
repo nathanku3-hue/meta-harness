@@ -39,13 +39,14 @@ test("presentation defaults are conservative and text-first", () => {
     itemCount: 0,
     hasBranches: false,
     hasEvidence: false,
+    textMode: "AUTO",
   });
 
   const projection = projectHumanHandoff(normalized);
   assert.equal(projection.schemaVersion, "human-presentation/v1");
   assert.equal(projection.kind, "TEXT");
   assert.equal(projection.model, null);
-  assert.match(projection.text, /^Status:/u);
+  assert.match(projection.text, /^Update — /u);
 });
 
 test("causal or state-shaped branching handoff becomes a renderer-neutral diagram", () => {
@@ -129,7 +130,7 @@ test("presentation hints cannot alter semantic handoff or create owner attention
   assert.doesNotMatch(projectHumanHandoff(rich).text, /Decision needed:/u);
 });
 
-test("repo aggregation with four outcomes selects the app projection through the real handoff builder", () => {
+test("real work path stays text-first even when aggregate shape could support a future app", () => {
   const handoff = humanEnvelopeForResult({
     schemaVersion: "repo-work-wave-result/v2",
     outcome: "PARTIAL",
@@ -140,9 +141,11 @@ test("repo aggregation with four outcomes selects the app projection through the
       { state: "BLOCKED", desiredState: "Publisher is blocked.", observableResult: "Publisher is blocked." },
     ],
   });
+  assert.equal(handoff.presentation.kind, "TEXT");
   assert.equal(handoff.presentation.shape, "COMPARISON");
   assert.equal(handoff.presentation.itemCount, 4);
-  assert.equal(projectHumanHandoff(handoff).kind, "APP");
+  assert.equal(projectHumanHandoff(handoff).kind, "TEXT");
+  assert.equal(projectHumanHandoff(handoff).model, null);
 });
 
 test("presentation hints are bounded data rather than an open UI instruction channel", () => {
