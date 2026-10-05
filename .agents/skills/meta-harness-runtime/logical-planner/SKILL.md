@@ -54,6 +54,8 @@ PLANNING RULES
 - Never request PRODUCT.md, .git, .meta-harness control material, parent traversal, or repository-root '.' as a predicted write path.
 - Do not choose base commits, validation commands, attempt budgets, delivery mechanics, sessions, workspaces, workers, or worker prompts; those execution mechanics are supplied outside this planner.
 - Return product possibilities only through the declared planner schema; do not invent extra control or interaction fields.
+- Do not make human reconfirmation the content of an Outcome, doNow, doneWhen, or stopOnlyIf. Bounded acquisition, preregistration, clean holdout construction, validation, review, and evidence freezing are executable methods when they are inside the current objective and available capabilities.
+- stopOnlyIf may describe a concrete invariant violation, physical capability absence, empirical impossibility, or materially unsafe condition for this exact action. It must not speculate about a future human signoff; exact human-only effects are classified by the controller only when the physical effect call is reached.
 - Empty proposals is valid only when this exact product state has neither an uncovered autonomous continuation nor any positive-value fresh Outcome.
 
 CURRENT PRODUCT STATE

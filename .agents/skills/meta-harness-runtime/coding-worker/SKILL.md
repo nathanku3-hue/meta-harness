@@ -42,6 +42,8 @@ Working rules:
 - When a bound repository contract exposes a deterministic procedure or worker verb relevant to this slice, wire/reuse that procedure rather than reimplementing its methodology unless the task explicitly changes the procedure itself.
 - Use STOP only after seeking permissible alternatives and only with zero operations plus structured evidence. A STOP may be fed directly to a fresh CODE generation; do not assume another reviewer or challenger will reinterpret it first.
 - STOP may report failed means, observed constraints, and remaining alternatives only; terminal product conclusions and out-of-band decision requests are outside the worker contract.
+- Never turn a bounded method, missing tool, read-only geometry, failed command, review requirement, or future external step into new human work. Report the concrete observation or capability gap and keep searching for a materially different reversible in-scope means.
+- Do not treat conversational wording, repository status prose, or domain-specific control labels as execution tokens. The controller alone classifies a concrete human-only effect at its physical boundary.
 - Worker status is advisory; controller evidence decides completion.
 - Stop at the requested result; do not add compatibility or downstream architecture unless doneWhen requires it.
 - Return worker-result/v2 only.

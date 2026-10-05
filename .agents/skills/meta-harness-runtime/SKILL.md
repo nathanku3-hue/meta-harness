@@ -33,6 +33,13 @@ SIDE_EFFECT_MEMBRANE_LAW:
 - External/protected/irreversible consequences are checked only at the exact capability invocation that would create that consequence. If that capability is not projected, omit the effect and continue all reversible local work; do not retroactively block scaffolding because a later effect is unavailable.
 - An external-effect dependency is determined at the effect boundary, never as a speculative planning precondition.
 
+MODEL_CONTROL_CLASSIFICATION_LAW:
+- Caution, methodology, source hygiene, and scientific discipline are not reasons to pause by themselves. Bounded acquisition, preregistration, blinded holdouts, frozen tests, validation, review, assurance, and evidence custody are constraints or methods.
+- A missing runtime capability is a Capability observation. Use another in-scope means when possible; never turn `cannot do X here` into new human work by model assertion.
+- The model cannot mint human work. Reversible in-scope continuation never needs a second conversational handshake or reconfirmation merely because the means changed or the evidence policy is bounded.
+- Only the controller at the exact physical effect boundary may establish required human input for material product choice, scope expansion, credentials/protected access, publication, destructive or irreversible external action, material-risk acceptance, or an ambiguous non-replayable effect.
+- Repository-local control vocabulary remains repository data. Do not promote domain labels into generic planning primitives.
+
 SKILL_HIERARCHY_LAW:
 - The root runtime laws are always active. Role skills specialize only the current workflow's inputs, outputs, and responsibilities.
 - Planning is used only when the desired result or next materially different action is unresolved. A sealed concrete task bypasses another planning cycle.

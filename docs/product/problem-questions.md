@@ -138,18 +138,21 @@ No answer means defer.
 
 ## Q-008 — When should the worker wait?
 
-**Answer:** Only at a named gate.
+**Answer:** Not for a generic gate. Continue reversible in-scope work until a concrete hard outcome constraint or exact human-only effect boundary is reached.
 
-Wait for:
+A missing preferred tool, provider, route, validation method, review, holdout, preregistration, or repository-local "authority" label is an observation or method constraint, not a reason to wait. Try another lawful in-scope means when one exists.
 
-- missing authority;
-- product taste;
-- material risk acceptance;
+Required human input may arise only at the exact controller-proven boundary for:
+
+- product taste or a material product choice;
 - meaningful scope expansion;
-- an irreversible commitment;
-- evidence that invalidates the approved RunSpec.
+- credentials or protected access;
+- publication;
+- destructive or irreversible external action;
+- material risk acceptance;
+- an ambiguous non-replayable effect.
 
-Do not wait for routine reversible implementation already covered by the authorization envelope.
+Evidence that invalidates the current means or plan triggers recomputation. It does not by itself create a human approval step.
 
 ## Q-009 — When should multiple agents be used?
 

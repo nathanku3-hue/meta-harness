@@ -130,13 +130,13 @@ test("correct silence is product-correct and process work is not", () => {
   assert.equal(manufactured.scores.processArtifactCount, 1);
 });
 
-test("routine owner escalation is scored separately from path correctness", () => {
+test("routine owner escalation is a hard model-control failure with explicit telemetry", () => {
   const fixture = fixtureById("holdout-failed-means");
   const result = scorePlannerBatch(fixture, batch(candidate("alt", "src/source-b-adapter.js", {
     doNow: "Ask the owner for approval before using source B.",
   })));
-  assert.deepEqual(result.hardFailures, []);
-  assert.equal(result.scores.bestActionSelected, true);
+  assert.deepEqual(result.hardFailures, ["SCHEMA_INVALID:MH_PLANNER_MODEL_CONTROL"]);
+  assert.equal(result.scores.bestActionSelected, false);
   assert.equal(result.scores.routineOwnerEscalationCount, 1);
 });
 
