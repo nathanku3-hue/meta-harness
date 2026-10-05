@@ -3,7 +3,7 @@
 
 const { createCommandContext, writeOut } = require("../lib/cli-context");
 const { normalizeHarnessError, UsageError } = require("../lib/errors");
-const { commandNames, renderHelp, resolveCommand } = require("../lib/command-registry");
+const { isInternalCommandName, renderHelp } = require("../lib/product-command-surface");
 const { runAutomatic } = require("../lib/commands/work");
 const { renderRepositoryInspection } = require("../lib/repository-inspection");
 const packageJson = require("../package.json");
@@ -17,14 +17,15 @@ function wantsJson(argv) {
   return argv.includes("--json");
 }
 
-function isRepoAdoptionCommand(argv) {
-  return (argv[0] === "sync" && argv[1] === "check")
-    || (argv[0] === "templates" && argv[1] === "install");
+const INTERNAL_REGISTRY_MODULE = "../lib/command-registry";
+
+function resolveInternalCommand(argv) {
+  return require(INTERNAL_REGISTRY_MODULE).resolveCommand(argv);
 }
 
 function usesControlledDrain(argv) {
   if (wantsHelp(argv) || (argv.length === 1 && argv[0] === "--version") || argv[0] === "inspect") return false;
-  if (!argv[0] || !commandNames().includes(argv[0])) return true;
+  if (!argv[0] || !isInternalCommandName(argv[0])) return true;
   return argv[0] === "work";
 }
 
@@ -103,20 +104,18 @@ async function run(argv, context = createCommandContext(), { signal } = {}) {
       renderRepositoryInspection(context, { json });
       return 0;
     }
-    if (!commandNames().includes(command)) {
+    if (!isInternalCommandName(command)) {
       const result = await runAutomatic(argv, context);
       return result?.exitCode || 0;
     }
-    const maintenanceContext = context.env.META_HARNESS_INTERNAL_CLI === "1"
-      || isRepoAdoptionCommand(argv);
-    if (!maintenanceContext) {
+    if (context.env.META_HARNESS_INTERNAL_CLI !== "1") {
       throw new UsageError(`'${command}' is internal; normal usage is meta-harness \"<result>\" or meta-harness`);
     }
-    const resolved = resolveCommand(argv);
+    const resolved = resolveInternalCommand(argv);
     const result = await resolved.handler(resolved.args, context);
     return result?.exitCode || 0;
   } catch (error) {
-    if (!commandNames().includes(argv[0]) && !wantsJson(argv)) return writeProductError(error, context);
+    if (!isInternalCommandName(argv[0]) && !wantsJson(argv)) return writeProductError(error, context);
     return wantsJson(argv) ? writeJsonError(error, context) : writeHumanError(error, context);
   }
 }

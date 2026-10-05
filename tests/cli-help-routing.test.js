@@ -30,12 +30,18 @@ test("normal surface rejects workflow controls while retained diagnostics keep t
   assertCliError(runRaw(ROOT, ["merge"]), "MH_USAGE", /unknown merge action: missing/);
 });
 
-test("repo adoption commands are directly invokable without reopening the workflow console", () => {
+test("repository maintenance commands stay source-only and outside the product surface", () => {
   const cwd = tempDir("meta-harness-adoption-");
-  const install = runRaw(cwd, ["templates", "install"], { productSurface: true });
-  assert.equal(install.status, 0, install.stderr);
-  const check = runRaw(cwd, ["sync", "check", "--target", cwd], { productSurface: true });
-  assert.equal(check.status, 0, check.stderr || check.stdout);
+  assertCliError(
+    runRaw(cwd, ["templates", "install"], { productSurface: true }),
+    "MH_USAGE",
+    /'templates' is internal; normal usage is meta-harness/i,
+  );
+  assertCliError(
+    runRaw(cwd, ["sync", "check", "--target", cwd], { productSurface: true }),
+    "MH_USAGE",
+    /'sync' is internal; normal usage is meta-harness/i,
+  );
 
   const help = run(ROOT, ["--help"]);
   assert.doesNotMatch(help, /templates install|sync check/);

@@ -148,7 +148,7 @@ test("explicit mission replacement persists only owner-authored mission bytes an
   assert.notEqual(after.contentDigest, before.contentDigest);
 });
 
-test("mission change may independently authorize existing-mission dispatch", (t) => {
+test("mission change may independently trigger existing-mission dispatch", (t) => {
   const { root } = repository(t);
   const before = replaceOwnerObjectiveState(root, "mission M");
 

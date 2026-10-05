@@ -385,9 +385,10 @@ test("explicit --base HEAD is the deliberate local-authority escape hatch", (t) 
   assert.equal(git(root, ["rev-parse", "HEAD"]), head);
 });
 
-test("ghost journey accepts one result, shows coarse liveness, validates, and banks locally", (t) => {
+test("ghost journey accepts one result, shows coarse liveness, validates, and banks locally without legacy harness bootstrap", (t) => {
   const root = repo(t);
   const sourceHead = git(root, ["rev-parse", "HEAD"]);
+  assert.equal(fs.existsSync(path.join(root, ".meta-harness")), false);
   const result = runRaw(root, ["Create the delivered result file."], {
     env: env({ FAKE_WORKER_RETRY: "1" }),
   });
@@ -406,6 +407,7 @@ test("ghost journey accepts one result, shows coarse liveness, validates, and ba
   assert.notEqual(git(managedWorktrees[0], ["rev-parse", "HEAD"]), sourceHead);
   assert.equal(git(managedWorktrees[0], ["status", "--short"]), "");
   assert.equal(fs.existsSync(path.join(root, "src", "result.txt")), false);
+  assert.equal(fs.existsSync(path.join(root, ".meta-harness")), false);
   assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness", "work-sessions", "latest.json")), false);
 
   const after = runRaw(root, [], { env: env() });

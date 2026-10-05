@@ -9,6 +9,7 @@ const { spawnSync } = require("node:child_process");
 const test = require("node:test");
 
 const {
+  resolveRelativeRequire,
   staticRelativeRequires,
   verifyPackageClosure,
 } = require("../lib/package-closure");
@@ -62,11 +63,44 @@ function normalizedFiles(packResult) {
   return packResult.files.map((entry) => entry.path).sort();
 }
 
+function staticRuntimeClosure(entryPaths) {
+  const queue = entryPaths.map((entry) => path.join(ROOT, ...entry.split("/")));
+  const seen = new Set();
+  while (queue.length > 0) {
+    const importerPath = queue.shift();
+    if (seen.has(importerPath)) continue;
+    seen.add(importerPath);
+    if (path.extname(importerPath) !== ".js") continue;
+    const source = fs.readFileSync(importerPath, "utf8");
+    for (const request of staticRelativeRequires(source)) {
+      const targetPath = resolveRelativeRequire(ROOT, importerPath, request);
+      if (!seen.has(targetPath)) queue.push(targetPath);
+    }
+  }
+  return [...seen]
+    .map((entry) => path.relative(ROOT, entry).split(path.sep).join("/"))
+    .sort();
+}
+
 test("static relative require parser ignores dynamic and package imports", () => {
   assert.deepEqual(
     staticRelativeRequires("require('./a'); require(\"../b\"); require(name); require('node:fs'); require('./a');"),
     ["../b", "./a"],
   );
+});
+
+test("normal product entrypoints do not reach retired lifecycle or governance machinery", () => {
+  const closure = staticRuntimeClosure(["bin/meta-harness.js", "bin/meta-harness-acp.js"]);
+  const forbidden = closure.filter((entry) =>
+    entry === "lib/project-init.js"
+      || entry === "lib/bootstrap-lock.js"
+      || entry === "lib/harness-state.js"
+      || entry === "lib/truth-paths.js"
+      || /^lib\/context-gate(?:-|\.js)/u.test(entry)
+      || /^lib\/governance(?:-|\.js)/u.test(entry)
+      || entry === "lib/execution-readiness.js"
+      || /^lib\/repo-rollup-autonomy-approval(?:-|\.js)/u.test(entry));
+  assert.deepEqual(forbidden, []);
 });
 
 test("package closure rejects a source-only relative dependency", (t) => {
@@ -96,6 +130,11 @@ test("0.4 tarball ships the product path without the historical command console"
   assert.equal(dry.length, 1);
   assert.equal(dry[0].version, "0.4.0");
   const dryFiles = normalizedFiles(dry[0]);
+  const expectedRuntimeFiles = staticRuntimeClosure(["bin/meta-harness.js", "bin/meta-harness-acp.js"])
+    .filter((entry) => /^(?:bin|lib)\/.*\.js$/u.test(entry));
+  const shippedRuntimeFiles = dryFiles
+    .filter((entry) => /^(?:bin|lib)\/.*\.js$/u.test(entry));
+  assert.deepEqual(shippedRuntimeFiles, expectedRuntimeFiles);
   const closure = verifyPackageClosure({ packageRoot: ROOT, packedFiles: dryFiles });
   assert.ok(closure.javascriptEntryCount > 0);
   assert.ok(closure.staticRelativeDependencyCount > 0);
@@ -156,8 +195,7 @@ test("0.4 tarball ships the product path without the historical command console"
   ]) assert.equal(fs.existsSync(path.join(installedRoot, sourceOnly)), false, sourceOnly);
   const installedHandlers = fs.readdirSync(path.join(installedRoot, "lib", "commands")).sort();
   assert.deepEqual(installedHandlers, ["work.js"]);
-  const registry = require(path.join(installedRoot, "lib", "command-registry.js"));
-  assert.equal(registry.commandRegistry().every((entry) => entry.internal), true);
+  assert.equal(fs.existsSync(path.join(installedRoot, "lib", "command-registry.js")), false);
 
   const help = spawnSync(process.execPath, [path.join(installedRoot, "bin", "meta-harness.js"), "--help"], {
     cwd: projectRoot,

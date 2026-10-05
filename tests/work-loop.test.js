@@ -88,7 +88,7 @@ function stoppedResult() {
   };
 }
 
-test("model-facing validation failure translates authority-shaped errors into capability observations", () => {
+test("model-facing validation failure translates access errors into capability observations", () => {
   const observation = validationFailureObservation([{
     argv: ["node", "validator.js"],
     cwd: ".",

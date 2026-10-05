@@ -63,12 +63,18 @@ test("runtime contract and distributable contract cannot drift on required field
     "USE_PRODUCT",
     "There is no direct raw-worker-to-user path.",
     "There is no direct special-exit-to-user path.",
+    "STE-inspired clear technical English",
+    "not a claim of ASD-STE100 compliance",
+    "STE-inspired clear technical English",
+    "not a claim of ASD-STE100 compliance",
+    "Use one stable term for one concept.",
   ]) {
     assert.ok(contract.includes(marker), `missing contract marker: ${marker}`);
   }
 
   const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
-  assert.ok(packageJson.files.includes("templates/**/*.md"));
+  assert.ok(packageJson.files.includes("templates/contracts/human-handoff-contract.md"));
+  assert.equal(packageJson.files.includes("templates/**/*.md"), false);
 });
 
 test("raw worker report and audit dump are rejected from PM closure", () => {
@@ -190,6 +196,27 @@ test("all three completion sources render through the same schema-first gate", (
     assert.match(rendered, /^- Done when:/mu);
     assert.match(rendered, /^- Why not other candidates:/mu);
     assert.doesNotMatch(rendered, /Outcome:|Worker accountability|On resume/iu);
+  }
+});
+
+test("clear-language egress rejects authority-era control vocabulary", () => {
+  for (const status of [
+    "The execution authority approved the next step.",
+    "An approval gate remains before coding.",
+    "Outcome Claim authority is current.",
+    "ExecutionPermit is active.",
+    "WorkspaceLease is current.",
+    "WorldHead permits the work.",
+  ]) {
+    assert.throws(
+      () => capture({
+        outcome: "DONE",
+        observableResult: status,
+        productResult: "Ship result.",
+      }),
+      (error) => error && error.code === "MH_TEXT_PRESENTATION_EGRESS",
+      status,
+    );
   }
 });
 
