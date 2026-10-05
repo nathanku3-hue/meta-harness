@@ -28,12 +28,12 @@ function npmPackDryRun() {
   });
 }
 
-test("package dry-run includes quality module", () => {
+test("package dry-run excludes source-only quality module", () => {
   const result = npmPackDryRun();
   assert.equal(result.status, 0, `ERROR:\n${result.error}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}`);
   const [pack] = JSON.parse(result.stdout);
   const packedFiles = pack.files.map((file) => file.path);
-  assert.equal(packedFiles.includes("lib/quality.js"), true);
+  assert.equal(packedFiles.includes("lib/quality.js"), false);
 });
 
 test("expert-packet builds bounded local review packet", () => {

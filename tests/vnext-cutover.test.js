@@ -218,6 +218,42 @@ test("normal product execution is isolated from source-only semantic-kernel and 
   assert.deepEqual(hits, []);
 });
 
+test("historical context and governance machinery is absent from production source", () => {
+  const offenders = javascriptFiles(LIB)
+    .map((filePath) => path.relative(ROOT, filePath).replaceAll("\\", "/"))
+    .filter((relativePath) =>
+      /^lib\/(?:context-gate(?:-|\.js)|governance(?:-|\.js)|ready-context-gate(?:-|\.js))/.test(relativePath)
+      || [
+        "lib/context-command-options.js",
+        "lib/context-packet-policy.js",
+        "lib/context-packet.js",
+        "lib/context-status-fields.js",
+        "lib/domain-governance.js",
+        "lib/domain-rule-check.js",
+        "lib/commands/context.js",
+        "lib/commands/domain-governance.js",
+        "lib/commands/governance.js",
+        "lib/commands/governance-migration.js",
+        "lib/commands/governance-release.js",
+      ].includes(relativePath));
+  assert.deepEqual(offenders, []);
+
+  const retiredProtocol = /context-gate-(?:satisfied|override)|governance_engine_hash|phase_to_expected_transition|MH_CONTEXT_GATE_001|MH_TRANSITION_GRAPH_001|MH_DOMAIN_GOVERNANCE_001|\.meta-harness\/domain-governance|activation_decision_id|pilot_chain_id/u;
+  const protocolOffenders = javascriptFiles(LIB)
+    .filter((filePath) => retiredProtocol.test(fs.readFileSync(filePath, "utf8")))
+    .map((filePath) => path.relative(ROOT, filePath).replaceAll("\\", "/"));
+  assert.deepEqual(protocolOffenders, []);
+
+  for (const retiredTemplate of [
+    "templates/contracts/context-adoption-contract.md",
+    "templates/contracts/context-gate-schema.json",
+    "templates/skills/context-packet.md",
+    "templates/skills/context-quality-gate.md",
+  ]) {
+    assert.equal(fs.existsSync(path.join(ROOT, retiredTemplate)), false, retiredTemplate);
+  }
+});
+
 test("repository entry recovery does not treat terminal custody labels as product authority", () => {
   const repositoryEntry = read("lib/repository-entry.js");
   assert.match(repositoryEntry, /latestOwnerGoalJournalRecovery/u);

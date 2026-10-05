@@ -208,7 +208,7 @@ test("drift warnings emit source-specific low read-only next-action candidates a
     "ACTION_REVIEW_SECURITY_DRIFT",
     "ACTION_REVIEW_SKILL_REGISTRY_DRIFT",
     "ACTION_REVIEW_SKILL_REGISTRY_DRIFT",
-    "ACTION_REVIEW_GOVERNANCE_COMPATIBILITY_DRIFT",
+    "ACTION_REVIEW_READY_CONTRACT_DRIFT",
   ]);
   assert.deepEqual(candidates(rollup).map((candidate) => candidate.priority), ["medium", "low", "low", "low", "low", "low", "low"]);
   for (const candidate of candidates(rollup)) assertCandidateSchema(candidate);

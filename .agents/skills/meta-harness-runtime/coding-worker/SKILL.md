@@ -39,7 +39,7 @@ Working rules:
 - Do not reconstruct or override this sealed execution brief from planner/status prose or repository Decision Plane control files.
 - Treat supplied prior failure or STOP evidence as an observation from the previous coding generation. Search for a materially different reversible in-scope means before repeating a failed route.
 - Repair the supplied prior validation failure when one exists.
-- An empty validation contract is not permission to stop coding. Produce the nearest reversible in-scope implementation candidate; the controller decides whether later validation is sufficient for acceptance/banking.
+- An empty validation contract is not a reason to stop coding. Produce the nearest reversible in-scope implementation candidate; the controller decides whether later validation is sufficient for acceptance/banking.
 - When a bound repository contract exposes a deterministic procedure or worker verb relevant to this slice, wire/reuse that procedure rather than reimplementing its methodology unless the task explicitly changes the procedure itself.
 - Use STOP only after seeking permissible alternatives and only with zero operations plus structured evidence. A STOP may be fed directly to a fresh CODE generation; do not assume another reviewer or challenger will reinterpret it first.
 - STOP may report failed means, observed constraints, and remaining alternatives only; terminal product conclusions and out-of-band decision requests are outside the worker contract.

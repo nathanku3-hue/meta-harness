@@ -3,6 +3,7 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 const { commandNames, commandRegistry, commandSpecs, renderHelp, resolveCommand } = require("../lib/command-registry");
+const { isInternalCommandName } = require("../lib/product-command-surface");
 const {
   READY_CHECK_IDS,
   READY_INCLUDED_CHECK_IDS,
@@ -22,8 +23,11 @@ test("command registry tracks canonical commands separately from aliases", () =>
   assert.equal(names.includes("brief"), true);
   assert.equal(names.includes("skill"), true);
   assert.equal(names.includes("merge"), true);
-  assert.equal(names.includes("context"), true);
-  assert.equal(names.includes("governance"), true);
+  for (const retired of ["context", "governance", "domain-governance"]) {
+    assert.equal(names.includes(retired), false, retired);
+    assert.equal(isInternalCommandName(retired), false, retired);
+    assert.throws(() => resolveCommand([retired]), /unknown command/u, retired);
+  }
   assert.equal(commandSpecs.some((spec) => Array.isArray(spec.aliases) && spec.aliases.length > 0), false);
 });
 
@@ -45,21 +49,16 @@ test("public command and check registries are deterministic metadata surfaces", 
 
   const checks = checkIdRegistry();
   assert.deepEqual(checks.map((item) => item.id), checks.map((item) => item.id).slice().sort());
-  assert.equal(checks.length, 21);
-  assert.equal(checks.some((item) => item.id === "MH_CONTEXT_GATE_001"), true);
-  assert.equal(checks.some((item) => item.id === "MH_TRANSITION_GRAPH_001"), true);
+  assert.equal(checks.length, 18);
+  for (const retired of ["MH_CONTEXT_GATE_001", "MH_TRANSITION_GRAPH_001", "MH_DOMAIN_GOVERNANCE_001"]) {
+    assert.equal(checks.some((item) => item.id === retired), false, retired);
+  }
   assert.equal(checks.some((item) => item.id === "MH_TRUTH_001"), true);
   assert.equal(new Set(checks.map((item) => item.id)).size, checks.length);
   assert.equal(checks.every((item) => /^MH_[A-Z0-9_]+_\d{3}$/.test(item.id)), true);
   assert.deepEqual(READY_CHECK_IDS, READY_INCLUDED_CHECK_IDS);
-  assert.equal(STRICT_REQUIRED_CHECK_IDS.includes("MH_CONTEXT_GATE_001"), true);
   assert.equal(STRICT_REQUIRED_CHECK_IDS.includes("MH_TRUTH_001"), true);
-  assert.equal(READY_INCLUDED_CHECK_IDS.includes("MH_TRANSITION_GRAPH_001"), true);
-  assert.equal(STRICT_REQUIRED_CHECK_IDS.includes("MH_TRANSITION_GRAPH_001"), false);
-  assert.notDeepEqual(READY_INCLUDED_CHECK_IDS, STRICT_REQUIRED_CHECK_IDS);
-  const transitionGraph = checks.find((item) => item.id === "MH_TRANSITION_GRAPH_001");
-  assert.equal(transitionGraph.includedInReady, true);
-  assert.equal(transitionGraph.strictRequired, false);
+  assert.deepEqual(READY_INCLUDED_CHECK_IDS, STRICT_REQUIRED_CHECK_IDS);
   assert.equal(checks.every((item) => typeof item.includedInReady === "boolean"), true);
   assert.equal(checks.every((item) => typeof item.strictRequired === "boolean"), true);
 });

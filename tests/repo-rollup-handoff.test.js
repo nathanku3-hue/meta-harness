@@ -117,7 +117,7 @@ test("drift warnings produce deterministic read-only handoff items without chang
       writeJson(skillRegistryPath(parent), skillRegistry("1.0.0"));
       writeJson(skillRegistryPath(child), skillRegistry("0.9.0"));
     }, "child has skill registry drift", ["DRIFT_SKILL_REGISTRY_VERSION"]],
-    ["governance", (_parent, _child, ready) => Object.assign(ready, { schema_version: "0.9.0" }), "child has governance compatibility drift", ["DRIFT_READY_SCHEMA_VERSION"]],
+    ["ready-contract", (_parent, _child, ready) => Object.assign(ready, { schema_version: "0.9.0" }), "child ready contract drift", ["DRIFT_READY_SCHEMA_VERSION"]],
   ];
 
   for (const [_name, arrange, reason, warningIds] of cases) {

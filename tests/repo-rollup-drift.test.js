@@ -160,7 +160,7 @@ test("skill registry version and skill version mismatch emit skill drift warning
   assert.deepEqual(ids, ["DRIFT_SKILL_REGISTRY_VERSION", "DRIFT_SKILL_VERSION"]);
 });
 
-test("ready schema version mismatch emits governance drift warning", () => {
+test("ready schema version mismatch emits ready-contract drift warning", () => {
   const { parent, child } = setupReadyChild();
   writeJson(readyPath(child), readyJson({ schema_version: "0.9.0" }));
 
@@ -169,10 +169,10 @@ test("ready schema version mismatch emits governance drift warning", () => {
 
   assert.equal(rollup.repos[0].state, "ready");
   assert.equal(warning.id, "DRIFT_READY_SCHEMA_VERSION");
-  assert.equal(warning.kind, "governance_compatibility");
+  assert.equal(warning.kind, "ready_contract");
 });
 
-test("status without Phase marker emits governance drift warning without changing readiness state", () => {
+test("status without Phase marker is not treated as product drift", () => {
   const parent = tempDir();
   const child = tempDir();
   ensureHarness(parent);
@@ -183,10 +183,9 @@ test("status without Phase marker emits governance drift warning without changin
   });
 
   const rollup = buildRepoRollup(parent, { now: NOW });
-  const warning = rollup.repos[0].drift_warnings[0];
 
   assert.equal(rollup.repos[0].state, "ready");
-  assert.equal(warning.id, "DRIFT_STATUS_PHASE_MARKER");
+  assert.deepEqual(rollup.repos[0].drift_warnings, []);
 });
 
 test("malformed optional drift JSON warns but does not invalidate readiness", () => {
@@ -231,6 +230,5 @@ test("drift warning order is deterministic", () => {
     "DRIFT_SKILL_REGISTRY_VERSION",
     "DRIFT_SKILL_VERSION",
     "DRIFT_READY_SCHEMA_VERSION",
-    "DRIFT_STATUS_PHASE_MARKER",
   ]);
 });

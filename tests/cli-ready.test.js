@@ -9,7 +9,6 @@ const { run, runRaw, tempDir } = require("./helpers/cli");
 const { writePhase5SecurityFixture } = require("./helpers/security-fixture");
 
 const READY_JSON_CHECK_IDS = Object.freeze([
-  "MH_DOMAIN_GOVERNANCE_001",
   "MH_TEST_001",
   "MH_SYNC_001",
   "MH_TRUST_001",
@@ -17,7 +16,6 @@ const READY_JSON_CHECK_IDS = Object.freeze([
   "MH_STATE_001",
   "MH_TRUTH_001",
   "MH_BRIEF_001",
-  "MH_CONTEXT_GATE_001",
   "MH_DECISION_001",
   "MH_QUALITY_001",
   "MH_SECURITY_001",
@@ -29,7 +27,6 @@ const READY_JSON_CHECK_IDS = Object.freeze([
   "MH_GITHUB_SETTINGS_001",
   "MH_SHIPGATE_001",
   "MH_READY_JSON_001",
-  "MH_TRANSITION_GRAPH_001",
 ]);
 
 function readyJsonChecks(overrides = {}) {
@@ -118,7 +115,7 @@ test("ready command pregenerated ready.json override", () => {
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 21, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 18, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks({
       MH_TEST_001: { reason: "overridden test", next_action: "" },
@@ -129,6 +126,42 @@ test("ready command pregenerated ready.json override", () => {
   const testCheck = data.checks.find(c => c.id === "MH_TEST_001");
   assert.equal(testCheck.status, "pass");
   assert.equal(testCheck.reason, "overridden test");
+});
+
+test("pregenerated ready.json rejects retired governance check IDs", () => {
+  const cwd = tempDir();
+  run(cwd, ["init", "Reject retired ready checks"]);
+
+  const { computeReadyStateHash } = require("../lib/ready-check");
+  const stateHash = computeReadyStateHash(cwd);
+  const checks = [...readyJsonChecks(), { id: "MH_CONTEXT_GATE_001", status: "pass" }];
+
+  fs.mkdirSync(path.join(cwd, ".meta-harness"), { recursive: true });
+  fs.writeFileSync(path.join(cwd, ".meta-harness", "ready.json"), JSON.stringify({
+    schema_version: "1.0.0",
+    target: cwd.split(path.sep).join("/"),
+    generated_at: new Date().toISOString(),
+    expires_after: new Date(Date.now() + 60000).toISOString(),
+    git_commit: null,
+    state_hash: stateHash,
+    mode: "local",
+    redacted: true,
+    ok: true,
+    passed: checks.length,
+    failed: 0,
+    skipped: 0,
+    warned: 0,
+    unknown: 0,
+    timed_out: 0,
+    state_hash_algorithm: "sha256:ready-v1",
+    checks,
+  }), "utf8");
+
+  const res = runRaw(cwd, ["ready", "--target", cwd, "--quick", "--read-only", "--json"]);
+  const data = JSON.parse(res.stdout);
+  const readyJsonCheck = data.checks.find((check) => check.id === "MH_READY_JSON_001");
+  assert.equal(readyJsonCheck.status, "fail");
+  assert.match(readyJsonCheck.reason, /unexpected ready check result: MH_CONTEXT_GATE_001/);
 });
 
 test("ready command validates hyphenated --no-exec and --read-only flags", () => {
@@ -169,7 +202,7 @@ test("stale ready.json is rejected due to git_commit mismatch (non-git target ex
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 21, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 18, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks()
   }), "utf8");
@@ -202,7 +235,7 @@ test("stale ready.json is rejected due to git_commit mismatch (git target compar
     mode: "local",
     redacted: true,
     ok: true,
-    passed: 21, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
+    passed: 18, failed: 0, skipped: 0, warned: 0, unknown: 0, timed_out: 0,
     state_hash_algorithm: "sha256:ready-v1",
     checks: readyJsonChecks()
   }), "utf8");

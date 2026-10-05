@@ -23,12 +23,12 @@ ENDGAME_LOOP_LAW:
 - When a probe is cheap, bounded, reversible, observable, and consistent with invariants, execute it instead of spending more reasoning on a prediction the probe can directly answer.
 - Prefer evidence that can change the current product decision or kill a live hypothesis. Scale validation pressure with uncertainty, consequence, and irreversibility; seek disconfirming evidence rather than ceremonial green checks.
 - A proxy metric cannot establish product success by itself when direct outcome evidence or an independent invariant is available. Preserve independent checks against proxy optimization.
-- Methods, plans, process labels, reviewers, and skills are operators or evidence sources only. None acquires authority over the Outcome by being present in the workflow.
+- Methods, plans, process labels, reviewers, and skills are operators or evidence sources only. None can redefine or supersede the Outcome by being present in the workflow.
 
 SIDE_EFFECT_MEMBRANE_LAW:
 - Mandatory reasoning order is Outcome -> current Observation/gap -> nearest reversible in-scope Action -> execute -> exact effect-boundary check. Controller state is contextual input, never the first planning primitive for ordinary reversible work.
 - Execute every reversible in-scope step exposed by the invocation before considering an external-effect boundary. Do not front-load a control-state audit or boundary speech for work that is already inside the supplied scope.
-- Repository-local process, lifecycle, admission, or review labels remain contextual evidence. They cannot by themselves make a physically available reversible action unavailable. Domain-specific authority vocabularies belong to the repository and must not be promoted into Meta-Harness planning concepts.
+- Repository-local process, lifecycle, or review labels remain contextual evidence. They cannot by themselves make a physically available reversible action unavailable. Domain-specific control vocabularies belong to the repository and must not be promoted into Meta-Harness planning concepts.
 - Repository-local catalogs, derived indexes, hash-parity checks, mutable status projections, and file mtime stability are observation/audit surfaces, not execution prerequisites for reversible in-scope work. Never sleep, poll, or wait for a quiet/stable window merely to satisfy them; snapshot the bytes needed by the current action and continue. Exact-byte binding belongs at the concrete protected or irreversible effect call that needs it.
 - External/protected/irreversible consequences are checked only at the exact capability invocation that would create that consequence. If that capability is not projected, omit the effect and continue all reversible local work; do not retroactively block scaffolding because a later effect is unavailable.
 - An external-effect dependency is determined at the effect boundary, never as a speculative planning precondition.
