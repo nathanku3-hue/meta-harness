@@ -51,6 +51,58 @@ test("goal validation resolves one exact npm test command", (t) => {
   assert.equal(Object.isFrozen(resolved.validation[0].argv), true);
 });
 
+test("goal validation narrows native Node tests when exact test paths are in scope", (t) => {
+  const root = repository(t);
+  writePackage(root, { scripts: { test: "node --test" } });
+  fs.mkdirSync(path.join(root, "test"), { recursive: true });
+  fs.writeFileSync(path.join(root, "test", "focused.test.js"), "\n", "utf8");
+  fs.writeFileSync(path.join(root, "test", "feature.test.js"), "\n", "utf8");
+  fs.mkdirSync(path.join(root, "src"), { recursive: true });
+  fs.writeFileSync(path.join(root, "src", "feature.js"), "\n", "utf8");
+  fs.writeFileSync(path.join(root, "src", "unmapped.js"), "\n", "utf8");
+  const commit = commitTree(root, "focused node tests");
+
+  const focused = resolveGoalValidation(root, commit, ["test/focused.test.js"]);
+  assert.deepEqual(focused.validation, [{
+    argv: ["node", "--test", "test/focused.test.js"],
+    cwd: ".",
+    timeoutSeconds: 300,
+  }]);
+  assert.match(focused.reason, /scope-nearest Node test file/u);
+
+  const sourceOnly = resolveGoalValidation(root, commit, ["src/feature.js"]);
+  assert.deepEqual(sourceOnly.validation[0].argv, ["node", "--test", "test/feature.test.js"]);
+
+  const unmapped = resolveGoalValidation(root, commit, ["src/unmapped.js"]);
+  assert.deepEqual(unmapped.validation[0].argv, ["npm", "test"]);
+
+  const mixedUnsafe = resolveGoalValidation(root, commit, ["src/unmapped.js", "test/focused.test.js"]);
+  assert.deepEqual(mixedUnsafe.validation[0].argv, ["npm", "test"]);
+
+  const mixedConfig = resolveGoalValidation(root, commit, ["src/feature.js", "package.json"]);
+  assert.deepEqual(mixedConfig.validation[0].argv, ["npm", "test"]);
+});
+
+test("goal validation narrows pytest when exact Python test paths are in scope", (t) => {
+  const root = repository(t);
+  fs.writeFileSync(path.join(root, "pyproject.toml"), "[project]\nname='fixture'\n", "utf8");
+  fs.mkdirSync(path.join(root, "tests"), { recursive: true });
+  fs.mkdirSync(path.join(root, "fixture"), { recursive: true });
+  fs.writeFileSync(path.join(root, "tests", "test_feature.py"), "def test_ok():\n    assert True\n", "utf8");
+  fs.writeFileSync(path.join(root, "fixture", "feature.py"), "VALUE = 1\n", "utf8");
+  const commit = commitTree(root, "focused python tests");
+  const resolved = resolveGoalValidation(root, commit, ["tests/test_feature.py"]);
+  assert.deepEqual(resolved.validation, [{
+    argv: ["python", "-m", "pytest", "tests/test_feature.py"],
+    cwd: ".",
+    timeoutSeconds: 300,
+  }]);
+  assert.match(resolved.reason, /scope-nearest python test file/u);
+
+  const mapped = resolveGoalValidation(root, commit, ["fixture/feature.py"]);
+  assert.deepEqual(mapped.validation[0].argv, ["python", "-m", "pytest", "tests/test_feature.py"]);
+});
+
 test("goal validation chooses package-manager-native commands from sealed lockfiles", (t) => {
   const root = repository(t);
   writePackage(root, { scripts: { test: "node --test" } });

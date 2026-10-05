@@ -46,27 +46,35 @@ function lines(text) {
   return text.split(/\r?\n/u).map((line) => line.trim()).filter(Boolean);
 }
 
-test("completion is two compact owner-facing lines", () => {
-  const result = compileTextPresentation(envelope("COMPLETION"));
+test("terminal completion can be one compact owner-facing line", () => {
+  const result = compileTextPresentation(envelope("COMPLETION", { next: null }));
   assert.equal(result.schemaVersion, "human-text-presentation/v1");
   assert.equal(result.mode, "COMPLETION");
-  assert.equal(result.text, "Done — CSV export works and validation passed.\nNext — Use the result.\n");
-  assert.equal(lines(result.text).length, 2);
+  assert.equal(result.text, "Done — CSV export works and validation passed.\n");
+  assert.equal(lines(result.text).length, 1);
 });
 
-test("quiescent, continuation, blocker, aggregate, and safe-stop stay within two lines", () => {
-  const cases = [
+test("explicit next remains supported when terminal callers truly have one", () => {
+  const result = compileTextPresentation(envelope("COMPLETION"));
+  assert.equal(result.text, "Done — CSV export works and validation passed.\nNext — Use the result.\n");
+});
+
+test("terminal quiescent and safe-stop omit synthetic next while active modes keep it", () => {
+  for (const [mode, firstLine] of [
     ["QUIESCENT", "No current product gap."],
+    ["SAFE_STOP", "Stopped safely — current product state is preserved."],
+  ]) {
+    const result = compileTextPresentation(envelope(mode, { next: null }));
+    assert.deepEqual(lines(result.text), [firstLine], mode);
+  }
+
+  for (const [mode, firstLine] of [
     ["CONTINUATION", "Not done — CSV export works and validation passed."],
     ["BLOCKER", "Blocked — CSV export works and validation passed."],
     ["AGGREGATE", "Update — CSV export works and validation passed."],
-    ["SAFE_STOP", "Stopped safely — current product state is preserved."],
-  ];
-  for (const [mode, firstLine] of cases) {
+  ]) {
     const result = compileTextPresentation(envelope(mode));
-    assert.equal(lines(result.text).length, 2, mode);
-    assert.equal(lines(result.text)[0], firstLine, mode);
-    assert.equal(lines(result.text)[1], "Next — Use the result.", mode);
+    assert.deepEqual(lines(result.text), [firstLine, "Next — Use the result."], mode);
   }
 });
 
@@ -142,7 +150,7 @@ test("real work-result adapters assign text modes without changing semantic fiel
   }));
   assert.equal(done.presentation.textMode, "COMPLETION");
   assert.equal(done.status, "CSV export works.");
-  assert.equal(done.next.action, "Use CSV export.");
+  assert.equal(done.next, null);
   assert.equal(done.humanStopRequired, false);
 
   const owner = normalizeEnvelope(humanEnvelopeForResult({

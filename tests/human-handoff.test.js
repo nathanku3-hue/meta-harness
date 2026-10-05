@@ -96,6 +96,22 @@ test("embedded lifecycle metadata is rejected even when pasted into Status", () 
   assert.match(errors.join("\n"), /embedded lifecycle metadata/u);
 });
 
+test("terminal envelopes may omit next but active envelopes may not", () => {
+  const terminal = normalizeEnvelope(baseEnvelope({
+    next: null,
+    presentation: { textMode: "COMPLETION" },
+  }));
+  assert.equal(terminal.next, null);
+
+  assert.throws(
+    () => normalizeEnvelope(baseEnvelope({
+      next: null,
+      presentation: { textMode: "CONTINUATION" },
+    })),
+    /next is required while product work remains active/u,
+  );
+});
+
 test("egress source is mandatory instead of silently defaulting to normal", () => {
   const envelope = baseEnvelope();
   delete envelope.egressSource;
@@ -189,26 +205,18 @@ test("renderHuman cannot bypass the PM egress validator with raw worker leakage"
   );
 });
 
-test("USE_PRODUCT completion cannot bypass the PM egress gate", () => {
+test("USE_PRODUCT completion cannot bypass the PM egress gate or manufacture next work", () => {
   const rendered = capture({
     outcome: "USE_PRODUCT",
   });
-  assert.equal(rendered, [
-    "No current product gap.",
-    "Next — Use the product and continue only when new friction or a new desired result appears.",
-    "",
-  ].join("\n"));
-  assert.doesNotMatch(rendered, /Status:|Why:|Where:|Outcome:|Worker accountability|On resume/iu);
+  assert.equal(rendered, "No current product gap.\n");
+  assert.doesNotMatch(rendered, /Next —|Status:|Why:|Where:|Outcome:|Worker accountability|On resume/iu);
 });
 
-test("drain completion cannot bypass the PM egress gate", () => {
+test("drain completion cannot bypass the PM egress gate or manufacture next work", () => {
   const rendered = capture(DRAIN_COMPLETE, { source: "RESUME_COMPLETION" });
-  assert.equal(rendered, [
-    "Stopped safely — current product state is preserved.",
-    "Next — Continue the same product objective when execution resumes.",
-    "",
-  ].join("\n"));
-  assert.doesNotMatch(rendered, /Status:|Why:|Where:|Outcome:|Worker accountability|On resume I detected/iu);
+  assert.equal(rendered, "Stopped safely — current product state is preserved.\n");
+  assert.doesNotMatch(rendered, /Next —|Status:|Why:|Where:|Outcome:|Worker accountability|On resume I detected/iu);
 });
 
 test("repo-wave aggregation cannot surface legacy owner-decision prose without controller ownerEffect", () => {
@@ -222,8 +230,7 @@ test("repo-wave aggregation cannot surface legacy owner-decision prose without c
       ownerRequest: { question: "This legacy field should not stop the user." },
     }],
   });
-  assert.doesNotMatch(rendered, /Decision needed|Need you|ownerRequest/iu);
-  assert.match(rendered, /^Update — Completed: The parser is fixed\.$/mu);
-  assert.match(rendered, /^Next — /mu);
+  assert.doesNotMatch(rendered, /Decision needed|Need you|ownerRequest|Next —/iu);
+  assert.equal(rendered, "Done — The parser is fixed.\n");
   assert.doesNotMatch(rendered, /^Status:|^Why:|^- Where:/mu);
 });

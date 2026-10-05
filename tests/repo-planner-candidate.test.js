@@ -1,6 +1,8 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const test = require("node:test");
 
 const { replaceOwnerObjectiveState } = require("../lib/owner-objective-state");
@@ -14,7 +16,7 @@ const {
   validatePlannerCandidateBatch,
 } = require("../lib/repo-planner-candidate");
 const { createGoalWorkSession } = require("../lib/work-session");
-const { repository } = require("./helpers/linear-product-head");
+const { git, repository } = require("./helpers/linear-product-head");
 
 function candidate(id = "a", paths = [`src/${id}`]) {
   return {
@@ -131,6 +133,21 @@ test("OWNER_GOAL and REPO_RUN sessions pin PRODUCT without semantic or proof top
       assert.equal(Object.hasOwn(session, obsolete), false, obsolete);
     }
   }
+});
+
+test("planner candidate can materialize before a deterministic validation route exists", (t) => {
+  const { root } = repository(t);
+  fs.rmSync(path.join(root, ".meta-harness", "validation.json"));
+  git(root, ["add", "-A"]);
+  git(root, ["commit", "-m", "remove deterministic validation"]);
+  const productCommit = initialize(root, git(root, ["rev-parse", "HEAD"]));
+
+  const prepared = preparePlannerCandidate(root, null, candidate("a"));
+  assert.equal(prepared.base.commit, productCommit);
+  assert.deepEqual(prepared.validation, []);
+
+  const materialized = materializePreparedPlannerRun(root, null, prepared);
+  assert.deepEqual(materialized.session.validation, []);
 });
 
 test("controller derives exact boundary, Git base, validation, attempts, and local-only delivery", (t) => {

@@ -15,8 +15,11 @@ const { readRunEventsForSession, commonGitDirectory: journalCommonGitDirectory }
   return { ...journal, commonGitDirectory: git.commonGitDirectory };
 })();
 const { validationFailureObservation } = require("../lib/model-observation");
+const { pinProductDirection } = require("../lib/product-direction");
+const { createGoalWorkSession } = require("../lib/work-session");
 const { DRAIN_COMPLETE, runWork } = require("../lib/work-loop");
 const {
+  git,
   persistInitial,
   proposal,
   repository,
@@ -97,6 +100,58 @@ test("model-facing validation failure translates authority-shaped errors into ca
   assert.doesNotMatch(observation, /permission denied|EACCES|unauthorized|forbidden/iu);
 });
 
+test("missing validation does not block coding but still blocks acceptance and banking", async (t) => {
+  const { root } = repository(t);
+  fs.rmSync(path.join(root, ".meta-harness", "validation.json"));
+  git(root, ["add", "-A"]);
+  git(root, ["commit", "-m", "remove validation route"]);
+  const session = createGoalWorkSession({
+    goal: "Deliver a.",
+    repositoryPath: root,
+    productDirection: pinProductDirection(root),
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
+    allowedPaths: ["src/a"],
+    validation: [],
+    delivery: { push: false },
+  });
+  let workerCalls = 0;
+  const result = await runWork({
+    repositoryPath: root,
+    session,
+    runner: async () => {
+      workerCalls += 1;
+      return doneResult("a");
+    },
+  });
+
+  assert.equal(workerCalls, 1);
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.deepEqual(result.changedPaths, ["src/a/result.txt"]);
+  assert.equal(result.delivery.validation, "not_completed");
+  assert.equal(result.delivery.commit.status, "not_attempted");
+  assert.equal(result.acceptance, null);
+  assert.match(result.blocker, /durable candidate.*no deterministic validation command/iu);
+});
+
+test("unavailable verifier does not pre-block coding and preserves the durable candidate", { skip: process.platform === "linux" }, async (t) => {
+  const fixture = materializedRun(t, "a");
+  let workerCalls = 0;
+  const result = await runWork({
+    repositoryPath: fixture.root,
+    session: fixture.session,
+    runner: async () => {
+      workerCalls += 1;
+      return doneResult("a");
+    },
+  });
+
+  assert.equal(workerCalls, 1);
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.deepEqual(result.changedPaths, ["src/a/result.txt"]);
+  assert.equal(result.delivery.commit.status, "not_attempted");
+  assert.match(result.blocker, /durable candidate.*isolated verifier capability is unavailable/iu);
+});
+
 test("validated REPO_RUN reaches local DONE with run capability, acceptance, and no proof/permit authority", { skip: process.platform !== "linux" }, async (t) => {
   const fixture = materializedRun(t, "a");
   const result = await runWork({
@@ -109,6 +164,7 @@ test("validated REPO_RUN reaches local DONE with run capability, acceptance, and
   assert.deepEqual(result.changedPaths, ["src/a/result.txt"]);
   assert.equal(result.validation.every((entry) => entry.passed), true);
   assert.ok(result.acceptance?.acceptanceDigest);
+  assert.ok(Array.isArray(result.acceptance.validation) && result.acceptance.validation.length > 0);
   assert.equal(result.delivery.commit.status, "committed");
   assert.equal(result.executionAttempts.length, 1);
   assert.equal(result.executionAttempts[0].mechanism, "RUN_CAPABILITY");

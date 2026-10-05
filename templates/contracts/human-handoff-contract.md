@@ -22,11 +22,20 @@ Meta-Harness must not infer domain authority from repository-local lifecycle voc
 
 ## Envelope
 
-A valid human handoff contains:
+A valid human handoff always contains:
 
 ```text
 status
 why
+human_stop_required
+human_stop_reason
+decision_question
+egress_source
+```
+
+`next` is required only while actionable product work remains. Terminal `COMPLETION`, `QUIESCENT`, and `SAFE_STOP` handoffs may set `next=null` rather than manufacture a follow-up action. When present, `next` contains:
+
+```text
 next.action
 next.where
 next.why_now
@@ -34,10 +43,6 @@ next.locks[]
 next.done_when
 next.unlocks
 next.why_not_others[1..3]
-human_stop_required
-human_stop_reason
-decision_question
-egress_source
 ```
 
 `egress_source` is one of:
@@ -53,16 +58,14 @@ A handoff may also contain a non-authoritative `presentation` hint with `kind`, 
 
 The complete `HumanHandoffEnvelope` remains the semantic payload. Normal PM text is a deterministic compressed projection of that envelope, not a second summary authored by a model.
 
-Normal text uses one of these shapes:
+Normal text uses the smallest truthful shape. Terminal completion/quiescence does not invent continuation:
 
 ```text
 Done — <observable result>
-Next — <next action>
 ```
 
 ```text
 No current product gap.
-Next — <next action>
 ```
 
 ```text
@@ -88,10 +91,11 @@ Next — <next action>
 
 ```text
 Stopped safely — current product state is preserved.
-Next — <next action>
 ```
 
-Normal PM text contains at most four non-empty lines. `Where`, `Why now`, `Lock`, `Done when`, and `Why not other candidates` remain in the envelope for structured hosts and diagnostics but are not rendered by default. `Decision needed` is never the normal user-facing label; genuine owner input uses exactly one `Need input` line.
+When real in-scope work remains, continuation/blocker/aggregate modes retain an explicit `Next — <next action>` line.
+
+Normal PM text contains at most four non-empty lines. `Where`, `Why now`, `Lock`, `Done when`, and `Why not other candidates` exist only when a real `next` action exists; they remain structured-host/diagnostic data and are not rendered by default. `Decision needed` is never the normal user-facing label; genuine owner input uses exactly one `Need input` line.
 
 ## Evidence boundary
 

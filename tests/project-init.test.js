@@ -86,7 +86,7 @@ test("repo registration silently completes the same child runtime hooks", () => 
   assert.equal(fs.existsSync(path.join(child, ".meta-harness", "templates")), false);
 });
 
-test("normal bare journey silently completes fresh repository hooks without an init command", () => {
+test("normal bare quiescence does not bootstrap governance state", () => {
   const root = tempDir("meta-harness-normal-init-");
   assert.equal(spawnSync("git", ["init"], { cwd: root, encoding: "utf8", shell: false }).status, 0);
   writeProductMd(root);
@@ -94,14 +94,22 @@ test("normal bare journey silently completes fresh repository hooks without an i
 
   const result = runRaw(root, []);
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.equal(result.stdout, [
-    "No current product gap.",
-    "Next — Use the product and continue only when new friction or a new desired result appears.",
-    "",
-  ].join("\n"));
-  assert.equal(fs.existsSync(path.join(root, ".meta-harness", "status.md")), true);
-  assert.equal(fs.existsSync(path.join(root, ".meta-harness", "events.jsonl")), true);
-  assert.equal(fs.existsSync(path.join(root, ".meta-harness", "templates")), false);
+  assert.equal(result.stdout, "No current product gap.\n");
+  assert.equal(fs.existsSync(path.join(root, ".meta-harness")), false);
+});
+
+test("bare quiescence does not reconcile partial governance state", () => {
+  const root = tempDir("meta-harness-quiescent-partial-state-");
+  assert.equal(spawnSync("git", ["init"], { cwd: root, encoding: "utf8", shell: false }).status, 0);
+  writeProductMd(root);
+  writeFile(root, ".meta-harness/status.md", "# Existing partial state\n");
+
+  const result = runRaw(root, []);
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(result.stdout, "No current product gap.\n");
+  assert.equal(fs.readFileSync(path.join(root, ".meta-harness", "status.md"), "utf8"), "# Existing partial state\n");
+  assert.equal(fs.existsSync(path.join(root, ".meta-harness", "events.jsonl")), false);
+  assert.equal(fs.existsSync(path.join(root, ".meta-harness", "workers")), false);
 });
 
 test("existing starter state silently receives missing runtime hooks without rewriting status or templates", () => {
@@ -143,7 +151,7 @@ test("silent reconcile rejects hard-linked runtime hooks instead of following al
   assert.equal(fs.existsSync(path.join(root, ".meta-harness", "workers", "worker-report-template.md")), false);
 });
 
-test("inspect silently completes fresh hooks and returns declared startup context without a bootstrap command", () => {
+test("inspect is read-only and returns declared startup context without bootstrap", () => {
   const root = tempDir("meta-harness-inspect-init-");
   assert.equal(spawnSync("git", ["init"], { cwd: root, encoding: "utf8", shell: false }).status, 0);
   writeDeclaration(root);
@@ -157,8 +165,7 @@ test("inspect silently completes fresh hooks and returns declared startup contex
   assert.equal(payload.action, "IDLE");
   assert.equal(payload.startupContext.status, "READY");
   assert.deepEqual(payload.startupContext.lines, ["Loop: ANALYZE", "Next: WAIT"]);
-  assert.equal(fs.existsSync(path.join(root, ".meta-harness", "status.md")), true);
-  assert.equal(fs.existsSync(path.join(root, ".meta-harness", "templates")), false);
+  assert.equal(fs.existsSync(path.join(root, ".meta-harness")), false);
 });
 
 test("project startup projection validates declared canonical sources and freshness", () => {

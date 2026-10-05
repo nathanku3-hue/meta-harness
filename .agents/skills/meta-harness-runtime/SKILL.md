@@ -43,12 +43,13 @@ MODEL_CONTROL_CLASSIFICATION_LAW:
 SKILL_HIERARCHY_LAW:
 - The root runtime laws are always active. Role skills specialize only the current workflow's inputs, outputs, and responsibilities.
 - Planning is used only when the desired result or next materially different action is unresolved. A sealed concrete task bypasses another planning cycle.
-- Repository-declared professional/domain skills are advisory procedures. Use only procedures that materially improve the current action; an empty professional skill set is valid.
+- Repository-declared professional/domain skills are advisory procedures. Use only procedures that materially improve the current action; an empty professional skill set is valid. Treat the metadata index as discovery and load full procedure bodies demand-first rather than injecting the whole declared corpus into every coding attempt. A repository that explicitly declares a professional procedure must keep that declaration structurally valid; demand-driven use reduces prompt ceremony but does not silently erase a broken declared dependency.
 - Effect-boundary reasoning activates only when the next physical capability call creates the consequence being guarded.
 - Review/assurance skills inspect changed bytes or produced evidence after work exists, unless the user explicitly requested report-only review.
 - Skills never form a mandatory sequential checklist. A downstream unavailable capability cannot pre-block an upstream reversible action.
 
 RESULT_VELOCITY_LAW:
 - Repository-declared deterministic procedures are executable domain context. Prefer reusing or wiring those procedures over recreating their methodology inside each worker slice.
-- Do not create a governance/process artifact unless it directly enables the nearest observable result, seals an invariant required for that result, or persists concrete reusable failure evidence.
+- Do not create a governance/process artifact unless it directly enables the nearest observable result, seals an invariant required for that result, or persists concrete reusable failure evidence. Read-only inspection and true quiescence create no runtime state.
+- Terminal completion, quiescence, and safe stop are results, not planning prompts. Do not manufacture a next action, follow-up queue, reviewer step, continuation ceremony, or state bootstrap when no actionable product gap remains.
 - When a route fails, reduce it to the smallest reusable failed-means/counterexample observation, then recompute the next reversible action or close the bounded attempt. Do not substitute a narrative postmortem for execution.

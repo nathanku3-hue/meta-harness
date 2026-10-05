@@ -88,6 +88,39 @@ test("declaration-only eligibility ignores undeclared directories and dirty skil
   assert.doesNotMatch(renderProfessionalSkillBodies(root, { productCommit }), /DIRTY BYTES/u);
 });
 
+test("coding context injects only professionally relevant bodies while keeping a discovery index", (t) => {
+  const root = repo(t);
+  write(root, ".agents/skills/api-contract-review/SKILL.md", skill(
+    "api-contract-review",
+    "Review API behavior against the declared contract.",
+    "API BODY SHOULD BE SELECTED",
+  ));
+  write(root, ".agents/skills/database-tuning/SKILL.md", skill(
+    "database-tuning",
+    "Tune database indexes and query plans.",
+    "DATABASE BODY SHOULD STAY OUT",
+  ));
+  write(root, ".meta-harness-project.json", `${JSON.stringify({
+    schemaVersion: "meta-harness-project/v1",
+    professionalContext: { skills: [
+      { name: "api-contract-review", path: ".agents/skills/api-contract-review/SKILL.md" },
+      { name: "database-tuning", path: ".agents/skills/database-tuning/SKILL.md" },
+    ] },
+  }, null, 2)}\n`);
+  git(root, ["add", "."]);
+  git(root, ["commit", "-m", "two professional procedures"]);
+  const productCommit = git(root, ["rev-parse", "HEAD"]);
+
+  const rendered = renderProfessionalSkillBodies(root, {
+    productCommit,
+    query: "Fix API endpoint contract parsing.",
+  });
+  assert.match(rendered, /api-contract-review/u);
+  assert.match(rendered, /database-tuning/u);
+  assert.match(rendered, /API BODY SHOULD BE SELECTED/u);
+  assert.doesNotMatch(rendered, /DATABASE BODY SHOULD STAY OUT/u);
+});
+
 test("a committed procedure revision becomes visible only under the later productCommit", (t) => {
   const root = repo(t);
   const firstCommit = commitContext(root);
@@ -106,15 +139,37 @@ test("a committed procedure revision becomes visible only under the later produc
   assert.match(renderProfessionalSkillBodies(root, { productCommit: secondCommit }), /version two/u);
 });
 
-test("missing declared SOP fails closed while no declaration yields an empty universe", (t) => {
+test("missing advisory SOP is omitted without blocking ordinary product context", (t) => {
   const root = repo(t);
   const baseline = git(root, ["rev-parse", "HEAD"]);
   assert.deepEqual(listProfessionalSkillMetadata(root, { productCommit: baseline }), []);
   const broken = commitContext(root, { missing: true });
-  assert.throws(
-    () => listProfessionalSkillMetadata(root, { productCommit: broken }),
-    (error) => error.code === "MH_PROFESSIONAL_SKILL_MISSING",
-  );
+  const metadata = listProfessionalSkillMetadata(root, { productCommit: broken });
+  assert.deepEqual(metadata.map((entry) => entry.name), ["api-contract-review"]);
+  assert.doesNotMatch(renderProfessionalSkillBodies(root, { productCommit: broken }), /missing-procedure/u);
+});
+
+test("malformed advisory professional skill is omitted without blocking ordinary product context", (t) => {
+  const root = repo(t);
+  write(root, ".agents/skills/api-contract-review/SKILL.md", skill(
+    "api-contract-review",
+    "Review API behavior against the declared contract.",
+    "healthy body",
+  ));
+  write(root, ".agents/skills/broken/SKILL.md", "not frontmatter\n");
+  write(root, ".meta-harness-project.json", `${JSON.stringify({
+    schemaVersion: "meta-harness-project/v1",
+    professionalContext: { skills: [
+      { name: "api-contract-review", path: ".agents/skills/api-contract-review/SKILL.md" },
+      { name: "broken", path: ".agents/skills/broken/SKILL.md" },
+    ] },
+  }, null, 2)}\n`);
+  git(root, ["add", "."]);
+  git(root, ["commit", "-m", "malformed optional procedure"]);
+  const productCommit = git(root, ["rev-parse", "HEAD"]);
+
+  const metadata = listProfessionalSkillMetadata(root, { productCommit });
+  assert.deepEqual(metadata.map((entry) => entry.name), ["api-contract-review"]);
 });
 
 test("planner input surfaces immutable repository-declared professional skill metadata", (t) => {

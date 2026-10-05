@@ -81,20 +81,12 @@ function assertCompactHandoff(output) {
 
 function assertQuiescentHandoff(output) {
   assertCompactHandoff(output);
-  assert.equal(output, [
-    "No current product gap.",
-    "Next — Use the product and continue only when new friction or a new desired result appears.",
-    "",
-  ].join("\n"));
+  assert.equal(output, "No current product gap.\n");
 }
 
 function assertDrainHandoff(output) {
   assertCompactHandoff(output);
-  assert.equal(output, [
-    "Stopped safely — current product state is preserved.",
-    "Next — Continue the same product objective when execution resumes.",
-    "",
-  ].join("\n"));
+  assert.equal(output, "Stopped safely — current product state is preserved.\n");
 }
 
 test("close on an untouched repository is a zero-side-effect detach before harness bootstrap", (t) => {
@@ -202,7 +194,7 @@ test("missing allow values fail before validation, workspace, worker, or reposit
   }
 });
 
-test("unsupported validation route replans before worker, workspace, or repository mutation", (t) => {
+test("unsupported validation route allows coding to produce a durable candidate before autonomous replan", (t) => {
   const root = repo(t, { withValidation: false });
   const result = runRaw(ROOT, [
     "work", root,
@@ -213,24 +205,15 @@ test("unsupported validation route replans before worker, workspace, or reposito
   assert.equal(result.status, 1, result.stderr);
   const parsed = JSON.parse(result.stdout);
   assert.equal(parsed.outcome, "REPLAN_REQUIRED");
-  assert.equal(parsed.workspace.mode, "not_created");
-  assert.equal(parsed.attempts, 0);
-  assert.deepEqual(parsed.changedPaths, []);
-  assert.equal(parsed.delivery.validation, "unavailable");
+  assert.equal(parsed.workspace.mode, "isolated");
+  assert.equal(parsed.attempts, 1);
+  assert.deepEqual(parsed.changedPaths, ["src/result.txt"]);
+  assert.equal(parsed.delivery.validation, "not_completed");
+  assert.equal(parsed.delivery.commit.status, "not_attempted");
+  assert.match(parsed.blocker, /durable candidate.*no deterministic validation command/iu);
   assert.equal(fs.existsSync(path.join(root, "src")), false);
-  assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness")), false);
+  assert.equal(fs.existsSync(path.join(root, ".git", "meta-harness")), true);
   assert.equal(git(root, ["status", "--short"]), "");
-
-  const human = runRaw(ROOT, [
-    "work", root,
-    "--goal", "Create the delivered result file.",
-    "--allow", "src",
-  ], { env: env() });
-  assert.equal(human.status, 1, human.stderr);
-  assert.match(human.stdout, /No deterministic validation command could be derived from the sealed base tree\./u);
-  assert.doesNotMatch(human.stdout, /^Blocked:/mu);
-  assert.doesNotMatch(human.stdout, /Workspace:|Commit:|Push:|session|work-session/i);
-  assert.doesNotMatch(human.stdout, /worker-reported/);
 });
 
 test("dry run previews fresh isolation; completed terminal workspace cannot resume or be reused", (t) => {

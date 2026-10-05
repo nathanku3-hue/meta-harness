@@ -29,7 +29,7 @@ If work is interrupted, run:
 meta-harness
 ```
 
-Meta-Harness reconstructs the next action from PRODUCT, Git, run-journal, and recoverable execution facts. The owner does not select a session, actor, validation command, workspace, resume mode, or commit policy.
+Meta-Harness reconstructs the next action from PRODUCT, Git, run-journal, and recoverable execution facts. The owner does not select a session, actor, validation command, workspace, resume mode, or commit policy. Read-only inspection and true quiescence do not bootstrap `.meta-harness/` state merely to record that nothing happened.
 
 To detach from the current interaction without declaring success or abandoning the durable result, use the exact owner turn `close`. It performs no model dispatch or goal mutation and reports `Stopped safely — continuation is automatic next time.` The next bare `meta-harness` invocation resumes from durable facts.
 
@@ -55,9 +55,10 @@ Automatic internal transitions do not become decision requests. Liveness is deli
 When no current product gap is observed:
 
 ```text
-No product gap is currently observed.
-Use the product and continue when observed friction or a new desired result appears.
+No current product gap.
 ```
+
+Terminal completion does not manufacture a follow-up action; Meta-Harness resumes only when a real product gap or new desired result is observed.
 
 Owner intervention is reserved for product/taste decisions, scope expansion, credentials or protected access, destructive action, publication, or material risk. A surfaced owner decision is one question; an external blocker includes the smallest corrective action available.
 
@@ -116,15 +117,15 @@ Supported adapters include:
 - `go.mod` → `go test ./...`;
 - one scope-nearest `.sln` or `.csproj` → `dotnet test`.
 
-Each adapter resolves the scope-nearest project from immutable tree facts and fails closed when allowed paths imply multiple projects or otherwise ambiguous validation. If no deterministic adapter matches, work blocks before workspace creation or worker launch.
+Each adapter resolves the scope-nearest project from immutable tree facts and fails closed when allowed paths imply multiple projects or otherwise ambiguous validation. After candidate materialization, the controller re-resolves against the immutable sealed-base validation semantics using the actual candidate paths: when exact matching Node or pytest tests are provable, it narrows to those files; otherwise the scope-nearest project command remains the fallback. Candidate bytes may not mint or rewrite their own validation authority. If no deterministic adapter matches the sealed base, reversible coding may still produce a durable candidate, but that candidate cannot be accepted or banked until a deterministic validation route is established.
 
 The coding worker is read-only and emits incompatible `worker-result/v2`: advisory `DONE` / `PARTIAL`, or structured `STOP`, plus only typed `WRITE`, `DELETE`, or `MOVE` operations. `STOP` carries zero operations and cannot name an owner, manager, librarian, approver, approval gate, or human question. The controller materializes non-STOP operations, seals one Git-authoritative `candidateTreeOid`, and verifies that exact tree inside the Linux namespace/chroot verifier. Candidate acceptance answers only whether those exact bytes may BANK safely; worker status cannot authorize or veto BANK. Regression failures return to the same bounded result for repair.
 
 ## Post-mutation validation and forward motion
 
-Validation is evidence after mutation, not permission to begin. The coding worker receives the sealed product result and scope, returns typed operations, and cannot mutate the workspace directly. The controller materializes those operations, seals the exact candidate tree, and verifies that candidate with the session's controller-owned validation. Validation failure returns to the same bounded product-solving loop for repair.
+Validation is evidence after mutation, not permission to begin. The coding worker receives the sealed product result and scope, returns typed operations, and cannot mutate the workspace directly. The controller materializes those operations and seals the exact candidate tree first. When deterministic validation is available, it runs the narrowest sealed route capable of falsifying the changed responsibility and widens only when the project/release surface requires it. When validation is unavailable, the durable candidate is retained as work already done, but it is not accepted or banked. Validation failure returns to the same bounded product-solving loop for repair.
 
-There is no pre-execution product-proof compiler or proof-authority assertion on the current path. Candidate acceptance records that the exact sealed bytes satisfied the exact validation contract; the banked Git commit and run journal provide durable recovery facts.
+There is no pre-execution product-proof compiler or proof-authority assertion on the current path. Repository-declared contract bytes are reconstructed from the sealed Git base and may be injected as immutable domain context, but live repository-control drift and repository contract validators are not coding-admission gates; validators run only when an explicit validation path asks for them. Candidate acceptance records both the exact sealed bytes and the exact post-mutation validation contract they satisfied, so later product integration can replay that real obligation even when it was narrower than the initial session capability. The banked Git commit and run journal provide durable recovery facts.
 
 A worker `STOP` is persisted as failed-means evidence. If attempt budget remains, that exact evidence is fed directly to a fresh coding generation, which must choose a materially different in-scope means; repeated identical STOP means are circuit-broken. No reviewer/challenger model is required between STOP and CODE, and owner-exclusive effects are surfaced only from concrete controller/effect evidence.
 
@@ -154,7 +155,7 @@ Fresh planner input is `repo-planner-input/v5`: the owner-authored PRODUCT frame
 
 Each admitted candidate becomes an immutable Outcome plus a `REPO_RUN` work session pinned to the current product commit, bounded write paths, validation, and attempts. Compatible runs may execute concurrently in private worktrees. Validated results bank locally, then product integration prepares against the current Git product head and publishes through one compare-and-swap owner. A stale publisher is repair input: it is rebuilt against the newer head, and retained validation can reject a cumulative regression before the next CAS.
 
-Run journals and immutable Git snapshots provide restart continuity. External proposal dispatch uses intent-first replay identity and persisted observations for the non-reconstructable effect boundary. Retired World lineage, Outcome Claims, semantic authority, pre-execution proof permission, and round-based delegation lifecycle are not part of the normal product path.
+Run journals and immutable Git snapshots provide restart continuity. Repository-declared professional procedures are exposed to coding as a compact discovery index; only bodies with deterministic lexical relevance to the current sealed slice are injected by default, and zero injected bodies is valid. External proposal dispatch uses intent-first replay identity and persisted observations for the non-reconstructable effect boundary. Retired World lineage, Outcome Claims, semantic authority, pre-execution proof permission, and round-based delegation lifecycle are not part of the normal product path.
 
 ## Installation
 

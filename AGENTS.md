@@ -10,7 +10,7 @@ The harness exists to make the owner's desired product state true.
 - Default pre-execution audit count is zero. A request to inspect, review, or plan does not imply a pause unless the owner explicitly requests report-only work.
 - Reversible in-scope coding, validation, local snapshotting, local integration, workspace replacement, and bounded repair are execution, not owner decisions.
 - Ask the owner only for scope expansion, credentials/protected access, irreversible or externally consequential effects, material product choice, publication, or material risk.
-- Skill dispatch is sparse: root Outcome/Observation/Invariant/Capability laws are always on; planning, domain procedures, effect checks, and review are conditional capabilities, never a mandatory sequential gate chain.
+- Skill dispatch is sparse: root Outcome/Observation/Invariant/Capability laws are always on; planning, domain procedures, effect checks, and review are conditional capabilities, never a mandatory sequential gate chain. Repository professional skills are discovered from metadata and their full bodies are loaded only when materially relevant to the current sealed slice.
 
 ## Convergence type law
 
@@ -42,7 +42,7 @@ The harness exists to make the owner's desired product state true.
 
 ## Model boundary
 
-- The coding model receives product result, current observable state, `doneWhen`, allowed paths, validation, available scoped operations, and prior failed-means observations.
+- The coding model receives product result, current observable state, `doneWhen`, allowed paths, the currently available validation capability (which may be empty), available scoped operations, and prior failed-means observations.
 - Model reasoning order is fixed: desired Outcome -> current Observation -> nearest reversible in-scope state transition -> execute/validate. Controller/effect metadata is not a planning primitive for ordinary reversible work.
 - Do not expose controller-internal admission, permission, semantic-control, or workspace-lifecycle topology as the model's mental model.
 - Do not run a pre-execution control-state audit for hypothetical downstream effects. Effect checks are call-site local: only an actual requested external effect is evaluated for replay identity, reversibility, and material consequence.
@@ -52,12 +52,12 @@ The harness exists to make the owner's desired product state true.
 ## Coding-system law
 
 - `meta-harness work` is the primary product path; normal output remains product-facing.
-- Human work-completion output is an egress contract, not a worker-report format: normal, resumed, aggregated, quiescent/USE_PRODUCT, and controlled drain completion must render through the schema-first HumanHandoffEnvelope and PM_CLOSURE validator. Raw WORKER_REPORT, SAW, retry/resume narration, lifecycle state, accountability dumps, and special-exit shortcuts never bypass that gate.
+- Human work-completion output is an egress contract, not a worker-report format: normal, resumed, aggregated, quiescent/USE_PRODUCT, and controlled drain completion must render through the schema-first HumanHandoffEnvelope and PM_CLOSURE validator. Raw WORKER_REPORT, SAW, retry/resume narration, lifecycle state, accountability dumps, and special-exit shortcuts never bypass that gate. Terminal completion/quiescence/safe-stop must not manufacture a `next` action merely to satisfy schema ceremony; `next` exists only while actionable product work remains.
 - ChatGPT/DevSpace direct sessions are read/diagnostic until a sealed native/Meta task defines bounded writable paths, validation, and Git effects.
 - New execution starts from immutable Git state. Coherent predecessor dirt is snapshotted internally without changing the owner's source HEAD, branch, index, or working bytes.
 - The coding worker is read-only with respect to the workspace and returns bounded typed `WRITE`, `DELETE`, or `MOVE` operations. The controller owns materialization, snapshotting, validation, local banking, integration, and permitted external effects.
 - Reject traversal, symlink escapes, protected PRODUCT.md mutation, Git-index mutation by the worker, HEAD/branch mutation by the worker, and writes outside the accepted path boundary.
-- Validation failure is returned for repair. Product success requires end-to-end product proof; lower-level guards cannot establish DONE by themselves.
+- Validation is post-mutation evidence, not coding admission. Missing validation may prevent acceptance/banking but must not prevent a reversible in-scope coding attempt from producing a durable candidate. After materialization, select the narrowest deterministic validation using the actual candidate paths while keeping command/policy semantics anchored to the immutable sealed base; candidate bytes may not mint their own validator. Widen only for dependency/release risk. Acceptance binds the exact validation contract actually passed so retained integration can replay it. Validation failure is returned for repair. Product success requires end-to-end product proof; lower-level guards cannot establish DONE by themselves.
 
 ## Migration law
 
@@ -71,7 +71,7 @@ The harness exists to make the owner's desired product state true.
 
 ## Quiescence law
 
-- Quiescence is an Observation, never a terminal authority state. When no currently observed product gap supports another action, say so in product language and leave the owner free to state a new desired result or return with observed friction.
+- Quiescence is an Observation, never a terminal authority state. When no currently observed product gap supports another action, say so in product language and leave the owner free to state a new desired result or return with observed friction. Do not create or refresh runtime/governance state merely to record quiescence or perform read-only inspection.
 - Do not infer "no active slice" from disposable process topology, and do not make waiting a prerequisite for future product work.
 - A genuine `NEED_OWNER` requires a mechanically proven owner-exclusive effect after bounded autonomous alternatives are exhausted. A genuine `CANNOT_COMPLETE` requires bounded evidence that the desired product state is impossible or materially unsafe on the supported environment.
 

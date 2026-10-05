@@ -114,6 +114,7 @@ test("package-owned runtime skills are explicit while ambient Codex skills stay 
   for (const relativePath of ["lib/work-loop.js", "lib/proposal-worker-packet.js"]) {
     const source = fs.readFileSync(path.join(ROOT, relativePath), "utf8");
     assert.match(source, /renderProfessionalSkillBodies/u, `${relativePath} must inject committed professional procedures`);
+    assert.match(source, /professionalSkillQuery/u, `${relativePath} must select professional procedure bodies from the sealed slice`);
     assert.match(source, /session\.base\.commit/u, `${relativePath} must bind professional procedures to the sealed product commit`);
   }
 });

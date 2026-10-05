@@ -91,6 +91,22 @@ test("comparison and evidence density can select an app payload without adding U
   assert.equal(evidence.model.hasEvidence, true);
 });
 
+test("terminal no-next handoff stays text even when rich hints request more UI", () => {
+  const source = envelope({
+    kind: "APP",
+    shape: "COMPARISON",
+    itemCount: 8,
+    hasBranches: true,
+    hasEvidence: true,
+    textMode: "COMPLETION",
+  });
+  source.next = null;
+  const projection = projectHumanHandoff(source);
+  assert.equal(projection.kind, "TEXT");
+  assert.equal(projection.model, null);
+  assert.equal(projection.text, "Done — The requested result is observable.\n");
+});
+
 test("explicit rich mode cannot manufacture missing structure", () => {
   const invalidDiagram = projectHumanHandoff(envelope({
     kind: "DIAGRAM",
