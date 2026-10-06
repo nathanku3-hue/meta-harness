@@ -193,6 +193,7 @@ test("project startup projection validates declared canonical sources and freshn
 
 test("declared startup source byte budget rejects bloated current-truth surfaces", () => {
   const root = tempDir("meta-harness-project-budget-");
+  assert.equal(spawnSync("git", ["init"], { cwd: root, encoding: "utf8", shell: false }).status, 0);
   writeDeclaration(root, declaration({
     startupContext: {
       sources: [{
@@ -211,6 +212,13 @@ test("declared startup source byte budget rejects bloated current-truth surfaces
   assert.equal(startup.sources[0].status, "invalid");
   assert.ok(startup.sources[0].sizeBytes > 64);
   assert.match(startup.blockers.join("\n"), /source exceeds declared maxBytes 64/);
+
+  const inspected = runRaw(root, ["inspect", "--json"]);
+  assert.equal(inspected.status, 0, inspected.stderr);
+  const payload = JSON.parse(inspected.stdout);
+  assert.equal(payload.startupContext.status, "READY");
+  assert.equal(payload.startupContext.sources[0].status, "invalid");
+  assert.deepEqual(payload.startupContext.blockers, []);
 });
 
 test("stale required source blocks startup instead of falling back to chat or another file", () => {

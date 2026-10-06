@@ -25,13 +25,16 @@ Confidence: <value or not recorded>
 Worker: <worker-id>
 Stream: <stream>
 Task: <bounded task>
-Phase: <phase>
 Updated: <ISO timestamp>
-Ship gate tier: <FAST|REVIEW|SLOW|BLOCK>
-Task resolution: <ship|blocked|decision-needed|follow-up-queued>
 ```
 
 `Outcome:` is evidence metadata, not the product result. No title, hash, command log, reviewer note, or status field may precede the five required product fields.
+
+## Legacy compatibility boundary
+
+The internal worker-report CLI may continue accepting legacy lifecycle and decision inputs, and machine event records may retain `phase`, `ship_gate_tier`, and `task_resolution` for compatibility. Newly generated Markdown worker reports must not render `Phase:`, `Ship gate tier:`, `Task resolution:`, `## What decision is needed`, or `Decision needed from user:`. Historical reports are not migrated.
+
+Those compatibility values do not grant product, planner, Outcome, Claim, work-session, ExecutionPermit, worker, or owner authority.
 
 ## Completion law
 
@@ -42,7 +45,9 @@ Task resolution: <ship|blocked|decision-needed|follow-up-queued>
 - After shipped or value-confirmed completion, return `USE_PRODUCT`; do not queue another build unless the owner explicitly changes scope or a complete observed supported-use defect warrant exists.
 - `PARTIAL_WITH_EXPLICIT_SCOPE` and `REJECTED` require a concrete product blocker.
 - Silent documentation-only fallback from requested implementation, execution, validation, or data-output work is forbidden.
+- A failed domain hypothesis or ordinary experiment is a result, not a governance event. Do not create reflection, policy, lifecycle, or status fanout merely because the result is negative.
+- The default number of new supporting meta-artifacts for a bounded result is zero. Add one only when it protects a concrete non-reconstructable invariant or recovery fact.
 
 ## Supporting sections
 
-After metadata, include only useful sections: what changed, why it matters, blocker, decision, next action, validation/evidence, and accountability. The normal chat closure remains concise and must not paste the full report unless requested.
+After metadata, include only useful sections: what changed, why it matters, blocker, next action, validation/evidence, and accountability. This file is machine/audit evidence only. Normal chat closure follows `templates/contracts/human-handoff-contract.md` and must never paste or lightly paraphrase the full worker report unless the user explicitly requests audit evidence.

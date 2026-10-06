@@ -22,6 +22,8 @@ The harness exists to make the owner's desired product state true.
 - External effects are governed by exact effect intent, replay identity, reversibility, and material consequence. Replay-safe effects may recover automatically; irreversible or materially consequential product choices remain owner decisions.
 - Mandatory solving order is Outcome -> Observation/gap -> nearest reversible Action -> execute -> exact external-effect check. Authority/approval/phase/lease/reviewer language must never be used as the first planning primitive.
 - Effect checks live at the physical side-effect boundary. A future unavailable effect cannot pre-block reversible scaffolding, coding, validation, or local deterministic work already inside scope.
+- Narrative severance: prior worker prose, reflections, phase labels, and lifecycle summaries are observations only. A new action must be reconstructed from the owner outcome, Git facts, executable code, reproducible results, current observations, invariants, and capabilities; inherited narrative never becomes authority by repetition.
+- Complexity has a negative budget. The default number of new meta-documents, receipts, status files, or lifecycle artifacts for one bounded result is zero. Every additional durable artifact must protect a concrete property that cannot already be reconstructed from Git, code, the direct result, or an existing journal fact.
 
 ## Coordination law
 
@@ -37,6 +39,7 @@ The harness exists to make the owner's desired product state true.
 - Every successful model-visible local mutation must already have a durable reconstructable Git snapshot and journal fact before success is exposed to the model.
 - Workspaces, worker processes, controller processes, and tool-host sessions are disposable execution children. Missing, stale, terminal, corrupt, or mismatched execution children are replaced from durable state without renegotiating the product.
 - A failed effect or route becomes an observation returned to the same product-solving loop. Failed means is not failed Outcome.
+- A domain hypothesis or ordinary product experiment that fails normally produces only the reproducible result and the minimum machine-readable failed-means fact needed to avoid repeating the same attempt. Business/scientific failure alone must not trigger reflection prose, a new policy layer, a new gate, or a new lifecycle artifact.
 - Repeated materially identical means may be circuit-broken; a circuit applies only to that exact means/input/runtime fingerprint.
 - External effects use intent-first recovery: persist exact effect intent and replay identity before execution, then persist observation. Never blindly retry an ambiguous non-replayable external effect.
 
@@ -83,7 +86,8 @@ Worker reports begin with: User journey executed; Observable result produced; Us
 When updating `E:\Code\post_phase_reflection.md`:
 
 - Read Meta-Harness product intent before repository status or recent execution evidence.
-- Record only durable cross-repository lessons that improve Meta-Harness, prompting, worker-auditor behavior, or tool boundaries.
+- Record only durable cross-repository lessons caused by repeated or systemic Meta-Harness/tooling failure that improve Meta-Harness, prompting, worker behavior, or tool boundaries.
+- A domain hypothesis, product experiment, benchmark, or ordinary implementation attempt that returns FAIL/negative evidence does not trigger reflection by itself. Preserve its direct result and move on.
 - Do not use the file as a repository status report, execution log, test transcript, commit history, custody record, or duplicate roadmap.
 - Repository-specific facts may appear only as the minimum evidence needed to support a reusable lesson.
 - Keep detailed repository evidence in that repository's local status, worker report, or evidence directory.

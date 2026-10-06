@@ -45,6 +45,8 @@ Those compatibility values do not grant product, planner, Outcome, Claim, work-s
 - After shipped or value-confirmed completion, return `USE_PRODUCT`; do not queue another build unless the owner explicitly changes scope or a complete observed supported-use defect warrant exists.
 - `PARTIAL_WITH_EXPLICIT_SCOPE` and `REJECTED` require a concrete product blocker.
 - Silent documentation-only fallback from requested implementation, execution, validation, or data-output work is forbidden.
+- A failed domain hypothesis or ordinary experiment is a result, not a governance event. Do not create reflection, policy, lifecycle, or status fanout merely because the result is negative.
+- The default number of new supporting meta-artifacts for a bounded result is zero. Add one only when it protects a concrete non-reconstructable invariant or recovery fact.
 
 ## Supporting sections
 
