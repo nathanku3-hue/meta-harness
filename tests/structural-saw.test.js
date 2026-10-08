@@ -75,6 +75,29 @@ test("structural SAW is repository-policy-owned and rejects partial bundles", (t
   );
 });
 
+test("adopted repo CODEOWNERS does not silently opt into structural SAW", (t) => {
+  const { root, baseline } = repository(t);
+  const ownerFile = path.join(root, ".github", "CODEOWNERS");
+  fs.mkdirSync(path.dirname(ownerFile), { recursive: true });
+  fs.writeFileSync(ownerFile, "* @maintainers\n", "utf8");
+  const predecessor = preparePredecessorStructuralSaw(root);
+  assert.equal(predecessor.policyBundle.active, false);
+
+  // Changing ordinary CODEOWNERS is not a self-modification of a policy
+  // that this repository never opted into. Other Git/CI protections remain.
+  fs.writeFileSync(ownerFile, "* @new-maintainers\n", "utf8");
+  const evidence = evaluateStructuralSaw({
+    repositoryPath: root,
+    workspacePath: root,
+    predecessorProductCommit: baseline,
+    candidateTreeOid: git(root, ["rev-parse", "HEAD^{tree}"]),
+    changedPaths: [".github/CODEOWNERS"],
+    predecessor,
+  });
+  assert.equal(evidence.passed, true);
+  assert.deepEqual(evidence.regressions, []);
+});
+
 test("current product tree grandfathers old debt but blocks new or worsened structural facts", (t) => {
   const predecessorRoot = tempDir("structural-saw-predecessor-");
   t.after(() => fs.rmSync(predecessorRoot, { recursive: true, force: true }));
