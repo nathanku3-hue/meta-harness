@@ -6,6 +6,7 @@ const path = require("node:path");
 const test = require("node:test");
 
 const {
+  DEFAULT_NEW_FILE_LIMIT,
   MAX_FILE_BYTES,
   materializeWorkerOperations,
 } = require("../lib/work-materializer");
@@ -49,6 +50,61 @@ test("materializer applies DELETE and MOVE as explicit typed operations", (t) =>
   assert.equal(fs.existsSync(path.join(root, "src", "delete-me.txt")), false);
   assert.equal(fs.existsSync(path.join(root, "src", "before.txt")), false);
   assert.equal(fs.readFileSync(path.join(root, "src", "after.txt"), "utf8"), "move\n");
+});
+
+test("materializer caps broad-scope new-file fanout but allows exact-scoped creation", (t) => {
+  const { root } = workspace(t);
+  const tooMany = Array.from({ length: DEFAULT_NEW_FILE_LIMIT + 1 }, (_, index) => ({
+    type: "WRITE",
+    path: `src/new-${index}.txt`,
+    content: `${index}\n`,
+  }));
+
+  assert.throws(
+    () => materializeWorkerOperations(root, tooMany, ["src"]),
+    (error) => error.code === "MH_WORK_ARTIFACT_POLICY" && /at most/.test(error.message),
+  );
+  assert.equal(fs.existsSync(path.join(root, "src", "new-0.txt")), false);
+
+  const exactPaths = tooMany.map((operation) => operation.path);
+  const changedPaths = materializeWorkerOperations(root, tooMany, exactPaths);
+  assert.deepEqual(changedPaths, exactPaths.slice().sort());
+});
+
+test("materializer requires exact scope for new slop-prone artifact names", (t) => {
+  const { root } = workspace(t);
+  const blocked = [
+    "tests/test_alpha_v2.py",
+    "tests/test_alpha_20261007.py",
+    "docs/saw_reports/saw_alpha.md",
+    "docs/alpha_constitution.md",
+    "docs/alpha_court.md",
+    "docs/post_phase_reflection.md",
+  ];
+
+  for (const relativePath of blocked) {
+    assert.throws(
+      () => materializeWorkerOperations(root, [{ type: "WRITE", path: relativePath, content: "x\n" }], [relativePath.split("/")[0]]),
+      (error) => error.code === "MH_WORK_ARTIFACT_POLICY" && /exact allowed path/.test(error.message),
+      relativePath,
+    );
+  }
+
+  const allowed = "tests/test_alpha_v2.py";
+  materializeWorkerOperations(root, [{ type: "WRITE", path: allowed, content: "x\n" }], [allowed]);
+  assert.equal(fs.readFileSync(path.join(root, ...allowed.split("/")), "utf8"), "x\n");
+});
+
+test("materializer allows broad-scope edits to existing versioned files", (t) => {
+  const { root } = workspace(t);
+  fs.mkdirSync(path.join(root, "src"));
+  fs.writeFileSync(path.join(root, "src", "engine_v2.py"), "before\n", "utf8");
+
+  materializeWorkerOperations(root, [
+    { type: "WRITE", path: "src/engine_v2.py", content: "after\n" },
+  ], ["src"]);
+
+  assert.equal(fs.readFileSync(path.join(root, "src", "engine_v2.py"), "utf8"), "after\n");
 });
 
 test("materializer rejects duplicate touched paths before writing", (t) => {

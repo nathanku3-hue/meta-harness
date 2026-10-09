@@ -18,6 +18,10 @@ test("generateResearchPrompt includes question, constraints, and sorted file con
   assert.match(prompt, /How should the MCP slice stay deterministic\?/);
   assert.ok(prompt.indexOf("### a.js") < prompt.indexOf("### z.js"));
   assert.match(prompt, /No local network calls/);
+  assert.match(prompt, /smallest implementation recommendation/i);
+  assert.match(prompt, /numerical correctness, data integrity, security, or external effects/i);
+  assert.match(prompt, /Do not propose governance or process layers unless one is necessary to prevent a named failure/);
+  assert.doesNotMatch(prompt, /Governance or security risks/);
   assert.match(prompt, /Concrete next implementation steps/);
 });
 

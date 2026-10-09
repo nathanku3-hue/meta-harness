@@ -84,6 +84,23 @@ test("fresh execution workspace starts from sealed immutable base and cannot con
   assert.equal(path.dirname(workspace.workspacePath), path.join(fixture.root, ".worktrees"));
 });
 
+test("failed fresh workspace custody setup reclaims only its own clean worktree", (t) => {
+  const fixture = materializedRun(t);
+  const originalHead = git(fixture.root, ["rev-parse", "HEAD"]);
+  const originalIndex = git(fixture.root, ["ls-files", "-s"]);
+  const registry = path.join(commonGitDirectory(fixture.root), "meta-harness", "workspaces");
+  assert.equal(fs.existsSync(registry), false);
+  fs.mkdirSync(path.dirname(registry), { recursive: true });
+  fs.writeFileSync(registry, "not a directory", "utf8");
+
+  assert.throws(() => prepareWorkspace(fixture.root, fixture.session));
+  const managed = path.join(fixture.root, ".worktrees");
+  assert.deepEqual(fs.readdirSync(managed).filter((name) => name.startsWith("meta-harness-")), []);
+  assert.equal(git(fixture.root, ["worktree", "list", "--porcelain"]).includes("meta-harness-"), false);
+  assert.equal(git(fixture.root, ["rev-parse", "HEAD"]), originalHead);
+  assert.equal(git(fixture.root, ["ls-files", "-s"]), originalIndex);
+});
+
 test("immutable run snapshot records candidate bytes without moving workspace or source HEAD", (t) => {
   const fixture = materializedRun(t);
   const workspace = prepareWorkspace(fixture.root, fixture.session);

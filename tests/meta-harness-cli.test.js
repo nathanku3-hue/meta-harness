@@ -143,7 +143,7 @@ test("templates install refuses dirty repositories unless explicitly allowed", (
 
   const allowed = runRaw(cwd, ["templates", "install", "--allow-dirty"]);
   assert.equal(allowed.status, 0, allowed.stderr);
-  assert.equal(fs.existsSync(path.join(cwd, "AGENTS.md")), true);
+  assert.equal(fs.existsSync(path.join(cwd, "AGENTS.md")), false);
 });
 
 test("templates install copies reusable scope and handoff contracts", () => {
@@ -163,7 +163,8 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(list, /contracts\s+subagent-workcell-contract\.md/);
   assert.match(list, /contracts\s+trust-policy-contract\.md/);
   assert.match(list, /contracts\s+pm-brief-scan-contract\.md/);
-  assert.match(list, /contracts\s+post-phase-reflection-contract\.md/);
+  assert.doesNotMatch(list, /post-phase-reflection-contract\.md/);
+  assert.doesNotMatch(list, /work-session-v[1-7]\.md/);
   assert.match(list, /contracts\s+worker-done-contract\.md/);
   assert.match(list, /contracts\s+human-handoff-contract\.md/);
 
@@ -181,7 +182,6 @@ test("templates install copies reusable scope and handoff contracts", () => {
   const subagentWorkcellContract = path.join(harness, "templates", "contracts", "subagent-workcell-contract.md");
   const trustPolicyContract = path.join(harness, "templates", "contracts", "trust-policy-contract.md");
   const pmBriefScanContract = path.join(harness, "templates", "contracts", "pm-brief-scan-contract.md");
-  const postPhaseReflectionContract = path.join(harness, "templates", "contracts", "post-phase-reflection-contract.md");
   const workerDone = path.join(harness, "templates", "contracts", "worker-done-contract.md");
   const humanHandoff = path.join(harness, "templates", "contracts", "human-handoff-contract.md");
 
@@ -197,13 +197,13 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.equal(fs.existsSync(subagentWorkcellContract), true);
   assert.equal(fs.existsSync(trustPolicyContract), true);
   assert.equal(fs.existsSync(pmBriefScanContract), true);
-  assert.equal(fs.existsSync(postPhaseReflectionContract), true);
+  assert.equal(fs.existsSync(path.join(harness, "templates", "contracts", "post-phase-reflection-contract.md")), false);
+  for (let version = 1; version <= 7; version += 1) {
+    assert.equal(fs.existsSync(path.join(harness, "templates", "contracts", `work-session-v${version}.md`)), false);
+  }
   assert.equal(fs.existsSync(workerDone), true);
   assert.equal(fs.existsSync(humanHandoff), true);
-  const agentsText = fs.readFileSync(path.join(cwd, "AGENTS.md"), "utf8");
-  assert.match(agentsText, /META-HARNESS:POST-PHASE-REFLECTION:BEGIN/);
-  assert.match(agentsText, /Record only durable cross-repository lessons/);
-  assert.match(agentsText, /META-HARNESS:POST-PHASE-REFLECTION:END/);
+  assert.equal(fs.existsSync(path.join(cwd, "AGENTS.md")), false);
   const expertFrontCardText = fs.readFileSync(expertFrontCard, "utf8");
   const subagentWorkcellText = fs.readFileSync(subagentWorkcell, "utf8");
   const distilledTasteCapsuleText = fs.readFileSync(distilledTasteCapsule, "utf8");
@@ -220,7 +220,6 @@ test("templates install copies reusable scope and handoff contracts", () => {
   assert.match(fs.readFileSync(subagentWorkcellContract, "utf8"), /PM brief \+ artifact paths \+ decision inbox entries only/);
   assert.match(fs.readFileSync(trustPolicyContract, "utf8"), /local capsule names/);
   assert.match(fs.readFileSync(pmBriefScanContract, "utf8"), /Existing `brief pm` generator output may fail/);
-  assert.match(fs.readFileSync(postPhaseReflectionContract, "utf8"), /Do not use the file as a repository status report/);
   const scopeSelectorText = fs.readFileSync(scopeSelector, "utf8");
   assert.match(scopeSelectorText, /Product result:/);
   assert.match(scopeSelectorText, /Primary action:/);

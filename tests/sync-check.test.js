@@ -61,7 +61,6 @@ function installMatchingTemplates(sourceRoot, targetRoot) {
   const relativePaths = [
     "templates/skills/scope-selector.md",
     "templates/contracts/worker-done-contract.md",
-    "templates/contracts/post-phase-reflection-contract.md",
   ].filter((relativePath) => fs.existsSync(path.join(sourceRoot, ...relativePath.split("/"))));
   for (const relativePath of relativePaths) {
     const content = fs.readFileSync(path.join(sourceRoot, ...relativePath.split("/")), "utf8");
@@ -106,37 +105,37 @@ test("sync check passes when source and installed templates match", () => {
   assert.equal(result.items.some((item) => item.path === "contracts/worker-done-contract.md"), true);
 });
 
-test("sync check enforces the managed post-phase reflection block in active AGENTS guidance", () => {
+test("sync check ignores retired reflection guidance and does not gate AGENTS.md", () => {
   const sourceRoot = tempDir();
   const targetRoot = tempDir();
-  const guidance = [
-    "<!-- META-HARNESS:POST-PHASE-REFLECTION:BEGIN -->",
-    "## Meta-Harness post-phase reflection",
-    "Record only durable cross-repository lessons.",
-    "<!-- META-HARNESS:POST-PHASE-REFLECTION:END -->",
-    "",
-  ].join("\n");
-  writeFile(sourceRoot, "templates/contracts/post-phase-reflection-contract.md", guidance);
+  writeFile(sourceRoot, "templates/contracts/post-phase-reflection-contract.md", "retired\n");
+  writeFile(sourceRoot, "templates/contracts/work-session-v7.md", "retired\n");
+  writeFile(sourceRoot, "templates/contracts/worker-done-contract.md", "active\n");
   installMatchingTemplates(sourceRoot, targetRoot);
+  writeFile(targetRoot, ".meta-harness/templates/contracts/post-phase-reflection-contract.md", "stale installed copy\n");
+  writeFile(targetRoot, ".meta-harness/templates/contracts/work-session-v7.md", "stale installed copy\n");
+  const manifestPath = path.join(targetRoot, ".meta-harness", "templates", "manifest.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  manifest.templates.push(
+    {
+      source_path: "templates/contracts/post-phase-reflection-contract.md",
+      installed_path: ".meta-harness/templates/contracts/post-phase-reflection-contract.md",
+      content_hash: "stale-retired-reflection-hash",
+    },
+    {
+      source_path: "templates/contracts/work-session-v7.md",
+      installed_path: ".meta-harness/templates/contracts/work-session-v7.md",
+      content_hash: "stale-retired-work-session-hash",
+    },
+  );
+  manifest.template_count = manifest.templates.length;
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), "utf8");
 
-  const missing = checkTemplateSync({ sourceRoot, targetRoot });
-  assert.equal(missing.status, "FAIL");
-  assert.deepEqual(missing.items.find((item) => item.path.includes("meta-harness-post-phase-reflection")), {
-    status: "MISSING",
-    path: "AGENTS.md#meta-harness-post-phase-reflection",
-    detail: "managed post-phase reflection guidance is missing",
-  });
-
-  writeFile(targetRoot, "AGENTS.md", guidance);
-  const pass = checkTemplateSync({ sourceRoot, targetRoot });
-  assert.equal(pass.status, "PASS");
-  assert.equal(pass.items.at(-1).status, "PASS");
-  assert.equal(pass.items.at(-1).path, "AGENTS.md#meta-harness-post-phase-reflection");
-
-  writeFile(targetRoot, "AGENTS.md", guidance.replace("durable", "temporary"));
-  const drift = checkTemplateSync({ sourceRoot, targetRoot });
-  assert.equal(drift.status, "FAIL");
-  assert.equal(drift.items.at(-1).status, "DRIFT");
+  writeFile(targetRoot, "AGENTS.md", "repository-owned guidance\n");
+  const result = checkTemplateSync({ sourceRoot, targetRoot });
+  assert.equal(result.status, "PASS");
+  assert.equal(result.items.some((item) => item.path.includes("post-phase-reflection")), false);
+  assert.equal(result.items.some((item) => item.path.includes("work-session-v7")), false);
 });
 
 test("sync check reports missing installed templates", () => {

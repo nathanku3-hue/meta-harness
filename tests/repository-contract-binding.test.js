@@ -1,6 +1,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
@@ -92,6 +93,30 @@ test("repository contracts derive from the exact Git base without a durable side
     ? fs.readdirSync(runRoot, { recursive: true }).filter((entry) => String(entry).endsWith("repository-contract-bindings.json"))
     : [];
   assert.deepEqual(sidecars, []);
+});
+
+test("task-scoped projection does not duplicate every professional skill body", (t) => {
+  const { root, head } = fixture(t);
+  const compiled = compileRepositoryContractBindings({ repositoryPath: root, baseCommit: head });
+  const skillBody = "---\nname: quant-test\ndescription: check relevance\n---\nGLOBAL_SKILL_BODY_SHOULD_NOT_APPEAR\n";
+  const skill = {
+    ...compiled.bindings[0],
+    path: ".codex/skills/quant-test/SKILL.md",
+    content: skillBody,
+    contentDigest: `sha256:${crypto.createHash("sha256").update(skillBody).digest("hex")}`,
+  };
+  const bound = { ...compiled, bindings: [compiled.bindings[0], skill, compiled.bindings[1]] };
+  const complete = renderRepositoryContractBindings(bound);
+  assert.match(complete, /GLOBAL_SKILL_BODY_SHOULD_NOT_APPEAR/u);
+  const unselected = renderRepositoryContractBindings(bound, { professionalSkillPaths: [] });
+  assert.match(unselected, /GLOBAL_SKILL_BODY_SHOULD_NOT_APPEAR/u);
+  const sparse = renderRepositoryContractBindings(bound, { professionalSkillPaths: [skill.path] });
+  assert.match(sparse, /Which uncertainty must this slice resolve/u);
+  assert.match(sparse, /\.codex\/skills\/quant-test\/SKILL\.md/u);
+  assert.match(sparse, /task-selected/u);
+  assert.doesNotMatch(sparse, /GLOBAL_SKILL_BODY_SHOULD_NOT_APPEAR/u);
+  assert.doesNotMatch(sparse, /secret_control/u);
+  assert.deepEqual(protectedRepositoryContractPaths(bound), [bound.bindings[0].path, skill.path, bound.bindings[2].path]);
 });
 
 test("repository contract projection reconstructs deterministically from immutable Git", (t) => {
