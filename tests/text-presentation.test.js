@@ -54,6 +54,18 @@ test("terminal completion can be one compact owner-facing line", () => {
   assert.equal(lines(result.text).length, 1);
 });
 
+test("a DONE label without an observable result never invents product success", () => {
+  const handoff = humanEnvelopeForResult({
+    outcome: "DONE",
+    productResult: "The application supports CSV export.",
+    observableResult: "",
+  });
+  const rendered = compileTextPresentation(handoff).text;
+  assert.equal(handoff.presentation.textMode, "CONTINUATION");
+  assert.match(rendered, /^Not done — Completion was reported without an observable product result\./u);
+  assert.doesNotMatch(rendered, /Done —|application supports CSV export|Requested result works/u);
+});
+
 test("explicit next remains supported when terminal callers truly have one", () => {
   const result = compileTextPresentation(envelope("COMPLETION"));
   assert.equal(result.text, "Done — CSV export works and validation passed.\nNext — Use the result.\n");

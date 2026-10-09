@@ -70,9 +70,11 @@ test("candidate AGENTS models quiescence as observation rather than terminal aut
   assert.doesNotMatch(agents, /classify internally as `NO_BUILD`/i);
 });
 
-test("candidate AGENTS keeps unsealed direct ChatGPT\/DevSpace entry diagnostic-only", () => {
+test("candidate AGENTS permits owner-requested reversible work without entrypoint ceremony", () => {
   const agents = read("AGENTS.md");
-  assert.match(agents, /ChatGPT\/DevSpace direct sessions are read\/diagnostic until a sealed native\/Meta task defines bounded writable paths, validation, and Git effects/i);
+  assert.match(agents, /Owner-requested, reversible in-scope changes may be made directly through available ChatGPT\/DevSpace workspace tools/i);
+  assert.match(agents, /Do not require a sealed native\/Meta task, nonexistent entrypoint, extra handoff, or permission ceremony/i);
+  assert.match(agents, /preserve unrelated dirty bytes, Git HEAD\/branch\/index, protected PRODUCT\.md, and external-effect boundaries/i);
   assert.match(agents, /coding worker is read-only with respect to the workspace/i);
   assert.match(agents, /controller owns materialization, snapshotting, validation, local banking, integration, and permitted external effects/i);
 });

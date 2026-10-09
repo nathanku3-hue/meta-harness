@@ -17,7 +17,8 @@ const { readRunEventsForSession, commonGitDirectory: journalCommonGitDirectory }
 const { validationFailureObservation } = require("../lib/model-observation");
 const { pinProductDirection } = require("../lib/product-direction");
 const { createGoalWorkSession } = require("../lib/work-session");
-const { DRAIN_COMPLETE, runWork } = require("../lib/work-loop");
+const { DRAIN_COMPLETE, runWork, workerReportsCompleteResult, hasDifferentialValidationEvidence, baselineWithCandidateTests } = require("../lib/work-loop");
+const { runWorkSessionState } = require("../lib/work-git");
 const {
   git,
   persistInitial,
@@ -87,6 +88,55 @@ function stoppedResult() {
     },
   };
 }
+
+test("worker completion claim cannot be inferred from PARTIAL or absent observation", () => {
+  assert.equal(workerReportsCompleteResult({ status: "PARTIAL", observableResult: "Part of the feature is implemented." }), false);
+  assert.equal(workerReportsCompleteResult({ status: "DONE", observableResult: "" }), false);
+  assert.equal(workerReportsCompleteResult({ status: "DONE", observableResult: "The behavior was observed." }), true);
+});
+
+test("delta proof rejects unchanged-green tests and accepts observed red-to-green validation", () => {
+  const passed = [{ passed: true }];
+  assert.equal(hasDifferentialValidationEvidence(passed, [{ passed: true }]), false);
+  assert.equal(hasDifferentialValidationEvidence(passed, [{ passed: false }]), true);
+  assert.equal(hasDifferentialValidationEvidence(passed, []), false);
+  assert.equal(hasDifferentialValidationEvidence([{ passed: false }], [{ passed: false }]), false);
+});
+
+test("candidate-authored behavior tests can be checked against unchanged base code without mutating the real index", (t) => {
+  const { root, baseline } = repository(t);
+  const target = path.join(root, "tests", "export.test.js");
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, "const test = require('node:test'); test('export', () => {});\n");
+  fs.writeFileSync(path.join(root, "src", "a", "result.txt"), "delivered\n");
+  git(root, ["add", "tests/export.test.js", "src/a/result.txt"]);
+  const candidateTreeOid = git(root, ["write-tree"]);
+  const originalIndex = git(root, ["write-tree"]);
+  const mixed = baselineWithCandidateTests({
+    workspacePath: root,
+    baseCommit: baseline,
+    candidateTreeOid,
+    candidatePaths: ["tests/export.test.js", "src/a/result.txt"],
+  });
+  assert.ok(mixed && mixed !== candidateTreeOid);
+  assert.equal(git(root, ["ls-tree", "--name-only", mixed, "--", "tests/export.test.js"]), "tests/export.test.js");
+  assert.equal(git(root, ["ls-tree", "--name-only", mixed, "--", "src/a/result.txt"]), "");
+  assert.equal(git(root, ["write-tree"]), originalIndex);
+});
+
+test("direct owner goal does not replace its completion target with generic regression success", (t) => {
+  const { root } = repository(t);
+  const goal = "The CLI exports CSV rows with quoted Unicode values.";
+  const session = createGoalWorkSession({
+    goal,
+    repositoryPath: root,
+    productDirection: pinProductDirection(root),
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
+    allowedPaths: ["src/a"],
+    validation: [],
+  });
+  assert.equal(session.doneWhen, goal);
+});
 
 test("model-facing validation failure translates access errors into capability observations", () => {
   const observation = validationFailureObservation([{
@@ -178,6 +228,118 @@ test("validated REPO_RUN reaches local DONE with run capability, acceptance, and
   });
   assert.ok(events.some((event) => event.type === "mutation/result"));
   assert.ok(events.some((event) => event.type === "run/completed"));
+});
+
+test("worker DONE and a green historical regression cannot become product DONE", { skip: process.platform !== "linux" }, async (t) => {
+  const { root } = repository(t);
+  const policyFile = path.join(root, ".meta-harness", "validation.json");
+  const policy = JSON.parse(fs.readFileSync(policyFile, "utf8"));
+  policy.commands[0].argv = ["node", "-e", "process.exit(0)"];
+  fs.writeFileSync(policyFile, `${JSON.stringify(policy)}\n`, "utf8");
+  git(root, ["add", "."]);
+  git(root, ["commit", "-m", "seal baseline-green regression test"]);
+  const session = createGoalWorkSession({
+    goal: "Create a user-visible export command.",
+    repositoryPath: root,
+    productDirection: pinProductDirection(root),
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
+    allowedPaths: ["src/a"],
+    validation: [],
+  });
+  const result = await runWork({ repositoryPath: root, session, runner: async () => doneResult("a") });
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.equal(result.delivery.validation, "passed");
+  assert.equal(result.acceptance, null);
+  assert.equal(result.delivery.commit.status, "not_attempted");
+  assert.match(result.blocker, /not been demonstrated/iu);
+  const events = readRunEventsForSession({ gitCommonDirectory: journalCommonGitDirectory(root), sessionDigest: session.sessionDigest });
+  assert.ok(events.some((entry) => entry.type === "validation/goal-delta" && entry.data.differentialEvidence === false));
+});
+
+test("candidate behavior test must fail against baseline code before a new feature is DONE", { skip: process.platform !== "linux" }, async (t) => {
+  const { root } = repository(t);
+  const policyFile = path.join(root, ".meta-harness", "validation.json");
+  const policy = JSON.parse(fs.readFileSync(policyFile, "utf8"));
+  policy.commands[0].argv = ["node", "--test"];
+  fs.writeFileSync(policyFile, `${JSON.stringify(policy)}\n`, "utf8");
+  git(root, ["add", "."]);
+  git(root, ["commit", "-m", "seal automatic test discovery"]);
+  const session = createGoalWorkSession({
+    goal: "Write src/a/result.txt with delivered content and verify its observable behavior.",
+    repositoryPath: root,
+    productDirection: pinProductDirection(root),
+    base: { type: "EXACT_COMMIT", commit: git(root, ["rev-parse", "HEAD"]) },
+    allowedPaths: ["src/a", "tests/export.test.js"],
+    validation: [],
+  });
+  const runner = async () => {
+    const proposed = doneResult("a");
+    proposed.result.operations.push({
+      type: "WRITE",
+      path: "tests/export.test.js",
+      content: "const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');test('export behavior',()=>assert.equal(fs.readFileSync('src/a/result.txt','utf8'),'delivered\\n'));\n",
+    });
+    return proposed;
+  };
+  const result = await runWork({ repositoryPath: root, session, runner });
+  assert.equal(result.outcome, "DONE");
+  assert.equal(result.delivery.commit.status, "committed");
+  const events = readRunEventsForSession({ gitCommonDirectory: journalCommonGitDirectory(root), sessionDigest: session.sessionDigest });
+  const delta = events.find((entry) => entry.type === "validation/goal-delta" && entry.data.differentialEvidence);
+  assert.ok(delta);
+  assert.ok(delta.data.candidateTestBaselineVerificationDigest);
+});
+
+test("a validated PARTIAL worker result cannot become DONE or a committed product", { skip: process.platform !== "linux" }, async (t) => {
+  const fixture = materializedRun(t, "a");
+  const result = await runWork({
+    repositoryPath: fixture.root,
+    session: fixture.session,
+    runner: async () => {
+      const proposed = doneResult("a");
+      proposed.result.status = "PARTIAL";
+      proposed.result.observableResult = "Code prepared; requested behavior still incomplete.";
+      return proposed;
+    },
+  });
+  assert.equal(result.outcome, "REPLAN_REQUIRED");
+  assert.equal(result.delivery.validation, "passed");
+  assert.equal(result.delivery.commit.status, "not_attempted");
+  assert.equal(result.acceptance, null);
+  assert.deepEqual(result.changedPaths, ["src/a/result.txt"]);
+  assert.match(result.blocker, /not been demonstrated/iu);
+});
+
+test("interrupted validated PARTIAL retains candidate bytes for attempt 2 after resume", { skip: process.platform !== "linux" }, async (t) => {
+  const fixture = materializedRun(t, "a");
+  const controller = new AbortController();
+  const first = await runWork({
+    repositoryPath: fixture.root,
+    session: fixture.session,
+    signal: controller.signal,
+    onProgress: (stage) => { if (stage === "repairing") controller.abort(); },
+    runner: async () => {
+      const proposed = doneResult("a");
+      proposed.result.status = "PARTIAL";
+      return proposed;
+    },
+  });
+  assert.deepEqual(first, DRAIN_COMPLETE);
+  const recovery = runWorkSessionState(fixture.root, fixture.session);
+  assert.equal(recovery.state, "ACTIVE");
+  let observedRetainedBytes = false;
+  const resumed = await runWork({
+    repositoryPath: fixture.root,
+    session: recovery.session,
+    runner: async ({ workspacePath, attempt }) => {
+      assert.equal(attempt, 2);
+      observedRetainedBytes = fs.readFileSync(path.join(workspacePath, "src/a/result.txt"), "utf8") === "delivered\n";
+      return doneResult("a");
+    },
+  });
+  assert.equal(observedRetainedBytes, true);
+  assert.equal(resumed.outcome, "DONE");
+  assert.equal(resumed.delivery.commit.status, "committed");
 });
 
 test("failed validation is repair input and a materially changed candidate can still reach DONE", { skip: process.platform !== "linux" }, async (t) => {
